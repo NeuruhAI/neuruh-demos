@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N-Cell Runtime Adapter - Working Demo (Simulation)</title>
+<style>
+  :root { --bone:#f7f4ee; --paper:#ffffff; --ink:#1a1714; --muted:#6b6257; --brass:#a67c2e; --brass-soft:#e9ddc2; --line:#ddd5c4; --red:#8f2d1e; --green:#2e5d3a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Inter, "Helvetica Neue", Arial, sans-serif; font-size:15px; line-height:1.55; }
+  h1,h2,h3 { font-family:Archivo, "Helvetica Neue", Arial, sans-serif; }
+  code, .mono { font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .wrap { max-width:980px; margin:0 auto; padding:24px 20px 64px; }
+  .dochead { border-top:4px solid var(--brass); border-bottom:1px solid var(--line); padding:18px 0 14px; }
+  .dochead .kicker { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--brass); font-weight:700; }
+  .dochead h1 { margin:6px 0 4px; font-size:30px; line-height:1.15; }
+  .dochead p.sub { margin:0; color:var(--muted); font-size:14px; }
+  .banner { background:#fdf3e3; border:2px solid var(--brass); border-left-width:8px; padding:16px 18px; margin:20px 0; }
+  .banner h2 { margin:0 0 8px; font-size:17px; color:var(--red); }
+  .banner p { margin:6px 0; }
+  .banner ul { margin:8px 0 0; padding-left:20px; }
+  .meta { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin:0 0 24px; }
+  .meta div { background:var(--paper); padding:10px 12px; }
+  .meta .k { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+  .meta .v { font-weight:700; font-size:13px; margin-top:2px; }
+  .card { background:var(--paper); border:1px solid var(--line); padding:20px; margin:0 0 24px; }
+  .card h2 { margin:0 0 4px; font-size:20px; }
+  .card h2 .num { color:var(--brass); }
+  .card p.intro { color:var(--muted); margin:0 0 16px; font-size:14px; }
+  .card h3 { font-size:15px; margin:18px 0 8px; border-bottom:1px solid var(--line); padding-bottom:4px; }
+  label.f { display:block; font-size:13px; font-weight:700; margin:12px 0 4px; }
+  label.f span.hint { font-weight:400; color:var(--muted); }
+  input[type=text], input[type=number], select { width:100%; max-width:420px; padding:8px 10px; border:1px solid var(--line); background:#fff; font:inherit; font-size:14px; }
+  input[type=range] { width:100%; max-width:420px; }
+  .bits { display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 2px; }
+  .bits label { display:inline-flex; align-items:center; gap:5px; border:1px solid var(--line); background:var(--bone); padding:5px 9px; font-size:12.5px; cursor:pointer; }
+  .bits label.on { background:var(--brass-soft); border-color:var(--brass); }
+  .bits input { accent-color:var(--brass); }
+  button { font:inherit; font-size:14px; font-weight:700; padding:9px 16px; border:1px solid var(--brass); background:var(--brass); color:#fff; cursor:pointer; margin:6px 6px 6px 0; }
+  button.secondary { background:#fff; color:var(--ink); border-color:var(--line); }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  .out { background:var(--bone); border:1px solid var(--line); padding:14px; margin-top:14px; }
+  .out h4 { margin:0 0 8px; font-size:13px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+  .hexline { font-size:22px; letter-spacing:.08em; }
+  .hexline b { color:var(--brass); }
+  table { border-collapse:collapse; width:100%; font-size:13.5px; margin:8px 0; }
+  th, td { border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top; }
+  th { background:var(--bone); font-size:12px; letter-spacing:.06em; text-transform:uppercase; }
+  .verdict { font-size:18px; font-weight:800; padding:10px 14px; border:2px solid; display:inline-block; margin:8px 0; }
+  .verdict.pass { color:var(--green); border-color:var(--green); background:#eef5ee; }
+  .verdict.partial { color:#7a5a00; border-color:#a67c2e; background:#fdf3e3; }
+  .verdict.blocked { color:var(--red); border-color:var(--red); background:#fbeeea; }
+  figure { margin:16px 0; }
+  figure svg { width:100%; height:auto; display:block; border:1px solid var(--line); background:#fff; }
+  figcaption { font-size:13px; color:var(--muted); margin-top:6px; }
+  .meter { height:14px; background:#ece7db; border:1px solid var(--line); }
+  .meter > div { height:100%; background:var(--brass); width:0%; }
+  .missing { color:var(--red); font-size:13.5px; }
+  .ok { color:var(--green); }
+  .receipt { border:1px solid var(--line); background:var(--bone); padding:12px; margin:10px 0; font-size:13.5px; }
+  .receipt .rid { font-weight:800; }
+  .pill { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; padding:2px 8px; border:1px solid var(--line); background:#fff; margin-right:6px; }
+  .pill.src { border-color:var(--brass); color:var(--brass); }
+  .pill.demo { border-color:var(--red); color:var(--red); }
+  .pill.gap { border-color:var(--red); background:#fbeeea; color:var(--red); }
+  .twocol { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  ol.steps li { margin-bottom:8px; }
+  .small { font-size:13px; color:var(--muted); }
+  .sharebox { word-break:break-all; background:#fff; border:1px solid var(--line); padding:10px; font-size:12.5px; }
+  @media (max-width:640px){ .meta{grid-template-columns:1fr 1fr;} .twocol{grid-template-columns:1fr;} .hexline{font-size:17px;} }
+  @media print {
+    body { background:#fff; }
+    .wrap { max-width:100%; padding:0; }
+    button, .noprint { display:none !important; }
+    .card { break-inside:avoid; border:1px solid #999; }
+    .banner { border:2px solid #000; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="dochead">
+  <div class="kicker">Neuruh Research Series - N-Cell Position Paper v0.1 - Adapter Design Demo</div>
+  <h1>N-Cell Runtime Adapter</h1>
+  <p class="sub">Header stamper, governance intersection calculator, and topology receipt emitter. A working simulation of the adapter design described in the paper.</p>
+</header>
+
+<section class="banner" id="honest-banner">
+  <h2>Honest label: this is a simulation, not a running adapter</h2>
+  <p>This page simulates what the N-Cell runtime adapter <em>would</em> do if it existed. It does not connect to AXON, to any registry, to any organ, or to the Vault. Every mask bit meaning on this page is a placeholder the user defines here, not a value from any live system.</p>
+  <ul>
+    <li><strong>No Organ Manifest exists for any organ.</strong> Until a manifest exists, organMask in a real N-Cell header is meaningless (source claim, runtime-scoping.md).</li>
+    <li><strong>No versioned mask schema exists.</strong> The paper requires the bit-to-meaning mapping to be declared in a versioned schema. None exists, so this demo uses placeholder mappings labeled as placeholders.</li>
+    <li><strong>No adapter repo, host, API, or store is named</strong> in any source. Language, host, and storage for the adapter are UNKNOWN.</li>
+    <li><strong>The paper's verification thresholds are unmet:</strong> no 20 percent efficiency gain has been measured, zero silent high-risk execution has not been demonstrated, and no paid or operational outcome with a documented counterfactual exists.</li>
+    <li><strong>The paper's own verdict:</strong> the adapter should not be built until a stable runtime exists. This demo shows what the adapter would do; it is not the adapter.</li>
+  </ul>
+</section>
+
+<div class="meta">
+  <div><div class="k">Document</div><div class="v">N-Cell Runtime Adapter Demo</div></div>
+  <div><div class="k">Version</div><div class="v">0.1 (demo)</div></div>
+  <div><div class="k">Date</div><div class="v">2026-11-04</div></div>
+  <div><div class="k">Status</div><div class="v">Simulation only - not deployed</div></div>
+  <div><div class="k">Source paper</div><div class="v">N-Cell Position Paper v0.1, July 2026</div></div>
+  <div><div class="k">Source scoping</div><div class="v">runtime-scoping.md, section 2</div></div>
+  <div><div class="k">Runtime</div><div class="v">None - browser only</div></div>
+  <div><div class="k">External calls</div><div class="v">None</div></div>
+</div>
+
+<figure>
+  <svg viewBox="0 0 920 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="N-Cell/64 8-byte header layout diagram">
+    <rect x="1" y="1" width="918" height="188" fill="#ffffff" stroke="#ddd5c4"/>
+    <text x="20" y="28" font-family="Archivo, Arial, sans-serif" font-size="15" font-weight="700" fill="#1a1714">Figure 1. The N-Cell/64 header: 8 bytes, one per field (paper section 3.3)</text>
+    <g font-family="JetBrains Mono, monospace" font-size="12" fill="#1a1714">
+      <g><rect x="20" y="48" width="100" height="64" fill="#f7f4ee" stroke="#a67c2e" stroke-width="2"/><text x="70" y="72" text-anchor="middle" font-weight="700">Byte 0</text><text x="70" y="90" text-anchor="middle">routeMask</text><text x="70" y="106" text-anchor="middle" fill="#6b6257">routes</text></g>
+      <g><rect x="128" y="48" width="100" height="64" fill="#f7f4ee" stroke="#a67c2e" stroke-width="2"/><text x="178" y="72" text-anchor="middle" font-weight="700">Byte 1</text><text x="178" y="90" text-anchor="middle">organMask</text><text x="178" y="106" text-anchor="middle" fill="#6b6257">organs</text></g>
+      <g><rect x="236" y="48" width="100" height="64" fill="#f7f4ee" stroke="#a67c2e" stroke-width="2"/><text x="286" y="72" text-anchor="middle" font-weight="700">Byte 2</text><text x="286" y="90" text-anchor="middle">lifecycleMask</text><text x="286" y="106" text-anchor="middle" fill="#6b6257">stage</text></g>
+      <g><rect x="344" y="48" width="100" height="64" fill="#f7f4ee" stroke="#a67c2e" stroke-width="2"/><text x="394" y="72" text-anchor="middle" font-weight="700">Byte 3</text><text x="394" y="90" text-anchor="middle">authorityMask</text><text x="394" y="106" text-anchor="middle" fill="#6b6257">authority</text></g>
+      <g><rect x="452" y="48" width="100" height="64" fill="#f7f4ee" stroke="#a67c2e" stroke-width="2"/><text x="502" y="72" text-anchor="middle" font-weight="700">Byte 4</text><text x="502" y="90" text-anchor="middle">memoryMask</text><text x="502" y="106" text-anchor="middle" fill="#6b6257">memory</text></g>
+      <g><rect x="560" y="48" width="100" height="64" fill="#fff" stroke="#a67c2e" stroke-width="2"/><text x="610" y="72" text-anchor="middle" font-weight="700">Byte 5</text><text x="610" y="90" text-anchor="middle">confidence</text><text x="610" y="106" text-anchor="middle" fill="#6b6257">0-255</text></g>
+      <g><rect x="668" y="48" width="100" height="64" fill="#fff" stroke="#a67c2e" stroke-width="2"/><text x="718" y="72" text-anchor="middle" font-weight="700">Byte 6</text><text x="718" y="90" text-anchor="middle">risk</text><text x="718" y="106" text-anchor="middle" fill="#6b6257">0-255</text></g>
+      <g><rect x="776" y="48" width="100" height="64" fill="#f7f4ee" stroke="#a67c2e" stroke-width="2"/><text x="826" y="72" text-anchor="middle" font-weight="700">Byte 7</text><text x="826" y="90" text-anchor="middle">outputMask</text><text x="826" y="106" text-anchor="middle" fill="#6b6257">outputs</text></g>
+    </g>
+    <text x="20" y="140" font-family="Inter, Arial, sans-serif" font-size="13" fill="#6b6257">Each mask byte packs 8 bits: R = sum of b_i x 2^i for i = 0..7 (paper section 3.2). Confidence and risk are quantized 0-255.</text>
+    <text x="20" y="162" font-family="Inter, Arial, sans-serif" font-size="13" fill="#6b6257">Bit meanings are placeholders in this demo. The paper requires them in a versioned schema; none exists.</text>
+  </svg>
+  <figcaption>Figure 1. N-Cell/64 header layout. Source claim: byte order and field names per paper section 3.3. Bit-to-meaning mappings on this page are demo placeholders, not source claims.</figcaption>
+</figure>
+
+<section class="card" id="stamper">
+  <h2><span class="num">1.</span> Header stamper</h2>
+  <p class="intro">Take a run description and stamp the 8-byte N-Cell/64 header onto it. Each byte is computed from the inputs by bit packing. <span class="pill demo">Demo placeholder masks</span> Bit meanings below are placeholders defined for this demo only; the paper does not define them.</p>
+
+  <div class="twocol">
+    <div>
+      <label class="f" for="runId">Run ID <span class="hint">required, e.g. RUN-2026-1104-001</span></label>
+      <input type="text" id="runId" value="" placeholder="RUN-2026-1104-001">
+      <label class="f" for="nodeId">Node ID <span class="hint">required, e.g. node-axon-01</span></label>
+      <input type="text" id="nodeId" value="" placeholder="node-axon-01">
+      <label class="f" for="caseId">Opportunity case <span class="hint">optional, e.g. OPP-2026-RE-0042</span></label>
+      <input type="text" id="caseId" value="" placeholder="OPP-2026-RE-0042">
+    </div>
+    <div>
+      <label class="f" for="confidencePct">Confidence <span class="hint">percent, quantized to 0-255: round(pct / 100 x 255)</span></label>
+      <input type="range" id="confidencePct" min="0" max="100" value="80">
+      <div><span class="mono" id="confidenceVal">80% = 204</span></div>
+      <label class="f" for="riskPct">Risk <span class="hint">percent, quantized to 0-255: round(pct / 100 x 255)</span></label>
+      <input type="range" id="riskPct" min="0" max="100" value="20">
+      <div><span class="mono" id="riskVal">20% = 51</span></div>
+    </div>
+  </div>
+
+  <h3>Byte 0 - routeMask <span class="hint small">placeholder mapping: 8 neighbor directions</span></h3>
+  <div class="bits" id="routeBits"></div>
+  <h3>Byte 1 - organMask <span class="hint small">placeholder mapping: specialist organs named in paper section 4</span></h3>
+  <div class="bits" id="organBits"></div>
+  <h3>Byte 2 - lifecycleMask <span class="hint small">placeholder mapping: workflow stages</span></h3>
+  <div class="bits" id="lifecycleBits"></div>
+  <h3>Byte 3 - authorityMask <span class="hint small">source claim: observe, recommend, draft, stage, execute, emergency block (paper section 3.3). Bit positions are placeholders.</span></h3>
+  <div class="bits" id="authorityBits"></div>
+  <h3>Byte 4 - memoryMask <span class="hint small">source claim: working, episodic, semantic, procedural, prospective, founder, outcome planes (paper section 3.3). Bit positions are placeholders.</span></h3>
+  <div class="bits" id="memoryBits"></div>
+  <h3>Byte 7 - outputMask <span class="hint small">source claim: artifacts, messages, APIs, physical commands, World emission (paper section 3.3). Bit positions are placeholders.</span></h3>
+  <div class="bits" id="outputBits"></div>
+
+  <div>
+    <button id="stampBtn" type="button">Stamp header</button>
+    <button id="clearHeaderBtn" type="button" class="secondary">Clear header inputs</button>
+  </div>
+
+  <div class="out" id="headerOut">
+    <h4>Stamped header</h4>
+    <div class="hexline mono" id="headerHex">-- -- -- -- -- -- -- --</div>
+    <div id="headerDetail"><p class="small">No header stamped yet. Fill in the run description and press Stamp header.</p></div>
+  </div>
+</section>
+
+<section class="card" id="governance">
+  <h2><span class="num">2.</span> Governance intersection calculator</h2>
+  <p class="intro">Source claim (paper section 3.4): the executable topology is the intersection of what the planner proposes, what policy permits, and what infrastructure can currently provide. E* = E_proposed &#8743; E_allowed &#8743; E_available. Blocked edges become explicit, never silent.</p>
+
+  <figure>
+    <svg viewBox="0 0 920 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Governance intersection Venn diagram">
+      <rect x="1" y="1" width="918" height="298" fill="#ffffff" stroke="#ddd5c4"/>
+      <text x="20" y="28" font-family="Archivo, Arial, sans-serif" font-size="15" font-weight="700" fill="#1a1714">Figure 2. Governance as graph reduction: three sets, one intersection</text>
+      <circle cx="360" cy="165" r="95" fill="#a67c2e" fill-opacity="0.18" stroke="#a67c2e" stroke-width="2"/>
+      <circle cx="480" cy="165" r="95" fill="#1a1714" fill-opacity="0.08" stroke="#1a1714" stroke-width="2"/>
+      <circle cx="420" cy="230" r="95" fill="#8f2d1e" fill-opacity="0.10" stroke="#8f2d1e" stroke-width="2"/>
+      <text x="330" y="95" font-family="Archivo, Arial, sans-serif" font-size="14" font-weight="700" fill="#1a1714" text-anchor="middle">Proposed</text>
+      <text x="510" y="95" font-family="Archivo, Arial, sans-serif" font-size="14" font-weight="700" fill="#1a1714" text-anchor="middle">Allowed</text>
+      <text x="420" y="292" font-family="Archivo, Arial, sans-serif" font-size="14" font-weight="700" fill="#1a1714" text-anchor="middle">Available</text>
+      <text x="420" y="180" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700" fill="#1a1714" text-anchor="middle" id="vennCenter">E* = ?</text>
+      <text x="420" y="200" font-family="Inter, Arial, sans-serif" font-size="12" fill="#6b6257" text-anchor="middle" id="vennCenterSub">executable edges</text>
+      <text x="660" y="120" font-family="Inter, Arial, sans-serif" font-size="13" fill="#1a1714">Proposed: <tspan font-weight="700" id="vennProposed">0</tspan> edges</text>
+      <text x="660" y="145" font-family="Inter, Arial, sans-serif" font-size="13" fill="#1a1714">Allowed: <tspan font-weight="700" id="vennAllowed">0</tspan> edges</text>
+      <text x="660" y="170" font-family="Inter, Arial, sans-serif" font-size="13" fill="#1a1714">Available: <tspan font-weight="700" id="vennAvailable">0</tspan> edges</text>
+      <text x="660" y="195" font-family="Inter, Arial, sans-serif" font-size="13" fill="#1a1714">Executable (E*): <tspan font-weight="700" id="vennExec">0</tspan> edges</text>
+      <text x="660" y="220" font-family="Inter, Arial, sans-serif" font-size="13" fill="#8f2d1e">Blocked by policy: <tspan font-weight="700" id="vennPolicy">0</tspan></text>
+      <text x="660" y="245" font-family="Inter, Arial, sans-serif" font-size="13" fill="#8f2d1e">Blocked by infrastructure: <tspan font-weight="700" id="vennInfra">0</tspan></text>
+    </svg>
+    <figcaption>Figure 2. Venn-style view of the three edge sets. Counts update from the checkboxes below. The center is the executable topology E*.</figcaption>
+  </figure>
+
+  <h3>Edge universe <span class="hint small">8 candidate edges between organism components named in paper section 4</span></h3>
+  <p class="small">Tick an edge in each set it belongs to. Proposed = planner (QCM) proposes it. Allowed = policy permits it. Available = infrastructure can currently provide it.</p>
+  <div id="edgeTable"></div>
+  <div>
+    <button id="calcBtn" type="button">Compute intersection</button>
+    <button id="clearSetsBtn" type="button" class="secondary">Clear sets</button>
+  </div>
+  <div class="out" id="govOut">
+    <h4>Intersection result</h4>
+    <div id="govVerdict"><p class="small">No computation yet. Choose edges and press Compute intersection.</p></div>
+    <div id="govDetail"></div>
+  </div>
+</section>
+
+<section class="card" id="receipts">
+  <h2><span class="num">3.</span> Topology receipt emitter</h2>
+  <p class="intro">Source claim (paper section 3.5): topology change is recorded as &#916;G = G &#8853; G_prev (XOR on bit-packed fields), and the receipt must still carry semantic evidence: why a route changed, which policy acted, which model proposed it, what outcome followed. Each run below emits a receipt with the stamped header, the intersection result, and a hash chain link to the previous receipt.</p>
+  <label class="f" for="receiptNote">Receipt note <span class="hint">semantic evidence: why did this topology change, which policy acted, which model proposed it</span></label>
+  <input type="text" id="receiptNote" value="" placeholder="e.g. QCM proposed world.emit; policy P-7 denied World emission">
+  <div>
+    <button id="emitBtn" type="button">Emit receipt for current run</button>
+    <button id="verifyChainBtn" type="button" class="secondary">Verify whole chain</button>
+    <button id="clearReceiptsBtn" type="button" class="secondary">Clear receipts</button>
+  </div>
+  <div class="out">
+    <h4>Receipt chain <span class="hint small">hash: FNV-1a 32-bit over prevHash | headerHex | runId | intersection | verdict (demo-grade hash, not cryptographic)</span></h4>
+    <div id="chainStatus"><p class="small">No receipts yet. Stamp a header, compute the intersection, then emit a receipt.</p></div>
+    <div id="receiptList"></div>
+  </div>
+</section>
+
+<section class="card" id="samples">
+  <h2><span class="num">4.</span> Sample runs, share link, completeness</h2>
+  <p class="intro">Three sample runs exercise the three outcomes: a run that passes governance, a run blocked by policy, and a run blocked by infrastructure.</p>
+  <div>
+    <button id="samplePassBtn" type="button">Sample A: passes governance</button>
+    <button id="samplePolicyBtn" type="button">Sample B: blocked by policy</button>
+    <button id="sampleInfraBtn" type="button">Sample C: blocked by infrastructure</button>
+  </div>
+  <div id="sampleNote"><p class="small">No sample loaded yet.</p></div>
+
+  <h3>Completeness meter</h3>
+  <div class="meter"><div id="meterFill"></div></div>
+  <div id="meterText" class="small">0 of 8 required fields complete.</div>
+  <div id="missingList" class="missing"></div>
+
+  <h3>Share link</h3>
+  <p class="small">The current state (run description, masks, sets, receipts) is encoded as base64 JSON in the URL hash. Loading that URL restores the state.</p>
+  <div>
+    <button id="shareBtn" type="button">Generate share link</button>
+    <button id="copyShareBtn" type="button" class="secondary">Copy share link</button>
+  </div>
+  <div class="sharebox mono" id="shareOut">No share link generated yet.</div>
+</section>
+
+<section class="card" id="walkthrough">
+  <h2><span class="num">5.</span> Try-it walkthrough</h2>
+  <ol class="steps">
+    <li><strong>Load Sample A.</strong> Press "Sample A: passes governance". The header stamps to <span class="mono">07 07 08 1F 07 CC 33 07</span> and the intersection equals the proposed set. Press "Emit receipt" and note receipt R-001 links to genesis hash <span class="mono">00000000</span>.</li>
+    <li><strong>Load Sample B.</strong> The planner proposes the world.emit edge, but policy does not allow it. Compute the intersection: world.emit appears under "Blocked by policy" and the verdict drops to PARTIAL. Emit a receipt; its prevHash is R-001's hash.</li>
+    <li><strong>Load Sample C.</strong> Policy allows every proposed edge, but the QCM to N-Lab edge is unavailable (tool down). It appears under "Blocked by infrastructure".</li>
+    <li><strong>Change one bit.</strong> Toggle any route bit and press "Stamp header" again. The header hex changes, and the receipt delta (XOR against the previous header) is shown in the receipt.</li>
+    <li><strong>Verify the chain.</strong> Press "Verify whole chain". Then use "Tamper" on any receipt to see verification fail, and "Restore" to fix it.</li>
+    <li><strong>Share it.</strong> Press "Generate share link", copy the link, open it in a new tab: the same state restores.</li>
+  </ol>
+</section>
+
+<section class="card" id="how">
+  <h2><span class="num">6.</span> How it works / What this is not</h2>
+  <div class="twocol">
+    <div>
+      <h3>How it works</h3>
+      <ul>
+        <li><strong>Header stamper:</strong> each mask byte is the sum of 2^i over the checked bits (paper section 3.2). Confidence and risk percents are quantized with round(pct / 100 x 255). The 8 bytes are shown as hex, binary, and decimal.</li>
+        <li><strong>Governance intersection:</strong> real set math over the three edge sets. E* = proposed &#8743; allowed &#8743; available. Blocked by policy = proposed minus allowed. Blocked by infrastructure = (proposed &#8743; allowed) minus available.</li>
+        <li><strong>Receipt emitter:</strong> each receipt stores the header, the intersection, the verdict, a semantic note, the XOR delta against the previous header, and a hash chain link (FNV-1a over prevHash, header, run, intersection, verdict).</li>
+        <li><strong>Share link:</strong> the full state is base64 JSON in the URL hash and restores on load.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What this is not</h3>
+      <ul>
+        <li>Not a running adapter. There is no AXON connection, no registry, no live organ, no Vault write.</li>
+        <li>Not a mask schema. No versioned schema exists; the bit meanings here are placeholders the user defines.</li>
+        <li>Not a governance decision. Policy and availability sets are typed in by hand; no policy engine evaluates them.</li>
+        <li>Not a receipt store. Receipts live only in this page (and in a share link). The Vault stores real receipts; this page does not touch it.</li>
+        <li>Not evidence for any verification threshold. No benchmark, baseline, ablation, or outcome was measured here.</li>
+        <li>Not peer reviewed or benchmark validated, same as the source paper itself (v0.1, founder working paper).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="card" id="gaps">
+  <h2><span class="num">7.</span> Honest gaps</h2>
+  <p class="intro">What the sources do not define, or what could not be verified while building this demo. <span class="pill gap">Gap</span> marks each item.</p>
+  <ul>
+    <li><span class="pill gap">Gap</span> <strong>No Organ Manifest exists for any organ.</strong> Source claim (runtime-scoping.md): "Until a manifest exists, organMask in an N-Cell header is meaningless" and "no manifests written for any organ". The organ checkboxes here are labels only.</li>
+    <li><span class="pill gap">Gap</span> <strong>No versioned mask schema.</strong> The paper requires the bit-to-direction / bit-to-meaning mapping to be declared in a versioned schema. None exists for route, organ, lifecycle, authority, memory, or output masks. All mappings on this page are demo placeholders.</li>
+    <li><span class="pill gap">Gap</span> <strong>No adapter repo, language, host, API, or store named.</strong> The paper is language-agnostic and names only "the live AXON/registry stack" as the host. The live state of that host stack is UNKNOWN in the scoping read.</li>
+    <li><span class="pill gap">Gap</span> <strong>Conflicting build guidance in the sources.</strong> Paper section 8 lists "build the N-Cell instrumentation adapter on the live AXON/registry stack" as a verification-program step, while FULL_ANALYSIS (via runtime-scoping.md) rules "Do not build the runtime adapter until a stable runtime exists" and "N-Cell is premature for a prompt-based engine". This demo follows the stricter ruling: simulate only, build nothing live.</li>
+    <li><span class="pill gap">Gap</span> <strong>Verification program unmet.</strong> No fixed-topology baselines, repeated trials, ablations, failure injection, or cross-domain transfer results exist in the sources. Thresholds (20 percent efficiency gain, zero silent high-risk execution, one paid/operational outcome with documented counterfactual) are all unmet. Hypotheses H1-H8 are stated with no results.</li>
+    <li><span class="pill gap">Gap</span> <strong>Receipt hash is demo-grade.</strong> FNV-1a 32-bit is a checksum, not a cryptographic hash chain. A real receipt chain would need a stated hash function and a Vault; neither is specified in the sources.</li>
+    <li><span class="pill gap">Gap</span> <strong>Confidence and risk quantization is assumed.</strong> The paper says confidence and risk are 0-255 but does not specify the mapping from a 0-1 score. This demo uses round(pct / 100 x 255); the extraction schema notes a JSON form with 0.00-1.00 floats, which this demo does not use.</li>
+    <li><span class="pill gap">Gap</span> <strong>Layout not eyeballed in a real browser.</strong> The page was tested in jsdom only. Visual layout in a real browser is unverified.</li>
+  </ul>
+</section>
+
+<section class="card" id="sources">
+  <h2><span class="num">8.</span> Sources</h2>
+  <p>Claims marked <span class="pill src">Source claim</span> come from these sources. Everything else on the page is demo design, labeled as placeholder or gap.</p>
+  <table>
+    <tr><th>Source</th><th>What was used</th></tr>
+    <tr><td class="mono">Neuruh_NCell_Position_Paper_v0.1.pdf (July 2026, v0.1, founder working paper)</td><td>8-byte header layout (3.3), mask bit formula (3.2), governance intersection (3.4), receipt delta XOR (3.5), component mapping (section 4), verification program and thresholds (section 8, 8.1), AGI classification (section 9). Read in full.</td></tr>
+    <tr><td class="mono">runtime-scoping.md, section 2 (N-Cell runtime adapter)</td><td>Missing-facts list (no Organ Manifest, no versioned mask schema, no repo/host/API/store), the "do not build until a stable runtime exists" verdict, JSON form note (confidence/risk 0.00-1.00), AXON live state UNKNOWN.</td></tr>
+  </table>
+  <p class="small">Sources are raw material, never canon. Where the two sources disagreed on whether to build the adapter, the stricter ruling was followed and the conflict is listed in section 7.</p>
+</section>
+
+</div>
+
+<script>
+"use strict";
+/* N-Cell Runtime Adapter demo. All math runs locally. No network calls. */
+
+var ROUTE_BITS = ["N","NE","E","SE","S","SW","W","NW"];
+var ORGAN_BITS = ["SAL","AXON","QCM","HKRS","PMLA/Vault","MOTHER","N-Observer","N-Lab"];
+var LIFECYCLE_BITS = ["proposed","admitted","routed","executing","awaiting-governance","completed","failed","rolled-back"];
+var AUTHORITY_BITS = ["observe","recommend","draft","stage","execute","emergency-block"];
+var MEMORY_BITS = ["working","episodic","semantic","procedural","prospective","founder","outcome"];
+var OUTPUT_BITS = ["artifacts","messages","APIs","physical-commands","world-emission","spare-5","spare-6","spare-7"];
+var EDGES = [
+  { id:"e1", label:"SAL to AXON", channel:"signal.proposed" },
+  { id:"e2", label:"AXON to QCM", channel:"topology.requested" },
+  { id:"e3", label:"QCM to MOTHER", channel:"topology.proposed" },
+  { id:"e4", label:"MOTHER to AXON", channel:"topology.approved" },
+  { id:"e5", label:"AXON to HKRS", channel:"score.requested" },
+  { id:"e6", label:"AXON to PMLA/Vault", channel:"receipt.store" },
+  { id:"e7", label:"AXON to N-Observer", channel:"trace.emit" },
+  { id:"e8", label:"AXON to World Emitter", channel:"world.emit" }
+];
+var GENESIS = "00000000";
+
+var state = {
+  runId:"", nodeId:"", caseId:"", confidencePct:80, riskPct:20,
+  route:[false,false,false,false,false,false,false,false],
+  organ:[false,false,false,false,false,false,false,false],
+  lifecycle:[false,false,false,false,false,false,false,false],
+  authority:[false,false,false,false,false,false],
+  memory:[false,false,false,false,false,false,false],
+  output:[false,false,false,false,false,false,false,false],
+  proposed:[], allowed:[], available:[],
+  receiptNote:"", receipts:[], header:null, gov:null
+};
+
+function el(id){ return document.getElementById(id); }
+function hex2(n){ return ("0" + n.toString(16).toUpperCase()).slice(-2); }
+function packBits(arr){ var v=0; for(var i=0;i<arr.length;i++){ if(arr[i]) v += Math.pow(2,i); } return v; }
+function quantize(pct){ return Math.round(pct/100*255); }
+
+function buildBitGroup(containerId, labels, key){
+  var c = el(containerId); c.innerHTML = "";
+  labels.forEach(function(label, i){
+    var lab = document.createElement("label");
+    var cb = document.createElement("input");
+    cb.type = "checkbox"; cb.dataset.key = key; cb.dataset.idx = i;
+    cb.checked = state[key][i];
+    cb.addEventListener("change", function(){ state[key][i] = cb.checked; lab.classList.toggle("on", cb.checked); updateCompleteness(); });
+    lab.appendChild(cb);
+    lab.appendChild(document.createTextNode("bit " + i + ": " + label));
+    if(state[key][i]) lab.classList.add("on");
+    c.appendChild(lab);
+  });
+}
+function refreshBitGroups(){
+  buildBitGroup("routeBits", ROUTE_BITS, "route");
+  buildBitGroup("organBits", ORGAN_BITS, "organ");
+  buildBitGroup("lifecycleBits", LIFECYCLE_BITS, "lifecycle");
+  buildBitGroup("authorityBits", AUTHORITY_BITS, "authority");
+  buildBitGroup("memoryBits", MEMORY_BITS, "memory");
+  buildBitGroup("outputBits", OUTPUT_BITS, "output");
+}
+
+function buildEdgeTable(){
+  var c = el("edgeTable");
+  var html = "<table><tr><th>Edge</th><th>Channel</th><th>Proposed</th><th>Allowed</th><th>Available</th></tr>";
+  EDGES.forEach(function(e){
+    html += "<tr><td><strong>" + e.id + "</strong> " + e.label + "</td><td class=\"mono\">" + e.channel + "</td>" +
+      "<td><input type=\"checkbox\" data-set=\"proposed\" data-edge=\"" + e.id + "\"" + (state.proposed.indexOf(e.id) >= 0 ? " checked" : "") + "></td>" +
+      "<td><input type=\"checkbox\" data-set=\"allowed\" data-edge=\"" + e.id + "\"" + (state.allowed.indexOf(e.id) >= 0 ? " checked" : "") + "></td>" +
+      "<td><input type=\"checkbox\" data-set=\"available\" data-edge=\"" + e.id + "\"" + (state.available.indexOf(e.id) >= 0 ? " checked" : "") + "></td></tr>";
+  });
+  html += "</table>";
+  c.innerHTML = html;
+  var boxes = c.querySelectorAll("input[type=checkbox]");
+  boxes.forEach(function(box){
+    box.addEventListener("change", function(){
+      var set = state[box.dataset.set];
+      var i = set.indexOf(box.dataset.edge);
+      if(box.checked && i < 0) set.push(box.dataset.edge);
+      if(!box.checked && i >= 0) set.splice(i, 1);
+      updateCompleteness();
+    });
+  });
+}
+
+function computeHeader(){
+  var bytes = [
+    packBits(state.route), packBits(state.organ), packBits(state.lifecycle),
+    packBits(state.authority), packBits(state.memory),
+    quantize(state.confidencePct), quantize(state.riskPct), packBits(state.output)
+  ];
+  return { bytes: bytes, hex: bytes.map(hex2).join(" "), compact: bytes.map(hex2).join("") };
+}
+
+function stampHeader(){
+  var h = computeHeader();
+  state.header = h;
+  el("headerHex").innerHTML = h.bytes.map(function(b){ return "<b>" + hex2(b) + "</b>"; }).join(" ");
+  var names = ["routeMask","organMask","lifecycleMask","authorityMask","memoryMask","confidence","risk","outputMask"];
+  var rows = h.bytes.map(function(b, i){
+    var bin = ("0000000" + b.toString(2)).slice(-8);
+    var bitsOn = [];
+    for(var j=0;j<8;j++){ if(b & Math.pow(2,j)) bitsOn.push(j); }
+    return "<tr><td>Byte " + i + "</td><td>" + names[i] + "</td><td class=\"mono\">" + hex2(b) + "</td><td class=\"mono\">" + bin + "</td><td class=\"mono\">" + b + "</td><td>" + (bitsOn.length ? "bits " + bitsOn.join(", ") : "none") + "</td></tr>";
+  }).join("");
+  el("headerDetail").innerHTML = "<table><tr><th>Byte</th><th>Field</th><th>Hex</th><th>Binary</th><th>Dec</th><th>Bits set</th></tr>" + rows + "</table>" +
+    "<p class=\"small\">Run " + (state.runId || "(no run ID)") + " on node " + (state.nodeId || "(no node ID)") + ". Confidence " + state.confidencePct + "% quantizes to " + quantize(state.confidencePct) + "; risk " + state.riskPct + "% quantizes to " + quantize(state.riskPct) + ".</p>";
+  updateCompleteness();
+  return h;
+}
+
+function computeIntersection(){
+  var p = state.proposed.slice(), a = state.allowed, v = state.available;
+  var inter = p.filter(function(e){ return a.indexOf(e) >= 0 && v.indexOf(e) >= 0; });
+  var blockedPolicy = p.filter(function(e){ return a.indexOf(e) < 0; });
+  var blockedInfra = p.filter(function(e){ return a.indexOf(e) >= 0 && v.indexOf(e) < 0; });
+  var verdict;
+  if(p.length === 0) verdict = "NO PROPOSAL";
+  else if(inter.length === 0) verdict = "BLOCKED";
+  else if(inter.length === p.length) verdict = "PROCEED";
+  else verdict = "PARTIAL";
+  state.gov = { proposed:p, allowed:a.slice(), available:v.slice(), intersection:inter, blockedPolicy:blockedPolicy, blockedInfra:blockedInfra, verdict:verdict };
+  el("vennProposed").textContent = p.length;
+  el("vennAllowed").textContent = a.length;
+  el("vennAvailable").textContent = v.length;
+  el("vennExec").textContent = inter.length;
+  el("vennPolicy").textContent = blockedPolicy.length;
+  el("vennInfra").textContent = blockedInfra.length;
+  el("vennCenter").textContent = "E* = " + inter.length + " edge" + (inter.length === 1 ? "" : "s");
+  var cls = verdict === "PROCEED" ? "pass" : (verdict === "PARTIAL" ? "partial" : "blocked");
+  el("govVerdict").innerHTML = "<div class=\"verdict " + cls + "\">" + verdict + "</div>" +
+    "<p>E* = E_proposed &#8743; E_allowed &#8743; E_available = {" + (inter.join(", ") || "empty") + "}</p>";
+  el("govDetail").innerHTML = "<table><tr><th>Set</th><th>Edges</th></tr>" +
+    "<tr><td>Proposed (" + p.length + ")</td><td class=\"mono\">" + (p.join(", ") || "none") + "</td></tr>" +
+    "<tr><td>Allowed (" + a.length + ")</td><td class=\"mono\">" + (a.join(", ") || "none") + "</td></tr>" +
+    "<tr><td>Available (" + v.length + ")</td><td class=\"mono\">" + (v.join(", ") || "none") + "</td></tr>" +
+    "<tr><td>Executable E* (" + inter.length + ")</td><td class=\"mono\">" + (inter.join(", ") || "none") + "</td></tr>" +
+    "<tr><td>Blocked by policy (" + blockedPolicy.length + ")</td><td class=\"mono\">" + (blockedPolicy.join(", ") || "none") + "</td></tr>" +
+    "<tr><td>Blocked by infrastructure (" + blockedInfra.length + ")</td><td class=\"mono\">" + (blockedInfra.join(", ") || "none") + "</td></tr></table>";
+  updateCompleteness();
+  return state.gov;
+}
+
+function fnv1a(str){
+  var h = 0x811c9dc5;
+  for(var i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return ("0000000" + h.toString(16)).slice(-8);
+}
+function receiptHash(prevHash, headerCompact, runId, intersection, verdict){
+  return fnv1a(prevHash + "|" + headerCompact + "|" + runId + "|" + intersection.join(",") + "|" + verdict);
+}
+function prevHeaderBytes(){
+  if(state.receipts.length === 0) return [0,0,0,0,0,0,0,0];
+  return state.receipts[state.receipts.length-1].headerBytes;
+}
+function emitReceipt(){
+  if(!state.header){ stampHeader(); }
+  if(!state.gov){ computeIntersection(); }
+  var prev = state.receipts.length === 0 ? GENESIS : state.receipts[state.receipts.length-1].hash;
+  var h = state.header;
+  var prevBytes = prevHeaderBytes();
+  var delta = h.bytes.map(function(b,i){ return hex2(b ^ prevBytes[i]); }).join(" ");
+  var hash = receiptHash(prev, h.compact, state.runId, state.gov.intersection, state.gov.verdict);
+  var rec = {
+    id: "R-" + ("00" + (state.receipts.length+1)).slice(-3),
+    runId: state.runId, nodeId: state.nodeId, caseId: state.caseId,
+    headerHex: h.hex, headerBytes: h.bytes.slice(), deltaHex: delta,
+    intersection: state.gov.intersection.slice(), verdict: state.gov.verdict,
+    note: state.receiptNote, prevHash: prev, hash: hash,
+    ts: new Date().toISOString()
+  };
+  state.receipts.push(rec);
+  renderReceipts();
+  updateCompleteness();
+  return rec;
+}
+function verifyReceipt(rec){
+  return receiptHash(rec.prevHash, rec.headerHex.replace(/ /g,""), rec.runId, rec.intersection, rec.verdict) === rec.hash;
+}
+function verifyChain(){
+  var ok = true, bad = [];
+  for(var i=0;i<state.receipts.length;i++){
+    var rec = state.receipts[i];
+    var expectPrev = i === 0 ? GENESIS : state.receipts[i-1].hash;
+    if(rec.prevHash !== expectPrev || !verifyReceipt(rec)){ ok = false; bad.push(rec.id); }
+  }
+  el("chainStatus").innerHTML = state.receipts.length === 0
+    ? "<p class=\"small\">No receipts yet.</p>"
+    : (ok ? "<p class=\"ok\"><strong>Chain verified: " + state.receipts.length + " receipt(s), all hashes and links OK.</strong></p>"
+          : "<p class=\"missing\"><strong>Chain BROKEN at: " + bad.join(", ") + ".</strong></p>");
+  return ok;
+}
+function renderReceipts(){
+  var list = el("receiptList");
+  if(state.receipts.length === 0){ list.innerHTML = ""; el("chainStatus").innerHTML = "<p class=\"small\">No receipts yet. Stamp a header, compute the intersection, then emit a receipt.</p>"; return; }
+  list.innerHTML = state.receipts.map(function(rec, idx){
+    var ok = verifyReceipt(rec);
+    return "<div class=\"receipt\" data-rid=\"" + rec.id + "\">" +
+      "<span class=\"rid\">" + rec.id + "</span> " +
+      "<span class=\"pill\">" + rec.verdict + "</span> " +
+      "<span class=\"pill " + (ok ? "src" : "gap") + "\">" + (ok ? "hash OK" : "HASH MISMATCH") + "</span><br>" +
+      "Run: <span class=\"mono\">" + (rec.runId || "(none)") + "</span> | Node: <span class=\"mono\">" + (rec.nodeId || "(none)") + "</span> | Case: <span class=\"mono\">" + (rec.caseId || "(none)") + "</span><br>" +
+      "Header: <span class=\"mono\">" + rec.headerHex + "</span><br>" +
+      "Delta vs previous header (XOR): <span class=\"mono\">" + rec.deltaHex + "</span><br>" +
+      "Intersection E*: <span class=\"mono\">" + (rec.intersection.join(", ") || "empty") + "</span><br>" +
+      "Note: " + (rec.note || "(no semantic note)") + "<br>" +
+      "prevHash: <span class=\"mono\">" + rec.prevHash + "</span> | hash: <span class=\"mono\">" + rec.hash + "</span> | <span class=\"mono\">" + rec.ts + "</span><br>" +
+      "<button type=\"button\" class=\"secondary\" data-verify=\"" + idx + "\">Verify this receipt</button> " +
+      "<button type=\"button\" class=\"secondary\" data-tamper=\"" + idx + "\">Tamper (demo)</button> " +
+      "<button type=\"button\" class=\"secondary\" data-restore=\"" + idx + "\">Restore</button> " +
+      "<span class=\"mono\" data-status=\"" + idx + "\"></span></div>";
+  }).join("");
+  list.querySelectorAll("[data-verify]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var rec = state.receipts[+b.dataset.verify];
+      var s = list.querySelector("[data-status=\"" + b.dataset.verify + "\"]");
+      s.textContent = verifyReceipt(rec) ? "Verified OK." : "FAILED: hash mismatch.";
+    });
+  });
+  list.querySelectorAll("[data-tamper]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var rec = state.receipts[+b.dataset.tamper];
+      rec._savedHash = rec.hash;
+      rec.hash = "deadbeef";
+      renderReceipts(); verifyChain();
+    });
+  });
+  list.querySelectorAll("[data-restore]").forEach(function(b){
+    b.addEventListener("click", function(){
+      var rec = state.receipts[+b.dataset.restore];
+      if(rec._savedHash){ rec.hash = rec._savedHash; delete rec._savedHash; }
+      renderReceipts(); verifyChain();
+    });
+  });
+}
+
+function loadSample(kind){
+  state.receipts = [];
+  state.receiptNote = "";
+  el("receiptNote").value = "";
+  if(kind === "pass"){
+    state.runId = "RUN-2026-1104-001"; state.nodeId = "node-axon-01"; state.caseId = "OPP-2026-RE-0042";
+    state.confidencePct = 80; state.riskPct = 20;
+    state.route = [true,true,true,false,false,false,false,false];
+    state.organ = [true,true,true,false,false,false,false,false];
+    state.lifecycle = [false,false,false,true,false,false,false,false];
+    state.authority = [true,true,true,true,true,false];
+    state.memory = [true,true,true,false,false,false,false];
+    state.output = [true,true,true,false,false,false,false,false];
+    state.proposed = ["e1","e2","e3","e4","e5","e6","e7"];
+    state.allowed = ["e1","e2","e3","e4","e5","e6","e7"];
+    state.available = ["e1","e2","e3","e4","e5","e6","e7"];
+    state.receiptNote = "QCM proposed standard topology; policy P-1 allows all; all routes up.";
+    el("sampleNote").innerHTML = "<p><strong>Sample A loaded: passes governance.</strong> Every proposed edge is allowed and available, so E* equals the proposed set and the verdict is PROCEED. Expected header: <span class=\"mono\">07 07 08 1F 07 CC 33 07</span>.</p>";
+  } else if(kind === "policy"){
+    state.runId = "RUN-2026-1104-002"; state.nodeId = "node-axon-01"; state.caseId = "OPP-2026-RE-0042";
+    state.confidencePct = 65; state.riskPct = 45;
+    state.route = [true,true,true,false,false,false,false,false];
+    state.organ = [true,true,true,false,false,false,false,false];
+    state.lifecycle = [false,false,false,true,false,false,false,false];
+    state.authority = [true,true,true,true,false,false];
+    state.memory = [true,true,true,false,false,false,false];
+    state.output = [true,true,true,false,true,false,false,false];
+    state.proposed = ["e1","e2","e3","e4","e5","e6","e7","e8"];
+    state.allowed = ["e1","e2","e3","e4","e5","e6","e7"];
+    state.available = ["e1","e2","e3","e4","e5","e6","e7","e8"];
+    state.receiptNote = "QCM proposed world.emit; policy P-7 denies World emission for this case.";
+    el("sampleNote").innerHTML = "<p><strong>Sample B loaded: blocked by policy.</strong> The planner proposes e8 (AXON to World Emitter, world.emit) but policy does not allow it. e8 appears under Blocked by policy and the verdict is PARTIAL.</p>";
+  } else {
+    state.runId = "RUN-2026-1104-003"; state.nodeId = "node-axon-01"; state.caseId = "OPP-2026-RE-0042";
+    state.confidencePct = 70; state.riskPct = 30;
+    state.route = [true,true,true,false,false,false,false,false];
+    state.organ = [true,true,true,false,false,false,false,false];
+    state.lifecycle = [false,false,false,true,false,false,false,false];
+    state.authority = [true,true,true,true,true,false];
+    state.memory = [true,true,true,false,false,false,false];
+    state.output = [true,true,true,false,false,false,false,false];
+    state.proposed = ["e1","e2","e3","e4","e5","e6","e7"];
+    state.allowed = ["e1","e2","e3","e4","e5","e6","e7"];
+    state.available = ["e1","e2","e4","e5","e6","e7"];
+    state.receiptNote = "QCM to MOTHER route down (tool outage); policy allows it but infrastructure cannot provide it.";
+    el("sampleNote").innerHTML = "<p><strong>Sample C loaded: blocked by infrastructure.</strong> Policy allows every proposed edge, but e3 (QCM to MOTHER) is unavailable. e3 appears under Blocked by infrastructure and the verdict is PARTIAL.</p>";
+  }
+  syncInputs(); refreshBitGroups(); buildEdgeTable();
+  stampHeader(); computeIntersection(); renderReceipts();
+  el("chainStatus").innerHTML = "<p class=\"small\">Sample loaded. Press Emit receipt to add this run to the chain.</p>";
+}
+function syncInputs(){
+  el("runId").value = state.runId; el("nodeId").value = state.nodeId; el("caseId").value = state.caseId;
+  el("confidencePct").value = state.confidencePct; el("riskPct").value = state.riskPct;
+  el("receiptNote").value = state.receiptNote;
+  el("confidenceVal").textContent = state.confidencePct + "% = " + quantize(state.confidencePct);
+  el("riskVal").textContent = state.riskPct + "% = " + quantize(state.riskPct);
+}
+
+function completenessChecks(){
+  return [
+    { label:"Run ID entered", done: state.runId.trim().length > 0 },
+    { label:"Node ID entered", done: state.nodeId.trim().length > 0 },
+    { label:"At least one route bit set", done: state.route.some(Boolean) },
+    { label:"At least one organ bit set", done: state.organ.some(Boolean) },
+    { label:"At least one lifecycle bit set", done: state.lifecycle.some(Boolean) },
+    { label:"At least one authority bit set", done: state.authority.some(Boolean) },
+    { label:"At least one output bit set", done: state.output.some(Boolean) },
+    { label:"Governance intersection computed", done: state.gov !== null }
+  ];
+}
+function updateCompleteness(){
+  var checks = completenessChecks();
+  var done = checks.filter(function(c){ return c.done; }).length;
+  el("meterFill").style.width = Math.round(done/checks.length*100) + "%";
+  el("meterText").textContent = done + " of " + checks.length + " required fields complete.";
+  var missing = checks.filter(function(c){ return !c.done; }).map(function(c){ return c.label; });
+  el("missingList").innerHTML = missing.length ? "Missing: " + missing.join("; ") + "." : "<span class=\"ok\">Nothing missing. Ready to emit a receipt.</span>";
+}
+
+function encodeState(){
+  var data = {
+    runId: state.runId, nodeId: state.nodeId, caseId: state.caseId,
+    confidencePct: state.confidencePct, riskPct: state.riskPct,
+    route: state.route, organ: state.organ, lifecycle: state.lifecycle,
+    authority: state.authority, memory: state.memory, output: state.output,
+    proposed: state.proposed, allowed: state.allowed, available: state.available,
+    receiptNote: state.receiptNote, receipts: state.receipts
+  };
+  return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+}
+function decodeState(str){
+  return JSON.parse(decodeURIComponent(escape(atob(str))));
+}
+function applyState(data){
+  if(!data) return false;
+  ["runId","nodeId","caseId","confidencePct","riskPct","route","organ","lifecycle","authority","memory","output","proposed","allowed","available","receiptNote"].forEach(function(k){
+    if(data[k] !== undefined) state[k] = data[k];
+  });
+  if(Array.isArray(data.receipts)) state.receipts = data.receipts;
+  syncInputs(); refreshBitGroups(); buildEdgeTable();
+  stampHeader(); computeIntersection(); renderReceipts();
+  return true;
+}
+function shareLink(){
+  var url = location.href.split("#")[0] + "#d=" + encodeState();
+  el("shareOut").textContent = url;
+  return url;
+}
+function restoreFromHash(){
+  var m = (location.hash || "").match(/^#d=(.+)$/);
+  if(!m) return false;
+  try { return applyState(decodeState(m[1])); } catch(e){ return false; }
+}
+
+/* wiring */
+el("confidencePct").addEventListener("input", function(){ state.confidencePct = +el("confidencePct").value; el("confidenceVal").textContent = state.confidencePct + "% = " + quantize(state.confidencePct); });
+el("riskPct").addEventListener("input", function(){ state.riskPct = +el("riskPct").value; el("riskVal").textContent = state.riskPct + "% = " + quantize(state.riskPct); });
+el("runId").addEventListener("input", function(){ state.runId = el("runId").value; updateCompleteness(); });
+el("nodeId").addEventListener("input", function(){ state.nodeId = el("nodeId").value; updateCompleteness(); });
+el("caseId").addEventListener("input", function(){ state.caseId = el("caseId").value; });
+el("receiptNote").addEventListener("input", function(){ state.receiptNote = el("receiptNote").value; });
+el("stampBtn").addEventListener("click", stampHeader);
+el("clearHeaderBtn").addEventListener("click", function(){
+  state.runId=""; state.nodeId=""; state.caseId=""; state.confidencePct=80; state.riskPct=20;
+  state.route=[false,false,false,false,false,false,false,false];
+  state.organ=[false,false,false,false,false,false,false,false];
+  state.lifecycle=[false,false,false,false,false,false,false,false];
+  state.authority=[false,false,false,false,false,false];
+  state.memory=[false,false,false,false,false,false,false];
+  state.output=[false,false,false,false,false,false,false,false];
+  state.header=null; syncInputs(); refreshBitGroups();
+  el("headerHex").textContent = "-- -- -- -- -- -- -- --";
+  el("headerDetail").innerHTML = "<p class=\"small\">Header cleared.</p>";
+  updateCompleteness();
+});
+el("calcBtn").addEventListener("click", computeIntersection);
+el("clearSetsBtn").addEventListener("click", function(){
+  state.proposed=[]; state.allowed=[]; state.available=[]; state.gov=null; buildEdgeTable();
+  el("govVerdict").innerHTML = "<p class=\"small\">Sets cleared.</p>"; el("govDetail").innerHTML = "";
+  ["vennProposed","vennAllowed","vennAvailable","vennExec","vennPolicy","vennInfra"].forEach(function(id){ el(id).textContent = "0"; });
+  el("vennCenter").textContent = "E* = ?";
+  updateCompleteness();
+});
+el("emitBtn").addEventListener("click", emitReceipt);
+el("verifyChainBtn").addEventListener("click", verifyChain);
+el("clearReceiptsBtn").addEventListener("click", function(){ state.receipts=[]; renderReceipts(); });
+el("samplePassBtn").addEventListener("click", function(){ loadSample("pass"); });
+el("samplePolicyBtn").addEventListener("click", function(){ loadSample("policy"); });
+el("sampleInfraBtn").addEventListener("click", function(){ loadSample("infra"); });
+el("shareBtn").addEventListener("click", shareLink);
+el("copyShareBtn").addEventListener("click", function(){
+  shareLink();
+  var t = el("shareOut").textContent;
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t); }
+});
+
+/* init */
+refreshBitGroups();
+buildEdgeTable();
+updateCompleteness();
+if(!restoreFromHash()){
+  el("confidenceVal").textContent = "80% = 204";
+  el("riskVal").textContent = "20% = 51";
+}
+</script>
+</body>
+</html>
