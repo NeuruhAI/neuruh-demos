@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adaptive Intelligence Maximum-Resolution Blueprint - Research OS Demo</title>
+<style>
+  :root{ --bone:#f7f4ee; --paper:#fffdf8; --card:#ffffff; --ink:#1a1714; --muted:#5c554a; --brass:#a67c2e; --brass-dark:#7d5c1e; --line:#ddd5c4; --red:#8a2f23; --green:#2e6b3a; --amber:#8a6414; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bone); color:var(--ink); font-family:Inter, "Segoe UI", system-ui, -apple-system, sans-serif; font-size:15px; line-height:1.55; }
+  h1,h2,h3{ font-family:Archivo, "Helvetica Neue", Arial, sans-serif; line-height:1.2; }
+  h1{ font-size:30px; margin:0 0 6px 0; }
+  h2{ font-size:21px; border-bottom:2px solid var(--brass); padding-bottom:6px; margin:34px 0 12px 0; }
+  h3{ font-size:16px; margin:18px 0 6px 0; }
+  .wrap{ max-width:1020px; margin:0 auto; padding:24px 18px 60px 18px; }
+  .dochead{ background:var(--paper); border:1px solid var(--line); border-top:5px solid var(--brass); padding:22px 24px; }
+  .dochead .kicker{ font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--brass-dark); }
+  .dochead p.lede{ font-size:16px; color:var(--muted); margin:8px 0 0 0; }
+  .meta{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-top:16px; }
+  .meta div{ border:1px solid var(--line); background:var(--card); padding:10px 12px; }
+  .meta .k{ font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+  .meta .v{ font-size:17px; font-weight:700; margin-top:2px; }
+  .card{ background:var(--card); border:1px solid var(--line); padding:18px 20px; margin-top:16px; }
+  .toolbar{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:12px 0; }
+  .toolbar label{ font-size:13px; font-weight:600; }
+  select, input[type="text"]{ font:inherit; padding:7px 9px; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  button{ font:inherit; font-weight:600; padding:8px 14px; border:1px solid var(--brass-dark); background:var(--brass); color:#fff; cursor:pointer; }
+  button.secondary{ background:#fff; color:var(--brass-dark); }
+  button:hover{ filter:brightness(0.94); }
+  .rollup{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+  .pill{ border:1px solid var(--line); background:var(--paper); padding:6px 10px; font-size:13px; }
+  .pill b{ font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .pill.crit{ border-color:var(--red); color:var(--red); }
+  .pill.done{ border-color:var(--green); color:var(--green); }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  th, td{ text-align:left; vertical-align:top; padding:9px 8px; border-bottom:1px solid var(--line); }
+  th{ font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+  .badge{ display:inline-block; padding:2px 8px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid; white-space:nowrap; }
+  .sev-critical{ color:var(--red); border-color:var(--red); background:#fdf3f1; }
+  .sev-high{ color:var(--amber); border-color:var(--amber); background:#fdf8ec; }
+  .sev-medium{ color:#3d5a80; border-color:#3d5a80; background:#f0f4f8; }
+  .st-open{ color:var(--red); }
+  .st-progress{ color:var(--amber); }
+  .st-defined{ color:var(--green); }
+  details{ border:1px solid var(--line); background:var(--card); padding:12px 16px; margin-top:10px; }
+  details summary{ cursor:pointer; font-weight:700; font-size:15px; }
+  details summary .tag{ font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; color:var(--brass-dark); font-weight:400; margin-left:8px; }
+  code, .mono{ font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px; }
+  pre{ background:#f2eee3; border:1px solid var(--line); padding:12px; overflow-x:auto; font-size:13px; }
+  .phase{ display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); background:var(--card); padding:10px 12px; margin-top:8px; }
+  .phase input{ margin-top:4px; width:18px; height:18px; }
+  .phase .win{ font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; color:var(--brass-dark); white-space:nowrap; }
+  .phase.done{ background:#f4f8f1; }
+  .bar{ height:18px; background:#ece6d6; border:1px solid var(--line); position:relative; margin:8px 0 4px 0; }
+  .bar > div{ height:100%; background:var(--brass); }
+  .pct{ font-family:"JetBrains Mono", ui-monospace, monospace; font-weight:700; }
+  figure{ margin:20px 0; border:1px solid var(--line); background:var(--card); padding:14px; }
+  figcaption{ font-size:13px; color:var(--muted); margin-top:8px; }
+  figcaption b{ color:var(--ink); }
+  .claim{ font-size:12px; color:var(--muted); border-left:3px solid var(--brass); padding:6px 10px; background:var(--paper); margin:10px 0; }
+  .warn{ border-left:3px solid var(--red); background:#fdf6f4; padding:10px 12px; margin:10px 0; }
+  ol.walk li{ margin-bottom:8px; }
+  .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:700px){ .twocol{ grid-template-columns:1fr; } h1{ font-size:24px; } }
+  @media print{
+    body{ background:#fff; font-size:12px; }
+    button, .toolbar{ display:none; }
+    .card, .dochead, figure{ break-inside:avoid; }
+    a{ color:var(--ink); text-decoration:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="dochead">
+  <div class="kicker">Neuruh | Adaptive Intelligence Research Program</div>
+  <h1>Maximum-Resolution Blueprint: Research OS Demo</h1>
+  <p class="lede">A working demo of the research operating system described in the Adaptive Intelligence Maximum-Resolution Expansion Blueprint: a gap tracker, a formal model explorer, and a build roadmap with live progress state.</p>
+  <div class="meta">
+    <div><div class="k">Source document</div><div class="v">Blueprint v1.0</div></div>
+    <div><div class="k">Source date</div><div class="v">July 2026</div></div>
+    <div><div class="k">Source pages</div><div class="v">25</div></div>
+    <div><div class="k">Demo status</div><div class="v">Staged only</div></div>
+    <div><div class="k">Demo date</div><div class="v">2026-11-04</div></div>
+    <div><div class="k">Deployment</div><div class="v">None</div></div>
+  </div>
+  <p class="claim">Source claim: the blueprint is a "Design specification. Not empirical proof, clinical guidance, or a claim of universal law." All numbers and claims taken from the document are labeled as source claims in this demo. Severity ratings and tracker statuses in the gap list are demo assignments, not source values; the source gives only a provisional status per gap.</p>
+</header>
+
+<section>
+  <h2>1. What this demo is</h2>
+  <div class="card">
+    <p>The source blueprint converts "Adaptive Intelligence Thesis v0.1 from a coherent conceptual scaffold into a maximum-resolution, testable, machine-readable, visually navigable, and executable research operating system." Its operating rule is: <b>No floating claims. Every claim must carry provenance, scope, confidence, falsifiers, and lineage.</b> This demo implements three of its core instruments with the document's own content:</p>
+    <ul>
+      <li><b>Gap tracker</b> (Section 2 of the source): all 14 missing objects, each with a status and a severity, with working filters and a computed rollup.</li>
+      <li><b>Model explorer</b> (Sections 3 to 7, 9, 12): the document's 7 formal models, each expandable with definition and parameters.</li>
+      <li><b>Build roadmap</b> (Section 14): all 9 phases plus the 10 operator actions, with working progress state computed from checked steps.</li>
+    </ul>
+    <p class="claim">Source claims used in this demo: 14 gaps, 7 formal models, 12 retrieval variables, 11 polarity variables, 12 capability axes, 9 capability tiers, 8 emergence scoring dimensions with a threshold of 18 of 24, 16 required services, 15 canonical visuals, 8 canon volumes, 12 priority experiments (E-01 to E-12), 15 risks (R-01 to R-15), a 180-day program in 9 phases, and a v0.2 release gate at Day 180.</p>
+  </div>
+</section>
+
+<figure>
+  <svg viewBox="0 0 920 210" width="100%" role="img" aria-label="Research OS pipeline diagram" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="920" height="210" fill="#fffdf8"/>
+    <text x="460" y="24" text-anchor="middle" font-family="Archivo, Arial, sans-serif" font-size="15" font-weight="bold" fill="#1a1714">Figure 1. Research OS pipeline (source Sections 8 and 9)</text>
+    <g font-family="Inter, Arial, sans-serif" font-size="12" fill="#1a1714">
+      <rect x="10" y="60" width="104" height="56" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/><text x="62" y="84" text-anchor="middle">1. Ingest</text><text x="62" y="101" text-anchor="middle" font-size="10" fill="#5c554a">6 source classes</text>
+      <rect x="128" y="60" width="104" height="56" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/><text x="180" y="84" text-anchor="middle">2. Atomize</text><text x="180" y="101" text-anchor="middle" font-size="10" fill="#5c554a">12 object types</text>
+      <rect x="246" y="60" width="104" height="56" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/><text x="298" y="84" text-anchor="middle">3. Normalize</text><text x="298" y="101" text-anchor="middle" font-size="10" fill="#5c554a">alias resolver</text>
+      <rect x="364" y="60" width="104" height="56" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/><text x="416" y="84" text-anchor="middle">4. Rank</text><text x="416" y="101" text-anchor="middle" font-size="10" fill="#5c554a">HKRS engine</text>
+      <rect x="482" y="60" width="104" height="56" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/><text x="534" y="84" text-anchor="middle">5. Compile</text><text x="534" y="101" text-anchor="middle" font-size="10" fill="#5c554a">adaptive resolution</text>
+      <rect x="600" y="60" width="104" height="56" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/><text x="652" y="84" text-anchor="middle">6. Decide</text><text x="652" y="101" text-anchor="middle" font-size="10" fill="#5c554a">governance rules</text>
+      <rect x="718" y="60" width="104" height="56" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/><text x="770" y="84" text-anchor="middle">7. Receipt</text><text x="770" y="101" text-anchor="middle" font-size="10" fill="#5c554a">decision receipt</text>
+      <text x="836" y="88" text-anchor="middle" font-size="20" fill="#a67c2e">&#8594;</text>
+      <rect x="852" y="60" width="58" height="56" fill="#a67c2e" stroke="#7d5c1e" stroke-width="2"/><text x="881" y="84" text-anchor="middle" fill="#ffffff">8.</text><text x="881" y="101" text-anchor="middle" fill="#ffffff" font-size="10">Execute</text>
+      <text x="460" y="150" text-anchor="middle" font-size="12" fill="#5c554a">Outcomes feed back into the corpus: update_corpus(result, receipt, observed_outcomes)</text>
+      <text x="460" y="172" text-anchor="middle" font-size="12" fill="#5c554a">Governance, contradiction engine, and compression engine run across every step.</text>
+      <text x="460" y="194" text-anchor="middle" font-size="11" fill="#5c554a">Source: Section 9.2 context compilation flow, 9 numbered steps. This demo implements the tracker, explorer, and roadmap only.</text>
+    </g>
+    <g stroke="#a67c2e" stroke-width="2"><line x1="114" y1="88" x2="128" y2="88"/><line x1="232" y1="88" x2="246" y2="88"/><line x1="350" y1="88" x2="364" y2="88"/><line x1="468" y1="88" x2="482" y2="88"/><line x1="586" y1="88" x2="600" y2="88"/><line x1="704" y1="88" x2="718" y2="88"/><line x1="822" y1="88" x2="852" y2="88"/></g>
+  </svg>
+  <figcaption><b>Figure 1.</b> Research OS pipeline. Source claim: the thesis becomes infrastructure when the archive can be ingested, atomized, reconciled, ranked, compiled into context, and used to generate decisions whose outcomes update the corpus. The loop back from execution to corpus is the core of the design.</figcaption>
+</figure>
+
+<section>
+  <h2>2. Gap tracker</h2>
+  <p>Source Section 2, "What Is Missing": 14 missing objects. The source states each one "represents a point where the current theory can become circular, unmeasurable, or computationally incomplete unless it is explicitly modeled." The source gives a provisional status for each gap; severity below is a demo assignment (Critical: foundational or necessary for transfer; High: cross-cutting or required; Medium: derived or domain-bounded).</p>
+  <div class="card">
+    <div class="toolbar">
+      <label for="statusFilter">Status</label>
+      <select id="statusFilter">
+        <option value="all">All statuses</option>
+        <option value="Open">Open</option>
+        <option value="In progress">In progress</option>
+        <option value="Defined">Defined</option>
+      </select>
+      <label for="severityFilter">Severity</label>
+      <select id="severityFilter">
+        <option value="all">All severities</option>
+        <option value="Critical">Critical</option>
+        <option value="High">High</option>
+        <option value="Medium">Medium</option>
+      </select>
+      <label for="gapSearch">Search</label>
+      <input type="text" id="gapSearch" placeholder="e.g. causality">
+      <button class="secondary" id="resetFilters" type="button">Reset filters</button>
+    </div>
+    <div class="rollup" id="rollup" aria-live="polite"></div>
+    <table>
+      <thead><tr><th>Gap</th><th>Why it matters</th><th>Required treatment</th><th>Source provisional status</th><th>Severity</th><th>Status</th></tr></thead>
+      <tbody id="gapBody"></tbody>
+    </table>
+    <p id="gapCount" class="mono"></p>
+  </div>
+</section>
+
+<section>
+  <h2>3. Model explorer</h2>
+  <p>The document's formal models. Expand each one for its definition and parameters. Source claim: "These functions are not evidence. They are a disciplined way to expose assumptions, identify missing measurements, and design experiments." Coefficients in the polarity and retrieval formulas are uncalibrated in the source and are listed as unknown in the Honest gaps section.</p>
+  <div id="modelList"></div>
+</section>
+
+<section>
+  <h2>4. Build roadmap</h2>
+  <p>Source Section 14.1: a 180-day program in 9 phases. Source claim: "The correct build order is evidence-first enough to prevent theory drift, but visual and architectural enough to expose gaps early." Check a phase when its exit artifact exists. Progress is computed from the checked phases.</p>
+  <div class="card">
+    <h3>Phases</h3>
+    <div class="bar"><div id="phaseBar" style="width:0%"></div></div>
+    <p>Phase progress: <span class="pct" id="phasePct">0.0%</span> (<span id="phaseCount">0 of 9</span> phases complete)</p>
+    <div id="phaseList"></div>
+    <h3>First 10 operator actions</h3>
+    <p>Source Section 14.2. Note: the source numbers these actions 25 to 34, continuing the numbering from Sections 7 and 8. They are renumbered 1 to 10 here; see Honest gaps.</p>
+    <div class="bar"><div id="actionBar" style="width:0%"></div></div>
+    <p>Action progress: <span class="pct" id="actionPct">0.0%</span> (<span id="actionCount">0 of 10</span> actions complete)</p>
+    <div id="actionList"></div>
+  </div>
+</section>
+
+<figure>
+  <svg viewBox="0 0 920 300" width="100%" role="img" aria-label="Roadmap timeline diagram" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="920" height="300" fill="#fffdf8"/>
+    <text x="460" y="24" text-anchor="middle" font-family="Archivo, Arial, sans-serif" font-size="15" font-weight="bold" fill="#1a1714">Figure 2. 180-day roadmap timeline (source Section 14.1)</text>
+    <g font-family="Inter, Arial, sans-serif" font-size="11" fill="#1a1714">
+      <text x="120" y="52">Phase 0: Lock substrate</text><rect x="120" y="58" width="66" height="14" fill="#a67c2e"/><text x="192" y="69" font-size="10" fill="#5c554a">Days 1-14</text>
+      <text x="120" y="92">Phase 1: Visual Atlas v0.1</text><rect x="155" y="98" width="107" height="14" fill="#a67c2e"/><text x="268" y="109" font-size="10" fill="#5c554a">Days 8-30</text>
+      <text x="120" y="132">Phase 2: Corpus pilot</text><rect x="190" y="138" width="141" height="14" fill="#a67c2e"/><text x="337" y="149" font-size="10" fill="#5c554a">Days 15-45</text>
+      <text x="120" y="172">Phase 3: Formal model</text><rect x="262" y="178" width="183" height="14" fill="#a67c2e"/><text x="451" y="189" font-size="10" fill="#5c554a">Days 30-70</text>
+      <text x="120" y="212">Phase 4: Retrieval and context compiler</text><rect x="335" y="218" width="256" height="14" fill="#a67c2e"/><text x="597" y="229" font-size="10" fill="#5c554a">Days 45-100</text>
+      <text x="120" y="252">Phase 5: Canonicalization ops</text><rect x="456" y="258" width="228" height="14" fill="#a67c2e"/><text x="690" y="269" font-size="10" fill="#5c554a">Days 70-120</text>
+      <text x="560" y="52">Phase 6: Experiments</text><rect x="560" y="58" width="272" height="14" fill="#7d5c1e"/><text x="838" y="69" font-size="10" fill="#5c554a">Days 90-150</text>
+      <text x="560" y="92">Phase 7: Archive expansion</text><rect x="560" y="98" width="320" height="14" fill="#7d5c1e"/><text x="886" y="109" font-size="10" fill="#5c554a">Days 110-180</text>
+      <text x="560" y="132">Phase 8: v0.2 release gate</text><rect x="880" y="138" width="8" height="14" fill="#8a2f23"/><text x="560" y="149" font-size="10" fill="#5c554a">Day 180 gate: release only if evidence materially updates definitions, mechanisms, or boundaries</text>
+      <text x="460" y="290" text-anchor="middle" font-size="11" fill="#5c554a">Phases overlap by design. Scale: 1 day is about 4.6 px. Bars are drawn from the source day windows.</text>
+    </g>
+  </svg>
+  <figcaption><b>Figure 2.</b> Roadmap timeline. The overlap is in the source: Phase 1 starts Day 8 while Phase 0 runs to Day 14, and Phase 6 starts Day 90 while Phase 5 runs to Day 120. The Day 180 gate is a release gate, not a completion date for the work.</figcaption>
+</figure>
+
+<section>
+  <h2>5. Sample views and share link</h2>
+  <div class="card">
+    <p>Three sample loaders. Each one sets the tracker, explorer, and roadmap to a defined state.</p>
+    <div class="toolbar">
+      <button id="sampleFull" type="button">Load: full gap view</button>
+      <button id="sampleCritical" type="button">Load: critical gaps only</button>
+      <button id="sampleRoadmap" type="button">Load: roadmap complete</button>
+    </div>
+    <p id="sampleNote" class="mono"></p>
+    <h3>Share link</h3>
+    <p>The link encodes the current state (filters, checked phases, checked actions, expanded models) in the URL hash as base64 JSON. Opening the link restores the same state.</p>
+    <div class="toolbar">
+      <button id="shareBtn" type="button">Generate share link</button>
+      <button id="copyBtn" type="button" class="secondary">Copy share link</button>
+    </div>
+    <p><input type="text" id="shareOut" readonly style="width:100%" value="No share link generated yet."></p>
+    <p id="copyNote" class="mono"></p>
+  </div>
+</section>
+
+<section>
+  <h2>6. Completeness meter</h2>
+  <div class="card">
+    <p>Completeness counts the demo fields that are filled from the source against the fields the source leaves undefined. It measures the demo's coverage of the source, not the truth of the theory.</p>
+    <div class="bar"><div id="completeBar" style="width:0%"></div></div>
+    <p>Completeness: <span class="pct" id="completePct"></span> (<span id="completeCount"></span>)</p>
+    <h3>Missing fields</h3>
+    <ul id="missingList"></ul>
+  </div>
+</section>
+
+<section>
+  <h2>7. Try it: a walkthrough</h2>
+  <div class="card">
+    <ol class="walk">
+      <li><b>Filter the gaps.</b> Set Severity to Critical. The table shows 3 rows: Identity / boundary, Causality, and Meaning / relevance. The rollup updates to match.</li>
+      <li><b>Search.</b> Clear the severity filter and type "retrieval" in Search. One row remains: Meta-learning, because its required treatment mentions "retrieval policy". Search covers the gap name, why it matters, required treatment, and provisional status. Try "uncertainty" for exactly 1 row.</li>
+      <li><b>Open a model.</b> Expand "Emergence Qualification Protocol" and check the threshold: total score 18 or more of 24, with no zero in persistence or robustness. That is a source claim, and the arithmetic is 8 dimensions times a maximum of 3 equals 24.</li>
+      <li><b>Work the roadmap.</b> Check Phase 0, Phase 1, and Phase 2. Progress reads 33.3 percent, which is 3 of 9 phases.</li>
+      <li><b>Load the roadmap-complete sample.</b> All 9 phases check and progress reads 100.0 percent.</li>
+      <li><b>Share the state.</b> Click "Generate share link", then "Copy share link". Open the link in a new tab: the same filters and checked phases are restored.</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <h2>8. How it works / What this is not</h2>
+  <div class="twocol">
+    <div class="card">
+      <h3>How it works</h3>
+      <ul>
+        <li>All gap, model, phase, and action data lives in one JavaScript data block in this file, transcribed from the source PDF.</li>
+        <li>The rollup counts are computed from the gap data on every filter change, never hard-coded.</li>
+        <li>Roadmap progress is computed as checked steps divided by total steps, times 100, rounded to one decimal.</li>
+        <li>The share link is base64 JSON of the current state in the URL hash; on load the page decodes the hash and restores filters, checks, and expanded models.</li>
+        <li>The completeness meter is computed from a filled-fields count over a fixed field list.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>What this is not</h3>
+      <ul>
+        <li>Not the research OS itself. It is a demo of the tracker, explorer, and roadmap instruments only. No ingestion, atomization, ranking, or retrieval runs here.</li>
+        <li>Not empirical proof of Adaptive Intelligence. The source itself says it is a design specification, not empirical proof.</li>
+        <li>Not a live system. Nothing here connects to a corpus, a graph, or a service. There is no backend.</li>
+        <li>Not a validation of the formulas. The polarity, retrieval, and emergence functions are uncalibrated skeletons in the source.</li>
+        <li>Not canon. The source is raw material. Severity ratings and tracker statuses are demo assignments.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>9. Honest gaps</h2>
+  <div class="card">
+    <p>What the source does not define, or what this demo could not verify:</p>
+    <ul>
+      <li><b>Uncalibrated coefficients.</b> The emergence function uses alpha, beta, gamma, delta, epsilon, and lambda, and the retrieval score uses weights w1 to w9. The source gives no values, no units, and no calibration data. The demo lists them as symbols only.</li>
+      <li><b>No units for polarity variables.</b> P, C, F, A, M, G, T, D, L, R, and E are defined in words. Only P and E are given a 0 to 1 range. "Stakes" in PressureLoad is never defined.</li>
+      <li><b>Numbering errors in the source.</b> Section 7.1 lists its 10 qualification criteria numbered 5 to 14. Section 8.3 lists its 10 canonicalization rules numbered 15 to 24. Section 14.2 lists its 10 operator actions numbered 25 to 34. The demo renumbers each list 1 to 10 and flags the original numbering here rather than silently fixing it.</li>
+      <li><b>Stale partnership framing.</b> Section 3.4 uses "Jeramie and Bryan" as its partnership example and says the partnership "has emerged into a higher-order operating system." Per Jeramie's 2026-10-22 correction, DeedSonar is solely his and Bryan Franklin never signed. The source (July 2026) predates that correction; the demo keeps the section reference but does not repeat the partnership claim as current fact.</li>
+      <li><b>No evidence attached.</b> The central principle example in Section 12 carries confidence claim 0.0 and extraction 1.0 in the source's own JSON. The demo reports that as a source claim, not as a verified fact.</li>
+      <li><b>Unverified counts.</b> The demo transcribed the 15 visuals, 16 services, 12 experiments, and 15 risks from the source tables. The PDF text extraction preserved them, but no independent source was checked against them.</li>
+      <li><b>Layout not eyeballed.</b> This page was tested in jsdom for behavior only. It was not viewed in a real browser, so visual layout is an accepted limit.</li>
+    </ul>
+    <div class="warn"><b>Duplication flagged in the source:</b> the polarity phase space, the emergence furnace, and the claim lifecycle appear both as figures and as tables with overlapping content; the "Meaning / relevance" gap and the "Value / utility" gap overlap (both ask why a distinction matters); and the 8-volume canon restates Sections 3 to 13 as volumes rather than adding new content. The demo keeps all three representations separate and does not merge them.</div>
+  </div>
+</section>
+
+<section>
+  <h2>10. Source claims index</h2>
+  <div class="card">
+    <p>Every number below is a source claim from the blueprint, not a demo measurement:</p>
+    <ul>
+      <li>14 gaps (Section 2); 4 primitive-selection tests (Section 2.1)</li>
+      <li>11 polarity variables; 5 candidate functions; 6 phase regimes (Section 3)</li>
+      <li>12 capability axes; 9 tiers, 0 to 8 (Section 4)</li>
+      <li>10-step memory lifecycle; 12 retrieval variables; 9-weight retrieval score (Section 5)</li>
+      <li>10 compression object fields; 7 loss ledger fields (Section 6)</li>
+      <li>10 emergence criteria; 8 scoring dimensions; threshold 18 of 24 (Section 7)</li>
+      <li>6 source classes; 12 atomic object types; 10 canonicalization rules (Section 8)</li>
+      <li>16 required services; 9-step context compilation flow (Section 9)</li>
+      <li>15 canonical visuals (Section 10); 8 canon volumes (Section 11); 12 object relationships (Section 12)</li>
+      <li>12 priority experiments E-01 to E-12; 8 cross-domain validation rows (Section 13)</li>
+      <li>9 phases over 180 days; 10 operator actions (Section 14); 15 risks R-01 to R-15 (Section 15)</li>
+    </ul>
+    <p class="claim">Source file: 09_Adaptive_Intelligence_Maximum_Resolution_Blueprint_v1.0.pdf, 25 pages, 1,600,746 bytes, created 2026-08-01. The _1.pdf copy in the same folder is a byte-identical duplicate and was ignored.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+"use strict";
+var GAPS = [
+  { id:"g01", name:"Value / utility", why:"Determines which outcomes are preferred and which errors matter.", treatment:"Define local, inherited, negotiated, and multi-objective utility; track conflicts between short- and long-horizon value.", provisional:"Primitive candidate or governance-layer construct.", severity:"High", status:"In progress" },
+  { id:"g02", name:"Intent", why:"Selects a target state or direction of change.", treatment:"Separate declared intent, revealed intent, system intent, and imposed objective.", provisional:"Likely derived from value + representation + agency.", severity:"High", status:"In progress" },
+  { id:"g03", name:"Attention", why:"Controls which signals enter expensive computation.", treatment:"Model salience, novelty, threat, reward, relevance, and opportunity cost.", provisional:"Cross-cutting mechanism.", severity:"High", status:"Defined" },
+  { id:"g04", name:"Identity / boundary", why:"Defines what counts as self, partner, tool, and environment.", treatment:"Represent porous, changing, and nested boundaries.", provisional:"Foundational for agency and multi-agent systems.", severity:"Critical", status:"Open" },
+  { id:"g05", name:"Agency", why:"Separates passive state change from intervention.", treatment:"Require viable alternatives, action selection, and causal consequence.", provisional:"Derived capability with measurable degrees.", severity:"Medium", status:"In progress" },
+  { id:"g06", name:"Causality", why:"Distinguishes intervention from correlation.", treatment:"Track causal hypotheses, counterfactuals, and intervention evidence.", provisional:"Necessary for transfer beyond pattern matching.", severity:"Critical", status:"In progress" },
+  { id:"g07", name:"Counterfactual reasoning", why:"Learns from paths not taken.", treatment:"Store alternatives, predicted consequences, and hindsight updates.", provisional:"Mechanism above basic feedback.", severity:"Medium", status:"Open" },
+  { id:"g08", name:"Uncertainty", why:"Controls exploration, escalation, and evidence expansion.", treatment:"Track aleatoric, epistemic, source, model, and execution uncertainty.", provisional:"Cross-cutting state variable.", severity:"High", status:"Defined" },
+  { id:"g09", name:"Affect / physiological state", why:"Changes human perception, memory, risk, and learning bandwidth.", treatment:"Model as a modifier, not as mystical proof.", provisional:"Human-domain extension.", severity:"Medium", status:"Open" },
+  { id:"g10", name:"Social intelligence", why:"Models other agents as adaptive environments with private objectives.", treatment:"Add trust, signaling, bargaining, coalition, and governance dynamics.", provisional:"Required for partnerships and markets.", severity:"High", status:"Open" },
+  { id:"g11", name:"Meta-learning", why:"Improves the method of learning itself.", treatment:"Measure adaptation to learning rate, strategy, representation, and retrieval policy.", provisional:"Higher-order mechanism.", severity:"High", status:"Open" },
+  { id:"g12", name:"Forgetting / interference", why:"Prevents obsolete or conflicting knowledge from polluting action.", treatment:"Support decay, quarantine, supersession, and context-bound validity.", provisional:"Memory-governance mechanism.", severity:"Medium", status:"Open" },
+  { id:"g13", name:"Creative recombination", why:"Generates structures not explicitly stored as one object.", treatment:"Model structural rhyme, bridge formation, constraint satisfaction, and novelty checks.", provisional:"Mechanism for invention.", severity:"Medium", status:"Open" },
+  { id:"g14", name:"Meaning / relevance", why:"Determines why one detectable distinction matters.", treatment:"Tie representation to value, action, prediction, and consequence.", provisional:"Must be derived or explicitly primitive.", severity:"Critical", status:"Open" }
+];
+
+var MODELS = [
+  { id:"m1", title:"Formal Polarity and Emergence Model", section:"Section 3", definition:"Higher-order capability may emerge when meaningful difference remains inside a viable container long enough for pressure to be converted into feedback, retained learning, and structural adaptation. Pressure is not the cause by itself.", params:["11 variables: P polarity magnitude, C containment capacity, F feedback quality, A adaptive capacity, M memory integrity, G governance quality, T exposure duration, D accumulated damage, L leakage, R reorganization depth, E emergence confidence","PressureLoad = P x Stakes x T","LearningFlux = P x C x F x A x M x G","DamageFlux = PressureLoad x (1 - C) x (1 - A) + L","ReorganizationPotential = LearningFlux - lambda(DamageFlux)","EmergenceConfidence = sigmoid(alpha R + beta Transfer + gamma Persistence - delta Damage - epsilon Memorization)","6 phase regimes: Equilibrium, Productive learning, Stagnation, Escape, Collapse, Emergence window"], note:"Coefficients alpha, beta, gamma, delta, epsilon, lambda and Stakes are undefined in the source. Source claim: these functions are not evidence." },
+  { id:"m2", title:"Developmental Capability Tensor", section:"Section 4", definition:"Development is modeled as a vector of capabilities that varies by domain, state, and context. Chronological age is the wrong governing axis.", params:["12 axes: Representation depth, Abstraction control, Causal reasoning, Transfer distance, Temporal horizon, Uncertainty tolerance, Emotional / state regulation, Social modeling, Execution reliability, Compression quality, Retrieval control, Metacognition","9 tiers 0 to 8: Unrepresented, Reactive, Procedural, Model-based, Adaptive, Transfer-capable, Generative, Governance-capable, Wisdom-capable"], note:"Source claim: the figure values are illustrative; the architecture is the point." },
+  { id:"m3", title:"Latent Knowledge, Memory, and Retrieval", section:"Section 5", definition:"Latent knowledge is encoded experience whose value has not yet been realized. Its future usefulness depends on the probability that a compatible context will activate it at the correct resolution.", params:["10-step lifecycle: Exposure, Encoding, Consolidation, Dormancy, Cue Detection, Structural Match, Retrieval Competition, Recombination, Application, Reconsolidation","12 retrieval variables: Encoding strength, Cue overlap, Structural similarity, Salience, Recency / repetition, Source reliability, Context fit, Retrieval competition, Interference, Expansion cost, Consequence / risk, Bridge confidence","RetrievalScore = w1 SemanticMatch + w2 StructuralMatch + w3 GoalRelevance + w4 SourceReliability + w5 OutcomeEvidence + w6 NoveltyValue - w7 ContextMismatch - w8 Interference - w9 ExpansionCost","RequiredResolution = f(uncertainty, consequence, novelty, contradiction, user intent)"], note:"Weights w1 to w9 are undefined in the source. The improvement over ordinary retrieval is adaptive resolution." },
+  { id:"m4", title:"Compression and Loss Accounting", section:"Section 6", definition:"Compression is constructing a lower-cost representation that preserves the information needed for a defined class of future decisions. It is not merely reducing token count.", params:["10 compression object fields: Source set, Target use, Scope boundary, Retained information, Removed information, Generalizations, Hidden uncertainty, Expansion trigger, Reversibility, Version / lineage","7 loss ledger fields: omitted_details, merged_distinctions, collapsed_uncertainty, domain_assumptions, known_counterexamples, irreversible_transformations, required_expansion_conditions"], note:"Source rule: a principle must not travel farther than the evidence and boundary conditions encoded with it." },
+  { id:"m5", title:"Emergence Qualification Protocol", section:"Section 7", definition:"Emergence is a high-threshold classification, not a synonym for surprise, improvement, or emotional transformation.", params:["10 criteria (source numbers them 5 to 14): not directly encoded, persists across trials, robust under variation, transfers, reduces future learning cost, composes, not explained by memorization, accompanied by reorganization, survives pressure removal, independently evaluable","8 scoring dimensions, each 0 to 3: Novelty, Persistence, Robustness, Transfer, Learning-cost reduction, Composability, Internal reorganization, Independence from pressure","Classification threshold: total score 18 or more of 24, no zero in persistence or robustness, documented evidence that memorization alone is insufficient"], note:"Arithmetic check: 8 dimensions times a maximum of 3 equals 24, so the threshold is 18 of 24." },
+  { id:"m6", title:"Context Compilation Flow and Required Services", section:"Section 9", definition:"The thesis becomes infrastructure when the archive can be ingested, atomized, reconciled, ranked, compiled into context, and used to generate decisions whose outcomes update the corpus.", params:["9-step flow: resolve intent, estimate consequence, retrieve graph and vector, HKRS rank, expand until adequate, reason under governance, store decision receipt, execute, update corpus","16 services: source-registry, ingestion-adapters, atomizer, normalizer, alias-resolver, contradiction-engine, ontology-service, provenance-graph, ranking-engine / HKRS, context-compiler, compression-engine, governance-engine, experiment-registry, decision-receipts, world-emitter, observability-layer"], note:"Source claim: Figure 6 is a proposed responsibility map, not a claim that every component is already implemented." },
+  { id:"m7", title:"Machine-Readable Canon Object", section:"Section 12", definition:"Every canonical object must exist as structured data. Prose is a rendering, not the sole source of truth.", params:["Example object id: principle.constrained_polarity_emergence","object_type: hypothesis, status: candidate, owner: Jeramie, version: 0.1.0","confidence in the source example: claim 0.0, extraction 1.0","12 relationships: supports, contradicts, refines, supersedes, derives_from, implements, tests, observed_in, transfers_to, analogous_to, requires, bounded_by"], note:"Source claim: the central principle carries claim confidence 0.0 in the source's own example object." }
+];
+
+var PHASES = [
+  { id:"p0", name:"Phase 0: Lock the substrate", window:"Days 1-14", work:"Freeze schemas, source registry, object types, versioning, provenance, security, and decision-receipt format.", artifact:"Schema pack; repository; governance charter." },
+  { id:"p1", name:"Phase 1: Visual Atlas v0.1", window:"Days 8-30", work:"Build 15 canonical diagrams from structured data; validate every transition and missing node.", artifact:"Master map; phase space; pipeline; lifecycle; integration map." },
+  { id:"p2", name:"Phase 2: Corpus pilot", window:"Days 15-45", work:"Ingest a representative 1-5% sample across ChatGPT, Claude, files, and code.", artifact:"Corpus inventory; extraction benchmark; initial alias and contradiction graphs." },
+  { id:"p3", name:"Phase 3: Formal model", window:"Days 30-70", work:"Define polarity variables, retrieval functions, compression loss, development tensor, emergence scoring.", artifact:"Formal specification and simulation notebook." },
+  { id:"p4", name:"Phase 4: Retrieval and context compiler", window:"Days 45-100", work:"Implement graph + vector retrieval, HKRS ranking, adaptive expansion, provenance display.", artifact:"Working prototype with benchmark." },
+  { id:"p5", name:"Phase 5: Canonicalization operations", window:"Days 70-120", work:"Deploy review queues, promotion workflow, decision receipts, contradiction resolution.", artifact:"Operator console and canonical release process." },
+  { id:"p6", name:"Phase 6: Experiments", window:"Days 90-150", work:"Run first six experiments; document negative results and scope failures.", artifact:"Experimental report and revised theory." },
+  { id:"p7", name:"Phase 7: Archive expansion", window:"Days 110-180", work:"Scale ingestion, create already built map, extract dormant ideas, map implementations and outcomes.", artifact:"Archive Reconstruction v0.1." },
+  { id:"p8", name:"Phase 8: v0.2 release", window:"Day 180 gate", work:"Release only if evidence materially updates definitions, mechanisms, or boundaries.", artifact:"Eight-volume partial canon; software alpha; research roadmap." }
+];
+
+var ACTIONS = [
+  "Freeze the canonical object schema and source registry before mass export.",
+  "Generate immutable exports from each platform; do not rely on copy-pasted summaries.",
+  "Select a representative pilot corpus containing foundational, contradictory, implemented, and abandoned material.",
+  "Build the Master Adaptive Intelligence Map from the v0.1 canon and this blueprint.",
+  "Create the alias, contradiction, decision, experiment, and implementation registers.",
+  "Run dual extraction: one deterministic pass and one model-assisted pass; compare omissions and hallucinations.",
+  "Map every Neuruh component to implemented, partial, specified, implied, or unknown status.",
+  "Implement adaptive-resolution retrieval before attempting broad autonomous reasoning.",
+  "Run falsification experiments before claiming novelty or universality.",
+  "Release v0.2 as a delta with decision receipts, not as a rewritten clean-room manifesto."
+];
+
+var COMPLETENESS = {
+  filled: 33, total: 36,
+  missing: [
+    "Coefficient values for the polarity and emergence functions (alpha, beta, gamma, delta, epsilon, lambda): not in source.",
+    "Units for polarity variables C, F, A, M, G, T, D, L, R and a definition of Stakes: not in source.",
+    "Calibration data or measured values for any formula: not in source."
+  ]
+};
+
+var state = { status:"all", severity:"all", search:"", phases:{}, actions:{}, expanded:{} };
+
+function $(id){ return document.getElementById(id); }
+function pct(n, d){ return (n / d * 100).toFixed(1) + "%"; }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function filteredGaps(){
+  var q = state.search.trim().toLowerCase();
+  return GAPS.filter(function(g){
+    if(state.status !== "all" && g.status !== state.status) return false;
+    if(state.severity !== "all" && g.severity !== state.severity) return false;
+    if(q){
+      var hay = (g.name + " " + g.why + " " + g.treatment + " " + g.provisional).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function renderGaps(){
+  var rows = filteredGaps();
+  var body = $("gapBody");
+  body.innerHTML = rows.map(function(g){
+    return "<tr><td><b>" + esc(g.name) + "</b></td><td>" + esc(g.why) + "</td><td>" + esc(g.treatment) + "</td><td>" + esc(g.provisional) + "</td><td><span class=\"badge sev-" + g.severity.toLowerCase() + "\">" + g.severity + "</span></td><td class=\"st-" + (g.status === "Open" ? "open" : g.status === "In progress" ? "progress" : "defined") + "\"><b>" + g.status + "</b></td></tr>";
+  }).join("");
+  var total = GAPS.length;
+  var open = GAPS.filter(function(g){ return g.status === "Open"; }).length;
+  var prog = GAPS.filter(function(g){ return g.status === "In progress"; }).length;
+  var def = GAPS.filter(function(g){ return g.status === "Defined"; }).length;
+  var crit = GAPS.filter(function(g){ return g.severity === "Critical"; }).length;
+  var high = GAPS.filter(function(g){ return g.severity === "High"; }).length;
+  var med = GAPS.filter(function(g){ return g.severity === "Medium"; }).length;
+  $("rollup").innerHTML =
+    "<span class=\"pill\">Total <b>" + total + "</b></span>" +
+    "<span class=\"pill\">Open <b>" + open + "</b></span>" +
+    "<span class=\"pill\">In progress <b>" + prog + "</b></span>" +
+    "<span class=\"pill done\">Defined <b>" + def + "</b></span>" +
+    "<span class=\"pill crit\">Critical <b>" + crit + "</b></span>" +
+    "<span class=\"pill\">High <b>" + high + "</b></span>" +
+    "<span class=\"pill\">Medium <b>" + med + "</b></span>" +
+    "<span class=\"pill done\">Completion (Defined) <b>" + pct(def, total) + "</b></span>" +
+    "<span class=\"pill\">Showing <b>" + rows.length + " of " + total + "</b></span>";
+  $("gapCount").textContent = "Showing " + rows.length + " of " + total + " gaps.";
+}
+
+function renderModels(){
+  $("modelList").innerHTML = MODELS.map(function(m){
+    var open = state.expanded[m.id] ? " open" : "";
+    return "<details id=\"model-" + m.id + "\"" + open + "><summary>" + esc(m.title) + "<span class=\"tag\">" + esc(m.section) + " | click to expand</span></summary>" +
+      "<p>" + esc(m.definition) + "</p><ul>" + m.params.map(function(p){ return "<li>" + esc(p) + "</li>"; }).join("") + "</ul>" +
+      "<p class=\"claim\">" + esc(m.note) + "</p></details>";
+  }).join("");
+  MODELS.forEach(function(m){
+    var d = $("model-" + m.id);
+    d.addEventListener("toggle", function(){ state.expanded[m.id] = d.open; });
+  });
+}
+
+function renderPhases(){
+  $("phaseList").innerHTML = PHASES.map(function(p, i){
+    var checked = state.phases[p.id] ? " checked" : "";
+    var cls = state.phases[p.id] ? "phase done" : "phase";
+    return "<label class=\"" + cls + "\"><input type=\"checkbox\" data-phase=\"" + p.id + "\"" + checked + "><span><b>" + esc(p.name) + "</b> <span class=\"win\">" + esc(p.window) + "</span><br>" + esc(p.work) + "<br><span class=\"mono\">Exit artifact: " + esc(p.artifact) + "</span></span></label>";
+  }).join("");
+  var n = PHASES.filter(function(p){ return state.phases[p.id]; }).length;
+  $("phaseBar").style.width = pct(n, PHASES.length);
+  $("phasePct").textContent = pct(n, PHASES.length);
+  $("phaseCount").textContent = n + " of " + PHASES.length;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-phase]"), function(cb){
+    cb.addEventListener("change", function(){ state.phases[cb.getAttribute("data-phase")] = cb.checked; renderPhases(); });
+  });
+}
+
+function renderActions(){
+  $("actionList").innerHTML = ACTIONS.map(function(a, i){
+    var id = "a" + (i + 1);
+    var checked = state.actions[id] ? " checked" : "";
+    var cls = state.actions[id] ? "phase done" : "phase";
+    return "<label class=\"" + cls + "\"><input type=\"checkbox\" data-action=\"" + id + "\"" + checked + "><span><b>Action " + (i + 1) + ".</b> " + esc(a) + " <span class=\"mono\">(source number " + (i + 25) + ")</span></span></label>";
+  }).join("");
+  var n = ACTIONS.filter(function(a, i){ return state.actions["a" + (i + 1)]; }).length;
+  $("actionBar").style.width = pct(n, ACTIONS.length);
+  $("actionPct").textContent = pct(n, ACTIONS.length);
+  $("actionCount").textContent = n + " of " + ACTIONS.length;
+  Array.prototype.forEach.call(document.querySelectorAll("[data-action]"), function(cb){
+    cb.addEventListener("change", function(){ state.actions[cb.getAttribute("data-action")] = cb.checked; renderActions(); });
+  });
+}
+
+function renderCompleteness(){
+  $("completeBar").style.width = pct(COMPLETENESS.filled, COMPLETENESS.total);
+  $("completePct").textContent = pct(COMPLETENESS.filled, COMPLETENESS.total);
+  $("completeCount").textContent = COMPLETENESS.filled + " of " + COMPLETENESS.total + " fields filled";
+  $("missingList").innerHTML = COMPLETENESS.missing.map(function(m){ return "<li>" + esc(m) + "</li>"; }).join("");
+}
+
+function encodeState(){
+  return btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+}
+function decodeState(hash){
+  try{
+    var raw = hash.replace(/^#d=/, "");
+    var obj = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(obj && typeof obj === "object") return obj;
+  }catch(e){ return null; }
+  return null;
+}
+function applyState(s){
+  if(!s) return;
+  if(s.status) state.status = s.status;
+  if(s.severity) state.severity = s.severity;
+  if(typeof s.search === "string") state.search = s.search;
+  if(s.phases) state.phases = s.phases;
+  if(s.actions) state.actions = s.actions;
+  if(s.expanded) state.expanded = s.expanded;
+  $("statusFilter").value = state.status;
+  $("severityFilter").value = state.severity;
+  $("gapSearch").value = state.search;
+}
+
+function renderAll(){ renderGaps(); renderModels(); renderPhases(); renderActions(); renderCompleteness(); }
+
+$("statusFilter").addEventListener("change", function(){ state.status = this.value; renderGaps(); });
+$("severityFilter").addEventListener("change", function(){ state.severity = this.value; renderGaps(); });
+$("gapSearch").addEventListener("input", function(){ state.search = this.value; renderGaps(); });
+$("resetFilters").addEventListener("click", function(){
+  state.status = "all"; state.severity = "all"; state.search = "";
+  $("statusFilter").value = "all"; $("severityFilter").value = "all"; $("gapSearch").value = "";
+  renderGaps();
+});
+
+$("sampleFull").addEventListener("click", function(){
+  state.status = "all"; state.severity = "all"; state.search = "";
+  $("statusFilter").value = "all"; $("severityFilter").value = "all"; $("gapSearch").value = "";
+  renderGaps();
+  $("sampleNote").textContent = "Loaded: full gap view. 14 of 14 gaps shown.";
+});
+$("sampleCritical").addEventListener("click", function(){
+  state.status = "all"; state.severity = "Critical"; state.search = "";
+  $("statusFilter").value = "all"; $("severityFilter").value = "Critical"; $("gapSearch").value = "";
+  renderGaps();
+  $("sampleNote").textContent = "Loaded: critical gaps only. 3 of 14 gaps shown.";
+});
+$("sampleRoadmap").addEventListener("click", function(){
+  PHASES.forEach(function(p){ state.phases[p.id] = true; });
+  renderPhases();
+  $("sampleNote").textContent = "Loaded: roadmap complete. 9 of 9 phases checked, progress 100.0%.";
+});
+
+$("shareBtn").addEventListener("click", function(){
+  var url = window.location.href.split("#")[0] + "#d=" + encodeState();
+  $("shareOut").value = url;
+  $("copyNote").textContent = "Share link generated. Hash length: " + encodeState().length + " characters.";
+});
+$("copyBtn").addEventListener("click", function(){
+  var out = $("shareOut");
+  if(!out.value || out.value.indexOf("#d=") === -1){ $("copyNote").textContent = "Generate a share link first."; return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(out.value).then(function(){ $("copyNote").textContent = "Copied to clipboard."; }, function(){ $("copyNote").textContent = "Copy failed. Select the link text manually."; });
+  } else {
+    out.select();
+    try{ document.execCommand("copy"); $("copyNote").textContent = "Copied to clipboard."; }
+    catch(e){ $("copyNote").textContent = "Copy not supported here. Select the link text manually."; }
+  }
+});
+
+if(window.location.hash && window.location.hash.indexOf("#d=") === 0){
+  var restored = decodeState(window.location.hash);
+  if(restored) applyState(restored);
+}
+renderAll();
+</script>
+</body>
+</html>
