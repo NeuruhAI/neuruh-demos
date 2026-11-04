@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swarm Mission DAG | Neuruh Simulation Demo</title>
+<style>
+:root{
+  --bone:#f7f4ee; --paper:#fffdf8; --ink:#1a1714; --muted:#4a463d;
+  --brass:#a67c2e; --brass-dark:#8a5a00; --line:#d8d2c2; --line-soft:#e7e1cf;
+  --ok:#2e6b34; --bad:#8c2f26; --amber:#8a5a00;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bone);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.55}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.2;margin:0 0 10px 0}
+h1{font-size:30px;letter-spacing:-.01em}
+h2{font-size:21px;border-bottom:2px solid var(--brass);padding-bottom:6px;margin-top:0}
+h3{font-size:16px;margin-top:18px}
+p{margin:0 0 10px 0}
+ul,ol{margin:0 0 10px 0;padding-left:22px}
+li{margin-bottom:4px}
+a{color:var(--brass-dark)}
+.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+.small{font-size:13px;color:var(--muted)}
+.wrap{max-width:980px;margin:0 auto;padding:24px 20px 72px}
+.eyebrow{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brass-dark);margin-bottom:8px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin:18px 0}
+.card.flash{outline:3px solid var(--brass);outline-offset:2px}
+.docctl{border:1px solid var(--line);border-radius:6px;overflow:hidden;margin:16px 0}
+.docctl table{width:100%;border-collapse:collapse;background:var(--paper)}
+.docctl td,.docctl th{border:1px solid var(--line-soft);padding:8px 12px;text-align:left;font-size:13px;vertical-align:top}
+.docctl th{background:#efe9d8;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;width:170px}
+.banner{background:#fbf6e9;border:2px solid var(--brass);border-left-width:10px;border-radius:6px;
+  padding:16px 20px;margin:18px 0}
+.banner h2{border-bottom:none;margin-bottom:8px;color:var(--brass-dark)}
+.banner p{margin-bottom:6px}
+.banner .ruling{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:14px;font-weight:700;
+  color:var(--brass-dark)}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.meta-cell{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:12px 14px}
+.meta-cell .k{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--brass-dark);margin-bottom:4px}
+.meta-cell .v{font-size:14px}
+table.data{width:100%;border-collapse:collapse;background:var(--paper);font-size:14px;margin:10px 0}
+table.data th,table.data td{border:1px solid var(--line-soft);padding:7px 10px;text-align:left;vertical-align:top}
+table.data th{background:#efe9d8;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase}
+table.data tr.total td{font-weight:700;background:#f4f1ea}
+figure{margin:18px 0;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:14px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);margin-top:10px;border-top:1px solid var(--line-soft);padding-top:8px}
+figcaption b{color:var(--ink)}
+label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px 0}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px 10px;font-size:14px;
+  font-family:Inter,system-ui,sans-serif;color:var(--ink);background:#fff;border:1px solid var(--line);
+  border-radius:4px}
+input[type=checkbox]{width:auto}
+textarea{resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{display:inline-block;padding:9px 16px;font-size:14px;font-weight:600;font-family:Inter,system-ui,sans-serif;
+  border-radius:4px;border:1px solid var(--brass);background:var(--brass);color:#fff;cursor:pointer;margin:4px 6px 4px 0}
+.btn:hover{background:var(--brass-dark)}
+.btn.ghost{background:#fff;color:var(--brass-dark)}
+.btn.ghost:hover{background:#f4f1ea}
+.btn.danger{background:#fff;color:var(--bad);border-color:var(--bad)}
+.btn.danger:hover{background:#f9ecea}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.deps-box{border:1px solid var(--line);border-radius:4px;padding:8px 12px;background:#fff;max-height:130px;overflow:auto}
+.deps-box label{display:inline-block;font-weight:400;margin:4px 12px 4px 0}
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700;
+  font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.pill.queued{background:#efe9d8;color:var(--muted)}
+.pill.leased{background:#f3e8c8;color:var(--amber)}
+.pill.running{background:var(--brass);color:#fff}
+.pill.complete{background:#dceadd;color:var(--ok)}
+.pill.expired{background:#f6dcd8;color:var(--bad)}
+.pill.blocked{background:#f6dcd8;color:var(--bad)}
+.meter-wrap{background:#efe9d8;border:1px solid var(--line);border-radius:6px;height:26px;overflow:hidden;margin:10px 0}
+.meter-fill{height:100%;background:var(--brass);width:0%;transition:width .3s}
+.meter-label{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:13px}
+.ok-text{color:var(--ok);font-weight:700}
+.bad-text{color:var(--bad);font-weight:700}
+.warn-text{color:var(--amber);font-weight:700}
+.logbox{background:#1a1714;color:#e8e2d2;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  font-size:12px;line-height:1.6;border-radius:6px;padding:12px 14px;max-height:260px;overflow:auto;white-space:pre-wrap}
+.receipt-hash{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;word-break:break-all}
+.toc{columns:2;column-gap:28px}
+.toc li{margin-bottom:2px}
+.callout{border-left:4px solid var(--brass);background:#fbf6e9;padding:10px 14px;margin:12px 0;border-radius:0 6px 6px 0}
+.callout.bad{border-left-color:var(--bad);background:#f9ecea}
+.callout.ok{border-left-color:var(--ok);background:#eaf3ea}
+.step-nav{display:flex;gap:10px;align-items:center;margin-top:12px}
+.step-nav .step-text{flex:1}
+.kbd{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:#efe9d8;border:1px solid var(--line);
+  border-radius:3px;padding:1px 6px;font-size:12px}
+svg .node{fill:#fffdf8;stroke:var(--ink);stroke-width:1.4}
+svg .node-brass{fill:#fbf6e9;stroke:var(--brass);stroke-width:1.8}
+svg .node-ok{fill:#eaf3ea;stroke:var(--ok);stroke-width:1.4}
+svg .node-bad{fill:#f9ecea;stroke:var(--bad);stroke-width:1.4}
+svg .edge{stroke:var(--ink);stroke-width:1.4;fill:none}
+svg .edge-brass{stroke:var(--brass);stroke-width:1.6;fill:none}
+svg .lbl{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;fill:var(--ink)}
+svg .lbl-sm{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:9.5px;fill:var(--muted)}
+svg .fig-title{font-family:Archivo,Inter,sans-serif;font-size:13px;font-weight:700;fill:var(--ink)}
+footer{margin-top:32px;border-top:2px solid var(--brass);padding-top:14px;font-size:13px;color:var(--muted)}
+@media print{
+  body{background:#fff}
+  .btn,.step-nav,.no-print{display:none !important}
+  .card,.banner,figure{break-inside:avoid;border-color:#999}
+  .wrap{max-width:100%;padding:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Neuruh / Swarm / Simulation Demo</div>
+  <h1>Swarm Mission DAG</h1>
+  <p>A mission composer, a lease lifecycle simulator, and a hash-chained receipt chain for the swarm as the V2 blueprint defines it: a mission DAG of ephemeral worker leases on existing infrastructure. This page simulates the design. Nothing here runs a swarm, leases a worker, or touches a live system.</p>
+  <div class="docctl">
+    <table>
+      <tr><th>Document</th><td>Swarm Mission DAG, simulation demo, version 1.0</td></tr>
+      <tr><th>Date</th><td>2026-11-04</td></tr>
+      <tr><th>Status</th><td><b>SIMULATION DEMO. NOT A LIVE RUNTIME. NOT DEPLOYED.</b></td></tr>
+      <tr><th>Governing source</th><td>NEURUH_MASSIVE_VISUAL_RESEARCH_SWARM_INTEGRATION_BLUEPRINT_V2_2026-09-08.docx (291 paragraphs, 61 tables), dated 2026-09-08</td></tr>
+      <tr><th>Scoping source</th><td>runtime-scoping.md, SWARM section (read first; it governs what this demo may claim)</td></tr>
+      <tr><th>Reference site</th><td>swarm-integration-blueprint staged site (existing V2 blueprint page, content and structure reference only)</td></tr>
+      <tr><th>Custody cited</th><td>Research Swarm PR #8 in NeuruhAI/neuruh-vault; AXON Context MUX PR #6; Atomic taxonomy PR #1. Merge status of all three: UNKNOWN, not verified for this build.</td></tr>
+    </table>
+  </div>
+</header>
+
+<div class="banner" id="banner">
+  <h2>Honest label, read first</h2>
+  <p class="ruling">ARCHITECTURE CANDIDATE - GIT-CUSTODIED - NOT A LIVE RUNTIME CLAIM</p>
+  <p><b>5,150 is a historical logical-agent design target across 7 legions, never live sessions.</b> The donor legion table sums to 5,150 (Acquisition 2,550; Capital 375; Development 350; Exit 1,600; Counter-Intel 175; Tokenization 35; Meta-Architects 65). The same donor material elsewhere says 5,000 agents and 10,000+ workers. All three figures are donor logical capacity, a historical archive badge only. They are never a current-active metric on this page.</p>
+  <p><b>This demo is a simulation of the design, not a running swarm.</b> No workers run here. No leases exist here. No runtime state is shown. Every count, event, and receipt on this page is either source text or a sample you enter.</p>
+  <p><b>The V2 blueprint forbids rebuilding:</b> a separate swarm platform, a second assistant, a new central orchestrator, a new swarm server, a new database for Worlds, or 5,150 always-on agents. This demo builds none of those. It stages the mission DAG, lease, and receipt ideas as a local, deterministic simulation only.</p>
+</div>
+
+<nav class="card no-print">
+  <h2>Contents</h2>
+  <ol class="toc">
+    <li><a href="#counts">Count discipline</a></li>
+    <li><a href="#fig1">Figure 1: mission DAG</a></li>
+    <li><a href="#fig2">Figure 2: lease lifecycle</a></li>
+    <li><a href="#composer">Mission composer</a></li>
+    <li><a href="#samples">Sample missions</a></li>
+    <li><a href="#meter">Completeness meter</a></li>
+    <li><a href="#simulator">Lease lifecycle simulator</a></li>
+    <li><a href="#receipts">Receipt chain</a></li>
+    <li><a href="#share">Share by link</a></li>
+    <li><a href="#tryit">Try-it walkthrough</a></li>
+    <li><a href="#how">How it works / What this is not</a></li>
+    <li><a href="#gaps">Honest gaps</a></li>
+    <li><a href="#sources">Sources and source claims</a></li>
+  </ol>
+</nav>
+
+<section class="card" id="counts">
+  <h2>1. Count discipline</h2>
+  <p>The V2 blueprint (Tables 8 and 16) requires the interface to show count classes separately. Do not collapse them.</p>
+  <table class="data">
+    <tr><th>Count class</th><th>Meaning</th><th>How this demo shows it</th></tr>
+    <tr><td>12 persistent operator roles</td><td>Human-facing role constitution layer</td><td>Not counted here; no operator roles are simulated.</td></tr>
+    <tr><td>24-node organism manifest</td><td>Intended topology inventory</td><td>Not counted here; the organism manifest is out of scope for this demo.</td></tr>
+    <tr><td>17+1 SOPS acceptance surface</td><td>Supervised operational acceptance scope</td><td>Not counted here; no acceptance surface is simulated.</td></tr>
+    <tr><td>0..N worker leases</td><td>Actual active or queued ephemeral mission work</td><td>The simulator below. Leases here are simulated ticks, not real leases.</td></tr>
+    <tr><td>5,150 / 10,000 donor figures</td><td>Historical logical capacity identity</td><td>Archive badge only, in the banner above. Never a current-active metric.</td></tr>
+  </table>
+  <p class="small">Source claim: the three count classes are distinct per V2 Tables 8 and 16. The 5,150 legion split comes from the donor legion table as recorded in runtime-scoping.md. The 10,000+ figure comes from the separate architecture blueprint donor document and conflicts with 5,150; the V2 ruling treats both as donor logical capacity.</p>
+</section>
+
+<figure id="fig1">
+  <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sample mission DAG diagram">
+    <defs>
+      <marker id="arr1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1714"></path>
+      </marker>
+      <marker id="arr1b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#a67c2e"></path>
+      </marker>
+    </defs>
+    <text class="fig-title" x="10" y="16">Mission DAG, sample SREIC flow (V2 section 6, Table 15)</text>
+    <rect class="node-brass" x="10" y="40" width="128" height="42" rx="4"></rect>
+    <text class="lbl" x="74" y="57" text-anchor="middle">BOB compiles</text>
+    <text class="lbl-sm" x="74" y="72" text-anchor="middle">mission identity</text>
+    <rect class="node" x="158" y="40" width="128" height="42" rx="4"></rect>
+    <text class="lbl" x="222" y="57" text-anchor="middle">Ingest signals</text>
+    <text class="lbl-sm" x="222" y="72" text-anchor="middle">LandOS ingest</text>
+    <rect class="node" x="306" y="40" width="128" height="42" rx="4"></rect>
+    <text class="lbl" x="370" y="57" text-anchor="middle">Resolve entity</text>
+    <text class="lbl-sm" x="370" y="72" text-anchor="middle">evidence + identity</text>
+    <rect class="node" x="454" y="40" width="128" height="42" rx="4"></rect>
+    <text class="lbl" x="518" y="57" text-anchor="middle">Rank opportunity</text>
+    <text class="lbl-sm" x="518" y="72" text-anchor="middle">recipes + rank</text>
+    <rect class="node" x="602" y="14" width="128" height="42" rx="4"></rect>
+    <text class="lbl" x="666" y="31" text-anchor="middle">Underwrite</text>
+    <text class="lbl-sm" x="666" y="46" text-anchor="middle">strategy routes</text>
+    <rect class="node" x="602" y="76" width="128" height="42" rx="4"></rect>
+    <text class="lbl" x="666" y="93" text-anchor="middle">Capital routes</text>
+    <text class="lbl-sm" x="666" y="108" text-anchor="middle">liquidity check</text>
+    <rect class="node-brass" x="750" y="40" width="140" height="42" rx="4"></rect>
+    <text class="lbl" x="820" y="57" text-anchor="middle">Governance gate</text>
+    <text class="lbl-sm" x="820" y="72" text-anchor="middle">AXON + Sentinel</text>
+    <line class="edge" x1="138" y1="61" x2="158" y2="61" marker-end="url(#arr1)"></line>
+    <line class="edge" x1="286" y1="61" x2="306" y2="61" marker-end="url(#arr1)"></line>
+    <line class="edge" x1="434" y1="61" x2="454" y2="61" marker-end="url(#arr1)"></line>
+    <line class="edge" x1="582" y1="52" x2="602" y2="38" marker-end="url(#arr1)"></line>
+    <line class="edge" x1="582" y1="70" x2="602" y2="94" marker-end="url(#arr1)"></line>
+    <line class="edge" x1="730" y1="35" x2="750" y2="52" marker-end="url(#arr1)"></line>
+    <line class="edge" x1="730" y1="97" x2="750" y2="68" marker-end="url(#arr1)"></line>
+    <rect class="node-ok" x="10" y="128" width="280" height="42" rx="4"></rect>
+    <text class="lbl" x="150" y="145" text-anchor="middle">Execute (bounded worker lease)</text>
+    <text class="lbl-sm" x="150" y="160" text-anchor="middle">Workers / Switchboard</text>
+    <rect class="node-ok" x="310" y="128" width="280" height="42" rx="4"></rect>
+    <text class="lbl" x="450" y="145" text-anchor="middle">Seal receipt, court as required</text>
+    <text class="lbl-sm" x="450" y="160" text-anchor="middle">Vault receipt chain</text>
+    <rect class="node-ok" x="610" y="128" width="280" height="42" rx="4"></rect>
+    <text class="lbl" x="750" y="145" text-anchor="middle">Outcome, calibrate, learn</text>
+    <text class="lbl-sm" x="750" y="160" text-anchor="middle">OutcomeRecord + LUP</text>
+    <line class="edge-brass" x1="820" y1="82" x2="820" y2="112" marker-end="url(#arr1b)"></line>
+    <line class="edge" x1="290" y1="149" x2="310" y2="149" marker-end="url(#arr1)"></line>
+    <line class="edge" x1="590" y1="149" x2="610" y2="149" marker-end="url(#arr1)"></line>
+    <line class="edge-brass" x1="150" y1="170" x2="150" y2="186" marker-end="url(#arr1b)"></line>
+    <text class="lbl-sm" x="160" y="186">next mission cycle</text>
+  </svg>
+  <figcaption><b>Figure 1. Mission DAG, sample SREIC flow.</b> Drawn from V2 section 6 and Table 15 (the Real Estate World loop). BOB compiles the mission; Workers lease bounded units; Governance and Sentinel gate consequential action; completed branches seal receipts; OutcomeRecord and the Learning Update Proposal close the loop. Edges are parent-to-child mission steps, not animation. The composer below lets you build a DAG like this and validates it with a real topological sort.</figcaption>
+</figure>
+
+<figure id="fig2">
+  <svg viewBox="0 0 900 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lease lifecycle diagram">
+    <defs>
+      <marker id="arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1714"></path>
+      </marker>
+      <marker id="arr2r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#8c2f26"></path>
+      </marker>
+    </defs>
+    <text class="fig-title" x="10" y="16">Ephemeral worker lease lifecycle (V2 section 6; event vocabulary section 8)</text>
+    <rect class="node" x="10" y="40" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="75" y="58" text-anchor="middle">Requested</text>
+    <text class="lbl-sm" x="75" y="73" text-anchor="middle">deps satisfied</text>
+    <rect class="node-brass" x="170" y="40" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="235" y="58" text-anchor="middle">Leased</text>
+    <text class="lbl-sm" x="235" y="73" text-anchor="middle">bounded, expiry set</text>
+    <rect class="node-brass" x="330" y="40" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="395" y="58" text-anchor="middle">Running</text>
+    <text class="lbl-sm" x="395" y="73" text-anchor="middle">heartbeat each tick</text>
+    <rect class="node-ok" x="490" y="40" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="555" y="58" text-anchor="middle">Complete</text>
+    <text class="lbl-sm" x="555" y="73" text-anchor="middle">receipt sealed</text>
+    <rect class="node-ok" x="650" y="40" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="715" y="58" text-anchor="middle">Released</text>
+    <text class="lbl-sm" x="715" y="73" text-anchor="middle">lease returned</text>
+    <line class="edge" x1="140" y1="62" x2="170" y2="62" marker-end="url(#arr2)"></line>
+    <line class="edge" x1="300" y1="62" x2="330" y2="62" marker-end="url(#arr2)"></line>
+    <line class="edge" x1="460" y1="62" x2="490" y2="62" marker-end="url(#arr2)"></line>
+    <line class="edge" x1="620" y1="62" x2="650" y2="62" marker-end="url(#arr2)"></line>
+    <text class="lbl-sm" x="155" y="34" text-anchor="middle">grant</text>
+    <text class="lbl-sm" x="315" y="34" text-anchor="middle">start</text>
+    <text class="lbl-sm" x="475" y="34" text-anchor="middle">work done</text>
+    <text class="lbl-sm" x="635" y="34" text-anchor="middle">release</text>
+    <rect class="node-bad" x="330" y="130" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="395" y="148" text-anchor="middle">Expired</text>
+    <text class="lbl-sm" x="395" y="163" text-anchor="middle">missed beat / expiry</text>
+    <rect class="node" x="170" y="130" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="235" y="148" text-anchor="middle">Re-queued</text>
+    <text class="lbl-sm" x="235" y="163" text-anchor="middle">one retry, then block</text>
+    <rect class="node-bad" x="490" y="130" width="130" height="44" rx="4"></rect>
+    <text class="lbl" x="555" y="148" text-anchor="middle">Blocked</text>
+    <text class="lbl-sm" x="555" y="163" text-anchor="middle">retries exhausted</text>
+    <line class="edge" x1="395" y1="84" x2="395" y2="130" marker-end="url(#arr2r)"></line>
+    <line class="edge" x1="330" y1="152" x2="300" y2="152" marker-end="url(#arr2)"></line>
+    <line class="edge" x1="460" y1="152" x2="490" y2="152" marker-end="url(#arr2r)"></line>
+    <text class="lbl-sm" x="405" y="110">lease expires</text>
+    <text class="lbl-sm" x="315" y="140" text-anchor="middle">retry 1 of 1</text>
+    <text class="lbl-sm" x="475" y="140" text-anchor="middle">no retry left</text>
+    <text class="lbl-sm" x="10" y="200">Lease length, heartbeat cadence, and the one-retry rule are demo choices. The sources define the lifecycle states and event names, not the tick numbers. See Honest gaps.</text>
+  </svg>
+  <figcaption><b>Figure 2. Ephemeral worker lease lifecycle.</b> States follow V2 section 6 (fill states: queued, running, waiting, court, blocked, complete, defect, unverified) and the section 8 event vocabulary (worker.leased, worker.started, worker.blocked, worker.completed, receipt.sealed). A lease is bounded: it has an expiry tick. A missed heartbeat or an expiry with work remaining expires the lease; the step re-queues once, then blocks. Blocked steps block their dependents.</figcaption>
+</figure>
+
+<section class="card" id="composer">
+  <h2>2. Mission composer</h2>
+  <p>Define a mission as a DAG of steps. Each step names a capability, a work duration in ticks, a lease length in ticks, and the steps it depends on. A step runs only after every dependency completes. The composer validates the DAG with a real topological sort and reports cycles by name.</p>
+
+  <div class="form-row">
+    <div>
+      <label for="missionName">Mission name</label>
+      <input type="text" id="missionName" placeholder="e.g. SREIC signal triage" autocomplete="off">
+    </div>
+    <div>
+      <label for="worldSelect">World (V2 Table 13)</label>
+      <select id="worldSelect">
+        <option value="sreic">World 1: Real Estate / SREIC</option>
+        <option value="business">Business acquisition / operator intelligence</option>
+        <option value="procurement">Public procurement / institutional opportunity</option>
+        <option value="capital">Capital / liquidity</option>
+        <option value="resale">Resale / commerce</option>
+        <option value="services">Service booking / operations</option>
+      </select>
+    </div>
+  </div>
+  <p class="small">Mission ID (deterministic, derived from the mission name): <span class="mono" id="missionIdOut">M-........</span></p>
+
+  <h3>Add a step</h3>
+  <div class="form-row">
+    <div>
+      <label for="stepName">Step name</label>
+      <input type="text" id="stepName" placeholder="e.g. Ingest signals" autocomplete="off">
+    </div>
+    <div>
+      <label for="stepRole">Role / capability family (V2 Table 14, modern mapping)</label>
+      <select id="stepRole">
+        <option value="mission-compile">Mission compile (BOB)</option>
+        <option value="signal-research">Signal / research</option>
+        <option value="evidence-entity">Evidence / entity resolution</option>
+        <option value="recipe-opportunity">Recipe / opportunity</option>
+        <option value="underwriting">Underwriting / feasibility</option>
+        <option value="capital">Capital / liquidity</option>
+        <option value="disposition">Buyer / disposition</option>
+        <option value="market-risk">Market / risk observation</option>
+        <option value="outcome-calibration">Outcome / calibration</option>
+        <option value="governance-court">Governance / court</option>
+        <option value="receipt-custody">Receipt / custody</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-row3">
+    <div>
+      <label for="stepDuration">Work duration (ticks, min 1)</label>
+      <input type="number" id="stepDuration" value="3" min="1" step="1">
+    </div>
+    <div>
+      <label for="stepLease">Lease length (ticks, must cover work)</label>
+      <input type="number" id="stepLease" value="5" min="1" step="1">
+    </div>
+    <div>
+      <label for="stepMissAt">Miss heartbeat at tick (blank = never)</label>
+      <input type="number" id="stepMissAt" placeholder="e.g. 4" min="1" step="1">
+    </div>
+  </div>
+  <label>Depends on (steps that must complete first)</label>
+  <div class="deps-box" id="depsBox"><span class="small">No steps yet. Add a step first, then later steps can depend on it.</span></div>
+  <div style="margin-top:12px">
+    <button class="btn" id="addStepBtn" type="button">Add step</button>
+    <button class="btn ghost" id="clearStepsBtn" type="button">Clear all steps</button>
+  </div>
+
+  <h3>Steps (<span id="stepCount">0</span>)</h3>
+  <div id="stepsWrap">
+    <p class="small" id="noStepsMsg">No steps yet. Load a sample below or add steps above.</p>
+    <table class="data" id="stepsTable" style="display:none">
+      <thead><tr><th>#</th><th>Step</th><th>Role</th><th>Work</th><th>Lease</th><th>Miss beat</th><th>Depends on</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="stepsBody"></tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:12px">
+    <button class="btn" id="validateBtn" type="button">Validate DAG</button>
+    <button class="btn ghost" id="topoBtn" type="button">Show execution order</button>
+  </div>
+  <div id="validateOut" style="margin-top:10px"></div>
+
+  <h3>DAG view (live, from your steps)</h3>
+  <div id="dagView"><p class="small">Add steps to draw the DAG. Nodes are laid out by dependency depth; edges run from each dependency to its dependent.</p></div>
+</section>
+
+<section class="card" id="samples">
+  <h2>3. Sample missions</h2>
+  <p>Three loaders. Loading a sample replaces the current mission and resets the simulator (tick 0, no receipts, fresh log).</p>
+  <button class="btn" id="sampleA" type="button">Load sample A: 3-step SREIC signal triage</button>
+  <button class="btn" id="sampleB" type="button">Load sample B: 7-legion fan-out</button>
+  <button class="btn" id="sampleC" type="button">Load sample C: broken cycle (fails validation)</button>
+  <div id="sampleOut" style="margin-top:10px"></div>
+  <div class="callout">
+    <b>Sample B note.</b> The seven legions are historical donor labels (Acquisition, Capital, Development, Exit, Counter-Intel, Tokenization, Meta-Architects). V2 Table 14 maps them to modern capability families, and this sample uses those modern families as the step roles. The legion names survive here as sample labels only, per V2 section 5: counts come from active worker leases, never from legion identity.
+  </div>
+  <div class="callout bad">
+    <b>Sample C note.</b> This sample is deliberately broken: Fetch parcels depends on Rank parcels, Score parcels depends on Fetch parcels, and Rank parcels depends on Score parcels. Validation must FAIL and name the cycle. If it passes, the validator is wrong.
+  </div>
+</section>
+
+<section class="card" id="meter">
+  <h2>4. Completeness meter</h2>
+  <p>Checks the mission definition before any simulation runs. The meter updates on every change.</p>
+  <div class="meter-wrap"><div class="meter-fill" id="meterFill"></div></div>
+  <p class="meter-label"><span id="meterPct">0%</span> complete (<span id="meterCount">0 of 0</span> checks pass)</p>
+  <div id="meterMissing"></div>
+</section>
+
+<section class="card" id="simulator">
+  <h2>5. Lease lifecycle simulator</h2>
+  <p>Deterministic tick engine. No timers, no randomness. Each tick: steps whose dependencies are complete are granted a lease; leased steps send one heartbeat and do one tick of work; a missed heartbeat or a lease expiry with work remaining expires the lease (one retry, then blocked). Completed steps seal a receipt in section 6. Ticks are exact and repeatable: the same mission always produces the same log.</p>
+  <p>Current tick: <b class="mono" id="tickOut">0</b> &nbsp;|&nbsp; Mission: <b class="mono" id="simMissionOut">M-........</b> &nbsp;|&nbsp; Status: <b id="simStatusOut">idle</b></p>
+  <div>
+    <button class="btn" id="tickBtn" type="button">Tick (advance 1)</button>
+    <button class="btn" id="runBtn" type="button">Run to completion</button>
+    <button class="btn ghost" id="resetSimBtn" type="button">Reset leases</button>
+  </div>
+  <h3>Leases</h3>
+  <div id="leaseWrap"><p class="small">No steps yet. Load a sample or add steps in the composer.</p></div>
+  <h3>Event log (V2 section 8 vocabulary)</h3>
+  <div class="logbox" id="eventLog">No events yet.</div>
+  <p class="small">Events used: mission.created, mission.completed, worker.leased, worker.started (first heartbeat), worker.heartbeat, worker.completed, worker.lease_released, worker.lease_expired, worker.requeued, worker.blocked, receipt.sealed, lease.heartbeat_missed. Event names follow V2 section 8; worker.heartbeat, worker.lease_released, worker.requeued, and lease.heartbeat_missed are demo additions, because the source names the states but not every transition event.</p>
+</section>
+
+<section class="card" id="receipts">
+  <h2>6. Receipt chain</h2>
+  <p>Each completed step seals one receipt. A receipt records its index, mission ID, step, event, tick, the previous receipt hash, and its own hash. The hash is SHA-256 via Web Crypto where available; where Web Crypto is unavailable (for example in the jsdom test run) a deterministic fallback hash is used instead, and the algorithm is printed on every receipt so the difference is visible. The genesis previous-hash is 64 zeroes. Tamper with nothing: the verify button recomputes every hash from the stored canonical string and checks every link.</p>
+  <p>Algorithm in use on this page: <b class="mono" id="algoOut">not yet determined (no receipt sealed)</b></p>
+  <div>
+    <button class="btn" id="verifyBtn" type="button">Verify chain</button>
+    <button class="btn ghost" id="clearReceiptsBtn" type="button">Clear receipts (also resets leases)</button>
+  </div>
+  <div id="verifyOut" style="margin-top:10px"></div>
+  <div id="receiptsWrap" style="margin-top:10px"><p class="small">No receipts yet. Run the simulator until a step completes.</p></div>
+</section>
+
+<section class="card" id="share">
+  <h2>7. Share by link</h2>
+  <p>The mission definition (name, World, steps with dependencies) is encoded as base64 JSON in the URL hash. Opening the link restores the same mission. Simulation state (tick, leases, receipts, log) is not shared; the recipient re-runs the deterministic simulation.</p>
+  <label for="shareUrl">Share link</label>
+  <input type="text" id="shareUrl" readonly>
+  <div style="margin-top:10px">
+    <button class="btn" id="copyBtn" type="button">Copy share link</button>
+    <button class="btn ghost" id="refreshShareBtn" type="button">Refresh link from current state</button>
+  </div>
+  <p class="small" id="copyOut"></p>
+  <p class="small">On load, this page reads the <span class="kbd">#d=</span> hash first. If it is present and parses, the shared mission replaces the empty default. If it is malformed, the page keeps the default and reports the failure here: <span id="restoreOut">no hash present on load</span></p>
+</section>
+
+<section class="card" id="tryit">
+  <h2>8. Try-it walkthrough</h2>
+  <p>Walk the demo the way an operator would: ruling first, counts second, then compose, validate, simulate, verify, share. Use the buttons to step through, or jump from the contents.</p>
+  <div class="step-nav">
+    <button class="btn ghost" id="tryPrev" type="button">Previous step</button>
+    <button class="btn" id="tryNext" type="button">Next step</button>
+    <div class="step-text"><b id="tryTitle">Step 1 of 7</b><br><span id="tryText"></span></div>
+  </div>
+</section>
+
+<section class="card" id="how">
+  <h2>9. How it works / What this is not</h2>
+  <h3>How it works</h3>
+  <ol>
+    <li><b>Compose.</b> Name a mission, pick a World, add steps with a role, a work duration, a lease length, and dependencies. The DAG view draws the graph by dependency depth.</li>
+    <li><b>Validate.</b> The validator runs Kahn topological sort. If the sorted count is short of the step count, a cycle exists and a depth-first search names the steps in the cycle. A broken DAG cannot simulate.</li>
+    <li><b>Simulate.</b> Each tick grants leases to steps whose dependencies are complete, then advances each leased step by one heartbeat and one work tick. Lease length must cover work; a missed heartbeat or an expiry with work left expires the lease. One retry, then blocked. Blocked steps block their dependents.</li>
+    <li><b>Seal receipts.</b> Each completed step seals a hash-chained receipt: index, mission ID, step, event, tick, previous hash, hash. The chain links every receipt to the one before it, back to a 64-zero genesis.</li>
+    <li><b>Verify.</b> The verify button recomputes every receipt hash from its stored canonical string and checks every previous-hash link. Any mismatch is reported by receipt index.</li>
+    <li><b>Share.</b> The mission definition encodes to base64 JSON in the URL hash. The link restores the mission on load; the simulation re-runs deterministically from tick 0.</li>
+  </ol>
+  <h3>What this is not</h3>
+  <ul>
+    <li><b>Not a live swarm.</b> No workers run here, no leases exist here, no runtime state is shown. The simulator is a deterministic tick model in the browser.</li>
+    <li><b>Not a second assistant or a new orchestrator.</b> Per V2, Copilot is a skin over Presence/LARIC and BOB compiles missions on the existing Founder Runtime. This page compiles nothing and orchestrates nothing outside itself.</li>
+    <li><b>Not a new swarm server, not a new database for Worlds, not 5,150 always-on agents.</b> The V2 blueprint forbids all three. This page stores state only in memory and in the URL hash.</li>
+    <li><b>Not a deployment.</b> This page authorizes no merge, deploy, runtime mutation, or new authority. It is staged only.</li>
+    <li><b>Not proof of the donor claims.</b> Donor metrics, revenue, and legion counts are historical, simulated, or hardcoded in the source material. The 5,150 figure is a design target, never live sessions.</li>
+    <li><b>Not a replacement for the source document.</b> Read the V2 DOCX for the full 61 tables, the custody record, and the acceptance courts. This demo covers sections 6 and 8 plus the count discipline of Tables 8 and 16.</li>
+  </ul>
+</section>
+
+<section class="card" id="gaps">
+  <h2>10. Honest gaps</h2>
+  <p>What the sources do not define, what conflicts, or what could not be verified for this build.</p>
+  <ul>
+    <li><b>No lease, DAG, or receipt schema exists in the sources.</b> No worker-lease, mission-DAG, or receipt schema file for the swarm runtime was found (runtime-scoping.md, SWARM section). The demo schema here (step fields, tick model, one retry, receipt field list, genesis value) is invented for this demo and labeled as such. It is not a source schema.</li>
+    <li><b>No tick numbers in the sources.</b> V2 defines lease states and event names but no lease durations, heartbeat intervals, expiry policy, or retry count. The durations, lease lengths, and the one-retry rule in this demo are demo choices.</li>
+    <li><b>Donor counts conflict.</b> The donor legion table sums to 5,150; the same donor material elsewhere says 5,000 agents and 5,000+ Durable Objects; the architecture blueprint separately proposes a 10,000+ worker infrastructure. V2 rules all three as donor logical capacity. This demo repeats the ruling and does not reconcile the figures, because the sources do not.</li>
+    <li><b>Three donor runtimes, unreconciled.</b> The architecture blueprint contains at least three different proposed runtimes (Cloudflare Workers/Durable Objects swarm, PMLA MCP mesh, Cloudflare Sovereign Mesh). No one is selected as canonical in the sources, and no repo, branch, or deployment for any of them is named as live.</li>
+    <li><b>Donor duplication flagged, not collapsed.</b> The V2 document lists the seven historical legions twice (Table 14 and Table 44) with slightly different modern mappings: Counter-Intel is "Market/competitor/risk intelligence" in one and "market/competition/risk observation only" in the other. The "do not start with" list also repeats in sections 13 and 32. This demo follows the Table 14 wording for role labels and notes the difference here instead of silently picking one.</li>
+    <li><b>PR merge status UNKNOWN.</b> Research Swarm PR #8, AXON Context MUX PR #6, and Atomic taxonomy PR #1 are cited as candidates. Whether any is merged, open, or stale was not verified in this build.</li>
+    <li><b>World Emitter unwired.</b> V2 states World Emitter is explicitly unwired in current Cockpit ownership. This demo draws no World Emitter path and claims none.</li>
+    <li><b>End-to-end auto-Sentinel/result-ingest NOT LIVE-PROVEN.</b> V2 classifies it as not live-proven. This demo simulates a court step as a labeled step only; no court runs.</li>
+    <li><b>No live data.</b> Nothing here reads Cockpit, Workers, Switchboard, Galaxy, Vault, or any live Neuruh system. Live state of AXON, Workers/Switchboard, BOB, Sentinel, and Vault was not re-verified for this build.</li>
+    <li><b>Receipts are demo receipts.</b> The chain proves internal consistency of this page's own simulation only. It is not Vault custody, not HONEY Git custody, and not a Sentinel court record.</li>
+    <li><b>Fallback hash.</b> Where Web Crypto is unavailable, receipts use a deterministic fallback hash (cyrb53, 256-bit output) instead of SHA-256. The algorithm is printed on every receipt. A fallback receipt is not a SHA-256 receipt.</li>
+    <li><b>Layout not eyeballed in a real browser.</b> Verified in jsdom only (DOM checks, exact hand-computed values). Visual polish in a real browser is unconfirmed.</li>
+  </ul>
+</section>
+
+<section class="card" id="sources">
+  <h2>11. Sources and source claims</h2>
+  <p>Every claim below is labeled. "Source claim" means it comes from the named source and was not re-verified against a live system for this build. "Demo choice" means this demo invented it.</p>
+  <table class="data">
+    <tr><th>Claim</th><th>Label</th><th>Source</th></tr>
+    <tr><td>Ruling: ARCHITECTURE CANDIDATE - GIT-CUSTODIED - NOT A LIVE RUNTIME CLAIM</td><td>Source claim</td><td>V2 blueprint, status table (Table 0) and Table 4</td></tr>
+    <tr><td>Swarm is a mission DAG of ephemeral worker leases on existing infrastructure; BOB compiles, Workers/Switchboard execute, AXON gates, Sentinel courts, HONEY holds custody, Vault stores receipts</td><td>Source claim</td><td>V2 sections 6, 13, 14; runtime-scoping.md SWARM section</td></tr>
+    <tr><td>5,150 historical logical-agent design target across 7 legions; never live sessions</td><td>Source claim</td><td>V2 Tables 8, 16; donor legion table via runtime-scoping.md</td></tr>
+    <tr><td>Forbidden rebuilds: separate swarm platform, second assistant, new central orchestrator, new swarm server, new database for Worlds, 5,150 always-on agents</td><td>Source claim</td><td>V2 sections 1, 13; runtime-scoping.md</td></tr>
+    <tr><td>Event vocabulary: mission.created/completed, worker.leased/started/blocked/completed, receipt.sealed, court.requested/passed/failed, and others</td><td>Source claim</td><td>V2 section 8</td></tr>
+    <tr><td>Count classes: 12 roles, 24-node manifest, 17+1 SOPS, 0..N leases, 5,150/10,000 donor capacity</td><td>Source claim</td><td>V2 Tables 8, 16</td></tr>
+    <tr><td>World Emitter UNWIRED; end-to-end auto-Sentinel/result-ingest NOT LIVE-PROVEN</td><td>Source claim</td><td>V2 Table 4; runtime-scoping.md</td></tr>
+    <tr><td>Git custody: Research Swarm PR #8, AXON Context MUX PR #6, Atomic taxonomy PR #1; merge status UNKNOWN</td><td>Source claim, unverified</td><td>V2 sections 13, 14, 33; runtime-scoping.md</td></tr>
+    <tr><td>Lease lengths, heartbeat cadence, one-retry rule, receipt field list, genesis value, tick model</td><td>Demo choice</td><td>Invented for this simulation; the sources define states and event names only</td></tr>
+    <tr><td>Extra event names worker.heartbeat, worker.lease_released, worker.requeued, lease.heartbeat_missed</td><td>Demo choice</td><td>Added because the source names the states but not every transition event</td></tr>
+    <tr><td>All counts, events, and receipts produced on this page</td><td>Demo output</td><td>Computed live in the browser from your input; simulation only</td></tr>
+  </table>
+</section>
+
+<footer>
+  <p>Swarm Mission DAG, simulation demo v1.0, 2026-11-04. Staged only. Not deployed, not live, not a runtime claim. Sources are raw material, never canon: the V2 blueprint (2026-09-08) and runtime-scoping.md govern what this page may claim.</p>
+</footer>
+
+</div>
+
+<script>
+'use strict';
+/* Swarm Mission DAG demo. Deterministic, no external fetches, no randomness. */
+var GENESIS = '0000000000000000000000000000000000000000000000000000000000000000';
+var SVGNS = 'http://www.w3.org/2000/svg';
+var MAX_TICKS = 500;
+var MAX_RETRIES = 1;
+
+var state = {
+  missionName: '',
+  world: 'sreic',
+  missionId: '',
+  steps: [],
+  tick: 0,
+  receipts: [],
+  log: [],
+  seq: 0
+};
+
+var ROLE_LABELS = {
+  'mission-compile': 'Mission compile (BOB)',
+  'signal-research': 'Signal / research',
+  'evidence-entity': 'Evidence / entity resolution',
+  'recipe-opportunity': 'Recipe / opportunity',
+  'underwriting': 'Underwriting / feasibility',
+  'capital': 'Capital / liquidity',
+  'disposition': 'Buyer / disposition',
+  'market-risk': 'Market / risk observation',
+  'outcome-calibration': 'Outcome / calibration',
+  'governance-court': 'Governance / court',
+  'receipt-custody': 'Receipt / custody'
+};
+
+var WORLD_LABELS = {
+  'sreic': 'World 1: Real Estate / SREIC',
+  'business': 'Business acquisition / operator intelligence',
+  'procurement': 'Public procurement / institutional opportunity',
+  'capital': 'Capital / liquidity',
+  'resale': 'Resale / commerce',
+  'services': 'Service booking / operations'
+};
+
+function $(id){ return document.getElementById(id); }
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function shortHash(h){ return h.slice(0,12) + '...' + h.slice(-8); }
+
+/* Deterministic fallback hash: cyrb53, four seeds, 256-bit output as 64 hex chars. */
+function cyrb53(str, seed){
+  var h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (var i = 0; i < str.length; i++){
+    var ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return ((h2 >>> 0).toString(16).padStart(8,'0')) + ((h1 >>> 0).toString(16).padStart(8,'0'));
+}
+function fallbackHash(str){
+  return cyrb53(str, 0) + cyrb53(str, 1) + cyrb53(str, 2) + cyrb53(str, 3);
+}
+
+async function hashString(str){
+  try{
+    if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest){
+      var buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      var arr = Array.prototype.slice.call(new Uint8Array(buf));
+      var hex = arr.map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+      return { hash: hex, algo: 'SHA-256' };
+    }
+  }catch(e){ /* fall through to fallback */ }
+  return { hash: fallbackHash(str), algo: 'fallback-cyrb53 (Web Crypto unavailable)' };
+}
+
+function computeMissionId(name){
+  return 'M-' + fallbackHash(name || 'unnamed').slice(0, 8);
+}
+
+function newStepId(){
+  state.seq++;
+  return 's' + state.seq;
+}
+
+function logEvent(type, msg){
+  state.log.push({ tick: state.tick, type: type, msg: msg });
+  renderLog();
+}
+
+function stepById(id){
+  for (var i = 0; i < state.steps.length; i++){ if (state.steps[i].id === id) return state.steps[i]; }
+  return null;
+}
+
+/* ---------- DAG validation: Kahn topological sort + DFS cycle naming ---------- */
+function validateDag(){
+  var steps = state.steps;
+  var ids = {};
+  steps.forEach(function(s){ ids[s.id] = s; });
+  var missing = [];
+  steps.forEach(function(s){
+    s.deps.forEach(function(d){ if (!ids[d]) missing.push(s.name + ' depends on unknown step ' + d); });
+  });
+  var indeg = {}, adj = {};
+  steps.forEach(function(s){ indeg[s.id] = 0; adj[s.id] = []; });
+  steps.forEach(function(s){
+    s.deps.forEach(function(d){
+      if (ids[d]){ adj[d].push(s.id); indeg[s.id]++; }
+    });
+  });
+  var queue = [];
+  steps.forEach(function(s){ if (indeg[s.id] === 0) queue.push(s.id); });
+  var order = [];
+  while (queue.length){
+    var n = queue.shift();
+    order.push(n);
+    adj[n].forEach(function(m){ indeg[m]--; if (indeg[m] === 0) queue.push(m); });
+  }
+  var cycle = [];
+  if (order.length !== steps.length){
+    var inOrder = {};
+    order.forEach(function(id){ inOrder[id] = true; });
+    var cycNodes = steps.filter(function(s){ return !inOrder[s.id]; }).map(function(s){ return s.id; });
+    cycle = findCycle(cycNodes, adj);
+  }
+  return { ok: order.length === steps.length && missing.length === 0, order: order, missing: missing, cycle: cycle };
+}
+
+function findCycle(nodes, adj){
+  var visited = {}, onStack = {}, stack = [], result = [];
+  function dfs(n){
+    visited[n] = true; onStack[n] = true; stack.push(n);
+    var nexts = (adj[n] || []).filter(function(m){ return nodes.indexOf(m) >= 0; });
+    for (var i = 0; i < nexts.length; i++){
+      var m = nexts[i];
+      if (!visited[m]){ if (dfs(m)) return true; }
+      else if (onStack[m]){ result = stack.slice(stack.indexOf(m)).concat([m]); return true; }
+    }
+    stack.pop(); onStack[n] = false; return false;
+  }
+  for (var i = 0; i < nodes.length; i++){
+    if (!visited[nodes[i]]){ if (dfs(nodes[i])) break; }
+  }
+  return result;
+}
+
+function dagDepths(){
+  var v = validateDag();
+  if (!v.ok) return null;
+  var byId = {};
+  state.steps.forEach(function(s){ byId[s.id] = s; });
+  var depth = {};
+  v.order.forEach(function(id){
+    var s = byId[id], d = 0;
+    s.deps.forEach(function(dep){ if (depth[dep] !== undefined) d = Math.max(d, depth[dep] + 1); });
+    depth[id] = d;
+  });
+  return { order: v.order, depth: depth, byId: byId };
+}
+
+/* ---------- Completeness meter ---------- */
+function completeness(){
+  var checks = [];
+  checks.push({ label: 'Mission name set', pass: state.missionName.trim().length > 0 });
+  checks.push({ label: 'World selected', pass: !!state.world });
+  checks.push({ label: 'At least one step', pass: state.steps.length > 0 });
+  state.steps.forEach(function(s){
+    checks.push({ label: 'Step "' + (s.name || s.id) + '" has a name', pass: s.name.trim().length > 0 });
+    checks.push({ label: 'Step "' + (s.name || s.id) + '" has a role/capability', pass: !!s.role });
+    checks.push({ label: 'Step "' + (s.name || s.id) + '" work duration is at least 1 tick', pass: s.duration >= 1 });
+    checks.push({ label: 'Step "' + (s.name || s.id) + '" lease covers its work (lease >= duration)', pass: s.lease >= s.duration });
+  });
+  var v = validateDag();
+  checks.push({ label: 'DAG has no cycles', pass: v.ok && v.cycle.length === 0 });
+  checks.push({ label: 'At least one root step (no dependencies)', pass: state.steps.some(function(s){ return s.deps.length === 0; }) });
+  checks.push({ label: 'Every dependency names an existing step', pass: v.missing.length === 0 });
+  var passed = checks.filter(function(c){ return c.pass; }).length;
+  return { checks: checks, passed: passed, total: checks.length, pct: checks.length ? Math.round(100 * passed / checks.length) : 0 };
+}
+
+/* ---------- Rendering ---------- */
+function renderMission(){
+  state.missionId = computeMissionId(state.missionName);
+  $('missionIdOut').textContent = state.missionId;
+  $('simMissionOut').textContent = state.missionId;
+}
+
+function renderDepsBox(){
+  var box = $('depsBox');
+  if (!state.steps.length){
+    box.innerHTML = '<span class="small">No steps yet. Add a step first, then later steps can depend on it.</span>';
+    return;
+  }
+  var html = '';
+  state.steps.forEach(function(s){
+    html += '<label><input type="checkbox" class="depCheck" value="' + esc(s.id) + '"> ' + esc(s.name || s.id) + ' <span class="small">(' + esc(s.id) + ')</span></label>';
+  });
+  box.innerHTML = html;
+}
+
+function renderSteps(){
+  $('stepCount').textContent = String(state.steps.length);
+  var table = $('stepsTable'), body = $('stepsBody');
+  if (!state.steps.length){
+    table.style.display = 'none';
+    $('noStepsMsg').style.display = 'block';
+  } else {
+    table.style.display = 'table';
+    $('noStepsMsg').style.display = 'none';
+    var html = '';
+    state.steps.forEach(function(s, i){
+      var depNames = s.deps.map(function(d){ var t = stepById(d); return t ? esc(t.name || t.id) : esc(d); }).join(', ') || 'none';
+      html += '<tr><td>' + (i + 1) + '</td><td><b>' + esc(s.name) + '</b><br><span class="small mono">' + esc(s.id) + '</span></td>' +
+        '<td>' + esc(ROLE_LABELS[s.role] || s.role) + '</td>' +
+        '<td>' + s.duration + ' ticks</td><td>' + s.lease + ' ticks</td>' +
+        '<td>' + (s.missAt === '' || s.missAt === null ? 'never' : 'tick ' + s.missAt) + '</td>' +
+        '<td>' + depNames + '</td>' +
+        '<td><span class="pill ' + s.status + '">' + s.status + '</span></td>' +
+        '<td><button class="btn ghost" type="button" data-move="-1" data-id="' + esc(s.id) + '">Up</button>' +
+        '<button class="btn ghost" type="button" data-move="1" data-id="' + esc(s.id) + '">Down</button>' +
+        '<button class="btn danger" type="button" data-remove="' + esc(s.id) + '">Remove</button></td></tr>';
+    });
+    body.innerHTML = html;
+  }
+  renderDagView();
+}
+
+function renderDagView(){
+  var wrap = $('dagView');
+  if (!state.steps.length){
+    wrap.innerHTML = '<p class="small">Add steps to draw the DAG. Nodes are laid out by dependency depth; edges run from each dependency to its dependent.</p>';
+    return;
+  }
+  var d = dagDepths();
+  if (!d){
+    var v = validateDag();
+    var cycNames = v.cycle.map(function(id){ var s = stepById(id); return s ? s.name : id; }).join(' -&gt; ');
+    wrap.innerHTML = '<div class="callout bad"><b>DAG cannot be drawn: cycle detected.</b><br>Cycle: ' + esc(cycNames) + '</div>';
+    return;
+  }
+  var cols = {};
+  var maxDepth = 0;
+  d.order.forEach(function(id){
+    var dep = d.depth[id];
+    if (dep > maxDepth) maxDepth = dep;
+    if (!cols[dep]) cols[dep] = [];
+    cols[dep].push(id);
+  });
+  var colW = 180, nodeW = 160, nodeH = 46, rowH = 62;
+  var maxRows = 0;
+  for (var c in cols){ if (cols[c].length > maxRows) maxRows = cols[c].length; }
+  var width = (maxDepth + 1) * colW + 20;
+  var height = maxRows * rowH + 30;
+  var pos = {};
+  for (var col = 0; col <= maxDepth; col++){
+    var list = cols[col] || [];
+    list.forEach(function(id, r){
+      pos[id] = { x: 10 + col * colW, y: 15 + r * rowH };
+    });
+  }
+  var statusFill = { queued: '#fffdf8', leased: '#fbf6e9', running: '#fbf6e9', complete: '#eaf3ea', expired: '#f9ecea', blocked: '#f9ecea' };
+  var svg = '<svg viewBox="0 0 ' + width + ' ' + height + '" xmlns="' + SVGNS + '" role="img" aria-label="Live DAG view">';
+  svg += '<defs><marker id="arrLive" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1714"></path></marker></defs>';
+  d.order.forEach(function(id){
+    var s = d.byId[id];
+    s.deps.forEach(function(dep){
+      if (pos[dep] && pos[id]){
+        var x1 = pos[dep].x + nodeW, y1 = pos[dep].y + nodeH / 2;
+        var x2 = pos[id].x, y2 = pos[id].y + nodeH / 2;
+        svg += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#1a1714" stroke-width="1.4" marker-end="url(#arrLive)"></line>';
+      }
+    });
+  });
+  d.order.forEach(function(id){
+    var s = d.byId[id], p = pos[id];
+    var fill = statusFill[s.status] || '#fffdf8';
+    var name = (s.name || s.id).length > 22 ? (s.name || s.id).slice(0, 21) + '...' : (s.name || s.id);
+    svg += '<rect x="' + p.x + '" y="' + p.y + '" width="' + nodeW + '" height="' + nodeH + '" rx="4" fill="' + fill + '" stroke="#1a1714" stroke-width="1.4"></rect>';
+    svg += '<text x="' + (p.x + 8) + '" y="' + (p.y + 19) + '" font-family="JetBrains Mono, monospace" font-size="11" fill="#1a1714">' + esc(name) + '</text>';
+    svg += '<text x="' + (p.x + 8) + '" y="' + (p.y + 36) + '" font-family="JetBrains Mono, monospace" font-size="9.5" fill="#4a463d">' + esc(s.id) + ' | ' + esc(s.status) + '</text>';
+  });
+  svg += '</svg>';
+  wrap.innerHTML = svg;
+}
+
+function renderMeter(){
+  var m = completeness();
+  $('meterFill').style.width = m.pct + '%';
+  $('meterPct').textContent = m.pct + '%';
+  $('meterCount').textContent = m.passed + ' of ' + m.total;
+  var missing = m.checks.filter(function(c){ return !c.pass; });
+  if (!missing.length){
+    $('meterMissing').innerHTML = '<p class="ok-text">All checks pass. The mission is ready to simulate.</p>';
+  } else {
+    var html = '<p><b>Missing or failing:</b></p><ul>';
+    missing.forEach(function(c){ html += '<li>' + esc(c.label) + '</li>'; });
+    html += '</ul>';
+    $('meterMissing').innerHTML = html;
+  }
+}
+
+function renderLeases(){
+  var wrap = $('leaseWrap');
+  if (!state.steps.length){
+    wrap.innerHTML = '<p class="small">No steps yet. Load a sample or add steps in the composer.</p>';
+    return;
+  }
+  var html = '<table class="data"><thead><tr><th>Step</th><th>Status</th><th>Lease</th><th>Work left</th><th>Heartbeats</th><th>Retries</th></tr></thead><tbody>';
+  state.steps.forEach(function(s){
+    var leaseTxt = s.leaseState === 'none' ? 'none' : s.leaseState + (s.leaseStart !== null ? ' (ticks ' + s.leaseStart + ' to ' + s.leaseExpiry + ')' : '');
+    html += '<tr><td><b>' + esc(s.name) + '</b></td><td><span class="pill ' + s.status + '">' + s.status + '</span></td>' +
+      '<td>' + esc(leaseTxt) + '</td><td>' + (s.status === 'complete' ? '0' : s.remaining) + ' ticks</td>' +
+      '<td>' + s.heartbeats + '</td><td>' + s.retries + ' of ' + MAX_RETRIES + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  $('tickOut').textContent = String(state.tick);
+  var allDone = state.steps.every(function(s){ return s.status === 'complete' || s.status === 'blocked'; });
+  var anyBlocked = state.steps.some(function(s){ return s.status === 'blocked'; });
+  $('simStatusOut').textContent = state.steps.length === 0 ? 'idle' : (allDone ? (anyBlocked ? 'finished with blocked steps' : 'mission complete') : (state.tick === 0 ? 'ready' : 'running'));
+}
+
+function renderLog(){
+  var box = $('eventLog');
+  if (!state.log.length){ box.textContent = 'No events yet.'; return; }
+  box.textContent = state.log.map(function(e){ return '[tick ' + e.tick + '] ' + e.type + ' | ' + e.msg; }).join('\n');
+  box.scrollTop = box.scrollHeight;
+}
+
+function renderReceipts(){
+  var wrap = $('receiptsWrap');
+  if (!state.receipts.length){
+    wrap.innerHTML = '<p class="small">No receipts yet. Run the simulator until a step completes.</p>';
+    return;
+  }
+  var lastAlgo = state.receipts[state.receipts.length - 1].algo;
+  $('algoOut').textContent = lastAlgo;
+  var html = '<table class="data"><thead><tr><th>#</th><th>Step</th><th>Event</th><th>Tick</th><th>Previous hash</th><th>Hash</th><th>Algorithm</th></tr></thead><tbody>';
+  state.receipts.forEach(function(r){
+    html += '<tr><td>' + r.index + '</td><td>' + esc(r.stepName) + '</td><td>' + esc(r.event) + '</td><td>' + r.tick + '</td>' +
+      '<td class="receipt-hash">' + shortHash(r.prev) + '</td><td class="receipt-hash">' + shortHash(r.hash) + '</td><td>' + esc(r.algo) + '</td></tr>';
+  });
+  html += '</tbody></table>';
+  html += '<p class="small">Full hashes are truncated here for display. Verification recomputes the full hash from the stored canonical string. Canonical string format: index | missionId | stepId | stepName | event | tick | previousHash.</p>';
+  wrap.innerHTML = html;
+}
+
+function renderShare(){
+  var base = window.location.href.split('#')[0];
+  $('shareUrl').value = base + '#d=' + encodeState();
+}
+
+function renderAll(){
+  renderMission();
+  renderDepsBox();
+  renderSteps();
+  renderMeter();
+  renderLeases();
+  renderLog();
+  renderReceipts();
+  renderShare();
+}
+
+/* ---------- Mission actions ---------- */
+function resetSimulation(keepSteps){
+  state.tick = 0;
+  state.receipts = [];
+  state.log = [];
+  state.steps.forEach(function(s){
+    s.status = 'queued'; s.remaining = s.duration; s.leaseStart = null; s.leaseExpiry = null;
+    s.heartbeats = 0; s.retries = 0; s.leaseState = 'none';
+  });
+  logEvent('mission.created', 'Mission ' + state.missionId + ' (' + state.missionName + ') created in ' + WORLD_LABELS[state.world]);
+  renderAll();
+}
+
+function addStepFromForm(){
+  var name = $('stepName').value.trim();
+  var role = $('stepRole').value;
+  var duration = parseInt($('stepDuration').value, 10);
+  var lease = parseInt($('stepLease').value, 10);
+  var missRaw = $('stepMissAt').value.trim();
+  var missAt = missRaw === '' ? '' : parseInt(missRaw, 10);
+  if (!name){ alert('Step name is required.'); return false; }
+  if (!(duration >= 1)){ alert('Work duration must be at least 1 tick.'); return false; }
+  if (!(lease >= 1)){ alert('Lease length must be at least 1 tick.'); return false; }
+  if (missAt !== '' && !(missAt >= 1)){ alert('Miss heartbeat tick must be at least 1, or blank for never.'); return false; }
+  var deps = [];
+  var checks = document.querySelectorAll('.depCheck:checked');
+  for (var i = 0; i < checks.length; i++){ deps.push(checks[i].value); }
+  var s = {
+    id: newStepId(), name: name, role: role, duration: duration, lease: lease,
+    missAt: missAt, deps: deps, status: 'queued', remaining: duration,
+    leaseStart: null, leaseExpiry: null, heartbeats: 0, retries: 0, leaseState: 'none'
+  };
+  state.steps.push(s);
+  $('stepName').value = '';
+  $('stepMissAt').value = '';
+  resetSimulation(true);
+  renderAll();
+  return true;
+}
+
+function loadSample(kind){
+  state.steps = [];
+  state.seq = 0;
+  state.receipts = [];
+  state.log = [];
+  state.tick = 0;
+  function mk(name, role, duration, lease, deps, missAt){
+    return { id: newStepId(), name: name, role: role, duration: duration, lease: lease,
+      missAt: (missAt === undefined ? '' : missAt), deps: deps, status: 'queued', remaining: duration,
+      leaseStart: null, leaseExpiry: null, heartbeats: 0, retries: 0, leaseState: 'none' };
+  }
+  if (kind === 'A'){
+    state.missionName = 'SREIC signal triage';
+    state.world = 'sreic';
+    var a1 = mk('Ingest signals', 'signal-research', 2, 4, []);
+    var a2 = mk('Resolve entity and evidence', 'evidence-entity', 3, 5, [a1.id]);
+    var a3 = mk('Rank opportunity', 'recipe-opportunity', 2, 4, [a2.id]);
+    state.steps = [a1, a2, a3];
+    $('sampleOut').innerHTML = '<p class="ok-text">Sample A loaded: 3 steps, linear chain, no cycles. Expected validation: PASS. Expected run: 3 receipts, mission completes at tick 7.</p>';
+  } else if (kind === 'B'){
+    state.missionName = 'Seven-legion fan-out';
+    state.world = 'sreic';
+    var root = mk('Compile mission (BOB)', 'mission-compile', 2, 4, []);
+    var legions = [
+      ['Acquisition', 'signal-research'],
+      ['Capital', 'capital'],
+      ['Development', 'underwriting'],
+      ['Exit', 'disposition'],
+      ['Counter-Intel', 'market-risk'],
+      ['Tokenization', 'capital'],
+      ['Meta-Architects', 'outcome-calibration']
+    ];
+    var legs = legions.map(function(l){ return mk(l[0], l[1], 3, 5, [root.id]); });
+    var legIds = legs.map(function(s){ return s.id; });
+    var join = mk('Seal receipts and court', 'receipt-custody', 2, 4, legIds);
+    state.steps = [root].concat(legs, [join]);
+    $('sampleOut').innerHTML = '<p class="ok-text">Sample B loaded: 9 steps, one root fanning to 7 capability steps, one join step. Expected validation: PASS. Expected run: 9 receipts, mission completes at tick 7.</p>';
+  } else {
+    state.missionName = 'Broken cycle demo';
+    state.world = 'sreic';
+    var c1 = mk('Fetch parcels', 'signal-research', 2, 4, []);
+    var c2 = mk('Score parcels', 'underwriting', 2, 4, [c1.id]);
+    var c3 = mk('Rank parcels', 'recipe-opportunity', 2, 4, [c2.id]);
+    c1.deps = [c3.id];
+    state.steps = [c1, c2, c3];
+    $('sampleOut').innerHTML = '<p class="bad-text">Sample C loaded: 3 steps with a deliberate cycle (Fetch parcels -&gt; Score parcels -&gt; Rank parcels -&gt; Fetch parcels). Expected validation: FAIL, cycle named.</p>';
+  }
+  $('missionName').value = state.missionName;
+  $('worldSelect').value = state.world;
+  resetSimulation(true);
+  renderAll();
+}
+
+/* ---------- Simulator ---------- */
+async function expireLease(s, reason){
+  s.retries++;
+  s.leaseState = 'expired';
+  logEvent('worker.lease_expired', 'Step ' + s.name + ' lease expired (' + reason + ')');
+  if (s.retries <= MAX_RETRIES){
+    s.status = 'queued';
+    s.remaining = s.duration;
+    s.leaseStart = null; s.leaseExpiry = null;
+    logEvent('worker.requeued', 'Step ' + s.name + ' re-queued, retry ' + s.retries + ' of ' + MAX_RETRIES);
+  } else {
+    s.status = 'blocked';
+    logEvent('worker.blocked', 'Step ' + s.name + ' blocked: retries exhausted');
+  }
+}
+
+async function sealReceipt(step, event){
+  var prev = state.receipts.length ? state.receipts[state.receipts.length - 1].hash : GENESIS;
+  var index = state.receipts.length;
+  var canon = [index, state.missionId, step.id, step.name, event, state.tick, prev].join('|');
+  var r = await hashString(canon);
+  var rec = { index: index, missionId: state.missionId, stepId: step.id, stepName: step.name,
+    event: event, tick: state.tick, prev: prev, hash: r.hash, algo: r.algo, canon: canon };
+  state.receipts.push(rec);
+  $('algoOut').textContent = r.algo;
+  logEvent('receipt.sealed', 'Receipt ' + index + ' sealed for step ' + step.name + ' (' + r.algo + ')');
+  renderReceipts();
+  return rec;
+}
+
+async function tickOnce(){
+  var v = validateDag();
+  if (!v.ok){
+    logEvent('mission.blocked', 'Tick ' + (state.tick + 1) + ': DAG invalid, simulation halted');
+    renderAll();
+    return false;
+  }
+  state.tick++;
+  var byId = {};
+  state.steps.forEach(function(s){ byId[s.id] = s; });
+  v.order.forEach(function(id){
+    var s = byId[id];
+    if (s.status === 'queued'){
+      var depBlocked = s.deps.some(function(d){ return byId[d] && byId[d].status === 'blocked'; });
+      var depsDone = s.deps.every(function(d){ return byId[d] && (byId[d].status === 'complete'); });
+      if (depBlocked){
+        s.status = 'blocked';
+        logEvent('worker.blocked', 'Step ' + s.name + ' blocked: a dependency is blocked');
+      } else if (depsDone){
+        s.status = 'leased';
+        s.leaseState = 'leased';
+        s.leaseStart = state.tick;
+        s.leaseExpiry = state.tick + s.lease;
+        s.remaining = s.duration;
+        s.heartbeats = 0;
+        logEvent('worker.leased', 'Step ' + s.name + ' leased for ' + s.lease + ' ticks (expiry tick ' + s.leaseExpiry + ')');
+      }
+    }
+  });
+  for (var i = 0; i < v.order.length; i++){
+    var s = byId[v.order[i]];
+    if (s.status === 'leased' || s.status === 'running'){
+      s.status = 'running';
+      var missed = (s.missAt !== '' && s.missAt !== null && Number(s.missAt) === state.tick);
+      if (missed){
+        logEvent('lease.heartbeat_missed', 'Step ' + s.name + ' missed heartbeat at tick ' + state.tick);
+        await expireLease(s, 'heartbeat missed at tick ' + state.tick);
+        continue;
+      }
+      if (state.tick >= s.leaseExpiry && s.remaining > 0){
+        await expireLease(s, 'lease expired at tick ' + state.tick + ' with ' + s.remaining + ' work ticks left');
+        continue;
+      }
+      s.heartbeats++;
+      if (s.heartbeats === 1) logEvent('worker.started', 'Step ' + s.name + ' started (first heartbeat)');
+      s.remaining--;
+      logEvent('worker.heartbeat', 'Step ' + s.name + ' heartbeat ' + s.heartbeats + ', ' + s.remaining + ' work ticks left');
+      if (s.remaining <= 0){
+        s.status = 'complete';
+        s.leaseState = 'released';
+        logEvent('worker.completed', 'Step ' + s.name + ' completed at tick ' + state.tick);
+        await sealReceipt(s, 'worker.completed');
+        logEvent('worker.lease_released', 'Step ' + s.name + ' lease released');
+      }
+    }
+  }
+  if (state.steps.length && state.steps.every(function(s){ return s.status === 'complete' || s.status === 'blocked'; })){
+    if (state.steps.every(function(s){ return s.status === 'complete'; })){
+      logEvent('mission.completed', 'Mission ' + state.missionId + ' completed at tick ' + state.tick);
+    } else {
+      logEvent('mission.blocked', 'Mission ' + state.missionId + ' ended at tick ' + state.tick + ' with blocked steps');
+    }
+  }
+  renderAll();
+  return true;
+}
+
+async function runToCompletion(){
+  var guard = 0;
+  while (guard++ < MAX_TICKS){
+    if (!state.steps.length) break;
+    var allDone = state.steps.every(function(s){ return s.status === 'complete' || s.status === 'blocked'; });
+    if (allDone) break;
+    var ok = await tickOnce();
+    if (!ok) break;
+  }
+  renderAll();
+}
+
+async function verifyChain(){
+  var out = $('verifyOut');
+  if (!state.receipts.length){
+    out.innerHTML = '<p class="warn-text">No receipts to verify. Run the simulator until a step completes.</p>';
+    return { ok: false, checked: 0, bad: [] };
+  }
+  var bad = [];
+  for (var i = 0; i < state.receipts.length; i++){
+    var rec = state.receipts[i];
+    var expectPrev = i === 0 ? GENESIS : state.receipts[i - 1].hash;
+    var r = await hashString(rec.canon);
+    if (r.hash !== rec.hash || rec.prev !== expectPrev) bad.push(i);
+  }
+  var result = { ok: bad.length === 0, checked: state.receipts.length, bad: bad };
+  if (result.ok){
+    out.innerHTML = '<p class="ok-text">Chain verified: ' + state.receipts.length + ' of ' + state.receipts.length + ' receipts recompute to the same hash and every previous-hash link matches. Genesis is 64 zeroes.</p>';
+  } else {
+    out.innerHTML = '<p class="bad-text">Chain FAILED at receipt index ' + bad.join(', ') + '. Hash or link mismatch.</p>';
+  }
+  return result;
+}
+
+/* ---------- Share link ---------- */
+function encodeState(){
+  var data = { v: 1, name: state.missionName, world: state.world,
+    steps: state.steps.map(function(s){
+      return { id: s.id, name: s.name, role: s.role, duration: s.duration, lease: s.lease, missAt: s.missAt, deps: s.deps.slice() };
+    }) };
+  var json = JSON.stringify(data);
+  var b64 = btoa(unescape(encodeURIComponent(json)));
+  return b64.replace(/=+$/, '');
+}
+function decodeState(str){
+  try{
+    var json = decodeURIComponent(escape(atob(str)));
+    return JSON.parse(json);
+  }catch(e){ return null; }
+}
+function applyShared(data){
+  if (!data || data.v !== 1 || !Array.isArray(data.steps)) return false;
+  state.missionName = data.name || '';
+  state.world = data.world || 'sreic';
+  state.steps = [];
+  state.seq = 0;
+  data.steps.forEach(function(ds){
+    var n = parseInt(String(ds.id || '').replace(/^s/, ''), 10);
+    if (!isNaN(n) && n > state.seq) state.seq = n;
+    state.steps.push({
+      id: ds.id || newStepId(), name: ds.name || '', role: ds.role || 'signal-research',
+      duration: ds.duration >= 1 ? ds.duration : 1, lease: ds.lease >= 1 ? ds.lease : 1,
+      missAt: (ds.missAt === '' || ds.missAt === null || ds.missAt === undefined) ? '' : ds.missAt,
+      deps: Array.isArray(ds.deps) ? ds.deps.slice() : [],
+      status: 'queued', remaining: ds.duration >= 1 ? ds.duration : 1,
+      leaseStart: null, leaseExpiry: null, heartbeats: 0, retries: 0, leaseState: 'none'
+    });
+  });
+  $('missionName').value = state.missionName;
+  $('worldSelect').value = state.world;
+  resetSimulation(true);
+  renderAll();
+  return true;
+}
+function restoreFromHash(){
+  var h = window.location.hash || '';
+  if (h.indexOf('#d=') !== 0){ $('restoreOut').textContent = 'no hash present on load'; return; }
+  var data = decodeState(h.slice(3));
+  if (data){
+    applyShared(data);
+    $('restoreOut').textContent = 'restored mission "' + (data.name || '') + '" with ' + data.steps.length + ' steps from the link hash';
+  } else {
+    $('restoreOut').textContent = 'hash present but malformed; kept the empty default';
+  }
+}
+
+/* ---------- Try-it walkthrough ---------- */
+var TRY_STEPS = [
+  { id: 'banner', title: 'Step 1 of 7: Read the honest label', text: 'The banner states the V2 ruling and the 5,150 rule. Nothing on this page is a live runtime claim.' },
+  { id: 'samples', title: 'Step 2 of 7: Load a sample mission', text: 'Load sample A (3 steps), B (7-legion fan-out), or C (deliberately broken cycle). Each replaces the current mission.' },
+  { id: 'composer', title: 'Step 3 of 7: Validate the DAG', text: 'Press Validate DAG. Sample C must FAIL and name the cycle. Samples A and B must PASS with a topological order.' },
+  { id: 'simulator', title: 'Step 4 of 7: Run the lease simulator', text: 'Press Tick to advance one tick, or Run to completion. Watch leases grant, heartbeats land, and receipts seal.' },
+  { id: 'receipts', title: 'Step 5 of 7: Verify the receipt chain', text: 'Press Verify chain. Every receipt hash recomputes from its canonical string and every previous-hash link is checked.' },
+  { id: 'share', title: 'Step 6 of 7: Share by link', text: 'Copy the share link. It encodes the mission as base64 JSON in the URL hash and restores on load.' },
+  { id: 'gaps', title: 'Step 7 of 7: Read the honest gaps', text: 'The sources define no lease schema, no tick numbers, and no canonical runtime. This demo invents the demo parts and says so.' }
+];
+var tryIndex = 0;
+function showTryStep(i){
+  tryIndex = (i + TRY_STEPS.length) % TRY_STEPS.length;
+  var t = TRY_STEPS[tryIndex];
+  $('tryTitle').textContent = t.title;
+  $('tryText').textContent = t.text;
+  var el = $(t.id);
+  if (el){
+    try{ el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }catch(e){ /* headless envs may not implement scrolling */ }
+    el.classList.add('flash');
+    setTimeout(function(){ el.classList.remove('flash'); }, 1600);
+  }
+}
+
+/* ---------- Wiring ---------- */
+function wire(){
+  $('missionName').addEventListener('input', function(){
+    state.missionName = $('missionName').value;
+    renderMission(); renderMeter(); renderShare();
+  });
+  $('worldSelect').addEventListener('change', function(){
+    state.world = $('worldSelect').value;
+    renderMeter(); renderShare();
+  });
+  $('addStepBtn').addEventListener('click', addStepFromForm);
+  $('clearStepsBtn').addEventListener('click', function(){
+    state.steps = []; state.seq = 0;
+    resetSimulation(true); renderAll();
+  });
+  $('stepsBody').addEventListener('click', function(e){
+    var t = e.target;
+    var rid = t.getAttribute('data-remove');
+    if (rid){
+      state.steps = state.steps.filter(function(s){ return s.id !== rid; });
+      state.steps.forEach(function(s){ s.deps = s.deps.filter(function(d){ return d !== rid; }); });
+      resetSimulation(true); renderAll();
+      return;
+    }
+    var mid = t.getAttribute('data-move');
+    if (mid){
+      var idx = -1;
+      state.steps.forEach(function(s, i){ if (s.id === t.getAttribute('data-id')) idx = i; });
+      if (idx >= 0){
+        var j = idx + parseInt(mid, 10);
+        if (j >= 0 && j < state.steps.length){
+          var tmp = state.steps[idx]; state.steps[idx] = state.steps[j]; state.steps[j] = tmp;
+          resetSimulation(true); renderAll();
+        }
+      }
+    }
+  });
+  $('validateBtn').addEventListener('click', function(){
+    var v = validateDag();
+    var out = $('validateOut');
+    if (v.ok){
+      var names = v.order.map(function(id){ var s = stepById(id); return s ? s.name : id; });
+      out.innerHTML = '<div class="callout ok"><b>Validation PASSED.</b> No cycles, every dependency exists. Topological order: ' + esc(names.join(' -&gt; ')) + '</div>';
+    } else {
+      var cycNames = v.cycle.map(function(id){ var s = stepById(id); return s ? s.name : id; });
+      var msg = '<div class="callout bad"><b>Validation FAILED.</b><br>';
+      if (v.missing.length) msg += 'Missing dependencies: ' + esc(v.missing.join('; ')) + '<br>';
+      if (v.cycle.length) msg += 'Cycle detected: ' + esc(cycNames.join(' -&gt; ')) + '<br>';
+      msg += 'Fix the cycle before simulating. The simulator refuses to run on an invalid DAG.</div>';
+      out.innerHTML = msg;
+    }
+    renderMeter();
+  });
+  $('topoBtn').addEventListener('click', function(){
+    var v = validateDag();
+    var out = $('validateOut');
+    if (v.ok){
+      var names = v.order.map(function(id){ var s = stepById(id); return s ? s.name : id; });
+      out.innerHTML = '<div class="callout"><b>Execution order (topological sort):</b> ' + esc(names.join(' -&gt; ')) + '</div>';
+    } else {
+      out.innerHTML = '<div class="callout bad"><b>No execution order: the DAG is invalid.</b> Run Validate DAG for the cycle report.</div>';
+    }
+  });
+  $('sampleA').addEventListener('click', function(){ loadSample('A'); });
+  $('sampleB').addEventListener('click', function(){ loadSample('B'); });
+  $('sampleC').addEventListener('click', function(){ loadSample('C'); });
+  $('tickBtn').addEventListener('click', function(){ tickOnce(); });
+  $('runBtn').addEventListener('click', function(){ runToCompletion(); });
+  $('resetSimBtn').addEventListener('click', function(){ resetSimulation(true); renderAll(); });
+  $('verifyBtn').addEventListener('click', function(){ verifyChain(); });
+  $('clearReceiptsBtn').addEventListener('click', function(){
+    resetSimulation(true); renderAll();
+    $('verifyOut').innerHTML = '';
+  });
+  $('refreshShareBtn').addEventListener('click', function(){ renderShare(); });
+  $('copyBtn').addEventListener('click', function(){
+    var url = $('shareUrl').value;
+    var done = function(ok){
+      $('copyOut').textContent = ok ? 'Share link copied to clipboard.' : 'Copy failed in this browser. The link is in the field above; copy it manually.';
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(function(){ done(true); }, function(){ done(false); });
+    } else {
+      try{
+        $('shareUrl').select();
+        var ok = document.execCommand('copy');
+        done(!!ok);
+      }catch(e){ done(false); }
+    }
+  });
+  $('tryPrev').addEventListener('click', function(){ showTryStep(tryIndex - 1); });
+  $('tryNext').addEventListener('click', function(){ showTryStep(tryIndex + 1); });
+  showTryStep(0);
+}
+
+/* ---------- Init ---------- */
+wire();
+restoreFromHash();
+if (!window.location.hash || window.location.hash.indexOf('#d=') !== 0){
+  resetSimulation(true);
+}
+renderAll();
+
+/* Test hooks: used by the jsdom test run only. */
+window.SMD = {
+  state: state, validateDag: validateDag, completeness: completeness,
+  tickOnce: tickOnce, runToCompletion: runToCompletion, sealReceipt: sealReceipt,
+  verifyChain: verifyChain, loadSample: loadSample, encodeState: encodeState,
+  decodeState: decodeState, applyShared: applyShared, fallbackHash: fallbackHash,
+  hashString: hashString, GENESIS: GENESIS
+};
+</script>
+</body>
+</html>
