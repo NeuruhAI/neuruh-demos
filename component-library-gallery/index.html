@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Component Library Gallery | Neuruh</title>
+<style>
+:root{
+  --bone:#f7f4ee; --paper:#fffdf8; --ink:#1a1714; --ink-soft:#4a443c; --muted:#8a8175;
+  --line:#ddd5c4; --brass:#a67c2e; --brass-soft:#e8dcc0; --brass-dark:#7d5c1e;
+  --red:#b3402e; --green:#3d7a4a; --amber:#9a6b12;
+  --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:"Inter", "Archivo", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --disp:"Archivo", "Inter", -apple-system, "Segoe UI", sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+a{color:var(--brass-dark)}
+h1,h2,h3{font-family:var(--disp);letter-spacing:-0.01em}
+h2{font-size:22px;margin:0 0 6px;border-bottom:2px solid var(--brass);padding-bottom:6px}
+h3{font-size:16px;margin:22px 0 8px}
+p{margin:0 0 10px}
+code{font-family:var(--mono);font-size:12.5px;background:#efe9db;padding:1px 5px;border-radius:4px}
+.mono{font-family:var(--mono)}
+.small{font-size:12.5px;color:var(--ink-soft)}
+.muted{color:var(--muted)}
+
+/* document control header */
+.doc-head{background:var(--paper);border-bottom:3px solid var(--brass);padding:26px 32px 18px}
+.doc-head .kicker{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--brass-dark)}
+.doc-head h1{font-size:34px;margin:6px 0 4px}
+.doc-head .sub{color:var(--ink-soft);max-width:760px}
+.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.meta-grid>div{background:var(--paper);padding:10px 12px}
+.meta-grid .k{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
+.meta-grid .v{font-family:var(--mono);font-size:13px;margin-top:2px}
+
+/* layout: sidebar + main */
+.shell{display:flex;align-items:stretch;min-height:100vh}
+.sidebar{width:248px;flex:0 0 248px;background:#efe9da;border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sidebar .brand{font-family:var(--disp);font-weight:700;font-size:15px;padding:2px 8px 12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.sidebar .brand span{display:block;font-family:var(--mono);font-weight:400;font-size:10.5px;color:var(--muted);letter-spacing:0.1em;margin-top:2px}
+.side-group{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);padding:14px 8px 5px}
+.side-nav-item{display:block;width:100%;text-align:left;background:none;border:1px solid transparent;border-radius:6px;padding:7px 9px;font-family:var(--sans);font-size:13.5px;color:var(--ink);cursor:pointer}
+.side-nav-item:hover{background:#e6ddc9}
+.side-nav-item.active{background:var(--brass);color:#fff;font-weight:600}
+.side-nav-item .count{float:right;font-family:var(--mono);font-size:11px;opacity:0.75}
+.sidebar .collapse-btn{margin-top:16px;width:100%}
+.main{flex:1;min-width:0;padding:28px 34px 60px;max-width:1060px}
+.gallery-section{display:none}
+.gallery-section.active{display:block}
+.note{border:1px solid var(--brass);border-left:4px solid var(--brass);background:#fbf6e9;padding:12px 14px;border-radius:4px;margin:14px 0}
+.note strong{color:var(--brass-dark)}
+.callout{border:1px solid var(--line);background:var(--paper);padding:12px 14px;border-radius:6px;margin:12px 0}
+
+/* cards */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:14px 0;box-shadow:0 1px 3px rgba(26,23,20,0.06)}
+.card h3{margin-top:0}
+.card .src{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:900px){.grid4,.grid3{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.sidebar{display:none}.meta-grid{grid-template-columns:1fr 1fr}}
+
+/* buttons (from button.tsx) */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:6px;font-size:13.5px;font-weight:500;padding:8px 16px;border:1px solid transparent;cursor:pointer;font-family:var(--sans);background:var(--ink);color:#fff;height:36px}
+.btn:hover{opacity:0.9}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
+.btn-default{background:var(--ink);color:#fff}
+.btn-destructive{background:var(--red);color:#fff}
+.btn-outline{background:transparent;border-color:var(--line);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,0.05)}
+.btn-outline:hover{background:#efe9db}
+.btn-secondary{background:#e9e2d2;color:var(--ink)}
+.btn-ghost{background:transparent;color:var(--ink)}
+.btn-ghost:hover{background:#efe9db}
+.btn-link{background:transparent;color:var(--brass-dark);text-decoration:underline;text-underline-offset:4px;padding:8px 4px}
+.btn-sm{height:32px;padding:5px 12px;font-size:12.5px}
+.btn-lg{height:40px;padding:8px 24px;font-size:14.5px}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* badge (badge.tsx) */
+.badge{display:inline-flex;align-items:center;border-radius:999px;border:1px solid transparent;padding:2px 9px;font-size:11.5px;font-weight:500}
+.badge-default{background:var(--ink);color:#fff}
+.badge-secondary{background:#e9e2d2;color:var(--ink)}
+.badge-destructive{background:var(--red);color:#fff}
+.badge-outline{border-color:var(--line);color:var(--ink)}
+
+/* avatar (avatar.tsx) */
+.avatar{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--brass);color:#fff;font-weight:600;overflow:hidden;vertical-align:middle}
+.avatar-sm{width:28px;height:28px;font-size:11px}
+.avatar-md{width:40px;height:40px;font-size:14px}
+.avatar-lg{width:56px;height:56px;font-size:20px}
+
+/* alert (alert.tsx) */
+.alert{border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:13.5px;background:var(--paper)}
+.alert-destructive{border-color:#e0b6ae;color:var(--red);background:#fdf3f1}
+.alert-title{font-weight:600;margin-bottom:2px}
+
+/* separator (separator.tsx) */
+.sep{border:none;border-top:1px solid var(--line);margin:16px 0}
+.sep-v{display:inline-block;width:1px;height:20px;background:var(--line);vertical-align:middle;margin:0 8px}
+
+/* form controls */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.field .hint{font-size:12px;color:var(--muted);margin-top:3px}
+.input,textarea.input,select.input{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:13.5px;font-family:var(--sans);background:#fff;color:var(--ink)}
+.input:focus{outline:2px solid var(--brass);outline-offset:0;border-color:var(--brass)}
+.input.invalid{border-color:var(--red);outline-color:var(--red)}
+.err{color:var(--red);font-size:12.5px;margin-top:3px;display:none}
+.err.show{display:block}
+.check-row{display:flex;align-items:center;gap:8px;font-size:13.5px;margin:8px 0;cursor:pointer}
+input[type=checkbox],input[type=radio]{accent-color:var(--brass);width:16px;height:16px}
+.switch{position:relative;width:40px;height:22px;background:#cfc7b4;border-radius:999px;border:none;cursor:pointer;flex:0 0 auto;padding:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left 0.15s}
+.switch[aria-checked="true"]{background:var(--brass)}
+.switch[aria-checked="true"]::after{left:20px}
+.slider-row{display:flex;align-items:center;gap:12px}
+input[type=range]{accent-color:var(--brass);flex:1}
+.progress{height:8px;background:#e7dfcc;border-radius:999px;overflow:hidden}
+.progress>div{height:100%;background:var(--brass);border-radius:999px;transition:width 0.3s}
+.kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;background:#fff}
+
+/* tabs (tabs.tsx) */
+.tabs-list{display:inline-flex;background:#e9e2d2;border-radius:8px;padding:3px;gap:2px}
+.tab-btn{border:1px solid transparent;background:none;border-radius:6px;padding:6px 14px;font-size:13.5px;cursor:pointer;font-family:var(--sans);color:var(--ink-soft)}
+.tab-btn.active{background:#fff;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+.tab-panel{display:none;padding:12px 2px}
+.tab-panel.active{display:block}
+
+/* accordion (accordion.tsx) */
+.acc-item{border-bottom:1px solid var(--line)}
+.acc-item:last-child{border-bottom:none}
+.acc-trigger{width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:none;padding:14px 2px;font-size:14px;font-weight:500;cursor:pointer;text-align:left;font-family:var(--sans);color:var(--ink)}
+.acc-trigger .chev{transition:transform 0.2s;color:var(--muted)}
+.acc-trigger.open .chev{transform:rotate(180deg)}
+.acc-content{display:none;padding:0 2px 14px;font-size:13.5px;color:var(--ink-soft)}
+.acc-content.open{display:block}
+
+/* table (table.tsx) */
+table.tbl{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff}
+.tbl th,.tbl td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl th{font-weight:600;background:#f3eee1}
+.tbl th.sortable{cursor:pointer}
+.tbl th.sortable:hover{color:var(--brass-dark)}
+.tbl tr:hover td{background:#faf7ef}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+
+/* dialog (dialog.tsx) + alert-dialog */
+.overlay{position:fixed;inset:0;background:rgba(26,23,20,0.5);display:none;align-items:center;justify-content:center;z-index:100}
+.overlay.open{display:flex}
+.dialog-box{background:var(--paper);border-radius:10px;border:1px solid var(--line);padding:22px;width:min(480px,calc(100% - 32px));box-shadow:0 12px 40px rgba(0,0,0,0.25);position:relative}
+.dialog-box h3{margin:0 0 4px;font-size:17px}
+.dialog-x{position:absolute;top:12px;right:12px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);line-height:1}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+
+/* popover / dropdown / tooltip */
+.pop{position:absolute;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,0.16);padding:12px;z-index:60;display:none;min-width:220px}
+.pop.open{display:block}
+.dd-item{display:block;width:100%;text-align:left;background:none;border:none;padding:7px 10px;font-size:13.5px;cursor:pointer;border-radius:5px;font-family:var(--sans)}
+.dd-item:hover{background:#f3eee1}
+.dd-item.danger{color:var(--red)}
+.tip{position:absolute;background:var(--ink);color:#fff;font-size:12px;padding:5px 9px;border-radius:5px;z-index:70;display:none;pointer-events:none;white-space:nowrap}
+
+/* toast (sonner.tsx) */
+#toast-container{position:fixed;bottom:18px;right:18px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--ink);color:#fff;border-radius:8px;padding:11px 14px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,0.25);display:flex;gap:12px;align-items:center;max-width:340px}
+.toast button{background:none;border:none;color:#e8dcc0;cursor:pointer;font-size:13px}
+
+/* spinner / skeleton */
+.spinner{width:22px;height:22px;border:3px solid #e0d8c2;border-top-color:var(--brass);border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+.skel{border-radius:6px;background:linear-gradient(90deg,#e9e2d2 25%,#f5f1e6 50%,#e9e2d2 75%);background-size:200% 100%;animation:shimmer 1.2s infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+
+/* breadcrumb (breadcrumb.tsx) */
+.crumb{font-size:13px;color:var(--muted)}
+.crumb a{color:var(--brass-dark);text-decoration:none}
+.crumb .cur{color:var(--ink);font-weight:600}
+
+/* pagination (pagination.tsx) */
+.pg{display:flex;gap:4px;align-items:center}
+.pg button{min-width:32px;height:32px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font-size:13px;padding:0 8px}
+.pg button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.pg button:disabled{opacity:0.45;cursor:not-allowed}
+
+/* calendar (calendar.tsx) */
+.cal{border:1px solid var(--line);border-radius:8px;background:#fff;padding:14px;max-width:340px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center;font-size:13px}
+.cal-grid .dow{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding:4px 0}
+.cal-grid .day{padding:6px 0;border-radius:5px;cursor:pointer}
+.cal-grid .day:hover{background:#f3eee1}
+.cal-grid .day.today{background:var(--brass);color:#fff;font-weight:700}
+.cal-grid .blank{padding:6px 0}
+
+/* stat card (StatCard.tsx) */
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px;position:relative;overflow:hidden}
+.stat::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--brass),transparent)}
+.stat .t{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-size:28px;font-weight:700;font-family:var(--disp);margin:4px 0}
+.stat .c{font-size:12px;font-family:var(--mono)}
+.stat .c.up{color:var(--green)} .stat .c.down{color:var(--red)}
+
+/* activity feed (ActivityFeed.tsx) */
+.feed{border:1px solid var(--line);border-radius:8px;background:#fff;max-height:280px;overflow-y:auto;padding:6px 0}
+.feed-row{display:flex;gap:10px;align-items:center;padding:7px 14px;font-size:12.5px;border-bottom:1px solid #f0ebdd}
+.feed-row:last-child{border-bottom:none}
+.dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.dot.success{background:var(--green)} .dot.pending{background:var(--amber)} .dot.failed{background:var(--red)}
+.feed-row .tm{font-family:var(--mono);font-size:11px;color:var(--muted);flex:0 0 auto}
+.feed-row .lg{font-family:var(--mono);font-size:11px;font-weight:600;flex:0 0 auto}
+.feed-row .ac{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* legion card (LegionCard.tsx) */
+.legion{border:1px solid var(--line);border-radius:10px;background:var(--paper);padding:18px}
+.legion h4{margin:0;font-size:17px;font-family:var(--disp)}
+.legion .pill{display:inline-block;font-family:var(--mono);font-size:10px;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:#e8f0e4;color:var(--green)}
+.legion .nums{display:flex;gap:28px;margin:12px 0}
+.legion .nums .n{font-size:22px;font-weight:700;font-family:var(--disp)}
+.legion .nums .l{font-family:var(--mono);font-size:10px;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.chip{font-family:var(--mono);font-size:10.5px;background:#f0ebdd;border-radius:999px;padding:3px 9px;text-transform:uppercase}
+
+/* select (select.tsx) custom */
+.sel{position:relative;display:inline-block;min-width:220px}
+.sel-btn{width:100%;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px 12px;font-size:13.5px;cursor:pointer;font-family:var(--sans)}
+.sel-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,0.14);padding:4px;display:none;z-index:60}
+.sel-list.open{display:block}
+.sel-opt{display:block;width:100%;text-align:left;background:none;border:none;padding:8px 10px;font-size:13.5px;cursor:pointer;border-radius:5px;font-family:var(--sans)}
+.sel-opt:hover{background:#f3eee1}
+.sel-opt.sel{background:#f3eee1;font-weight:600}
+
+/* toggle (toggle.tsx) */
+.toggle-btn{border:1px solid var(--line);background:#fff;border-radius:6px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:var(--sans)}
+.toggle-btn[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* figure */
+figure{margin:18px 0;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:14px}
+figcaption{font-size:12.5px;color:var(--ink-soft);margin-top:8px}
+figcaption b{color:var(--ink)}
+table.map{width:100%;border-collapse:collapse;font-size:13px}
+table.map th,table.map td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left}
+table.map th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted)}
+.walk{counter-reset:step}
+.walk li{margin-bottom:10px}
+.share-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.share-row input{flex:1;min-width:260px}
+.gap-list li{margin-bottom:6px}
+@media print{
+  .sidebar,#toast-container,.overlay{display:none !important}
+  body{background:#fff}
+  .main{max-width:100%;padding:12px}
+  .gallery-section{display:block !important}
+  .card,.stat,.legion{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="doc-head">
+  <div class="kicker">Neuruh &middot; Component Library &middot; Document Control</div>
+  <h1>Component Library Gallery</h1>
+  <p class="sub">A working gallery of the shadcn-style UI components found in the estate source set, plus the three Neuruh organism components (StatCard, ActivityFeed, LegionCard) and the PerformanceChart. Every component below is a live re-implementation in vanilla JavaScript and CSS inside this single file.</p>
+  <div class="meta-grid">
+    <div><div class="k">Document</div><div class="v">CLG-2026-1104</div></div>
+    <div><div class="k">Version</div><div class="v">1.0</div></div>
+    <div><div class="k">Date</div><div class="v">2026-11-04</div></div>
+    <div><div class="k">Status</div><div class="v">STAGED (not deployed)</div></div>
+  </div>
+</header>
+
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Gallery navigation">
+  <div class="brand">Component Library<span>59 source files &middot; 25 re-implemented</span></div>
+  <div class="side-group">Gallery</div>
+  <button class="side-nav-item active" data-section="overview">Overview <span class="count">01</span></button>
+  <button class="side-nav-item" data-section="buttons">Buttons &amp; Toggles <span class="count">03</span></button>
+  <button class="side-nav-item" data-section="cards">Cards &amp; Organism <span class="count">04</span></button>
+  <button class="side-nav-item" data-section="overlays">Overlays &amp; Menus <span class="count">06</span></button>
+  <button class="side-nav-item" data-section="forms">Forms &amp; Inputs <span class="count">09</span></button>
+  <button class="side-nav-item" data-section="data">Data Display <span class="count">08</span></button>
+  <button class="side-nav-item" data-section="feedback">Feedback <span class="count">05</span></button>
+  <div class="side-group">Compositions</div>
+  <button class="side-nav-item" data-section="compositions">Sample Compositions <span class="count">03</span></button>
+  <button class="side-nav-item" data-section="walkthrough">Try-it Walkthrough <span class="count">07</span></button>
+  <div class="side-group">About</div>
+  <button class="side-nav-item" data-section="how">How it works</button>
+  <button class="side-nav-item" data-section="gaps">Honest gaps &amp; sources</button>
+  <button class="btn btn-outline btn-sm collapse-btn" id="sidebar-collapse-btn" type="button">Collapse sidebar</button>
+</aside>
+
+<main class="main" id="main">
+
+<!-- ============ OVERVIEW ============ -->
+<section class="gallery-section active" id="sec-overview">
+  <h2>01 &middot; Overview</h2>
+  <p>Source claim: 59 <code>.tsx</code> files were found in the working set. 25 components are re-implemented live in this gallery. The rest are listed in the Honest gaps section with reasons.</p>
+  <div class="note"><strong>Required note.</strong> Everything on this page is a re-implementation of the <code>.tsx</code> components for the browser in vanilla JavaScript and CSS. This is not the React code itself. There is no React runtime, no Radix, no Recharts, no Tailwind, and no <code>@/lib/utils</code> here. Behavior was matched to the source props and variants; the styling follows the editorial document standard of this page, not the original dark glass theme of the organism components.</div>
+
+  <figure>
+    <svg viewBox="0 0 900 300" width="100%" role="img" aria-label="Component taxonomy diagram" xmlns="http://www.w3.org/2000/svg">
+      <rect x="330" y="8" width="240" height="40" rx="6" fill="#1a1714"/>
+      <text x="450" y="33" fill="#fffdf8" font-family="Archivo, sans-serif" font-size="14" font-weight="700" text-anchor="middle">59 .tsx SOURCE FILES</text>
+      <line x1="450" y1="48" x2="150" y2="84" stroke="#a67c2e" stroke-width="1.5"/>
+      <line x1="450" y1="48" x2="450" y2="84" stroke="#a67c2e" stroke-width="1.5"/>
+      <line x1="450" y1="48" x2="750" y2="84" stroke="#a67c2e" stroke-width="1.5"/>
+      <g font-family="Inter, sans-serif" font-size="12">
+        <rect x="30" y="84" width="240" height="52" rx="6" fill="#fffdf8" stroke="#ddd5c4"/>
+        <text x="150" y="106" font-weight="700" text-anchor="middle" fill="#1a1714">shadcn / Radix primitives</text>
+        <text x="150" y="124" text-anchor="middle" fill="#4a443c">52 files: button, card, dialog...</text>
+        <rect x="330" y="84" width="240" height="52" rx="6" fill="#fffdf8" stroke="#ddd5c4"/>
+        <text x="450" y="106" font-weight="700" text-anchor="middle" fill="#1a1714">Neuruh organism</text>
+        <text x="450" y="124" text-anchor="middle" fill="#4a443c">7 files: StatCard, LegionCard...</text>
+        <rect x="630" y="84" width="240" height="52" rx="6" fill="#fffdf8" stroke="#ddd5c4"/>
+        <text x="750" y="106" font-weight="700" text-anchor="middle" fill="#1a1714">Charts and maps</text>
+        <text x="750" y="124" text-anchor="middle" fill="#4a443c">chart.tsx, PerformanceChart, USMap</text>
+      </g>
+      <line x1="150" y1="136" x2="150" y2="164" stroke="#a67c2e" stroke-width="1.5"/>
+      <line x1="450" y1="136" x2="450" y2="164" stroke="#a67c2e" stroke-width="1.5"/>
+      <line x1="750" y1="136" x2="750" y2="164" stroke="#a67c2e" stroke-width="1.5"/>
+      <g font-family="Inter, sans-serif" font-size="12">
+        <rect x="30" y="164" width="240" height="52" rx="6" fill="#fbf6e9" stroke="#a67c2e"/>
+        <text x="150" y="186" font-weight="700" text-anchor="middle" fill="#1a1714">20 primitives re-implemented</text>
+        <text x="150" y="204" text-anchor="middle" fill="#4a443c">buttons, forms, overlays, data</text>
+        <rect x="330" y="164" width="240" height="52" rx="6" fill="#fbf6e9" stroke="#a67c2e"/>
+        <text x="450" y="186" font-weight="700" text-anchor="middle" fill="#1a1714">4 organism pieces live</text>
+        <text x="450" y="204" text-anchor="middle" fill="#4a443c">StatCard, ActivityFeed, LegionCard</text>
+        <rect x="630" y="164" width="240" height="52" rx="6" fill="#fbf6e9" stroke="#a67c2e"/>
+        <text x="750" y="186" font-weight="700" text-anchor="middle" fill="#1a1714">1 chart re-implemented</text>
+        <text x="750" y="204" text-anchor="middle" fill="#4a443c">SVG area/bar from chart data</text>
+      </g>
+      <line x1="150" y1="216" x2="450" y2="244" stroke="#a67c2e" stroke-width="1.5"/>
+      <line x1="450" y1="216" x2="450" y2="244" stroke="#a67c2e" stroke-width="1.5"/>
+      <line x1="750" y1="216" x2="450" y2="244" stroke="#a67c2e" stroke-width="1.5"/>
+      <rect x="300" y="244" width="300" height="40" rx="6" fill="#a67c2e"/>
+      <text x="450" y="269" fill="#fff" font-family="Archivo, sans-serif" font-size="13" font-weight="700" text-anchor="middle">THIS GALLERY: 25 LIVE COMPONENTS</text>
+    </svg>
+    <figcaption><b>Figure 1.</b> Component taxonomy. The 59 source files split into shadcn/Radix primitives (52 files), Neuruh organism components (7 files: ActivityFeed, LegionCard, LegionIcon3D, PerformanceChart, StatCard, USMap, plus chart.tsx counted with the primitives), and this gallery re-implements 25 of them as live vanilla components. 34 files are not re-implemented; see Honest gaps.</figcaption>
+  </figure>
+
+  <div class="card">
+    <h3>Share this state</h3>
+    <p class="small">The current gallery state (active section, chart data, form values, table sort) is encoded into the URL hash as base64 JSON. Open the link on any machine and the gallery restores itself.</p>
+    <div class="share-row">
+      <input class="input mono" id="share-link" readonly value="" aria-label="Share link">
+      <button class="btn btn-outline" id="share-copy-btn" type="button">Copy link</button>
+      <span class="small" id="share-status"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>What is on this page</h3>
+    <p>Use the sidebar to switch sections. Every section renders the component live: click it, type in it, sort it, break it. Three sample compositions combine components the way a real screen would: a dashboard (StatCard + chart + ActivityFeed), a validated form, and a sortable data table.</p>
+    <div class="btn-row">
+      <button class="btn btn-default" type="button" data-goto="compositions">Open compositions</button>
+      <button class="btn btn-outline" type="button" data-goto="walkthrough">Start the try-it walkthrough</button>
+      <button class="btn btn-outline" type="button" data-goto="gaps">Read the honest gaps</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BUTTONS ============ -->
+<section class="gallery-section" id="sec-buttons">
+  <h2>02 &middot; Buttons &amp; Toggles</h2>
+  <p class="small">Source: <code>button.tsx</code> (variants default, destructive, outline, secondary, ghost, link; sizes sm, default, lg, icon), <code>toggle.tsx</code> (default, outline variants), <code>button-group.tsx</code> (grouped buttons).</p>
+
+  <div class="card">
+    <h3>Button</h3>
+    <p class="small">Source claim: <code>button.tsx</code> defines six variants via <code>buttonVariants</code> (cva) and three sizes plus icon sizes. Clicking any button below increments the click counter and records the last variant clicked.</p>
+    <div class="btn-row" id="button-row">
+      <button class="btn btn-default" type="button" data-variant="default">Default</button>
+      <button class="btn btn-destructive" type="button" data-variant="destructive">Destructive</button>
+      <button class="btn btn-outline" type="button" data-variant="outline">Outline</button>
+      <button class="btn btn-secondary" type="button" data-variant="secondary">Secondary</button>
+      <button class="btn btn-ghost" type="button" data-variant="ghost">Ghost</button>
+      <button class="btn btn-link" type="button" data-variant="link">Link</button>
+    </div>
+    <p style="margin-top:10px"><button class="btn btn-default btn-sm" type="button" data-variant="sm">Small</button>
+    <button class="btn btn-default" type="button" data-variant="default-size">Default size</button>
+    <button class="btn btn-default btn-lg" type="button" data-variant="lg">Large</button>
+    <button class="btn btn-outline" type="button" disabled>Disabled</button></p>
+    <p class="mono small" id="btn-state">Clicks: 0 &middot; Last clicked: none</p>
+    <div class="src">Re-implemented from: button.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Toggle</h3>
+    <p class="small">Source claim: <code>toggle.tsx</code> is a pressed-state button with default and outline variants. Press it to flip state; <code>aria-pressed</code> tracks the state.</p>
+    <button class="toggle-btn" id="demo-toggle" type="button" aria-pressed="false">Bold</button>
+    <button class="toggle-btn" id="demo-toggle-2" type="button" aria-pressed="false">Italic</button>
+    <p class="mono small" id="toggle-state">Pressed: none</p>
+    <div class="src">Re-implemented from: toggle.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Button group</h3>
+    <p class="small">Source claim: <code>button-group.tsx</code> groups buttons with shared borders and a separator slot. The group below is one control with three segments; the active segment is tracked.</p>
+    <div class="btn-row" role="group" aria-label="View switcher" id="button-group">
+      <button class="btn btn-outline" type="button" data-seg="day">Day</button>
+      <button class="btn btn-outline" type="button" data-seg="week">Week</button>
+      <button class="btn btn-outline" type="button" data-seg="month">Month</button>
+    </div>
+    <p class="mono small" id="group-state">Active segment: day</p>
+    <div class="src">Re-implemented from: button-group.tsx</div>
+  </div>
+</section>
+
+<!-- ============ CARDS ============ -->
+<section class="gallery-section" id="sec-cards">
+  <h2>03 &middot; Cards &amp; Organism</h2>
+  <p class="small">Sources: <code>card.tsx</code>, <code>StatCard.tsx</code>, <code>ActivityFeed.tsx</code>, <code>LegionCard.tsx</code>, <code>LegionIcon3D.tsx</code> (icon only, rendered as a flat SVG mark).</p>
+
+  <div class="card">
+    <h3>Card</h3>
+    <p class="small">Source claim: <code>card.tsx</code> exports Card, CardHeader, CardTitle, CardDescription, CardAction, CardContent, CardFooter. The card below uses all seven slots.</p>
+    <div class="card" style="margin:0">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><h3 style="margin:0">DeedSonar lead intake</h3><p class="small" style="margin:2px 0 0">A card built from the seven Card slots.</p></div>
+        <span class="badge badge-default">Live</span>
+      </div>
+      <hr class="sep">
+      <p>This is the CardContent slot. The source Card is a flex column with a 6-unit gap, rounded corners, a border, and a small shadow.</p>
+      <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn btn-outline btn-sm" type="button" id="card-action-btn">Card action</button></div>
+      <p class="mono small" id="card-action-state">Card action not pressed yet.</p>
+    </div>
+    <div class="src">Re-implemented from: card.tsx</div>
+  </div>
+
+  <h3>StatCard</h3>
+  <p class="small">Source claim: <code>StatCard.tsx</code> animates a count-up over 1,500 ms in 40 steps, formats numbers over 1,000 with locale separators and over 1,000,000 as millions, and shows a change percentage with an up/down trend marker. Values below are the live props.</p>
+  <div class="grid4" id="stat-grid">
+    <div class="stat"><div class="t">Active legions</div><div class="v" id="stat-1" data-value="7">0</div><div class="c up">+2 vs last period</div></div>
+    <div class="stat"><div class="t">Leads scored</div><div class="v" id="stat-2" data-value="153">0</div><div class="c up">+12.4% vs last period</div></div>
+    <div class="stat"><div class="t">Agents online</div><div class="v" id="stat-3" data-value="5150">0</div><div class="c down">-3.1% vs last period</div></div>
+    <div class="stat"><div class="t">Receipts chained</div><div class="v" id="stat-4" data-value="128400">0</div><div class="c up">+8.0% vs last period</div></div>
+  </div>
+  <p class="small">Note: the source value 5,150 is a design target for logical agents, not a live session count. The card renders the number it is given; the label is what carries the meaning.</p>
+  <div class="src">Re-implemented from: StatCard.tsx</div>
+
+  <h3>ActivityFeed</h3>
+  <p class="small">Source claim: <code>ActivityFeed.tsx</code> takes an activities array with id, timestamp, legion, legionColor, action, target, and status (success, pending, failed), caps at <code>maxItems</code> (default 20), formats time as 24-hour HH:MM:SS, and scrolls to top on new activity.</p>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">Live Activity</h3><span class="small mono">REAL-TIME</span></div>
+    <div class="feed" id="activity-feed" style="margin-top:10px"></div>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn btn-outline btn-sm" type="button" id="feed-add-btn">Add event</button>
+      <button class="btn btn-ghost btn-sm" type="button" id="feed-clear-btn">Clear feed</button>
+    </div>
+    <p class="mono small" id="feed-count"></p>
+    <div class="src">Re-implemented from: ActivityFeed.tsx (uses scroll-area.tsx behavior for the scroll region)</div>
+  </div>
+
+  <h3>LegionCard</h3>
+  <p class="small">Source claim: <code>LegionCard.tsx</code> shows a legion with a 3D icon, total and active counts, an activity percentage bar, capability chips, Spawn 10 / Spawn 50 buttons, and an expandable agent list. The 3D icon is re-implemented here as a flat SVG mark from <code>LegionIcon3D.tsx</code> (which defines Globe, Coin, Building, Target, Eye, Token, and Brain icons).</p>
+  <div class="legion" id="legion-1">
+    <div style="display:flex;gap:14px;align-items:flex-start">
+      <svg width="56" height="56" viewBox="0 0 56 56" aria-label="Legion icon"><circle cx="28" cy="28" r="26" fill="none" stroke="#a67c2e" stroke-width="2"/><circle cx="28" cy="28" r="18" fill="none" stroke="#a67c2e" stroke-width="1" stroke-dasharray="3 3"/><circle cx="28" cy="28" r="6" fill="#a67c2e"/></svg>
+      <div style="flex:1">
+        <h4>Scout Legion <span class="pill">Active</span></h4>
+        <p class="small">Parcel and signal acquisition across the pilot counties.</p>
+        <div class="nums">
+          <div><div class="l">Total</div><div class="n" id="legion-count">750</div></div>
+          <div><div class="l">Active</div><div class="n" id="legion-active">512</div></div>
+        </div>
+        <div class="progress"><div id="legion-bar" style="width:68.3%"></div></div>
+        <p class="mono small" id="legion-pct">68.3% active</p>
+        <div class="chips"><span class="chip">Ingest</span><span class="chip">Parcels</span><span class="chip">Signals</span><span class="chip">Provenance</span></div>
+        <div class="btn-row">
+          <button class="btn btn-outline btn-sm" type="button" data-spawn="10">+ Spawn 10</button>
+          <button class="btn btn-outline btn-sm" type="button" data-spawn="50">+ Spawn 50</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="legion-agents-btn">Show agents</button>
+        </div>
+      </div>
+    </div>
+    <div id="legion-agents" style="display:none;margin-top:12px;border-top:1px solid var(--line);padding-top:10px">
+      <div class="feed-row"><span class="dot success"></span><span class="mono">scout-014</span><span class="ac">Parcel ingest &middot; Berrien County</span><span class="mono small">98%</span></div>
+      <div class="feed-row"><span class="dot success"></span><span class="mono">scout-027</span><span class="ac">Signal scoring &middot; tax lien batch</span><span class="mono small">91%</span></div>
+      <div class="feed-row"><span class="dot pending"></span><span class="mono">scout-031</span><span class="ac">Provenance receipt &middot; pending</span><span class="mono small">74%</span></div>
+    </div>
+    <div class="src">Re-implemented from: LegionCard.tsx, LegionIcon3D.tsx (icon as flat SVG), progress.tsx (activity bar)</div>
+  </div>
+</section>
+
+<!-- ============ OVERLAYS ============ -->
+<section class="gallery-section" id="sec-overlays">
+  <h2>04 &middot; Overlays &amp; Menus</h2>
+  <p class="small">Sources: <code>dialog.tsx</code>, <code>alert-dialog.tsx</code>, <code>popover.tsx</code>, <code>dropdown-menu.tsx</code>, <code>tooltip.tsx</code>, <code>sonner.tsx</code>.</p>
+
+  <div class="card">
+    <h3>Dialog</h3>
+    <p class="small">Source claim: <code>dialog.tsx</code> is a Radix dialog with an overlay, centered content, a close button at top right, header, footer, title, and description. Opens with an animation; closes from the X button, the Cancel button, the overlay, or the Escape key.</p>
+    <button class="btn btn-default" type="button" id="dialog-open-btn">Open dialog</button>
+    <p class="mono small" id="dialog-state">Dialog: closed</p>
+    <div class="src">Re-implemented from: dialog.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Alert dialog</h3>
+    <p class="small">Source claim: <code>alert-dialog.tsx</code> is the destructive-confirm variant: an Action button (outline in source) and a Cancel button, with a title and description. Confirming writes the outcome below; cancelling writes a different outcome.</p>
+    <button class="btn btn-destructive" type="button" id="alert-open-btn">Delete draft</button>
+    <p class="mono small" id="alert-result">Alert dialog: no decision yet</p>
+    <div class="src">Re-implemented from: alert-dialog.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Popover</h3>
+    <p class="small">Source claim: <code>popover.tsx</code> anchors a floating panel to a trigger. Click the trigger to open; click outside or the trigger again to close.</p>
+    <div style="position:relative;display:inline-block">
+      <button class="btn btn-outline" type="button" id="popover-btn" aria-expanded="false">Open popover</button>
+      <div class="pop" id="popover" role="dialog" style="top:44px;left:0">
+        <strong>Popover content</strong>
+        <p class="small" style="margin:6px 0 0">This panel is anchored to its trigger. It holds arbitrary content: text, links, or small controls.</p>
+        <p style="margin:8px 0 0"><button class="btn btn-outline btn-sm" type="button" id="popover-close-btn">Close</button></p>
+      </div>
+    </div>
+    <div class="src">Re-implemented from: popover.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Dropdown menu</h3>
+    <p class="small">Source claim: <code>dropdown-menu.tsx</code> is a Radix menu with items, checkbox items, radio items, labels, separators, and shortcuts. The menu below has all of those; choosing an item records it.</p>
+    <div style="position:relative;display:inline-block">
+      <button class="btn btn-outline" type="button" id="dd-btn" aria-expanded="false">Actions</button>
+      <div class="pop" id="dd-menu" role="menu" style="top:44px;left:0;min-width:200px;padding:4px">
+        <div class="small mono" style="padding:7px 10px;color:var(--muted)">LEAD ACTIONS</div>
+        <button class="dd-item" type="button" data-dd="open">Open dossier</button>
+        <button class="dd-item" type="button" data-dd="edit">Edit record</button>
+        <button class="dd-item" type="button" data-dd="check">Mark reviewed</button>
+        <hr class="sep" style="margin:4px 0">
+        <button class="dd-item danger" type="button" data-dd="delete">Delete lead</button>
+      </div>
+    </div>
+    <p class="mono small" id="dd-state">Menu choice: none</p>
+    <div class="src">Re-implemented from: dropdown-menu.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Tooltip</h3>
+    <p class="small">Source claim: <code>tooltip.tsx</code> wraps a trigger and shows a small label on hover or focus. Hover or focus the buttons below.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline btn-sm" type="button" data-tip="Saves the current draft to the ledger.">Save</button>
+      <button class="btn btn-outline btn-sm" type="button" data-tip="Runs the recipe against the selected county.">Run recipe</button>
+      <button class="btn btn-outline btn-sm" type="button" data-tip="Exports the visible rows as CSV.">Export</button>
+    </div>
+    <div class="tip" id="tooltip" role="tooltip"></div>
+    <div class="src">Re-implemented from: tooltip.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Toast (Sonner)</h3>
+    <p class="small">Source claim: <code>sonner.tsx</code> exports a Toaster wrapping the <code>sonner</code> library. Toasts appear bottom right and dismiss themselves. The button below fires one; it auto-dismisses after 4 seconds and has a manual dismiss button.</p>
+    <button class="btn btn-default" type="button" id="toast-btn">Show toast</button>
+    <button class="btn btn-outline" type="button" id="toast-btn-2">Show success toast</button>
+    <p class="mono small" id="toast-state">Toasts shown: 0</p>
+    <div class="src">Re-implemented from: sonner.tsx</div>
+  </div>
+</section>
+
+<!-- ============ FORMS ============ -->
+<section class="gallery-section" id="sec-forms">
+  <h2>05 &middot; Forms &amp; Inputs</h2>
+  <p class="small">Sources: <code>input.tsx</code>, <code>textarea.tsx</code>, <code>label.tsx</code>, <code>select.tsx</code>, <code>checkbox.tsx</code>, <code>radio-group.tsx</code>, <code>switch.tsx</code>, <code>slider.tsx</code>, <code>progress.tsx</code>, <code>form.tsx</code>, <code>field.tsx</code>, <code>kbd.tsx</code>.</p>
+
+  <div class="card">
+    <h3>Validated form</h3>
+    <p class="small">Source claim: <code>form.tsx</code> wires react-hook-form fields with FormItem, FormLabel, FormControl, FormDescription, and FormMessage; <code>field.tsx</code> provides the Field layout with FieldError. Rules here: name must be at least 2 characters, email must match a basic email pattern, role must be chosen, terms must be accepted.</p>
+    <form id="demo-form" novalidate>
+      <div class="field">
+        <label for="f-name">Full name</label>
+        <input class="input" id="f-name" type="text" placeholder="Jeramie Hicks" autocomplete="name">
+        <div class="err" id="f-err-name">Name must be at least 2 characters.</div>
+      </div>
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input class="input" id="f-email" type="email" placeholder="jeramie@neuruh.com" autocomplete="email">
+        <div class="err" id="f-err-email">Enter a valid email address (name@domain.tld).</div>
+      </div>
+      <div class="field">
+        <label for="f-role">Role</label>
+        <div class="sel" style="width:100%">
+          <button class="sel-btn" type="button" id="f-role-btn" aria-expanded="false"><span id="f-role-label">Choose a role</span><span>&#9662;</span></button>
+          <div class="sel-list" id="f-role-list" role="listbox">
+            <button class="sel-opt" type="button" data-role="Founder">Founder</button>
+            <button class="sel-opt" type="button" data-role="Operator">Operator</button>
+            <button class="sel-opt" type="button" data-role="Investor">Investor</button>
+            <button class="sel-opt" type="button" data-role="Observer">Observer</button>
+          </div>
+        </div>
+        <input type="hidden" id="f-role" value="">
+        <div class="err" id="f-err-role">Choose a role.</div>
+      </div>
+      <div class="field">
+        <label for="f-notes">Notes</label>
+        <textarea class="input" id="f-notes" rows="3" placeholder="Anything worth recording about this contact."></textarea>
+      </div>
+      <label class="check-row"><input type="checkbox" id="f-terms"> I accept the terms of the intake.</label>
+      <div class="err" id="f-err-terms">You must accept the terms.</div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn btn-default" type="submit" id="form-submit-btn">Submit</button>
+        <button class="btn btn-ghost" type="button" id="form-reset-btn">Reset</button>
+      </div>
+      <p class="mono small" id="form-result">Form: not submitted</p>
+    </form>
+
+    <h3 style="margin-top:22px">Completeness meter</h3>
+    <p class="small">Four required fields: name, email, role, terms. The meter is the count of valid fields divided by four.</p>
+    <div class="progress"><div id="completeness-bar" style="width:0%"></div></div>
+    <p class="mono small" id="completeness-text">0 of 4 complete (0%)</p>
+    <p class="small" id="missing-list">Missing: name, email, role, terms</p>
+    <div class="src">Re-implemented from: form.tsx, field.tsx, input.tsx, textarea.tsx, label.tsx, select.tsx, checkbox.tsx</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Radio group</h3>
+      <p class="small">Source claim: <code>radio-group.tsx</code> is a Radix radio group with one selected item.</p>
+      <div role="radiogroup" aria-label="Contact preference" id="radio-group">
+        <label class="check-row"><input type="radio" name="contact" value="email" checked> Email</label>
+        <label class="check-row"><input type="radio" name="contact" value="phone"> Phone</label>
+        <label class="check-row"><input type="radio" name="contact" value="text"> Text message</label>
+      </div>
+      <p class="mono small" id="radio-state">Contact preference: email</p>
+      <div class="src">Re-implemented from: radio-group.tsx</div>
+    </div>
+    <div class="card">
+      <h3>Switch</h3>
+      <p class="small">Source claim: <code>switch.tsx</code> is a Radix switch, a binary on/off control.</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="switch" id="demo-switch" type="button" role="switch" aria-checked="false" aria-label="Notifications"></button>
+        <span>Notifications</span>
+      </div>
+      <p class="mono small" id="switch-state">Notifications: off</p>
+      <div class="src">Re-implemented from: switch.tsx</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Slider</h3>
+      <p class="small">Source claim: <code>slider.tsx</code> is a Radix slider. Drag or use arrow keys; the value is shown in mono.</p>
+      <div class="slider-row">
+        <input type="range" id="demo-slider" min="0" max="100" step="1" value="40" aria-label="Budget percent">
+        <span class="mono" id="slider-value" style="min-width:52px;text-align:right">40%</span>
+      </div>
+      <div class="src">Re-implemented from: slider.tsx</div>
+    </div>
+    <div class="card">
+      <h3>Progress</h3>
+      <p class="small">Source claim: <code>progress.tsx</code> is a Radix progress bar with a value from 0 to 100.</p>
+      <div class="progress"><div id="progress-bar" style="width:40%"></div></div>
+      <p class="mono small" id="progress-text">Progress: 40%</p>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn btn-outline btn-sm" type="button" id="progress-plus">+10</button>
+        <button class="btn btn-outline btn-sm" type="button" id="progress-reset">Reset to 0</button>
+      </div>
+      <div class="src">Re-implemented from: progress.tsx</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Keyboard shortcut hint</h3>
+    <p class="small">Source claim: <code>kbd.tsx</code> renders a <code>&lt;kbd&gt;</code> element. Press <span class="kbd">Ctrl</span> + <span class="kbd">B</span> to toggle the sidebar (matches the <code>sidebar.tsx</code> keyboard shortcut, which is Ctrl/Cmd + B).</p>
+    <p class="mono small" id="kbd-state">Shortcut not pressed yet.</p>
+    <div class="src">Re-implemented from: kbd.tsx, sidebar.tsx (shortcut)</div>
+  </div>
+</section>
+
+<!-- ============ DATA DISPLAY ============ -->
+<section class="gallery-section" id="sec-data">
+  <h2>06 &middot; Data Display</h2>
+  <p class="small">Sources: <code>tabs.tsx</code>, <code>accordion.tsx</code>, <code>table.tsx</code>, <code>chart.tsx</code>, <code>PerformanceChart.tsx</code>, <code>calendar.tsx</code>, <code>pagination.tsx</code>, <code>breadcrumb.tsx</code>, <code>badge.tsx</code>, <code>avatar.tsx</code>, <code>separator.tsx</code>.</p>
+
+  <div class="card">
+    <h3>Tabs</h3>
+    <p class="small">Source claim: <code>tabs.tsx</code> is a Radix tabs set: TabsList holds TabsTrigger buttons, TabsContent holds the panels, the active trigger gets a shadow and a white background.</p>
+    <div class="tabs-list" role="tablist" id="demo-tabs">
+      <button class="tab-btn active" type="button" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+      <button class="tab-btn" type="button" role="tab" data-tab="leads" aria-selected="false">Leads</button>
+      <button class="tab-btn" type="button" role="tab" data-tab="receipts" aria-selected="false">Receipts</button>
+    </div>
+    <div class="tab-panel active" data-tab-panel="overview">Overview panel: totals for the current county batch.</div>
+    <div class="tab-panel" data-tab-panel="leads">Leads panel: 153 leads scored in the last hunt job.</div>
+    <div class="tab-panel" data-tab-panel="receipts">Receipts panel: every scored lead carries a SHA-256 provenance receipt.</div>
+    <p class="mono small" id="tab-state">Active tab: overview</p>
+    <div class="src">Re-implemented from: tabs.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Accordion</h3>
+    <p class="small">Source claim: <code>accordion.tsx</code> is a Radix accordion; the trigger chevron rotates 180 degrees when open and the content animates open.</p>
+    <div id="demo-accordion">
+      <div class="acc-item">
+        <button class="acc-trigger" type="button" aria-expanded="false">What is a recipe? <span class="chev">&#9662;</span></button>
+        <div class="acc-content">A recipe is a repeatable, machine-readable acquisition pattern that turns evidence and signals into a qualified opportunity. Source claim from lead-recipe-os, as reflected in the source set.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-trigger" type="button" aria-expanded="false">How are leads scored? <span class="chev">&#9662;</span></button>
+        <div class="acc-content">The LANDOS engine scores parcels against recipe weights and synchronizes the scored leads to the CRM. The source set records a September 16, 2026 hunt job scoring 153 leads.</div>
+      </div>
+      <div class="acc-item">
+        <button class="acc-trigger" type="button" aria-expanded="false">What is a receipt? <span class="chev">&#9662;</span></button>
+        <div class="acc-content">A receipt is evidence left by a machine action: who, what, when, why, input, output, authority, source, provenance, result, and next state.</div>
+      </div>
+    </div>
+    <p class="mono small" id="acc-state">Open items: 0</p>
+    <div class="src">Re-implemented from: accordion.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Table with sort</h3>
+    <p class="small">Source claim: <code>table.tsx</code> exports Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, and TableCaption. The source table itself has no sorting; sorting is added here as the demo behavior the brief requires. Click a column header to sort; click again to reverse.</p>
+    <div class="tbl-wrap">
+      <table class="tbl" id="data-table">
+        <caption class="small" style="caption-side:bottom;padding:8px;text-align:left">Legion roster, sortable by name, count, or activity.</caption>
+        <thead><tr>
+          <th class="sortable" data-sort="name" data-dir="asc">Legion &#8597;</th>
+          <th class="sortable" data-sort="count" data-dir="asc">Agents &#8597;</th>
+          <th class="sortable" data-sort="active" data-dir="asc">Active &#8597;</th>
+          <th class="sortable" data-sort="pct" data-dir="asc">Activity % &#8597;</th>
+        </tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <p class="mono small" id="table-state">Sort: none</p>
+    <div class="src">Re-implemented from: table.tsx (sorting added for the demo)</div>
+  </div>
+
+  <div class="card">
+    <h3>Chart</h3>
+    <p class="small">Source claim: <code>chart.tsx</code> wraps Recharts with a ChartConfig (label and color per series) and a ChartContainer that injects CSS variables per series. <code>PerformanceChart.tsx</code> renders an area chart of <code>{time, value, secondary}</code> points with a gradient fill and a tooltip, default color #00d4ff and secondary #a855f7. This demo renders the same data shape as SVG bars plus an area line, with heights computed from the data, and a data editor that re-renders on apply.</p>
+    <div id="chart-wrap"></div>
+    <p class="mono small" id="chart-stats"></p>
+    <div class="field" style="margin-top:12px">
+      <label for="chart-data-input">Chart data (JSON array of {label, value})</label>
+      <textarea class="input mono" id="chart-data-input" rows="3">[{"label":"Jan","value":40},{"label":"Feb","value":65},{"label":"Mar","value":30},{"label":"Apr","value":80},{"label":"May","value":55}]</textarea>
+      <div class="err" id="chart-error">Invalid JSON or bad shape. Expected an array of objects with a string label and a numeric value.</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-default btn-sm" type="button" id="chart-apply-btn">Apply data and re-render</button>
+      <button class="btn btn-outline btn-sm" type="button" id="chart-reset-btn">Reset to default data</button>
+    </div>
+    <div class="src">Re-implemented from: chart.tsx, PerformanceChart.tsx</div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Calendar</h3>
+      <p class="small">Source claim: <code>calendar.tsx</code> wraps react-day-picker with button-variant day cells. This demo computes the grid from the chosen month and year: first day of week, days in month, and leading blanks are all computed, never hard-coded.</p>
+      <div class="cal">
+        <div class="cal-head">
+          <button class="btn btn-outline btn-sm" type="button" id="cal-prev">&lt; Prev</button>
+          <strong id="cal-title">November 2026</strong>
+          <button class="btn btn-outline btn-sm" type="button" id="cal-next">Next &gt;</button>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <select class="input" id="cal-month" aria-label="Month"></select>
+          <select class="input" id="cal-year" aria-label="Year"></select>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <p class="mono small" id="cal-state"></p>
+      <div class="src">Re-implemented from: calendar.tsx</div>
+    </div>
+    <div class="card">
+      <h3>Pagination</h3>
+      <p class="small">Source claim: <code>pagination.tsx</code> provides Pagination, PaginationContent, PaginationItem, PaginationLink (outline when active, ghost otherwise), PaginationPrevious, PaginationNext, and PaginationEllipsis.</p>
+      <div class="pg" id="pg-controls">
+        <button type="button" id="pg-prev">Previous</button>
+        <span id="pg-pages"></span>
+        <button type="button" id="pg-next">Next</button>
+      </div>
+      <p class="mono small" id="pg-info"></p>
+      <div id="pg-list" style="margin-top:8px"></div>
+      <div class="src">Re-implemented from: pagination.tsx</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Badge, Avatar, Breadcrumb, Separator</h3>
+    <p class="small">Source claims: <code>badge.tsx</code> has default, secondary, destructive, and outline variants. <code>avatar.tsx</code> has Avatar, AvatarImage, and AvatarFallback (initials when no image loads). <code>breadcrumb.tsx</code> has Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, and BreadcrumbEllipsis. <code>separator.tsx</code> is a horizontal or vertical rule.</p>
+    <p>
+      <span class="badge badge-default">Default</span>
+      <span class="badge badge-secondary">Secondary</span>
+      <span class="badge badge-destructive">Destructive</span>
+      <span class="badge badge-outline">Outline</span>
+    </p>
+    <p>
+      <span class="avatar avatar-sm">JH</span>
+      <span class="avatar avatar-md">NB</span>
+      <span class="avatar avatar-lg">AF</span>
+      <span class="small">Fallback initials: JH, NB, AF (no images in this file).</span>
+    </p>
+    <p class="crumb"><a href="#" onclick="return false">Neuruh</a> <span aria-hidden="true">/</span> <a href="#" onclick="return false">DeedSonar</a> <span aria-hidden="true">/</span> <span class="cur">Lead intake</span></p>
+    <hr class="sep">
+    <p class="small">Above is the separator. Inline separator: <span class="sep-v"></span> between two items.</p>
+    <div class="src">Re-implemented from: badge.tsx, avatar.tsx, breadcrumb.tsx, separator.tsx</div>
+  </div>
+</section>
+
+<!-- ============ FEEDBACK ============ -->
+<section class="gallery-section" id="sec-feedback">
+  <h2>07 &middot; Feedback</h2>
+  <p class="small">Sources: <code>alert.tsx</code>, <code>spinner.tsx</code>, <code>skeleton.tsx</code>, <code>sonner.tsx</code> (toast also shown in Overlays).</p>
+
+  <div class="card">
+    <h3>Alert</h3>
+    <p class="small">Source claim: <code>alert.tsx</code> has default and destructive variants, with AlertTitle and AlertDescription slots.</p>
+    <div class="alert"><div class="alert-title">Heads up</div><div>Default alert. The hunt job finished and 153 leads were synchronized to the CRM.</div></div>
+    <div class="alert alert-destructive" style="margin-top:10px"><div class="alert-title">Sync failed</div><div>Destructive alert. The production database was unreachable; no leads were synchronized.</div></div>
+    <div class="src">Re-implemented from: alert.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Spinner</h3>
+    <p class="small">Source claim: <code>spinner.tsx</code> is an SVG spinner. The demo below spins with pure CSS and is paired with a loading simulation.</p>
+    <p><span class="spinner" aria-label="Loading"></span> <span class="small">Loading the next batch of parcels...</span></p>
+    <div class="src">Re-implemented from: spinner.tsx</div>
+  </div>
+
+  <div class="card">
+    <h3>Skeleton</h3>
+    <p class="small">Source claim: <code>skeleton.tsx</code> is a pulsing placeholder block. Click "Simulate load" to swap the skeleton for real content after a short delay.</p>
+    <div id="skel-area">
+      <div class="skel" style="height:18px;width:60%;margin-bottom:8px"></div>
+      <div class="skel" style="height:14px;width:90%;margin-bottom:8px"></div>
+      <div class="skel" style="height:14px;width:75%"></div>
+    </div>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn btn-outline btn-sm" type="button" id="skel-btn">Simulate load</button>
+      <button class="btn btn-ghost btn-sm" type="button" id="skel-reset-btn">Show skeleton again</button>
+    </div>
+    <p class="mono small" id="skel-state">State: skeleton visible</p>
+    <div class="src">Re-implemented from: skeleton.tsx</div>
+  </div>
+</section>
+
+<!-- ============ COMPOSITIONS ============ -->
+<section class="gallery-section" id="sec-compositions">
+  <h2>08 &middot; Sample Compositions</h2>
+  <p>Three loaders that compose the gallery components the way a real screen would. Each loader is a button that builds the composition from the live components above and reports what it loaded.</p>
+
+  <div class="card">
+    <h3>Loader 1: Dashboard composition</h3>
+    <p class="small">StatCard row + PerformanceChart + ActivityFeed, the same three organism components that ship together in the source swarm dashboard.</p>
+    <div class="btn-row"><button class="btn btn-default" type="button" id="load-dashboard">Load dashboard composition</button></div>
+    <div id="comp-dashboard" style="display:none;margin-top:14px">
+      <div class="grid4">
+        <div class="stat"><div class="t">Leads scored</div><div class="v">153</div><div class="c up">+12.4% vs last period</div></div>
+        <div class="stat"><div class="t">Synced to CRM</div><div class="v">153</div><div class="c up">100% sync rate</div></div>
+        <div class="stat"><div class="t">Counties live</div><div class="v">2</div><div class="c up">St. Joseph, LaPorte</div></div>
+        <div class="stat"><div class="t">Receipts</div><div class="v">153</div><div class="c up">SHA-256 chained</div></div>
+      </div>
+      <div class="grid2" style="margin-top:14px">
+        <div class="card" style="margin:0"><h3 style="margin-top:0">Performance</h3><div id="comp-chart"></div></div>
+        <div class="card" style="margin:0"><h3 style="margin-top:0">Live Activity</h3><div class="feed" id="comp-feed"></div></div>
+      </div>
+    </div>
+    <p class="mono small" id="comp-dashboard-state">Not loaded.</p>
+  </div>
+
+  <div class="card">
+    <h3>Loader 2: Form composition</h3>
+    <p class="small">Validated form + completeness meter + alert + toast on success. This is the same form as in the Forms section, loaded here as a self-contained intake screen.</p>
+    <div class="btn-row"><button class="btn btn-default" type="button" id="load-form">Load form composition</button></div>
+    <div id="comp-form" style="display:none;margin-top:14px">
+      <form id="comp-form-el" novalidate>
+        <div class="field"><label for="c-name">Full name</label><input class="input" id="c-name" type="text" placeholder="Jeramie Hicks"><div class="err" id="c-err-name">Name must be at least 2 characters.</div></div>
+        <div class="field"><label for="c-email">Email</label><input class="input" id="c-email" type="email" placeholder="jeramie@neuruh.com"><div class="err" id="c-err-email">Enter a valid email address.</div></div>
+        <div class="field"><label for="c-role">Role</label>
+          <select class="input" id="c-role"><option value="">Choose a role</option><option>Founder</option><option>Operator</option><option>Investor</option><option>Observer</option></select>
+          <div class="err" id="c-err-role">Choose a role.</div></div>
+        <label class="check-row"><input type="checkbox" id="c-terms"> I accept the terms of the intake.</label>
+        <div class="err" id="c-err-terms">You must accept the terms.</div>
+        <div class="btn-row" style="margin-top:10px"><button class="btn btn-default" type="submit">Submit intake</button></div>
+        <p class="mono small" id="comp-form-result">Form: not submitted</p>
+      </form>
+      <div class="progress" style="margin-top:12px"><div id="comp-meter" style="width:0%"></div></div>
+      <p class="mono small" id="comp-meter-text">0 of 4 complete (0%)</p>
+      <p class="small" id="comp-missing">Missing: name, email, role, terms</p>
+    </div>
+    <p class="mono small" id="comp-form-state">Not loaded.</p>
+  </div>
+
+  <div class="card">
+    <h3>Loader 3: Data-table composition</h3>
+    <p class="small">Sortable table + pagination + breadcrumb + badges, the shape of a lead list screen.</p>
+    <div class="btn-row"><button class="btn btn-default" type="button" id="load-table">Load data-table composition</button></div>
+    <div id="comp-table" style="display:none;margin-top:14px">
+      <p class="crumb"><a href="#" onclick="return false">Neuruh</a> <span aria-hidden="true">/</span> <span class="cur">Lead list</span></p>
+      <div class="tbl-wrap" style="margin-top:10px">
+        <table class="tbl" id="comp-table-el">
+          <thead><tr>
+            <th class="sortable" data-csort="name" data-dir="asc">Lead &#8597;</th>
+            <th class="sortable" data-csort="score" data-dir="asc">Score &#8597;</th>
+            <th>Status</th>
+          </tr></thead>
+          <tbody id="comp-table-body"></tbody>
+        </table>
+      </div>
+      <p class="mono small" id="comp-table-state">Sort: none</p>
+    </div>
+    <p class="mono small" id="comp-table-load-state">Not loaded.</p>
+  </div>
+</section>
+
+<!-- ============ WALKTHROUGH ============ -->
+<section class="gallery-section" id="sec-walkthrough">
+  <h2>09 &middot; Try-it Walkthrough</h2>
+  <p>Seven steps, each one a real interaction. Work through them in order; each step names the component and the exact thing to try.</p>
+  <ol class="walk">
+    <li><strong>Switch sections with the sidebar.</strong> Click any sidebar item; the main view changes and the item highlights. The sidebar is itself a re-implementation of <code>sidebar.tsx</code>. <button class="btn btn-outline btn-sm" type="button" data-goto="buttons">Go to Buttons</button></li>
+    <li><strong>Click a button.</strong> In Buttons, click any variant and watch the click counter and last-clicked label update. <button class="btn btn-outline btn-sm" type="button" data-goto="buttons">Go to Buttons</button></li>
+    <li><strong>Open a dialog, then cancel it.</strong> In Overlays, open the dialog, close it with the X, then open the alert dialog and choose Cancel. Read the outcome text after each. <button class="btn btn-outline btn-sm" type="button" data-goto="overlays">Go to Overlays</button></li>
+    <li><strong>Break the form, then fix it.</strong> In Forms, submit with everything empty and read the four errors. Fill in a name and a bad email and submit again; only the email error should remain. Fix the email, pick a role, accept the terms, and submit: the completeness meter reaches 4 of 4. <button class="btn btn-outline btn-sm" type="button" data-goto="forms">Go to Forms</button></li>
+    <li><strong>Sort the table twice.</strong> In Data Display, click the Agents header to sort ascending, then click again to sort descending. The row order must reverse exactly. <button class="btn btn-outline btn-sm" type="button" data-goto="data">Go to Data Display</button></li>
+    <li><strong>Change the chart data.</strong> In Data Display, edit the JSON in the chart editor (for example change the Apr value from 80 to 20) and click Apply. The tallest bar must change and the stats line must update. <button class="btn btn-outline btn-sm" type="button" data-goto="data">Go to Data Display</button></li>
+    <li><strong>Share the state.</strong> Use the Copy link button in the Overview, open the link in a new tab, and confirm the chart data, form values, and active section come back. <button class="btn btn-outline btn-sm" type="button" data-goto="overview">Go to Overview</button></li>
+  </ol>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="gallery-section" id="sec-how">
+  <h2>10 &middot; How it works / What this is not</h2>
+  <h3>How it works</h3>
+  <ul>
+    <li>One HTML file. All CSS is in a <code>&lt;style&gt;</code> block, all behavior in one <code>&lt;script&gt;</code> block. No external dependencies, no CDN, no images, no network fetches.</li>
+    <li>State lives in a plain JavaScript object: active section, chart data, form values, table sort key and direction, pagination page, calendar month and year.</li>
+    <li>The chart is drawn as inline SVG. Bar heights are computed as <code>value / max * chartHeight</code>. The area line is a polyline through the same scaled points.</li>
+    <li>The calendar grid is computed with the Date API: first day of the month, days in the month, and leading blank cells. Nothing about any month is hard-coded.</li>
+    <li>Share state is <code>#d=</code> followed by base64 of a JSON object. On load, the page parses the hash and restores the state before rendering.</li>
+    <li>Every control was tested in jsdom with hand-computed expected values. The test count is reported in the staging report, not on this page.</li>
+  </ul>
+  <h3>What this is not</h3>
+  <ul>
+    <li>Not the React code. There is no React, Radix, Recharts, Tailwind, or shadcn runtime here. These are vanilla re-implementations matched to the source props and variants.</li>
+    <li>Not a design-system replica. The original organism components use a dark glass theme with cyan and purple gradients; this page uses the light editorial document standard, so colors and surfaces differ on purpose.</li>
+    <li>Not a data source. All data on this page is sample data written for the demo. Nothing is fetched, and nothing is persisted except the share link you copy.</li>
+    <li>Not accessible to the same standard as Radix. Keyboard support is partial: tabs, switches, and sliders use native semantics, but the custom select, popover, and dropdown are click-driven and have limited keyboard handling. This is listed as a gap below.</li>
+    <li>Not deployed. This file is staged only. Nothing on this page is live on any domain.</li>
+  </ul>
+</section>
+
+<!-- ============ GAPS ============ -->
+<section class="gallery-section" id="sec-gaps">
+  <h2>11 &middot; Honest gaps &amp; sources</h2>
+  <h3>Files read personally</h3>
+  <p class="small">Read in full: button.tsx, card.tsx, dialog.tsx, table.tsx, chart.tsx, sidebar.tsx, tabs.tsx, select.tsx, accordion.tsx, PerformanceChart.tsx, StatCard.tsx, ActivityFeed.tsx, LegionCard.tsx. Skimmed for exports and variants: every remaining .tsx file listed below.</p>
+  <h3>Source mapping: gallery component to .tsx file</h3>
+  <table class="map">
+    <thead><tr><th>Gallery component</th><th>Re-implemented from</th></tr></thead>
+    <tbody>
+      <tr><td>Button</td><td>button.tsx</td></tr>
+      <tr><td>Toggle</td><td>toggle.tsx</td></tr>
+      <tr><td>Button group</td><td>button-group.tsx</td></tr>
+      <tr><td>Card</td><td>card.tsx</td></tr>
+      <tr><td>StatCard</td><td>StatCard.tsx</td></tr>
+      <tr><td>ActivityFeed</td><td>ActivityFeed.tsx</td></tr>
+      <tr><td>LegionCard</td><td>LegionCard.tsx, LegionIcon3D.tsx (icon as flat SVG), progress.tsx</td></tr>
+      <tr><td>Dialog</td><td>dialog.tsx</td></tr>
+      <tr><td>Alert dialog</td><td>alert-dialog.tsx</td></tr>
+      <tr><td>Popover</td><td>popover.tsx</td></tr>
+      <tr><td>Dropdown menu</td><td>dropdown-menu.tsx</td></tr>
+      <tr><td>Tooltip</td><td>tooltip.tsx</td></tr>
+      <tr><td>Toast</td><td>sonner.tsx</td></tr>
+      <tr><td>Form + validation + completeness</td><td>form.tsx, field.tsx, input.tsx, textarea.tsx, label.tsx, checkbox.tsx, select.tsx</td></tr>
+      <tr><td>Radio group</td><td>radio-group.tsx</td></tr>
+      <tr><td>Switch</td><td>switch.tsx</td></tr>
+      <tr><td>Slider</td><td>slider.tsx</td></tr>
+      <tr><td>Progress</td><td>progress.tsx</td></tr>
+      <tr><td>Keyboard hint</td><td>kbd.tsx</td></tr>
+      <tr><td>Tabs</td><td>tabs.tsx</td></tr>
+      <tr><td>Accordion</td><td>accordion.tsx</td></tr>
+      <tr><td>Table</td><td>table.tsx (sorting added for the demo)</td></tr>
+      <tr><td>Chart</td><td>chart.tsx, PerformanceChart.tsx</td></tr>
+      <tr><td>Calendar</td><td>calendar.tsx</td></tr>
+      <tr><td>Pagination</td><td>pagination.tsx</td></tr>
+      <tr><td>Badge</td><td>badge.tsx</td></tr>
+      <tr><td>Avatar</td><td>avatar.tsx</td></tr>
+      <tr><td>Breadcrumb</td><td>breadcrumb.tsx</td></tr>
+      <tr><td>Separator</td><td>separator.tsx</td></tr>
+      <tr><td>Alert</td><td>alert.tsx</td></tr>
+      <tr><td>Spinner</td><td>spinner.tsx</td></tr>
+      <tr><td>Skeleton</td><td>skeleton.tsx</td></tr>
+      <tr><td>Sidebar navigation</td><td>sidebar.tsx (desktop nav only; mobile sheet, cookie state, and icon-collapse not re-implemented)</td></tr>
+      <tr><td>Feed scroll region</td><td>scroll-area.tsx (behavior only; no custom scrollbar)</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Files NOT re-implemented, and why</h3>
+  <ul class="gap-list">
+    <li><code>carousel.tsx</code>: needs swipe and scroll-snap behavior; a static strip would misrepresent it. Omitted rather than faked.</li>
+    <li><code>command.tsx</code>: a command palette with fuzzy search; out of scope for a component gallery and needs a keyboard-first interaction model the page does not fully support.</li>
+    <li><code>context-menu.tsx</code>: right-click menu; the gallery has no canvas to right-click on, so it would be a demo of nothing.</li>
+    <li><code>drawer.tsx</code> and <code>sheet.tsx</code>: slide-over panels. The dialog covers the modal pattern; a second slide-over adds little and the sidebar already demonstrates the off-canvas idea.</li>
+    <li><code>hover-card.tsx</code>: hover-triggered card. Tooltip covers the hover pattern; omitted to keep the page focused.</li>
+    <li><code>menubar.tsx</code> and <code>navigation-menu.tsx</code>: application menu bars. The sidebar navigation covers navigation; a second menu bar would duplicate it.</li>
+    <li><code>collapsible.tsx</code>: covered in behavior by the accordion; the standalone collapsible adds no new interaction.</li>
+    <li><code>resizable.tsx</code>: drag-to-resize panels. Needs pointer-drag handling that is hard to verify deterministically in jsdom; omitted rather than half-built.</li>
+    <li><code>input-otp.tsx</code>: six-slot one-time-code input. Not re-implemented; the form section covers text input and the OTP pattern needs a real code flow to be meaningful.</li>
+    <li><code>input-group.tsx</code>: input addons and buttons. The form section covers the same controls without the addon chrome.</li>
+    <li><code>item.tsx</code>: list item layout primitive. The feed rows and agent list already demonstrate the pattern.</li>
+    <li><code>empty.tsx</code>: empty-state layout. Static layout with no interaction; noted here instead of a dedicated card.</li>
+    <li><code>aspect-ratio.tsx</code>: a ratio box. Pure CSS layout with no behavior; not a gallery-worthy demo.</li>
+    <li><code>USMap.tsx</code>: an interactive United States map with agent markers and click handling. Needs real map geometry; a fake outline would misrepresent the component. Omitted.</li>
+    <li><code>toggle-group.tsx</code>: covered in behavior by the button group and the toggle; the group variant adds no new interaction.</li>
+    <li><code>scroll-area.tsx</code>: custom scrollbar primitive. Behavior only; the feed uses a native scroll region and this is noted in the mapping.</li>
+  </ul>
+  <h3>Duplication and gaps found in the sources</h3>
+  <ul class="gap-list">
+    <li>Two chart implementations overlap: <code>chart.tsx</code> is a generic Recharts wrapper with a ChartConfig, while <code>PerformanceChart.tsx</code> is a separate area-chart component with its own tooltip and gradient. They are not the same abstraction; the gallery merges them into one SVG chart and says so.</li>
+    <li><code>LegionCard.tsx</code> imports Button, Progress, ScrollArea, and LegionIcon3D, so it is a composition, not a primitive. The gallery treats it as one.</li>
+    <li><code>sidebar.tsx</code> is the largest file and imports Button, Input, Separator, Sheet, Skeleton, and Tooltip. The gallery re-implements only the desktop navigation behavior; the mobile sheet, the sidebar_state cookie, and the icon-collapse mode are not reproduced.</li>
+    <li><code>StatCard.tsx</code> and <code>PerformanceChart.tsx</code> hard-code a dark glass aesthetic (white text, cyan #00d4ff, purple #a855f7) that assumes a dark page. The gallery restyles them for the light editorial standard; the props and behavior are preserved, the theme is not.</li>
+    <li><code>PerformanceChart.tsx</code> computes a max value in a useMemo and then never uses the result. Flagged as dead code in the source; the gallery computes the max and actually uses it for scaling.</li>
+    <li><code>sidebar.tsx</code> SidebarMenuSkeleton generates a random width (50 to 90 percent) on each render. The gallery does not reproduce random widths; the skeleton demo uses fixed widths so tests are deterministic.</li>
+    <li>The source set has no <code>@/lib/utils</code> <code>cn</code> helper and no <code>@/hooks/use-mobile</code> in the working set, so those imports could not be read. Anything depending on them is marked as behavior-matched, not code-matched.</li>
+  </ul>
+  <h3>What could not be verified</h3>
+  <ul class="gap-list">
+    <li>Layout was not eyeballed in a real browser. The page was tested in jsdom for behavior only; visual layout, spacing, and the print stylesheet are unverified in a real renderer.</li>
+    <li>The original components were not run in React, so variant class names are matched from reading the source, not from rendered output.</li>
+    <li>Accessibility beyond basic roles and labels was not audited; the custom select, popover, and dropdown have limited keyboard support.</li>
+  </ul>
+</section>
+</main>
+</div>
+
+<!-- Dialogs -->
+<div class="overlay" id="dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+  <div class="dialog-box">
+    <button class="dialog-x" id="dialog-close-btn" type="button" aria-label="Close">&times;</button>
+    <h3 id="dialog-title">Edit lead record</h3>
+    <p class="small">This dialog is the re-implementation of <code>dialog.tsx</code>: overlay, centered content, close button, header, and footer actions.</p>
+    <div class="field"><label for="dlg-name">Lead name</label><input class="input" id="dlg-name" value="Berrien County parcel 11-0420"></div>
+    <div class="dialog-actions">
+      <button class="btn btn-outline" type="button" id="dialog-cancel-btn">Cancel</button>
+      <button class="btn btn-default" type="button" id="dialog-save-btn">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="alert-overlay" role="alertdialog" aria-modal="true" aria-labelledby="alert-title">
+  <div class="dialog-box">
+    <h3 id="alert-title">Delete this draft?</h3>
+    <p class="small">This action cannot be undone. The draft will be removed from the intake list.</p>
+    <div class="dialog-actions">
+      <button class="btn btn-outline" type="button" id="alert-cancel-btn">Cancel</button>
+      <button class="btn btn-destructive" type="button" id="alert-confirm-btn">Delete draft</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+var $=function(id){return document.getElementById(id)};
+var $$=function(sel,root){return Array.prototype.slice.call((root||document).querySelectorAll(sel))};
+
+/* ---------- state ---------- */
+var DEFAULT_CHART=[{label:"Jan",value:40},{label:"Feb",value:65},{label:"Mar",value:30},{label:"Apr",value:80},{label:"May",value:55}];
+var state={
+  section:"overview",
+  chartData:JSON.parse(JSON.stringify(DEFAULT_CHART)),
+  form:{name:"",email:"",role:"",notes:"",terms:false},
+  tableSort:{key:null,dir:"asc"},
+  page:1
+};
+function clone(o){return JSON.parse(JSON.stringify(o))}
+
+/* ---------- sidebar nav ---------- */
+function showSection(name){
+  state.section=name;
+  $$(".gallery-section").forEach(function(s){s.classList.toggle("active",s.id==="sec-"+name)});
+  $$(".side-nav-item").forEach(function(b){b.classList.toggle("active",b.getAttribute("data-section")===name)});
+  updateShareLink();
+}
+$$(".side-nav-item").forEach(function(b){
+  b.addEventListener("click",function(){showSection(b.getAttribute("data-section"))});
+});
+$$("[data-goto]").forEach(function(b){
+  b.addEventListener("click",function(){showSection(b.getAttribute("data-goto"))});
+});
+$("sidebar-collapse-btn").addEventListener("click",function(){
+  var sb=$("sidebar");
+  var hidden=sb.style.display==="none";
+  sb.style.display=hidden?"":"none";
+  this.textContent=hidden?"Collapse sidebar":"Show sidebar";
+});
+document.addEventListener("keydown",function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="b"){
+    e.preventDefault();
+    $("sidebar-collapse-btn").click();
+    $("kbd-state").textContent="Shortcut pressed: Ctrl/Cmd + B toggled the sidebar.";
+  }
+  if(e.key==="Escape"){closeDialog();closeAlert();closePopover();closeDropdown();}
+});
+
+/* ---------- share link ---------- */
+function stateToHash(){
+  var payload={section:state.section,chartData:state.chartData,form:state.form,tableSort:state.tableSort,page:state.page};
+  return "#d="+btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+}
+function updateShareLink(){
+  var link=location.origin+location.pathname+stateToHash();
+  var el=$("share-link");
+  if(el) el.value=link;
+}
+function restoreFromHash(){
+  var h=location.hash||"";
+  if(h.indexOf("#d=")!==0) return;
+  try{
+    var payload=JSON.parse(decodeURIComponent(escape(atob(h.slice(3)))));
+    if(payload.section) state.section=payload.section;
+    if(Array.isArray(payload.chartData)&&payload.chartData.length) state.chartData=payload.chartData;
+    if(payload.form) state.form=payload.form;
+    if(payload.tableSort) state.tableSort=payload.tableSort;
+    if(payload.page) state.page=payload.page;
+  }catch(err){/* bad hash: keep defaults */}
+}
+$("share-copy-btn").addEventListener("click",function(){
+  updateShareLink();
+  var link=$("share-link").value;
+  function done(){$("share-status").textContent="Copied.";}
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(done,function(){$("share-status").textContent="Copy failed; select the link manually."});
+  }else{
+    $("share-link").select();
+    try{document.execCommand("copy");done();}catch(e){$("share-status").textContent="Copy failed; select the link manually.";}
+  }
+});
+
+/* ---------- buttons ---------- */
+var btnClicks=0,btnLast="none";
+$$("#button-row .btn, #sec-buttons .btn-sm[data-variant]").forEach(function(b){
+  b.addEventListener("click",function(){
+    btnClicks++;btnLast=b.getAttribute("data-variant")||b.textContent.trim();
+    $("btn-state").textContent="Clicks: "+btnClicks+" \u00b7 Last clicked: "+btnLast;
+  });
+});
+var pressed={};
+["demo-toggle","demo-toggle-2"].forEach(function(id){
+  $(id).addEventListener("click",function(){
+    var on=this.getAttribute("aria-pressed")==="true";
+    this.setAttribute("aria-pressed",String(!on));
+    pressed[id]=!on;
+    var list=Object.keys(pressed).filter(function(k){return pressed[k]}).map(function(k){return k==="demo-toggle"?"Bold":"Italic"});
+    $("toggle-state").textContent="Pressed: "+(list.length?list.join(", "):"none");
+  });
+});
+var activeSeg="day";
+$$("#button-group .btn").forEach(function(b){
+  b.addEventListener("click",function(){
+    activeSeg=b.getAttribute("data-seg");
+    $$("#button-group .btn").forEach(function(x){x.classList.toggle("btn-default",x===b);x.classList.toggle("btn-outline",x!==b)});
+    $("group-state").textContent="Active segment: "+activeSeg;
+  });
+});
+$("card-action-btn").addEventListener("click",function(){
+  $("card-action-state").textContent="Card action pressed at "+new Date().toLocaleTimeString();
+});
+
+/* ---------- stat cards: count-up, 40 steps over 1500 ms ---------- */
+function formatNum(n){
+  if(n>=1000000) return (n/1000000).toFixed(2)+"M";
+  if(n>=1000) return n.toLocaleString("en-US");
+  return String(n);
+}
+function countUp(el){
+  var target=parseInt(el.getAttribute("data-value"),10),steps=40,i=0;
+  var inc=target/steps;
+  var t=setInterval(function(){
+    i++;var cur=Math.floor(inc*i);
+    if(i>=steps){el.textContent=formatNum(target);clearInterval(t);}
+    else el.textContent=formatNum(cur);
+  },1500/steps);
+}
+$$("#stat-grid .v").forEach(countUp);
+
+/* ---------- activity feed ---------- */
+var feedItems=[
+  {time:"09:14:02",legion:"SCOUT",color:"#a67c2e",action:"Parcel ingest finished",target:"Berrien County",status:"success"},
+  {time:"09:13:41",legion:"SCOUT",color:"#a67c2e",action:"Signal scoring batch 7",target:"tax lien",status:"success"},
+  {time:"09:12:18",legion:"RECEIPT",color:"#3d7a4a",action:"Provenance receipt chained",target:"lead 153",status:"success"},
+  {time:"09:11:03",legion:"SYNC",color:"#7d5c1e",action:"CRM sync queued",target:"153 leads",status:"pending"},
+  {time:"09:09:57",legion:"SCOUT",color:"#a67c2e",action:"ArcGIS pull failed, retrying",target:"LaPorte",status:"failed"}
+];
+var feedSeq=0;
+function renderFeed(){
+  var f=$("activity-feed");
+  f.innerHTML=feedItems.map(function(a){
+    return '<div class="feed-row"><span class="dot '+a.status+'"></span><span class="tm">'+a.time+'</span><span class="lg" style="color:'+a.color+'">'+a.legion+'</span><span class="ac">'+a.action+'</span><span class="small muted">'+a.target+'</span></div>';
+  }).join("");
+  $("feed-count").textContent="Items: "+feedItems.length+" (max 20)";
+}
+renderFeed();
+$("feed-add-btn").addEventListener("click",function(){
+  feedSeq++;
+  var now=new Date();
+  var pad=function(n){return String(n).padStart(2,"0")};
+  feedItems.unshift({time:pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds()),legion:"SCOUT",color:"#a67c2e",action:"Manual event "+feedSeq+" added",target:"gallery",status:"success"});
+  feedItems=feedItems.slice(0,20);
+  renderFeed();
+});
+$("feed-clear-btn").addEventListener("click",function(){feedItems=[];renderFeed();});
+
+/* ---------- legion card ---------- */
+var legion={count:750,active:512};
+function renderLegion(){
+  $("legion-count").textContent=legion.count.toLocaleString("en-US");
+  $("legion-active").textContent=legion.active.toLocaleString("en-US");
+  var pct=(legion.active/legion.count*100);
+  $("legion-bar").style.width=pct.toFixed(1)+"%";
+  $("legion-pct").textContent=pct.toFixed(1)+"% active";
+}
+$$("#legion-1 [data-spawn]").forEach(function(b){
+  b.addEventListener("click",function(){
+    var n=parseInt(b.getAttribute("data-spawn"),10);
+    legion.count+=n;legion.active+=n;renderLegion();
+  });
+});
+$("legion-agents-btn").addEventListener("click",function(){
+  var el=$("legion-agents");
+  var open=el.style.display==="none";
+  el.style.display=open?"block":"none";
+  this.textContent=open?"Hide agents":"Show agents";
+});
+
+/* ---------- dialog ---------- */
+function openDialog(){$("dialog-overlay").classList.add("open");$("dialog-state").textContent="Dialog: open";}
+function closeDialog(){$("dialog-overlay").classList.remove("open");$("dialog-state").textContent="Dialog: closed";}
+$("dialog-open-btn").addEventListener("click",openDialog);
+$("dialog-close-btn").addEventListener("click",closeDialog);
+$("dialog-cancel-btn").addEventListener("click",closeDialog);
+$("dialog-save-btn").addEventListener("click",function(){
+  var savedName=$("dlg-name").value;
+  closeDialog();
+  $("dialog-state").textContent="Dialog: saved \""+savedName+"\"";
+});
+$("dialog-overlay").addEventListener("click",function(e){if(e.target===this) closeDialog();});
+
+/* ---------- alert dialog ---------- */
+function openAlert(){$("alert-overlay").classList.add("open");}
+function closeAlert(){$("alert-overlay").classList.remove("open");}
+$("alert-open-btn").addEventListener("click",openAlert);
+$("alert-cancel-btn").addEventListener("click",function(){closeAlert();$("alert-result").textContent="Alert dialog: cancelled, draft kept";});
+$("alert-confirm-btn").addEventListener("click",function(){closeAlert();$("alert-result").textContent="Alert dialog: confirmed, draft deleted";});
+$("alert-overlay").addEventListener("click",function(e){if(e.target===this){closeAlert();$("alert-result").textContent="Alert dialog: dismissed via overlay, draft kept";}});
+
+/* ---------- popover ---------- */
+function closePopover(){$("popover").classList.remove("open");$("popover-btn").setAttribute("aria-expanded","false");}
+$("popover-btn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var open=$("popover").classList.toggle("open");
+  this.setAttribute("aria-expanded",String(open));
+});
+$("popover-close-btn").addEventListener("click",closePopover);
+document.addEventListener("click",function(e){
+  if(!$("popover").contains(e.target)) closePopover();
+  if(!$("dd-menu").contains(e.target)&&e.target!==$("dd-btn")) closeDropdown();
+});
+
+/* ---------- dropdown ---------- */
+function closeDropdown(){$("dd-menu").classList.remove("open");$("dd-btn").setAttribute("aria-expanded","false");}
+$("dd-btn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var open=$("dd-menu").classList.toggle("open");
+  this.setAttribute("aria-expanded",String(open));
+});
+$$("#dd-menu .dd-item").forEach(function(b){
+  b.addEventListener("click",function(){
+    $("dd-state").textContent="Menu choice: "+b.getAttribute("data-dd")+" ("+b.textContent.trim()+")";
+    closeDropdown();
+  });
+});
+
+/* ---------- tooltip ---------- */
+var tip=$("tooltip");
+$$("[data-tip]").forEach(function(el){
+  function show(){
+    tip.textContent=el.getAttribute("data-tip");
+    var r=el.getBoundingClientRect();
+    tip.style.display="block";
+    tip.style.left=(r.left+window.scrollX)+"px";
+    tip.style.top=(r.bottom+window.scrollY+6)+"px";
+  }
+  function hide(){tip.style.display="none";}
+  el.addEventListener("mouseenter",show);
+  el.addEventListener("mouseleave",hide);
+  el.addEventListener("focus",show);
+  el.addEventListener("blur",hide);
+});
+
+/* ---------- toast ---------- */
+var toastCount=0;
+function showToast(msg){
+  toastCount++;
+  $("toast-state").textContent="Toasts shown: "+toastCount;
+  var t=document.createElement("div");
+  t.className="toast";
+  t.innerHTML='<span>'+msg+'</span><button type="button">Dismiss</button>';
+  t.querySelector("button").addEventListener("click",function(){t.remove();});
+  $("toast-container").appendChild(t);
+  setTimeout(function(){if(t.parentNode) t.remove();},4000);
+  return t;
+}
+$("toast-btn").addEventListener("click",function(){showToast("Draft saved to the ledger.");});
+$("toast-btn-2").addEventListener("click",function(){showToast("Sync complete: 153 leads synchronized.");});
+
+/* ---------- tabs ---------- */
+$$("#demo-tabs .tab-btn").forEach(function(b){
+  b.addEventListener("click",function(){
+    var key=b.getAttribute("data-tab");
+    $$("#demo-tabs .tab-btn").forEach(function(x){x.classList.toggle("active",x===b);x.setAttribute("aria-selected",String(x===b));});
+    $$("[data-tab-panel]").forEach(function(p){p.classList.toggle("active",p.getAttribute("data-tab-panel")===key);});
+    $("tab-state").textContent="Active tab: "+key;
+  });
+});
+
+/* ---------- accordion ---------- */
+$$("#demo-accordion .acc-trigger").forEach(function(tr){
+  tr.addEventListener("click",function(){
+    var content=tr.nextElementSibling;
+    var open=content.classList.toggle("open");
+    tr.classList.toggle("open",open);
+    tr.setAttribute("aria-expanded",String(open));
+    var n=$$("#demo-accordion .acc-content.open").length;
+    $("acc-state").textContent="Open items: "+n;
+  });
+});
+
+/* ---------- table ---------- */
+var tableRows=[
+  {name:"Alpha",count:1200,active:840,pct:70.0},
+  {name:"Beta",count:850,active:510,pct:60.0},
+  {name:"Gamma",count:2100,active:1890,pct:90.0},
+  {name:"Delta",count:640,active:320,pct:50.0}
+];
+function renderTable(){
+  $("table-body").innerHTML=tableRows.map(function(r){
+    return "<tr><td>"+r.name+"</td><td>"+r.count.toLocaleString("en-US")+"</td><td>"+r.active.toLocaleString("en-US")+"</td><td>"+r.pct.toFixed(1)+"%</td></tr>";
+  }).join("");
+}
+renderTable();
+$$("#data-table th.sortable").forEach(function(th){
+  th.addEventListener("click",function(){
+    var key=th.getAttribute("data-sort");
+    var dir=th.getAttribute("data-dir")==="asc"?"desc":"asc";
+    $$("#data-table th.sortable").forEach(function(x){x.setAttribute("data-dir","asc")});
+    th.setAttribute("data-dir",dir);
+    state.tableSort={key:key,dir:dir};
+    tableRows.sort(function(a,b){
+      var va=a[key],vb=b[key];
+      var cmp=(typeof va==="string")?va.localeCompare(vb):va-vb;
+      return dir==="asc"?cmp:-cmp;
+    });
+    renderTable();
+    $("table-state").textContent="Sort: "+key+" "+dir+" ("+tableRows.map(function(r){return r.name}).join(", ")+")";
+    updateShareLink();
+  });
+});
+
+/* ---------- chart ---------- */
+var CHART_W=640,CHART_H=200,CHART_PAD=28;
+function renderChart(){
+  var data=state.chartData;
+  var max=Math.max.apply(null,data.map(function(d){return d.value}));
+  if(max<=0) max=1;
+  var n=data.length;
+  var bw=(CHART_W-2*CHART_PAD)/n;
+  var bars=data.map(function(d,i){
+    var h=Math.round(d.value/max*(CHART_H-2*CHART_PAD));
+    var x=Math.round(CHART_PAD+i*bw+6);
+    var y=CHART_H-CHART_PAD-h;
+    var w=Math.round(bw-12);
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="#a67c2e" data-label="'+d.label+'" data-value="'+d.value+'" data-height="'+h+'"><title>'+d.label+": "+d.value+"</title></rect>"+
+      '<text x="'+Math.round(x+w/2)+'" y="'+(CHART_H-8)+'" font-size="11" text-anchor="middle" fill="#4a443c" font-family="JetBrains Mono, monospace">'+d.label+'</text>'+
+      '<text x="'+Math.round(x+w/2)+'" y="'+(y-5)+'" font-size="11" text-anchor="middle" fill="#1a1714" font-family="JetBrains Mono, monospace">'+d.value+'</text>';
+  }).join("");
+  var pts=data.map(function(d,i){
+    var h=d.value/max*(CHART_H-2*CHART_PAD);
+    return (CHART_PAD+i*bw+bw/2).toFixed(1)+","+(CHART_H-CHART_PAD-h).toFixed(1);
+  }).join(" ");
+  var total=data.reduce(function(s,d){return s+d.value},0);
+  var avg=total/n;
+  $("chart-wrap").innerHTML='<svg viewBox="0 0 '+CHART_W+' '+CHART_H+'" width="100%" role="img" aria-label="Bar and area chart" xmlns="http://www.w3.org/2000/svg">'+
+    '<line x1="'+CHART_PAD+'" y1="'+(CHART_H-CHART_PAD)+'" x2="'+(CHART_W-CHART_PAD)+'" y2="'+(CHART_H-CHART_PAD)+'" stroke="#ddd5c4"/>'+
+    '<polyline points="'+pts+'" fill="none" stroke="#7d5c1e" stroke-width="2"/>'+bars+'</svg>';
+  $("chart-stats").textContent="Points: "+n+" \u00b7 Max: "+max+" \u00b7 Total: "+total+" \u00b7 Average: "+avg.toFixed(1);
+  return {max:max,total:total,avg:avg};
+}
+renderChart();
+$("chart-apply-btn").addEventListener("click",function(){
+  var err=$("chart-error");
+  try{
+    var data=JSON.parse($("chart-data-input").value);
+    if(!Array.isArray(data)||!data.length) throw new Error("empty");
+    data.forEach(function(d){if(typeof d.label!=="string"||typeof d.value!=="number"||isNaN(d.value)) throw new Error("shape");});
+    state.chartData=data;
+    err.classList.remove("show");
+    renderChart();
+    updateShareLink();
+  }catch(e){err.classList.add("show");}
+});
+$("chart-reset-btn").addEventListener("click",function(){
+  state.chartData=clone(DEFAULT_CHART);
+  $("chart-data-input").value=JSON.stringify(DEFAULT_CHART);
+  $("chart-error").classList.remove("show");
+  renderChart();
+  updateShareLink();
+});
+
+/* ---------- calendar ---------- */
+var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var calYear=2026,calMonth=10;
+function renderCalendar(){
+  var first=new Date(calYear,calMonth,1).getDay();
+  var days=new Date(calYear,calMonth+1,0).getDate();
+  var today=new Date();
+  var cells="";
+  ["Su","Mo","Tu","We","Th","Fr","Sa"].forEach(function(d){cells+='<div class="dow">'+d+'</div>';});
+  for(var i=0;i<first;i++) cells+='<div class="blank"></div>';
+  for(var d=1;d<=days;d++){
+    var isToday=(d===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear());
+    cells+='<div class="day'+(isToday?" today":"")+'" data-day="'+d+'">'+d+'</div>';
+  }
+  $("cal-grid").innerHTML=cells;
+  $("cal-title").textContent=MONTHS[calMonth]+" "+calYear;
+  $("cal-month").value=String(calMonth);
+  $("cal-year").value=String(calYear);
+  $("cal-state").textContent=MONTHS[calMonth]+" "+calYear+": first day is "+["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][first]+", "+days+" days, "+first+" leading blank cells.";
+}
+(function initCal(){
+  var ms=$("cal-month");
+  MONTHS.forEach(function(m,i){var o=document.createElement("option");o.value=String(i);o.textContent=m;ms.appendChild(o);});
+  var ys=$("cal-year");
+  for(var y=2024;y<=2028;y++){var o=document.createElement("option");o.value=String(y);o.textContent=String(y);ys.appendChild(o);}
+  ms.addEventListener("change",function(){calMonth=parseInt(ms.value,10);renderCalendar();});
+  ys.addEventListener("change",function(){calYear=parseInt(ys.value,10);renderCalendar();});
+  $("cal-prev").addEventListener("click",function(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();});
+  $("cal-next").addEventListener("click",function(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();});
+  renderCalendar();
+})();
+
+/* ---------- pagination ---------- */
+var pgItems=[];for(var pi=1;pi<=47;pi++) pgItems.push("Lead "+String(pi).padStart(3,"0"));
+var PG_PER=10,PG_PAGES=Math.ceil(pgItems.length/PG_PER);
+function renderPagination(){
+  var pages="";
+  for(var p=1;p<=PG_PAGES;p++){
+    pages+='<button type="button" data-page="'+p+'" class="'+(p===state.page?"active":"")+'">'+p+'</button>';
+  }
+  $("pg-pages").innerHTML=pages;
+  $$("#pg-pages [data-page]").forEach(function(b){
+    b.addEventListener("click",function(){state.page=parseInt(b.getAttribute("data-page"),10);renderPagination();});
+  });
+  $("pg-prev").disabled=state.page===1;
+  $("pg-next").disabled=state.page===PG_PAGES;
+  var start=(state.page-1)*PG_PER+1,end=Math.min(state.page*PG_PER,pgItems.length);
+  $("pg-info").textContent="Page "+state.page+" of "+PG_PAGES+" \u00b7 Items "+start+"-"+end+" of "+pgItems.length;
+  $("pg-list").innerHTML=pgItems.slice(start-1,end).map(function(it){return '<div class="feed-row"><span class="dot success"></span><span class="ac">'+it+'</span><span class="badge badge-outline">queued</span></div>';}).join("");
+}
+$("pg-prev").addEventListener("click",function(){if(state.page>1){state.page--;renderPagination();}});
+$("pg-next").addEventListener("click",function(){if(state.page<PG_PAGES){state.page++;renderPagination();}});
+renderPagination();
+
+/* ---------- form validation ---------- */
+function validateForm(prefix){
+  var get=function(id){return $(id)};
+  var name=get(prefix+"name").value.trim();
+  var email=get(prefix+"email").value.trim();
+  var role=get(prefix+"role").value;
+  var terms=get(prefix+"terms").checked;
+  var ok=true;
+  var errs={name:name.length>=2,email:/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),role:role!=="",terms:terms};
+  [["name",errs.name],["email",errs.email],["role",errs.role],["terms",errs.terms]].forEach(function(pair){
+    var key=pair[0],valid=pair[1];
+    var errEl=$(prefix+"err-"+key);
+    if(errEl) errEl.classList.toggle("show",!valid);
+    var inputEl=get(prefix+key);
+    if(inputEl&&inputEl.classList) inputEl.classList.toggle("invalid",!valid);
+    if(!valid) ok=false;
+  });
+  return {ok:ok,errs:errs,name:name,email:email,role:role};
+}
+function completeness(prefix,barId,textId,missingId){
+  var v=validateFormQuiet(prefix);
+  var done=v.filter(Boolean).length;
+  var pct=Math.round(done/4*100);
+  $(barId).style.width=pct+"%";
+  $(textId).textContent=done+" of 4 complete ("+pct+"%)";
+  var labels=["name","email","role","terms"];
+  var missing=labels.filter(function(l,i){return !v[i]});
+  $(missingId).textContent=missing.length?("Missing: "+missing.join(", ")):"All required fields complete.";
+}
+function validateFormQuiet(prefix){
+  var name=$(prefix+"name").value.trim().length>=2;
+  var email=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($(prefix+"email").value.trim());
+  var role=$(prefix+"role").value!=="";
+  var terms=$(prefix+"terms").checked;
+  return [name,email,role,terms];
+}
+/* main form: role is a custom select */
+$("f-role-btn").addEventListener("click",function(e){
+  e.stopPropagation();
+  var open=$("f-role-list").classList.toggle("open");
+  this.setAttribute("aria-expanded",String(open));
+});
+$$("#f-role-list .sel-opt").forEach(function(b){
+  b.addEventListener("click",function(){
+    $("f-role").value=b.getAttribute("data-role");
+    $("f-role-label").textContent=b.getAttribute("data-role");
+    $("f-role-list").classList.remove("open");
+    $$("#f-role-list .sel-opt").forEach(function(x){x.classList.toggle("sel",x===b)});
+    updateFormState();
+  });
+});
+document.addEventListener("click",function(e){
+  if(!$("f-role-list").contains(e.target)&&e.target!==$("f-role-btn")) $("f-role-list").classList.remove("open");
+});
+function updateFormState(){
+  state.form.name=$("f-name").value;
+  state.form.email=$("f-email").value;
+  state.form.role=$("f-role").value;
+  state.form.notes=$("f-notes").value;
+  state.form.terms=$("f-terms").checked;
+  completeness("f-","completeness-bar","completeness-text","missing-list");
+  updateShareLink();
+}
+["f-name","f-email","f-notes"].forEach(function(id){
+  $(id).addEventListener("input",updateFormState);
+});
+$("f-terms").addEventListener("change",updateFormState);
+$("demo-form").addEventListener("submit",function(e){
+  e.preventDefault();
+  var r=validateForm("f-");
+  completeness("f-","completeness-bar","completeness-text","missing-list");
+  if(r.ok){
+    $("form-result").textContent='Form: submitted OK for "'+r.name+'" ('+r.email+', '+r.role+')';
+    showToast("Intake submitted for "+r.name+".");
+  }else{
+    $("form-result").textContent="Form: rejected, see errors above.";
+  }
+});
+$("form-reset-btn").addEventListener("click",function(){
+  $("demo-form").reset();
+  $("f-role").value="";$("f-role-label").textContent="Choose a role";
+  $$("#f-role-list .sel-opt").forEach(function(x){x.classList.remove("sel")});
+  ["f-err-name","f-err-email","f-err-role","f-err-terms"].forEach(function(id){$(id).classList.remove("show")});
+  $("form-result").textContent="Form: reset";
+  updateFormState();
+});
+/* radio */
+$$("#radio-group input[type=radio]").forEach(function(r){
+  r.addEventListener("change",function(){$("radio-state").textContent="Contact preference: "+r.value;});
+});
+/* switch */
+$("demo-switch").addEventListener("click",function(){
+  var on=this.getAttribute("aria-checked")==="true";
+  this.setAttribute("aria-checked",String(!on));
+  $("switch-state").textContent="Notifications: "+(!on?"on":"off");
+});
+/* slider + progress */
+var progVal=40;
+$("demo-slider").addEventListener("input",function(){
+  $("slider-value").textContent=this.value+"%";
+  progVal=parseInt(this.value,10);
+  $("progress-bar").style.width=progVal+"%";
+  $("progress-text").textContent="Progress: "+progVal+"%";
+});
+$("progress-plus").addEventListener("click",function(){
+  progVal=Math.min(100,progVal+10);
+  $("progress-bar").style.width=progVal+"%";
+  $("progress-text").textContent="Progress: "+progVal+"%";
+  $("demo-slider").value=String(progVal);
+  $("slider-value").textContent=progVal+"%";
+});
+$("progress-reset").addEventListener("click",function(){
+  progVal=0;
+  $("progress-bar").style.width="0%";
+  $("progress-text").textContent="Progress: 0%";
+  $("demo-slider").value="0";
+  $("slider-value").textContent="0%";
+});
+/* skeleton */
+$("skel-btn").addEventListener("click",function(){
+  var area=$("skel-area");
+  $("skel-state").textContent="State: loading...";
+  setTimeout(function(){
+    area.innerHTML='<p style="margin:0"><strong>Berrien County parcel 11-0420</strong></p><p class="small" style="margin:4px 0 0">Loaded content replaced the skeleton: 0.42 acres, tax lien signal, score 87.</p>';
+    $("skel-state").textContent="State: loaded";
+  },600);
+});
+$("skel-reset-btn").addEventListener("click",function(){
+  $("skel-area").innerHTML='<div class="skel" style="height:18px;width:60%;margin-bottom:8px"></div><div class="skel" style="height:14px;width:90%;margin-bottom:8px"></div><div class="skel" style="height:14px;width:75%"></div>';
+  $("skel-state").textContent="State: skeleton visible";
+});
+
+/* ---------- compositions ---------- */
+var compLeads=[
+  {name:"Parcel 11-0420",score:87},{name:"Parcel 09-1187",score:64},
+  {name:"Parcel 12-0031",score:92},{name:"Parcel 07-0555",score:41},
+  {name:"Parcel 10-2209",score:73}
+];
+function renderCompTable(){
+  $("comp-table-body").innerHTML=compLeads.map(function(l){
+    return "<tr><td>"+l.name+"</td><td>"+l.score+"</td><td><span class='badge "+(l.score>=80?"badge-default":l.score>=60?"badge-secondary":"badge-outline")+"'>"+(l.score>=80?"hot":l.score>=60?"warm":"cold")+"</span></td></tr>";
+  }).join("");
+}
+$$("#comp-table-el th.sortable").forEach(function(th){
+  th.addEventListener("click",function(){
+    var key=th.getAttribute("data-csort");
+    var dir=th.getAttribute("data-dir")==="asc"?"desc":"asc";
+    th.setAttribute("data-dir",dir);
+    compLeads.sort(function(a,b){var c=(typeof a[key]==="string")?a[key].localeCompare(b[key]):a[key]-b[key];return dir==="asc"?c:-c;});
+    renderCompTable();
+    $("comp-table-state").textContent="Sort: "+key+" "+dir+" ("+compLeads.map(function(l){return l.name}).join(", ")+")";
+  });
+});
+$("load-dashboard").addEventListener("click",function(){
+  $("comp-dashboard").style.display="block";
+  $("comp-chart").innerHTML=$("chart-wrap").innerHTML;
+  $("comp-feed").innerHTML=feedItems.slice(0,4).map(function(a){
+    return '<div class="feed-row"><span class="dot '+a.status+'"></span><span class="tm">'+a.time+'</span><span class="lg" style="color:'+a.color+'">'+a.legion+'</span><span class="ac">'+a.action+'</span><span class="small muted">'+a.target+'</span></div>';
+  }).join("");
+  $("comp-dashboard-state").textContent="Loaded: 4 stat cards, 1 chart (5 points), 4 feed rows.";
+});
+function compCompleteness(){
+  var v=[
+    $("c-name").value.trim().length>=2,
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($("c-email").value.trim()),
+    $("c-role").value!=="",
+    $("c-terms").checked
+  ];
+  var done=v.filter(Boolean).length;
+  var pct=Math.round(done/4*100);
+  $("comp-meter").style.width=pct+"%";
+  $("comp-meter-text").textContent=done+" of 4 complete ("+pct+"%)";
+  var labels=["name","email","role","terms"];
+  var missing=labels.filter(function(l,i){return !v[i]});
+  $("comp-missing").textContent=missing.length?("Missing: "+missing.join(", ")):"All required fields complete.";
+}
+$("load-form").addEventListener("click",function(){
+  $("comp-form").style.display="block";
+  $("comp-form-state").textContent="Loaded: validated form with completeness meter.";
+  ["c-name","c-email"].forEach(function(id){$(id).addEventListener("input",compCompleteness);});
+  $("c-role").addEventListener("change",compCompleteness);
+  $("c-terms").addEventListener("change",compCompleteness);
+  $("comp-form-el").addEventListener("submit",function(e){
+    e.preventDefault();
+    var r=validateForm("c-");
+    compCompleteness();
+    if(r.ok){
+      $("comp-form-result").textContent='Form: submitted OK for "'+r.name+'"';
+      showToast("Intake submitted for "+r.name+".");
+    }else{
+      $("comp-form-result").textContent="Form: rejected, see errors above.";
+    }
+  });
+});
+$("load-table").addEventListener("click",function(){
+  $("comp-table").style.display="block";
+  renderCompTable();
+  $("comp-table-load-state").textContent="Loaded: 5 leads, sortable by name and score, badges by score band.";
+});
+
+/* ---------- restore + init ---------- */
+restoreFromHash();
+if(state.form.name){$("f-name").value=state.form.name;}
+if(state.form.email){$("f-email").value=state.form.email;}
+if(state.form.role){$("f-role").value=state.form.role;$("f-role-label").textContent=state.form.role;}
+if(state.form.notes){$("f-notes").value=state.form.notes;}
+if(state.form.terms){$("f-terms").checked=true;}
+if(state.tableSort.key){
+  var th=$$("#data-table th.sortable").filter(function(x){return x.getAttribute("data-sort")===state.tableSort.key})[0];
+  if(th){
+    var dir=state.tableSort.dir;
+    th.setAttribute("data-dir",dir);
+    tableRows.sort(function(a,b){
+      var va=a[state.tableSort.key],vb=b[state.tableSort.key];
+      var cmp=(typeof va==="string")?va.localeCompare(vb):va-vb;
+      return dir==="asc"?cmp:-cmp;
+    });
+    renderTable();
+    $("table-state").textContent="Sort: "+state.tableSort.key+" "+dir+" ("+tableRows.map(function(r){return r.name}).join(", ")+")";
+  }
+}
+if(state.page>=1&&state.page<=PG_PAGES){renderPagination();}
+$("chart-data-input").value=JSON.stringify(state.chartData);
+renderChart();
+updateFormState();
+showSection(state.section||"overview");
+updateShareLink();
+})();
+</script>
+</body>
+</html>
