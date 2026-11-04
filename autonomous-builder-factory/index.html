@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autonomous Builder Factory - Control Plane Demo</title>
+<style>
+  :root { --bg:#f7f4ee; --card:#ffffff; --ink:#1a1714; --muted:#6b6257; --brass:#a67c2e; --brass-dark:#8a6522; --line:#e3ddd0; --soft:#f0ebdf; --red:#9b2c2c; --green:#2f6b3a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:Archivo, Inter, system-ui, -apple-system, "Segoe UI", sans-serif; font-size:15px; line-height:1.55; }
+  .wrap { max-width:1020px; margin:0 auto; padding:24px 20px 64px; }
+  header.doc { border-top:6px solid var(--brass); background:var(--card); border:1px solid var(--line); padding:22px 24px; }
+  header.doc h1 { margin:0 0 4px; font-size:28px; line-height:1.15; letter-spacing:-0.01em; }
+  header.doc .sub { color:var(--muted); font-size:15px; margin:0 0 14px; }
+  .docmeta { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; border-top:1px solid var(--line); padding-top:12px; font-size:13px; }
+  .docmeta b { display:block; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); font-weight:700; }
+  .docmeta span { font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .banner { background:#fdf3e3; border:2px solid var(--brass); border-left:10px solid var(--brass); padding:18px 20px; margin:18px 0; }
+  .banner h2 { margin:0 0 8px; font-size:17px; color:#6d4f14; }
+  .banner p { margin:6px 0; }
+  .banner .big { font-weight:700; }
+  .card { background:var(--card); border:1px solid var(--line); padding:20px 22px; margin:16px 0; }
+  .card h2 { margin:0 0 4px; font-size:20px; border-bottom:2px solid var(--brass); padding-bottom:8px; }
+  .card h3 { margin:18px 0 6px; font-size:16px; }
+  .card p { margin:8px 0; }
+  .muted { color:var(--muted); }
+  .small { font-size:13px; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin:12px 0; }
+  .stat { background:var(--soft); border:1px solid var(--line); padding:12px; text-align:center; }
+  .stat b { display:block; font-size:26px; font-family:"JetBrains Mono", ui-monospace, Menlo, monospace; }
+  .stat span { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .stat.alert b { color:var(--red); }
+  .stat.good b { color:var(--green); }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:12px 0; }
+  label { font-size:13px; font-weight:700; }
+  select, input[type="text"] { font:inherit; padding:7px 9px; border:1px solid #c9c0ae; background:#fff; color:var(--ink); }
+  button { font:inherit; font-weight:700; padding:8px 14px; border:1px solid var(--brass-dark); background:var(--brass); color:#fff; cursor:pointer; }
+  button:hover { background:var(--brass-dark); }
+  button.secondary { background:#fff; color:var(--ink); border:1px solid #c9c0ae; }
+  button.secondary:hover { background:var(--soft); }
+  button.small { padding:4px 9px; font-size:13px; }
+  button:disabled { opacity:0.45; cursor:not-allowed; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; margin-top:10px; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { background:var(--soft); font-size:12px; text-transform:uppercase; letter-spacing:0.05em; }
+  .pill { display:inline-block; padding:2px 8px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #c9c0ae; background:var(--soft); }
+  .pill.success { background:#e6f0e6; border-color:#9db89d; color:#2f6b3a; }
+  .pill.noop { background:#eef0f2; border-color:#b9c0c7; color:#4a5560; }
+  .pill.failed { background:#fbe9e9; border-color:#d8a0a0; color:#9b2c2c; }
+  .pill.blocked { background:#fdf3e3; border-color:#d9b96a; color:#6d4f14; }
+  .pill.posted { background:#e6f0e6; border-color:#9db89d; color:#2f6b3a; }
+  .meter { height:22px; background:#e9e2d2; border:1px solid var(--line); position:relative; }
+  .meter > div { height:100%; background:var(--brass); width:37.5%; }
+  .gapbox { background:#fbe9e9; border:1px solid #d8a0a0; padding:12px 14px; margin:12px 0; }
+  .gapbox h3 { margin:0 0 6px; color:#7a1f1f; }
+  figure { margin:18px 0; border:1px solid var(--line); background:#fff; padding:14px; }
+  figcaption { font-size:13px; color:var(--muted); margin-top:10px; }
+  figcaption b { color:var(--ink); }
+  svg { max-width:100%; height:auto; display:block; }
+  ul, ol { margin:8px 0 8px 20px; }
+  li { margin:4px 0; }
+  .tag { display:inline-block; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; background:var(--soft); border:1px solid var(--line); padding:2px 7px; margin-left:6px; }
+  .tag.source { background:#eef0f2; }
+  .tag.demo { background:#fdf3e3; border-color:#d9b96a; color:#6d4f14; }
+  .twocol { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:700px) { .grid, .docmeta, .twocol { grid-template-columns:1fr 1fr; } }
+  @media print {
+    body { background:#fff; }
+    .wrap { max-width:none; padding:0; }
+    .card, header.doc, .banner { break-inside:avoid; }
+    button, .controls { display:none; }
+    a { color:var(--ink); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <h1>Autonomous Builder Factory</h1>
+  <p class="sub">Control plane demo: BuildFix cycles, CODE PACK queue, and asset registry for the April 2026 Autonomous Builder program.</p>
+  <div class="docmeta">
+    <div><b>Document</b><span>ABF-CONTROL-PLANE-1.0</span></div>
+    <div><b>Version</b><span>1.0 staged demo</span></div>
+    <div><b>Date</b><span>2026-11-04</span></div>
+    <div><b>Status</b><span>SIMULATION - NOT LIVE</span></div>
+  </div>
+</header>
+
+<div class="banner" id="honest-banner">
+  <h2>Honest label: this is not a running factory</h2>
+  <p class="big">The recorded path ~/repos/autonomous-builder/ does not exist. The 103 assets were marked Built (Notion artifact or code pack, not tested, pushed, or deployed). The registry must be fixed before the factory is real.</p>
+  <p>The FULL_ANALYSIS verdict is: do not build the factory until the registry is fixed. This page is a simulation of the factory program's control plane, not a running factory. Nothing on this page builds, tests, pushes, or deploys anything. Every count below is computed from the demo data on this page, and every source claim is labeled as a source claim.</p>
+</div>
+
+<div class="card">
+  <h2>Program at a glance <span class="tag source">Source claim</span></h2>
+  <p>The figures below are source claims from the two sources read for this build, not verified live state. The demo data in sections 1 to 3 is a simulation built from those claims.</p>
+  <div class="grid">
+    <div class="stat"><b>64</b><span>BuildFix cycles, Apr 17-20, 2026 (demo set, from "60+")</span></div>
+    <div class="stat"><b>100</b><span>CODE PACKs filed (demo set, from "~100")</span></div>
+    <div class="stat"><b>103</b><span>Autonomous Builder assets in registry</span></div>
+    <div class="stat"><b>227</b><span>Corpus rows, separate lineage record (see gaps)</span></div>
+  </div>
+  <div class="grid">
+    <div class="stat"><b>15 min</b><span>AXON Gateway heartbeat tick (source claim)</span></div>
+    <div class="stat"><b>4</b><span>Publishing states: Draft, Ready, Scheduled, Posted</span></div>
+    <div class="stat"><b>0</b><span>Assets tested, pushed, or deployed at audit</span></div>
+    <div class="stat"><b>L1-L19</b><span>Lessons-Learned recorded (source claim)</span></div>
+  </div>
+  <p class="small muted">Sources: FULL_ANALYSIS.md (2026-11-02), section 9 Codex V3 audit and "What to build next"; runtime-scoping.md, section 3 Autonomous Builder factory. Both were read in full before this page was built. Sources are raw material, never canon.</p>
+</div>
+
+<div class="card">
+  <h2>Demo controls</h2>
+  <p>Three sample loaders set the filters to a named view. The share link encodes the current filter state in the URL hash and restores it on load.</p>
+  <div class="controls">
+    <button id="sample-cycles" type="button">Sample 1: Apr 17-20 cycle view</button>
+    <button id="sample-packs" type="button">Sample 2: CODE PACK queue view</button>
+    <button id="sample-registry" type="button">Sample 3: Registry honesty-gap view</button>
+    <button id="reset-btn" type="button" class="secondary">Reset all filters</button>
+  </div>
+  <div class="controls">
+    <button id="share-btn" type="button">Copy share link</button>
+    <input type="text" id="share-output" readonly size="60" value="Share link appears here." aria-label="Share link">
+  </div>
+  <p class="small muted">Share format: #d= base64 JSON of {cycleFilter, cycleDate, packFilter, assetFilter}. Loading a link with that hash restores the same view. <span id="share-state" class="mono"></span></p>
+  <h3>Registry completeness meter <span class="tag demo">Computed from checklist</span></h3>
+  <div class="meter" role="img" aria-label="Registry completeness 37.5 percent"><div id="completeness-bar"></div></div>
+  <p id="completeness-text"><b>3 of 8</b> registry checks complete (37.5%). Five checks are missing; the factory cannot be called real until they pass.</p>
+  <p><b>Missing fields and checks:</b></p>
+  <ul id="missing-fields">
+    <li>Test evidence attached to assets: 0 of 103 have any (missing for all 103).</li>
+    <li>Deploy receipt attached to assets: 0 of 103 have any (missing for all 103).</li>
+    <li>Folder target recorded for all assets: missing (Codex V3 audit: 1,003 of 1,181 IP records lack a folder target, source claim).</li>
+    <li>Layer recorded for all assets: missing (Codex V3 audit: 630 of 1,181 IP records lack a Layer, source claim).</li>
+    <li>Recorded factory path ~/repos/autonomous-builder/ verified present: missing, the path does not exist on this machine.</li>
+  </ul>
+  <p class="small"><b>Complete:</b> BuildFix cycle dates Apr 17-20 recorded; CODE PACK titles filed; Publishing Queue states defined (Draft, Ready, Scheduled, Posted).</p>
+</div>
+
+<div class="card">
+  <h2>Figure 1. BuildFix cycle flow <span class="tag demo">Diagram</span></h2>
+  <figure id="fig-flow">
+    <svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BuildFix cycle flow diagram">
+      <rect x="10" y="90" width="150" height="70" fill="#f0ebdf" stroke="#a67c2e" stroke-width="2"/>
+      <text x="85" y="118" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1714">Notion IP Build</text>
+      <text x="85" y="138" text-anchor="middle" font-size="13" fill="#1a1714">Queue row</text>
+      <rect x="200" y="90" width="150" height="70" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/>
+      <text x="275" y="118" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1714">Safe-Lane</text>
+      <text x="275" y="138" text-anchor="middle" font-size="13" fill="#1a1714">BuildFix cycle</text>
+      <rect x="390" y="90" width="150" height="70" fill="#f0ebdf" stroke="#a67c2e" stroke-width="2"/>
+      <text x="465" y="118" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1714">CODE PACK</text>
+      <text x="465" y="138" text-anchor="middle" font-size="13" fill="#1a1714">filed</text>
+      <rect x="580" y="90" width="150" height="70" fill="#ffffff" stroke="#a67c2e" stroke-width="2"/>
+      <text x="655" y="118" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1714">Publishing Queue</text>
+      <text x="655" y="138" text-anchor="middle" font-size="13" fill="#1a1714">Draft to Posted</text>
+      <rect x="770" y="90" width="120" height="70" fill="#f0ebdf" stroke="#a67c2e" stroke-width="2"/>
+      <text x="830" y="118" text-anchor="middle" font-size="13" font-weight="bold" fill="#1a1714">Posted</text>
+      <text x="830" y="138" text-anchor="middle" font-size="13" fill="#1a1714">+ receipt</text>
+      <line x1="160" y1="125" x2="200" y2="125" stroke="#1a1714" stroke-width="2"/>
+      <line x1="350" y1="125" x2="390" y2="125" stroke="#1a1714" stroke-width="2"/>
+      <line x1="540" y1="125" x2="580" y2="125" stroke="#1a1714" stroke-width="2"/>
+      <line x1="730" y1="125" x2="770" y2="125" stroke="#1a1714" stroke-width="2"/>
+      <polygon points="200,120 200,130 210,125" fill="#1a1714"/>
+      <polygon points="390,120 390,130 400,125" fill="#1a1714"/>
+      <polygon points="580,120 580,130 590,125" fill="#1a1714"/>
+      <polygon points="770,120 770,130 780,125" fill="#1a1714"/>
+      <rect x="200" y="20" width="340" height="40" fill="#ffffff" stroke="#6b6257" stroke-width="1"/>
+      <text x="370" y="45" text-anchor="middle" font-size="13" fill="#1a1714">AXON Gateway heartbeat tick, every 15 min (source claim)</text>
+      <line x1="275" y1="60" x2="275" y2="90" stroke="#6b6257" stroke-width="1" stroke-dasharray="4 3"/>
+      <rect x="580" y="200" width="310" height="40" fill="#ffffff" stroke="#6b6257" stroke-width="1"/>
+      <text x="735" y="225" text-anchor="middle" font-size="13" fill="#1a1714">Governance: independent courts, no auto-merge, zero economic authority</text>
+      <line x1="655" y1="160" x2="655" y2="200" stroke="#6b6257" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="10" y="250" font-size="12" fill="#6b6257">Missing step, shown in red in the registry: test, push, and deploy evidence between CODE PACK filed and Posted.</text>
+    </svg>
+    <figcaption><b>Figure 1.</b> BuildFix cycle flow, as described in the sources: a Notion queue row enters a bounded Safe-Lane BuildFix cycle, produces a CODE PACK, and moves through the Publishing Queue. The sources name no test, push, or deploy step with evidence, which is exactly the honesty gap in section 3.</figcaption>
+  </figure>
+
+  <h2>Figure 2. Asset-state funnel <span class="tag demo">Diagram</span></h2>
+  <figure id="fig-funnel">
+    <svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Asset state funnel diagram">
+      <text x="20" y="30" font-size="13" font-weight="bold" fill="#1a1714">Built (Notion artifact or code pack)</text>
+      <rect x="20" y="40" width="700" height="34" fill="#a67c2e"/>
+      <text x="730" y="62" font-size="14" font-weight="bold" fill="#1a1714">103</text>
+      <text x="20" y="100" font-size="13" font-weight="bold" fill="#1a1714">Tested</text>
+      <rect x="20" y="110" width="4" height="34" fill="#9b2c2c"/>
+      <text x="40" y="132" font-size="14" font-weight="bold" fill="#9b2c2c">0</text>
+      <text x="20" y="170" font-size="13" font-weight="bold" fill="#1a1714">Pushed</text>
+      <rect x="20" y="180" width="4" height="34" fill="#9b2c2c"/>
+      <text x="40" y="202" font-size="14" font-weight="bold" fill="#9b2c2c">0</text>
+      <text x="20" y="240" font-size="13" font-weight="bold" fill="#1a1714">Deployed</text>
+      <rect x="20" y="250" width="4" height="34" fill="#9b2c2c"/>
+      <text x="40" y="272" font-size="14" font-weight="bold" fill="#9b2c2c">0</text>
+      <text x="480" y="132" font-size="13" fill="#6b6257">The funnel collapses at the first real gate.</text>
+      <text x="480" y="202" font-size="13" fill="#6b6257">Built here means a Notion page or a filed pack.</text>
+      <text x="480" y="272" font-size="13" fill="#6b6257">It does not mean the code ran anywhere.</text>
+    </svg>
+    <figcaption><b>Figure 2.</b> Asset-state funnel at audit time: 103 assets marked Built, zero tested, zero pushed, zero deployed. The funnel is drawn from the Codex V3 audit claim in FULL_ANALYSIS section 9. The "Record test / push / deploy" buttons in section 3 simulate what closing this gap would require; they do not change any source record.</figcaption>
+  </figure>
+</div>
+
+<div class="card" id="section-cycles">
+  <h2>1. BuildFix cycle tracker <span class="tag demo">Demo data</span></h2>
+  <p>64 BuildFix cycles, Apr 17-20, 2026. The sources say "60+ BuildFix cycles logged Apr 17-20", so this demo uses a fixed set of 64 with a hand-checked split. Statuses are Success, No-op, Failed, and Blocked. Completion means a terminal status (Success, No-op, or Failed).</p>
+  <div class="grid">
+    <div class="stat"><b id="cycle-total">64</b><span>Total cycles</span></div>
+    <div class="stat good"><b id="cycle-success">51</b><span>Success</span></div>
+    <div class="stat"><b id="cycle-noop">10</b><span>No-op</span></div>
+    <div class="stat"><b id="cycle-failed">2</b><span>Failed</span></div>
+    <div class="stat alert"><b id="cycle-blocked">1</b><span>Blocked</span></div>
+    <div class="stat"><b id="cycle-completion">98.4%</b><span>Completion (terminal / total)</span></div>
+    <div class="stat"><b id="cycle-success-rate">79.7%</b><span>Success rate</span></div>
+    <div class="stat"><b id="cycle-shown">64</b><span>Shown by filter</span></div>
+  </div>
+  <div class="controls">
+    <label for="cycle-filter">Status filter</label>
+    <select id="cycle-filter">
+      <option value="All">All statuses</option>
+      <option value="Success">Success</option>
+      <option value="No-op">No-op</option>
+      <option value="Failed">Failed</option>
+      <option value="Blocked">Blocked</option>
+    </select>
+    <label for="cycle-date">Date filter</label>
+    <select id="cycle-date">
+      <option value="All">All dates Apr 17-20</option>
+      <option value="2026-04-17">Apr 17, 2026</option>
+      <option value="2026-04-18">Apr 18, 2026</option>
+      <option value="2026-04-19">Apr 19, 2026</option>
+      <option value="2026-04-20">Apr 20, 2026</option>
+    </select>
+  </div>
+  <p class="small muted">Per-day counts (computed from the data): Apr 17: 16 cycles (13 Success, 2 No-op, 1 Failed). Apr 18: 18 cycles (14 Success, 3 No-op, 1 Blocked). Apr 19: 16 cycles (12 Success, 3 No-op, 1 Failed). Apr 20: 14 cycles (12 Success, 2 No-op).</p>
+  <table id="cycle-table">
+    <thead><tr><th>Cycle</th><th>Date</th><th>Work</th><th>Status</th></tr></thead>
+    <tbody id="cycle-body"></tbody>
+  </table>
+</div>
+
+<div class="card" id="section-packs">
+  <h2>2. CODE PACK queue <span class="tag demo">Demo data</span></h2>
+  <p>100 CODE PACKs in the Publishing Queue state machine: Draft, Ready, Scheduled, Posted. The sources name about 100 CODE PACKs and list seven by name; the first seven rows below use those names, the rest are numbered demo packs. Use Advance to move a pack one step forward. Counts recompute from the data on every move.</p>
+  <div class="grid">
+    <div class="stat"><b id="pack-total">100</b><span>Total packs</span></div>
+    <div class="stat"><b id="pack-draft">28</b><span>Draft</span></div>
+    <div class="stat"><b id="pack-ready">34</b><span>Ready</span></div>
+    <div class="stat"><b id="pack-scheduled">22</b><span>Scheduled</span></div>
+    <div class="stat good"><b id="pack-posted">16</b><span>Posted</span></div>
+    <div class="stat"><b id="pack-shown">100</b><span>Shown by filter</span></div>
+  </div>
+  <div class="controls">
+    <label for="pack-filter">State filter</label>
+    <select id="pack-filter">
+      <option value="All">All states</option>
+      <option value="Draft">Draft</option>
+      <option value="Ready">Ready</option>
+      <option value="Scheduled">Scheduled</option>
+      <option value="Posted">Posted</option>
+    </select>
+    <span class="small muted">Advance order: Draft to Ready to Scheduled to Posted. Posted is terminal.</span>
+  </div>
+  <table id="pack-table">
+    <thead><tr><th>Pack</th><th>Title</th><th>Output type</th><th>State</th><th>Action</th></tr></thead>
+    <tbody id="pack-body"></tbody>
+  </table>
+</div>
+
+<div class="card" id="section-registry">
+  <h2>3. Asset registry: the honesty problem <span class="tag demo">Demo data</span></h2>
+  <p>103 Autonomous Builder assets. At audit time every one was marked Built, meaning a Notion artifact or a code pack, not tested, pushed, or deployed. That is the Codex V3 audit claim in FULL_ANALYSIS section 9. Use the state filter to see the gap: Tested, Pushed, and Deployed all start at zero.</p>
+  <div class="gapbox" id="asset-gap">
+    <h3>Honesty gap, in one line</h3>
+    <p>103 Built. 0 Tested. 0 Pushed. 0 Deployed. 0 Live. A registry that calls all 103 "Built" without a tested, pushed, or deployed step cannot tell a real asset from a filed page.</p>
+  </div>
+  <div class="grid">
+    <div class="stat"><b id="asset-total">103</b><span>Total assets</span></div>
+    <div class="stat"><b id="asset-notion">58</b><span>Built - Notion artifact</span></div>
+    <div class="stat"><b id="asset-codepack">45</b><span>Built - Code pack</span></div>
+    <div class="stat alert"><b id="asset-tested">0</b><span>Tested</span></div>
+    <div class="stat alert"><b id="asset-pushed">0</b><span>Pushed</span></div>
+    <div class="stat alert"><b id="asset-deployed">0</b><span>Deployed</span></div>
+    <div class="stat"><b id="asset-shown">103</b><span>Shown by filter</span></div>
+  </div>
+  <div class="controls">
+    <label for="asset-filter">State filter</label>
+    <select id="asset-filter">
+      <option value="All">All states</option>
+      <option value="Built - Notion artifact">Built - Notion artifact</option>
+      <option value="Built - Code pack">Built - Code pack</option>
+      <option value="Tested">Tested</option>
+      <option value="Pushed">Pushed</option>
+      <option value="Deployed">Deployed</option>
+    </select>
+    <span class="small muted">Filter to Tested, Pushed, or Deployed to see the empty set. The buttons below simulate the fix path only; they do not change any source record.</span>
+  </div>
+  <table id="asset-table">
+    <thead><tr><th>Asset</th><th>Name</th><th>Kind</th><th>State</th><th>Action</th></tr></thead>
+    <tbody id="asset-body"></tbody>
+  </table>
+  <p id="asset-empty" class="small" style="display:none;"><b>Empty set.</b> No assets hold this state. That is the gap: nothing has reached this step.</p>
+</div>
+
+<div class="card">
+  <h2>Try-it walkthrough</h2>
+  <ol>
+    <li><b>See the cycle rollup.</b> Section 1 shows 64 cycles: 51 Success, 10 No-op, 2 Failed, 1 Blocked. Completion is 63 of 64, or 98.4%.</li>
+    <li><b>Filter the cycles.</b> Set the status filter to Failed. Two rows remain: the Apr 17 and Apr 19 failures. Set the date filter to Apr 18 to see its 18 cycles.</li>
+    <li><b>Move a CODE PACK.</b> In section 2, filter to Draft (28 packs), click Advance on the first row, and watch Draft fall to 27 and Ready rise to 35. Advance the same pack twice more to reach Posted.</li>
+    <li><b>Expose the honesty gap.</b> In section 3, set the state filter to Tested. Zero rows appear. Do the same for Pushed and Deployed. Then click "Record test" on any Built row and watch Tested rise from 0 to 1; that is the simulated fix path, not a source fact.</li>
+    <li><b>Load a sample view.</b> Click "Sample 3: Registry honesty-gap view" at the top. It sets the asset filter to Tested so the empty set is visible.</li>
+    <li><b>Share the view.</b> Click "Copy share link", then open the link in a new tab. The same filters come back from the URL hash.</li>
+  </ol>
+</div>
+
+<div class="card">
+  <h2>How it works / What this is not</h2>
+  <div class="twocol">
+    <div>
+      <h3>How it works</h3>
+      <ul>
+        <li>All three datasets live in this single file as plain data. Every rollup and count is computed from that data when the page loads and after every change.</li>
+        <li>BuildFix cycles: 64 rows with a fixed date and status split, filterable by status and date.</li>
+        <li>CODE PACK queue: 100 rows in the Draft to Posted state machine, with one-step Advance transitions.</li>
+        <li>Asset registry: 103 rows, split 58 Notion artifact and 45 code pack, with a simulated test, push, and deploy ladder.</li>
+        <li>Share links encode the four filters as base64 JSON in the URL hash and restore them on load.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What this is not</h3>
+      <ul>
+        <li>Not a running factory. No code is built, tested, pushed, or deployed by this page.</li>
+        <li>Not connected to Notion. There is no Notion control plane behind this page, no live queue, and no heartbeat tick.</li>
+        <li>Not the recorded factory path. ~/repos/autonomous-builder/ does not exist on this machine.</li>
+        <li>Not a verified registry. The 103 "Built" labels come from the audit claim, and the audit itself says Built means Notion artifact or code pack only.</li>
+        <li>Not a verdict on the April program. The April cycles are a historical record; this page simulates their control plane so the gap is visible.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Honest gaps: what the sources do not define or what could not be verified</h2>
+  <ul>
+    <li><b>Factory repo and runtime: unknown.</b> No builder code, repo, language, host, or deploy target was found in either source. The only path on record is ~/repos/autonomous-builder/, which does not exist on this machine. GitHub state was not checked in this build.</li>
+    <li><b>Whether any of the 103 assets was ever tested, pushed, or deployed: unknown.</b> The audit defines Built as Notion artifact or code pack and reports zero further evidence. This demo starts all three later states at zero because the audit gives no other number.</li>
+    <li><b>60+ cycles vs 227-row corpus: unreconciled.</b> The sources give "60+ BuildFix cycles Apr 17-20" and separately a 227-row corpus (178 Success, 47 No-op, 1 Queued, 1 Running) from a 2026-09-14 dossier appendix. The two counts are not the same set, and no source maps one onto the other. This demo uses 64 cycles for the tracker and reports the 227-row corpus only as a separate lineage record.</li>
+    <li><b>~100 CODE PACKs vs 103 assets: overlap unclear.</b> The sources say about 100 CODE PACKs were filed and separately that 103 Autonomous Builder assets exist. Whether the packs are a subset of the assets, the same set, or a different set is not stated. This demo keeps them as two separate tables and does not merge them.</li>
+    <li><b>n8n contract and heartbeat: current state unknown.</b> The sources name an n8n contract spec for the Publishing Queue and 15-minute AXON Gateway heartbeat ticks. Whether either still runs, and what the current Build Queue depth is, is unknown.</li>
+    <li><b>Codex V3 audit numbers are IP-wide, not asset-only.</b> The 1,181 IP records, 691 Built, 630 lacking Layer, 1,003 lacking folder target, and 384 lacking revenue model describe the whole IP registry, not just the 103 builder assets. This page does not apply those counts to the 103 rows.</li>
+    <li><b>Ecosystem-codex "Live" label conflicts with the audit.</b> The ecosystem codex lists Autonomous Builder HQ as "Live" at ~/repos/autonomous-builder/. The audit says the same assets were only Built as artifacts or packs. This demo follows the audit and treats "Live" as unverified.</li>
+    <li><b>Notion page IDs were not re-verified.</b> The runtime-scoping source cites Notion pages (HQ, Logs, IP Log, IP Build Queue) from a secondary transcript copy. Their IDs were not re-checked against Notion for this build.</li>
+    <li><b>Layout not eyeballed in a real browser.</b> This page was tested in jsdom for behavior and counts only. Visual layout was not checked in a real browser.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <h2>Source claims used</h2>
+  <ul>
+    <li><span class="tag source">Source claim</span> 60+ BuildFix cycles logged Apr 17-20, 2026; Safe-Lane queue; Publishing Queue Draft to Ready to Scheduled to Posted; IP Registry tranches of 25-31 rows each; AXON Gateway 15-minute heartbeat ticks; MOTHER daily digests; Lessons-Learned L1-L19; about 100 CODE PACKs filed; Neuruh landing page deployed to Vercel about Apr 20. (runtime-scoping.md, section 3, citing the organism study and Notion HQ pages.)</li>
+    <li><span class="tag source">Source claim</span> Codex V3 Notion audit: 1,181 IP records, 691 Built, 630 lack Layer, 1,003 lack folder target, 384 lack revenue model; 59 agents (22 Active, 34 Built Not Deployed, 2 Broken, 1 Deprecated); 71 Dev Log rows (14 Live, 12 Building, 21 Pre-Push); 103 Autonomous Builder assets all marked Built, meaning Notion artifact or code pack, not tested, pushed, or deployed; feedback_events empty. (FULL_ANALYSIS.md, section 9.)</li>
+    <li><span class="tag source">Source claim</span> 227-row historical corpus: 178 Success, 47 No-op, 1 Queued, 1 Running; archived lineage, not current runtime proof. (runtime-scoping.md, section 3, SOURCE-MATRIX row M105.)</li>
+    <li><span class="tag source">Source claim</span> FULL_ANALYSIS verdict: "Do not build now: full N-Cell runtime adapter, Autonomous Builder factory, cross-domain Opportunity Genome" and "Fix the registry before any World SDK or cross-domain composition." (FULL_ANALYSIS.md, "What to build next" and section 9.)</li>
+    <li><span class="tag source">Source claim</span> Ecosystem codex lists Autonomous Builder HQ as "Live" at ~/repos/autonomous-builder/. Treated as unverified because the path does not exist here and the audit contradicts the label. (runtime-scoping.md, section 3.)</li>
+    <li><span class="tag demo">Demo choice</span> Cycle set fixed at 64; pack set fixed at 100 with a 28/34/22/16 split; asset split fixed at 58 Notion artifact and 45 code pack; named packs use the seven titles the sources list. These fixed numbers are demo scaffolding so every count on the page is hand-checkable, not source facts.</li>
+  </ul>
+  <p class="small muted">Built from: ~/workspace/your_files/neuruh-full-extraction/FULL_ANALYSIS.md and ~/workspace/build-it-all-batch/runtime-scoping.md, both read in full. Staged only. Nothing here is live or deployed.</p>
+</div>
+
+</div>
+<script>
+(function () {
+  "use strict";
+  var CODE_MAP = { S: "Success", N: "No-op", F: "Failed", B: "Blocked" };
+  var DAY_CODES = ["SSSSSNSSSNSSFSSS", "SSNSSSSNSSSSSNSSBS", "SSSNSSSSNSSFSSSN", "SSSSNSSSSSNSSS"];
+  var DAY_DATES = ["2026-04-17", "2026-04-18", "2026-04-19", "2026-04-20"];
+  var TOPICS = ["Probate Miner fix", "Obituary Signal Parser fix", "Neuruh SCAN patch", "LENDURUH patch", "ResellOS recovery fix", "Governance Core patch", "Ether Layer Event Bus fix", "Safe-Lane queue repair", "Publishing Queue cap fix", "IP Registry tranche import", "AXON heartbeat tick repair", "MOTHER digest template", "Landing page deploy check", "Dedupe proposal pass", "Perm-gap escalation", "Code pack filing"];
+  var cycles = [];
+  DAY_CODES.forEach(function (codes, d) {
+    for (var i = 0; i < codes.length; i++) {
+      var n = cycles.length;
+      cycles.push({ id: "BF-" + String(n + 1).padStart(3, "0"), date: DAY_DATES[d], title: TOPICS[n % TOPICS.length], status: CODE_MAP[codes[i]] });
+    }
+  });
+
+  var NAMED_PACKS = ["Probate Miner", "Obituary Signal Parser", "Neuruh SCAN", "LENDURUH", "ResellOS / FSP Recovery", "Autonomous Governance Core", "Ether Layer Event Bus"];
+  var PACK_TYPES = ["Framework", "Playbook", "Template", "Codebase", "Spec"];
+  var packs = [];
+  for (var p = 0; p < 100; p++) {
+    var st = p < 28 ? "Draft" : (p < 62 ? "Ready" : (p < 84 ? "Scheduled" : "Posted"));
+    packs.push({ id: "CP-" + String(p + 1).padStart(3, "0"), title: p < 7 ? NAMED_PACKS[p] : "Pack " + String(p + 1).padStart(3, "0"), type: PACK_TYPES[p % PACK_TYPES.length], state: st });
+  }
+  var PACK_NEXT = { Draft: "Ready", Ready: "Scheduled", Scheduled: "Posted", Posted: null };
+
+  var ASSET_KINDS = ["Framework", "Playbook", "Template", "Codebase", "Spec"];
+  var assets = [];
+  for (var a = 0; a < 103; a++) {
+    assets.push({ id: "AB-" + String(a + 1).padStart(3, "0"), name: "Builder asset " + String(a + 1).padStart(3, "0"), kind: ASSET_KINDS[a % ASSET_KINDS.length], state: a < 58 ? "Built - Notion artifact" : "Built - Code pack" });
+  }
+  var ASSET_NEXT = { "Built - Notion artifact": "Tested", "Built - Code pack": "Tested", Tested: "Pushed", Pushed: "Deployed", Deployed: null };
+  var ASSET_ACTION = { "Built - Notion artifact": "Record test", "Built - Code pack": "Record test", Tested: "Record push", Pushed: "Record deploy", Deployed: null };
+
+  function $(id) { return document.getElementById(id); }
+  function countBy(list, key, value) { var c = 0; list.forEach(function (r) { if (r[key] === value) c++; }); return c; }
+  function pillClass(s) {
+    if (s === "Success" || s === "Posted") return "pill success";
+    if (s === "No-op") return "pill noop";
+    if (s === "Failed") return "pill failed";
+    if (s === "Blocked") return "pill blocked";
+    return "pill";
+  }
+
+  function renderCycles() {
+    var f = $("cycle-filter").value, d = $("cycle-date").value;
+    var body = $("cycle-body"); body.innerHTML = "";
+    var shown = 0;
+    cycles.forEach(function (c) {
+      if (f !== "All" && c.status !== f) return;
+      if (d !== "All" && c.date !== d) return;
+      shown++;
+      var tr = document.createElement("tr");
+      tr.innerHTML = "<td class=\"mono\">" + c.id + "</td><td class=\"mono\">" + c.date + "</td><td>" + c.title + "</td><td><span class=\"" + pillClass(c.status) + "\">" + c.status + "</span></td>";
+      body.appendChild(tr);
+    });
+    var total = cycles.length;
+    var s = countBy(cycles, "status", "Success"), n = countBy(cycles, "status", "No-op"), fa = countBy(cycles, "status", "Failed"), b = countBy(cycles, "status", "Blocked");
+    $("cycle-total").textContent = String(total);
+    $("cycle-success").textContent = String(s);
+    $("cycle-noop").textContent = String(n);
+    $("cycle-failed").textContent = String(fa);
+    $("cycle-blocked").textContent = String(b);
+    $("cycle-completion").textContent = ((s + n + fa) / total * 100).toFixed(1) + "%";
+    $("cycle-success-rate").textContent = (s / total * 100).toFixed(1) + "%";
+    $("cycle-shown").textContent = String(shown);
+  }
+
+  function renderPacks() {
+    var f = $("pack-filter").value;
+    var body = $("pack-body"); body.innerHTML = "";
+    var shown = 0;
+    packs.forEach(function (pk, idx) {
+      if (f !== "All" && pk.state !== f) return;
+      shown++;
+      var tr = document.createElement("tr");
+      var next = PACK_NEXT[pk.state];
+      var btn = next ? "<button type=\"button\" class=\"small\" data-pack=\"" + idx + "\">Advance to " + next + "</button>" : "<button type=\"button\" class=\"small\" disabled>Posted - terminal</button>";
+      tr.innerHTML = "<td class=\"mono\">" + pk.id + "</td><td>" + pk.title + "</td><td>" + pk.type + "</td><td><span class=\"" + pillClass(pk.state) + "\">" + pk.state + "</span></td><td>" + btn + "</td>";
+      body.appendChild(tr);
+    });
+    $("pack-total").textContent = String(packs.length);
+    $("pack-draft").textContent = String(countBy(packs, "state", "Draft"));
+    $("pack-ready").textContent = String(countBy(packs, "state", "Ready"));
+    $("pack-scheduled").textContent = String(countBy(packs, "state", "Scheduled"));
+    $("pack-posted").textContent = String(countBy(packs, "state", "Posted"));
+    $("pack-shown").textContent = String(shown);
+    body.querySelectorAll("button[data-pack]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var pk = packs[Number(btn.getAttribute("data-pack"))];
+        var next = PACK_NEXT[pk.state];
+        if (next) { pk.state = next; renderPacks(); updateShareState(); }
+      });
+    });
+  }
+
+  function renderAssets() {
+    var f = $("asset-filter").value;
+    var body = $("asset-body"); body.innerHTML = "";
+    var shown = 0;
+    assets.forEach(function (as, idx) {
+      if (f !== "All" && as.state !== f) return;
+      shown++;
+      var tr = document.createElement("tr");
+      var action = ASSET_ACTION[as.state];
+      var btn = action ? "<button type=\"button\" class=\"small\" data-asset=\"" + idx + "\">" + action + "</button>" : "<button type=\"button\" class=\"small\" disabled>Deployed - terminal</button>";
+      tr.innerHTML = "<td class=\"mono\">" + as.id + "</td><td>" + as.name + "</td><td>" + as.kind + "</td><td><span class=\"pill\">" + as.state + "</span></td><td>" + btn + "</td>";
+      body.appendChild(tr);
+    });
+    $("asset-total").textContent = String(assets.length);
+    $("asset-notion").textContent = String(countBy(assets, "state", "Built - Notion artifact"));
+    $("asset-codepack").textContent = String(countBy(assets, "state", "Built - Code pack"));
+    $("asset-tested").textContent = String(countBy(assets, "state", "Tested"));
+    $("asset-pushed").textContent = String(countBy(assets, "state", "Pushed"));
+    $("asset-deployed").textContent = String(countBy(assets, "state", "Deployed"));
+    $("asset-shown").textContent = String(shown);
+    $("asset-empty").style.display = shown === 0 ? "block" : "none";
+    body.querySelectorAll("button[data-asset]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var as = assets[Number(btn.getAttribute("data-asset"))];
+        var next = ASSET_NEXT[as.state];
+        if (next) { as.state = next; renderAssets(); updateShareState(); }
+      });
+    });
+  }
+
+  function getState() {
+    return { cycleFilter: $("cycle-filter").value, cycleDate: $("cycle-date").value, packFilter: $("pack-filter").value, assetFilter: $("asset-filter").value };
+  }
+  function encodeState(st) {
+    var json = JSON.stringify(st);
+    try { return window.btoa(unescape(encodeURIComponent(json))); }
+    catch (e) { return ""; }
+  }
+  function decodeState(b64) {
+    try { return JSON.parse(decodeURIComponent(escape(window.atob(b64)))); } catch (e) { return null; }
+  }
+  function updateShareState() {
+    var st = getState();
+    var b64 = encodeState(st);
+    var url = location.href.split("#")[0] + "#d=" + b64;
+    $("share-output").value = url;
+    $("share-state").textContent = "Current state: " + JSON.stringify(st);
+    return url;
+  }
+  function applyState(st) {
+    if (!st) return;
+    if (st.cycleFilter) $("cycle-filter").value = st.cycleFilter;
+    if (st.cycleDate) $("cycle-date").value = st.cycleDate;
+    if (st.packFilter) $("pack-filter").value = st.packFilter;
+    if (st.assetFilter) $("asset-filter").value = st.assetFilter;
+    renderCycles(); renderPacks(); renderAssets(); updateShareState();
+  }
+  function restoreFromHash() {
+    var h = location.hash || "";
+    var m = h.match(/#d=([A-Za-z0-9+/=]+)/);
+    if (m) { var st = decodeState(m[1]); if (st) applyState(st); }
+  }
+
+  function renderAll() { renderCycles(); renderPacks(); renderAssets(); updateShareState(); }
+
+  $("cycle-filter").addEventListener("change", function () { renderCycles(); updateShareState(); });
+  $("cycle-date").addEventListener("change", function () { renderCycles(); updateShareState(); });
+  $("pack-filter").addEventListener("change", function () { renderPacks(); updateShareState(); });
+  $("asset-filter").addEventListener("change", function () { renderAssets(); updateShareState(); });
+
+  $("sample-cycles").addEventListener("click", function () {
+    $("cycle-filter").value = "All"; $("cycle-date").value = "All";
+    $("pack-filter").value = "All"; $("asset-filter").value = "All";
+    renderAll();
+    var el = $("section-cycles"); if (el && el.scrollIntoView) el.scrollIntoView();
+  });
+  $("sample-packs").addEventListener("click", function () {
+    $("pack-filter").value = "Draft";
+    $("cycle-filter").value = "All"; $("cycle-date").value = "All"; $("asset-filter").value = "All";
+    renderAll();
+    var el = $("section-packs"); if (el && el.scrollIntoView) el.scrollIntoView();
+  });
+  $("sample-registry").addEventListener("click", function () {
+    $("asset-filter").value = "Tested";
+    $("cycle-filter").value = "All"; $("cycle-date").value = "All"; $("pack-filter").value = "All";
+    renderAll();
+    var el = $("section-registry"); if (el && el.scrollIntoView) el.scrollIntoView();
+  });
+  $("reset-btn").addEventListener("click", function () {
+    $("cycle-filter").value = "All"; $("cycle-date").value = "All";
+    $("pack-filter").value = "All"; $("asset-filter").value = "All";
+    renderAll();
+  });
+  $("share-btn").addEventListener("click", function () {
+    var url = updateShareState();
+    try { if (location) location.hash = "d=" + encodeState(getState()); } catch (e) {}
+    try {
+      if (navigator && navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url); }
+      else if (document.execCommand) { $("share-output").select(); document.execCommand("copy"); }
+    } catch (e) {}
+    $("share-btn").textContent = "Link copied (or in the box below)";
+    setTimeout(function () { $("share-btn").textContent = "Copy share link"; }, 2500);
+  });
+
+  renderAll();
+  restoreFromHash();
+  window.__abf = { cycles: cycles, packs: packs, assets: assets, getState: getState, encodeState: encodeState, decodeState: decodeState, applyState: applyState, renderAll: renderAll };
+})();
+</script>
+</body>
+</html>
