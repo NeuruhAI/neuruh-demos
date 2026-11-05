@@ -1,0 +1,1380 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>DaVinci Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #e8e4d9;
+        --bg-deep: #ddd5c2;
+        --panel: #f7f2e4;
+        --panel-2: #efe8d5;
+        --ink: #3e2723;
+        --ink-soft: #6d4c41;
+        --ink-faint: #8d7b68;
+        --accent: #96700f;
+        --accent-strong: #7a5b0a;
+        --line: #c9bb9c;
+        --line-strong: #a8946e;
+        --danger: #8e2f22;
+        --good: #4c6b2f;
+        --sheet: #f4ecd7;
+        --sheet-ink: #43302a;
+        --shadow: 0 10px 30px rgba(62, 39, 35, 0.14);
+        --texture-opacity: 0.5;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16110d;
+          --bg-deep: #100c09;
+          --panel: #211a14;
+          --panel-2: #292019;
+          --ink: #ece1c9;
+          --ink-soft: #c3ad8b;
+          --ink-faint: #97835f;
+          --accent: #c9a227;
+          --accent-strong: #dcb63e;
+          --line: #453723;
+          --line-strong: #6b573a;
+          --danger: #e08a76;
+          --good: #a9c27e;
+          --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+          --texture-opacity: 0.16;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: "EB Garamond", Georgia, serif;
+        background-color: var(--bg);
+        color: var(--ink);
+        min-height: 100vh;
+      }
+      body::before {
+        content: "";
+        position: fixed; inset: 0;
+        pointer-events: none;
+        opacity: var(--texture-opacity);
+        background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.10'/%3E%3C/svg%3E");
+        mix-blend-mode: multiply;
+        z-index: 0;
+      }
+      @media (prefers-color-scheme: dark) {
+        body::before { mix-blend-mode: screen; }
+      }
+      .app { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+      /* ---------- Rail ---------- */
+      .rail {
+        width: 252px; flex: 0 0 252px;
+        border-right: 1px solid var(--line);
+        background: linear-gradient(180deg, var(--panel) 0%, var(--bg-deep) 160%);
+        padding: 22px 16px;
+        display: flex; flex-direction: column; gap: 6px;
+        position: sticky; top: 0; height: 100vh;
+      }
+      .rail .folio {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+        color: var(--ink-faint);
+        padding: 0 8px 12px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 12px;
+      }
+      .navbtn {
+        width: 100%;
+        display: flex; align-items: center; gap: 11px;
+        padding: 11px 12px;
+        background: transparent; border: 1px solid transparent; border-radius: 6px;
+        color: var(--ink-soft);
+        font-family: "EB Garamond", serif; font-size: 16.5px; font-weight: 500;
+        cursor: pointer; text-align: left;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
+      }
+      .navbtn svg { flex: 0 0 auto; opacity: 0.75; }
+      .navbtn:hover { background: rgba(125, 95, 40, 0.10); color: var(--ink); }
+      .navbtn.active {
+        background: var(--ink); color: var(--panel);
+        border-color: var(--ink);
+        box-shadow: var(--shadow);
+      }
+      .navbtn.active svg { opacity: 1; }
+      .navbtn .count {
+        margin-left: auto;
+        font-family: "JetBrains Mono", monospace; font-size: 11px;
+        background: var(--accent); color: #fff8e7;
+        border-radius: 999px; padding: 1px 8px;
+      }
+      .navbtn.active .count { background: var(--accent); }
+      .rail-foot { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line); }
+      .quote {
+        font-style: italic; font-size: 15px; line-height: 1.45; color: var(--ink-soft);
+        min-height: 66px; padding: 0 6px;
+        transition: opacity 0.5s;
+      }
+      .quote .attr { display: block; margin-top: 6px; font-style: normal; font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); }
+      .settingsbtn {
+        margin-top: 10px; width: 100%;
+        display: flex; align-items: center; gap: 9px;
+        padding: 9px 12px; background: transparent;
+        border: 1px solid var(--line); border-radius: 6px;
+        color: var(--ink-soft); font-family: "EB Garamond", serif; font-size: 15px;
+        cursor: pointer;
+      }
+      .settingsbtn:hover { border-color: var(--line-strong); color: var(--ink); }
+      .keydot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-faint); margin-left: auto; }
+      .keydot.set { background: var(--good); }
+
+      /* ---------- Main ---------- */
+      main { flex: 1; min-width: 0; padding: 30px clamp(18px, 4vw, 52px) 60px; }
+      .panel { display: none; max-width: 1020px; margin: 0 auto; }
+      .panel.active { display: block; }
+      .panel-head { border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 22px; }
+      .panel-head .over {
+        font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent-strong);
+      }
+      .panel-head h2 {
+        font-family: "Cormorant Garamond", serif; font-weight: 600;
+        font-size: clamp(30px, 4.4vw, 42px); line-height: 1.05; margin: 6px 0 6px;
+      }
+      .panel-head p { margin: 0; font-size: 17px; color: var(--ink-soft); max-width: 62ch; line-height: 1.5; }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 22px;
+        box-shadow: var(--shadow);
+      }
+      .card + .card { margin-top: 18px; }
+      .card h3 {
+        font-family: "Cormorant Garamond", serif; font-size: 23px; font-weight: 600; margin: 0 0 4px;
+      }
+      .card .sub { color: var(--ink-soft); font-size: 15.5px; margin: 0 0 14px; line-height: 1.5; }
+
+      label.flabel {
+        display: block; font-family: "JetBrains Mono", monospace; font-size: 10.5px;
+        letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); margin: 0 0 7px;
+      }
+      input[type="text"], textarea, select {
+        width: 100%;
+        font-family: "EB Garamond", serif; font-size: 17.5px;
+        color: var(--ink);
+        background: var(--panel-2);
+        border: 1px solid var(--line); border-radius: 6px;
+        padding: 11px 13px;
+        outline: none;
+      }
+      input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--accent); }
+      textarea { resize: vertical; line-height: 1.5; }
+      .row { display: flex; gap: 14px; flex-wrap: wrap; }
+      .row > * { flex: 1 1 200px; }
+      .field { margin-bottom: 16px; }
+
+      .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-family: "EB Garamond", serif; font-size: 16.5px; font-weight: 600;
+        padding: 10px 20px; border-radius: 6px; cursor: pointer;
+        border: 1px solid var(--ink);
+        background: var(--ink); color: var(--panel);
+        transition: transform 0.15s, opacity 0.15s;
+      }
+      .btn:hover { opacity: 0.9; }
+      .btn:active { transform: translateY(1px); }
+      .btn:disabled { opacity: 0.45; cursor: wait; }
+      .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+      .btn.ghost:hover { border-color: var(--ink); opacity: 1; }
+      .btn.small { font-size: 14.5px; padding: 6px 13px; }
+      .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+      .iconbtn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; border-radius: 50%;
+        border: 1px solid transparent; background: transparent; color: var(--ink-soft);
+        cursor: pointer;
+      }
+      .iconbtn:hover { background: rgba(125, 95, 40, 0.12); color: var(--ink); }
+      .iconbtn.danger:hover { background: rgba(142, 47, 34, 0.12); color: var(--danger); }
+
+      /* ---------- Sheets (always parchment) ---------- */
+      .sheet {
+        background: var(--sheet); color: var(--sheet-ink);
+        border: 1px solid #b8a67e; border-radius: 4px;
+        box-shadow: 0 14px 34px rgba(50, 32, 18, 0.28), inset 0 0 60px rgba(146, 116, 62, 0.14);
+        padding: 10px;
+      }
+      .sheet canvas, .sheet img.blueprint { width: 100%; height: auto; display: block; }
+      .sheetcap {
+        font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.08em;
+        color: var(--ink-faint); margin-top: 10px; line-height: 1.6;
+      }
+      .empty-note {
+        border: 1px dashed var(--line-strong); border-radius: 8px;
+        padding: 34px 22px; text-align: center; color: var(--ink-soft);
+        font-size: 17px; line-height: 1.55;
+      }
+      .empty-note .big { font-family: "Cormorant Garamond", serif; font-size: 24px; color: var(--ink); display: block; margin-bottom: 6px; }
+
+      /* ---------- Result blocks ---------- */
+      .result-title { font-family: "Cormorant Garamond", serif; font-size: clamp(25px, 3.4vw, 33px); font-weight: 600; line-height: 1.12; margin: 2px 0 8px; }
+      .result-desc { font-size: 17.5px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 6px; }
+      .promptbox {
+        font-family: "JetBrains Mono", monospace; font-size: 12.5px; line-height: 1.65;
+        background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px;
+        padding: 13px 15px; white-space: pre-wrap; word-break: break-word; color: var(--ink);
+      }
+      .metaline { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+
+      /* Mirror */
+      .mirror-out {
+        font-family: "Cormorant Garamond", serif; font-weight: 600;
+        font-size: clamp(22px, 3.4vw, 30px); line-height: 1.4;
+        word-break: break-word; white-space: pre-wrap;
+        padding: 20px; min-height: 110px;
+      }
+      .mirror-flip { transform: scaleX(-1); }
+      .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 6px; overflow: hidden; }
+      .seg button {
+        font-family: "EB Garamond", serif; font-size: 15px; font-weight: 600;
+        padding: 8px 16px; background: transparent; color: var(--ink-soft); border: none; cursor: pointer;
+      }
+      .seg button.active { background: var(--ink); color: var(--panel); }
+
+      /* Vitruvian */
+      .phi-big { font-family: "Cormorant Garamond", serif; font-size: clamp(44px, 7vw, 68px); font-weight: 700; line-height: 1; color: var(--accent-strong); }
+      .metric { margin-bottom: 15px; }
+      .metric .mhead { display: flex; justify-content: space-between; align-items: baseline; font-size: 16.5px; }
+      .metric .mval { font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent-strong); }
+      .bar { height: 7px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 99px; overflow: hidden; margin-top: 5px; }
+      .bar > div { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-strong)); width: 0; transition: width 0.9s cubic-bezier(0.22, 1, 0.36, 1); }
+      .canon { list-style: none; margin: 0; padding: 0; }
+      .canon li { padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 16.5px; display: flex; gap: 12px; }
+      .canon li:last-child { border-bottom: none; }
+      .canon .n { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--accent-strong); padding-top: 4px; flex: 0 0 22px; }
+
+      /* Codex */
+      .codex-item { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 18px 20px; box-shadow: var(--shadow); }
+      .codex-item + .codex-item { margin-top: 14px; }
+      .codex-item .chead { display: flex; align-items: flex-start; gap: 12px; }
+      .badge {
+        font-family: "JetBrains Mono", monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+        border: 1px solid var(--accent); color: var(--accent-strong);
+        border-radius: 99px; padding: 3px 10px; white-space: nowrap; margin-top: 4px;
+      }
+      .codex-item h4 { font-family: "Cormorant Garamond", serif; font-size: 22px; margin: 0; font-weight: 600; flex: 1; line-height: 1.2; }
+      .codex-item .cbody { margin-top: 10px; font-size: 16px; line-height: 1.6; color: var(--ink-soft); white-space: pre-wrap; word-break: break-word; }
+      .codex-item .cactions { display: flex; gap: 4px; }
+
+      /* Protocol */
+      .pipe { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: stretch; margin-bottom: 18px; }
+      .phase {
+        border: 1px solid var(--line); border-radius: 8px; background: var(--panel);
+        padding: 18px; box-shadow: var(--shadow);
+      }
+      .phase .pnum { font-family: "JetBrains Mono", monospace; font-size: 10px; letter-spacing: 0.2em; color: var(--accent-strong); text-transform: uppercase; }
+      .phase h4 { font-family: "Cormorant Garamond", serif; font-size: 22px; margin: 5px 0 2px; font-weight: 600; }
+      .phase .role { font-style: italic; color: var(--ink-soft); font-size: 15px; margin-bottom: 9px; }
+      .phase p { font-size: 15.5px; line-height: 1.55; margin: 0 0 10px; color: var(--ink-soft); }
+      .phase .tools { font-family: "JetBrains Mono", monospace; font-size: 11px; line-height: 1.7; color: var(--ink); }
+      .pipe-arrow { align-self: center; color: var(--accent-strong); }
+      .tri { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 12px; }
+      .tri .tcol { border: 1px solid var(--line); border-radius: 8px; padding: 18px; background: var(--panel); }
+      .tri .tcol.mid { background: var(--panel-2); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; }
+      .tri h5 { font-family: "JetBrains Mono", monospace; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 12px; color: var(--ink-faint); }
+      .signstage {
+        border-radius: 6px; padding: 26px 10px; text-align: center;
+        background: #14100d; color: #ffb3c8;
+        font-family: "Cormorant Garamond", serif; font-weight: 700; font-size: 30px; letter-spacing: 0.06em;
+      }
+      .signstage.melt { color: #ff7d9c; text-shadow: 0 3px 0 rgba(255, 60, 110, 0.55), 0 9px 14px rgba(255, 60, 110, 0.8); filter: blur(0.7px); transform: skewX(-4deg) scaleY(1.12); }
+      .signstage.clear { color: #a8f0ff; text-shadow: 0 0 6px rgba(120, 220, 255, 0.9), 0 0 22px rgba(80, 190, 255, 0.65); }
+      .flagcode { font-family: "JetBrains Mono", monospace; font-size: 12px; background: var(--ink); color: var(--panel); border-radius: 6px; padding: 9px 12px; }
+      .guardlist { list-style: none; margin: 0; padding: 0; }
+      .guardlist li { display: flex; gap: 11px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 16.5px; line-height: 1.5; }
+      .guardlist li:last-child { border-bottom: none; }
+      .guardlist .sq { flex: 0 0 auto; width: 9px; height: 9px; background: var(--accent); margin-top: 8px; transform: rotate(45deg); }
+      input[type="range"] { width: 100%; accent-color: var(--accent-strong); }
+
+      /* Modal + toast */
+      .modalwrap { position: fixed; inset: 0; background: rgba(20, 13, 8, 0.55); display: none; align-items: center; justify-content: center; z-index: 50; padding: 18px; }
+      .modalwrap.open { display: flex; }
+      .modal { background: var(--panel); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 10px; max-width: 520px; width: 100%; padding: 26px; box-shadow: var(--shadow); }
+      .modal h3 { font-family: "Cormorant Garamond", serif; font-size: 26px; margin: 0 0 8px; }
+      .modal p { font-size: 15.5px; line-height: 1.55; color: var(--ink-soft); }
+      #toast {
+        position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+        background: var(--ink); color: var(--panel);
+        font-size: 15.5px; padding: 11px 22px; border-radius: 99px;
+        opacity: 0; pointer-events: none; transition: opacity 0.3s, transform 0.3s; z-index: 60;
+        box-shadow: var(--shadow); max-width: 90vw; text-align: center;
+      }
+      #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+      @media (max-width: 860px) {
+        .app { flex-direction: column; }
+        .rail { width: 100%; flex: none; height: auto; position: static; border-right: none; border-bottom: 1px solid var(--line); padding: 14px; }
+        .rail nav { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .rail .folio { margin-bottom: 8px; padding-bottom: 8px; }
+        .rail-foot { display: none; }
+        main { padding: 22px 14px 48px; }
+        .pipe { grid-template-columns: 1fr; }
+        .pipe-arrow { transform: rotate(90deg); justify-self: center; }
+        .tri { grid-template-columns: 1fr; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .bar > div { transition: none; }
+        .quote { transition: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- ============ RAIL ============ -->
+      <aside class="rail">
+        <div class="folio">Studio Notebook &middot; Folio I</div>
+        <nav id="mainnav">
+          <button class="navbtn active" data-mode="invention">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v3M12 18.2v3M2.8 12h3M18.2 12h3M5.5 5.5l2.1 2.1M16.4 16.4l2.1 2.1M18.5 5.5l-2.1 2.1M7.6 16.4l-2.1 2.1"/></svg>
+            Invention Engine
+          </button>
+          <button class="navbtn" data-mode="mirror">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7L4 12l4 5"/><path d="M16 7l4 5-4 5"/></svg>
+            Mirror Writer
+          </button>
+          <button class="navbtn" data-mode="vitruvian">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><rect x="5" y="5" width="14" height="14"/><circle cx="12" cy="9" r="1.6"/><path d="M12 10.6V15M12 12l-4.4-2M12 12l4.4-2M12 15l-3 4.4M12 15l3 4.4"/></svg>
+            Vitruvian Analysis
+          </button>
+          <button class="navbtn" data-mode="codex">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h12a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5z"/><path d="M5 3v18"/><path d="M9 7h6M9 11h6"/></svg>
+            Codex
+            <span class="count" id="codexCount" style="display:none">0</span>
+          </button>
+          <button class="navbtn" data-mode="protocol">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>
+            DaVinci Protocol
+          </button>
+        </nav>
+        <div class="rail-foot">
+          <div class="quote" id="quoteBox">
+            <span id="quoteText">Simplicity is the ultimate sophistication.</span>
+            <span class="attr">From the notebooks</span>
+          </div>
+          <button class="settingsbtn" id="openSettings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.14-1.4l2-1.55-2-3.46-2.36.95A7 7 0 0 0 14.1 5.1L13.7 2.6h-3.4l-.4 2.5a7 7 0 0 0-2.4 1.44l-2.36-.95-2 3.46 2 1.55a7 7 0 0 0 0 2.8l-2 1.55 2 3.46 2.36-.95a7 7 0 0 0 2.4 1.44l.4 2.5h3.4l.4-2.5a7 7 0 0 0 2.4-1.44l2.36.95 2-3.46-2-1.55c.1-.45.14-.92.14-1.4z"/></svg>
+            Studio Settings
+            <span class="keydot" id="keyDot"></span>
+          </button>
+        </div>
+      </aside>
+
+      <main>
+        <!-- ============ INVENTION ============ -->
+        <section class="panel active" id="panel-invention">
+          <div class="panel-head">
+            <div class="over">Mode I &middot; The Invention Engine</div>
+            <h2>Commission a Machine</h2>
+            <p>Name a subject and the studio drafts it as Leonardo would: a titled mechanism, a drawn blueprint, and the exact prompt used to render it.</p>
+          </div>
+          <div class="card">
+            <div class="field">
+              <label class="flabel" for="invInput">Subject of the machine</label>
+              <input type="text" id="invInput" placeholder="e.g. crossing a river, lifting water, flight" autocomplete="off" />
+            </div>
+            <div class="btnrow" style="margin-top:2px">
+              <button class="btn" id="invGenerate">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7a4.95 4.95 0 1 0-7-7l-7 7v7h7z"/><path d="M18 13l-7-7"/><path d="M5 21l3.5-1.5L7 16 5.5 19.5 5 21z"/></svg>
+                Draft the Design
+              </button>
+              <button class="btn ghost" id="invSurprise">Surprise the Studio</button>
+            </div>
+          </div>
+
+          <div id="invResult" style="margin-top:18px"></div>
+        </section>
+
+        <!-- ============ MIRROR ============ -->
+        <section class="panel" id="panel-mirror">
+          <div class="panel-head">
+            <div class="over">Mode II &middot; The Mirror Writer</div>
+            <h2>Script Written Backwards</h2>
+            <p>Leonardo wrote right to left, readable only in a mirror. Write plainly here; the studio returns the script as it would sit in the codex, and can read mirrored script back again.</p>
+          </div>
+          <div class="card">
+            <div class="field" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px">
+              <label class="flabel" for="mirInput" style="margin:0">Your text</label>
+              <div class="seg" role="group" aria-label="Direction">
+                <button id="segEncode" class="active">Write mirrored</button>
+                <button id="segDecode">Read mirrored</button>
+              </div>
+            </div>
+            <textarea id="mirInput" rows="4" placeholder="Write as you think it..."></textarea>
+            <div class="btnrow">
+              <button class="btn" id="mirSave">Record in Codex</button>
+              <button class="btn ghost" id="mirClear">Clear the Page</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>The Mirrored Page</h3>
+            <p class="sub">Reversed character by character, as the hand wrote it. The reflection view shows the same page held to a looking glass.</p>
+            <div class="sheet">
+              <div class="mirror-out" id="mirOut">The mirrored words will appear here.</div>
+            </div>
+            <div class="btnrow">
+              <button class="btn ghost small" id="mirCopy">Copy Mirrored Text</button>
+              <button class="btn ghost small" id="mirFlip">Hold to Mirror</button>
+              <span class="metaline" id="mirMeta" style="align-self:center"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ VITRUVIAN ============ -->
+        <section class="panel" id="panel-vitruvian">
+          <div class="panel-head">
+            <div class="over">Mode III &middot; Vitruvian Analysis</div>
+            <h2>Measured Against Phi</h2>
+            <p>Every subject is measured against the Divine Proportion, 1.618, and the canon of the body: four fingers a palm, four palms a foot, four cubits the height of a man.</p>
+          </div>
+          <div class="card">
+            <div class="field">
+              <label class="flabel" for="vitInput">Subject to measure</label>
+              <input type="text" id="vitInput" placeholder="e.g. a bridge, a gearbox, a cathedral facade" autocomplete="off" />
+            </div>
+            <div class="btnrow" style="margin-top:2px">
+              <button class="btn" id="vitMeasure">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg>
+                Take the Measure
+              </button>
+            </div>
+          </div>
+          <div id="vitResult" style="margin-top:18px">
+            <div class="empty-note"><span class="big">No measure taken yet</span>Give the studio a subject and it will be set inside the square and the circle.</div>
+          </div>
+        </section>
+
+        <!-- ============ CODEX ============ -->
+        <section class="panel" id="panel-codex">
+          <div class="panel-head">
+            <div class="over">Mode IV &middot; The Codex</div>
+            <h2>The Bound Notebook</h2>
+            <p>Everything the studio produces can be bound here. The Codex is held for this sitting; download it as a manuscript file to keep it beyond the session.</p>
+          </div>
+          <div class="btnrow" style="margin:0 0 18px">
+            <button class="btn ghost" id="codexDownload">Download Codex (.md)</button>
+            <button class="btn ghost" id="codexClear">Burn the Codex</button>
+          </div>
+          <div id="codexList"></div>
+        </section>
+
+        <!-- ============ PROTOCOL ============ -->
+        <section class="panel" id="panel-protocol">
+          <div class="panel-head">
+            <div class="over">Framework &middot; Intent Preservation</div>
+            <h2>DaVinci Protocol: Text-Stability Pipeline</h2>
+            <p>Video models smear intent over time. This pipeline locks glyph geometry before motion is applied: typography is rendered once, perfectly, as an anchor frame, and the video model is asked only to read it, never to write it.</p>
+          </div>
+
+          <div class="pipe">
+            <div class="phase">
+              <div class="pnum">Phase 1 &middot; Token Lock</div>
+              <h4>The Typesetter</h4>
+              <div class="role">Orthographic Anchor</div>
+              <p>Render perfect typography into pixels with a text-accurate image model. Verify spelling, kerning, and edge clarity in a single still frame. That frame is the immutable truth for everything downstream.</p>
+              <div class="tools">Ideogram 2.0 &middot; Flux Pro<br/>Text-to-Image, 4K / 8K still</div>
+            </div>
+            <div class="pipe-arrow"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+            <div class="phase">
+              <div class="pnum">Phase 2 &middot; Dream</div>
+              <h4>The Animator</h4>
+              <div class="role">Spatial-Temporal Injection</div>
+              <p>Feed the anchor as first-frame conditioning so the model computes only deltas. Constrain motion to low-magnitude camera and light shifts. No 3D rotations: rotation is where glyphs warp and morph.</p>
+              <div class="tools">Runway Gen-3 Alpha &middot; Luma Dream Machine<br/>Image-to-Video, first frame locked</div>
+            </div>
+            <div class="pipe-arrow"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+            <div class="phase">
+              <div class="pnum">Phase 3 &middot; Polish</div>
+              <h4>The Polisher</h4>
+              <div class="role">Sub-Pixel Reconstruction</div>
+              <p>Recover the edge fidelity that low-resolution diffusion and compression spent. Upscale with a refiner tuned for text edges, denoise the high-contrast regions, and interpolate to 60fps for readability.</p>
+              <div class="tools">Topaz Video AI (Proteus / Iris) &middot; Magnific<br/>Upscale to 8K &middot; Interpolate 60fps</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Why It Works</h3>
+            <p class="sub">Standard text-to-video hallucinates glyphs fresh in every frame, so letters melt. Lock the pixels in space first, then move them in time.</p>
+            <div class="tri">
+              <div class="tcol">
+                <h5>Failure State &middot; Standard T2V</h5>
+                <div class="signstage melt">GIBER1SH</div>
+                <p style="font-size:15px;color:var(--ink-soft);line-height:1.55;margin:12px 0 0">Root cause: stochastic hallucination of glyphs, re-decided per frame. The sign never had a fixed shape to hold.</p>
+              </div>
+              <div class="tcol mid">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-strong)"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.6"/></svg>
+                <div class="flagcode">First_Frame_Conditioning = TRUE</div>
+                <p style="font-size:15px;color:var(--ink-soft);line-height:1.55;margin:0">The DaVinci Bridge: the anchor frame crosses from image to video timeline with its geometry locked.</p>
+              </div>
+              <div class="tcol">
+                <h5>Solved State &middot; DaVinci Pipeline</h5>
+                <div class="signstage clear" id="solvedSign">FUTURE</div>
+                <p style="font-size:15px;color:var(--ink-soft);line-height:1.55;margin:12px 0 0">One rendering of the word, carried through motion and polish untouched. Output spec: <strong>8K / 60fps</strong>.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Phase 1 &middot; Build the Anchor Prompt</h3>
+            <p class="sub">The exact words for the sign, the scene around them, and the look. This prompt goes to Ideogram or Flux, never to the video model.</p>
+            <div class="row">
+              <div class="field"><label class="flabel" for="pSign">Sign text</label><input type="text" id="pSign" value="FUTURE" autocomplete="off" /></div>
+              <div class="field"><label class="flabel" for="pScene">Scene</label>
+                <select id="pScene">
+                  <option value="a neon sign">a neon sign</option>
+                  <option value="a carved marble inscription">a carved marble inscription</option>
+                  <option value="a brass shopfront sign">a brass shopfront sign</option>
+                  <option value="a cinema marquee">a cinema marquee</option>
+                  <option value="a hand-painted storefront sign">a hand-painted storefront sign</option>
+                </select>
+              </div>
+              <div class="field"><label class="flabel" for="pAesthetic">Aesthetic</label>
+                <select id="pAesthetic">
+                  <option value="cyberpunk aesthetic">cyberpunk aesthetic</option>
+                  <option value="renaissance engraving aesthetic">renaissance engraving aesthetic</option>
+                  <option value="art deco aesthetic">art deco aesthetic</option>
+                  <option value="minimalist swiss aesthetic">minimalist swiss aesthetic</option>
+                  <option value="warm film-noir aesthetic">warm film-noir aesthetic</option>
+                </select>
+              </div>
+            </div>
+            <div class="promptbox" id="anchorOut"></div>
+            <div class="btnrow">
+              <button class="btn ghost small" data-copy="anchorOut">Copy Anchor Prompt</button>
+              <span class="metaline" style="align-self:center">Then verify: spelling &middot; kerning &middot; edge clarity</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Phase 2 &middot; Build the Motion Prompt</h3>
+            <p class="sub">Upload the anchor still as the first frame. The motion prompt asks for deltas only, and names the text as untouchable.</p>
+            <div class="row">
+              <div class="field"><label class="flabel" for="pMotion">Camera motion</label>
+                <select id="pMotion">
+                  <option value="Camera slowly pushes in">Slow push-in</option>
+                  <option value="Camera holds perfectly still">Locked-off, no camera move</option>
+                  <option value="Camera drifts gently to the left">Gentle lateral drift</option>
+                  <option value="Light shifts slowly across the scene, camera still">Light shift only</option>
+                </select>
+              </div>
+              <div class="field"><label class="flabel" for="pMagnitude">Motion magnitude: <span id="magVal">2</span> / 10</label>
+                <input type="range" id="pMagnitude" min="1" max="10" value="2" />
+              </div>
+            </div>
+            <div class="promptbox" id="motionOut"></div>
+            <div class="btnrow">
+              <button class="btn ghost small" data-copy="motionOut">Copy Motion Prompt</button>
+              <span class="metaline" style="align-self:center">Rigid-body motion only &middot; no warp, no rotate</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Phase 3 &middot; Polish Settings</h3>
+            <p class="sub">The reconstruction pass, in order. Run all three; each recovers a different kind of loss.</p>
+            <ul class="guardlist">
+              <li><span class="sq"></span><span><strong>Upscale to 4K / 8K</strong> in Topaz Video AI with the Proteus or Iris model, tuned for text edges rather than faces or foliage.</span></li>
+              <li><span class="sq"></span><span><strong>Frame interpolation to 60fps</strong> so letterforms hold steady through the motion instead of strobing at 24.</span></li>
+              <li><span class="sq"></span><span><strong>Edge-focused denoise</strong> on high-contrast regions only; global denoise softens the very edges the pipeline exists to protect.</span></li>
+            </ul>
+            <div class="promptbox" id="polishOut" style="margin-top:14px"></div>
+            <div class="btnrow">
+              <button class="btn ghost small" data-copy="polishOut">Copy Polish Settings</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Operational Guardrails</h3>
+            <p class="sub">Production rules from the framework. They are not suggestions; each one maps to a failure already seen in the wild.</p>
+            <ul class="guardlist">
+              <li><span class="sq"></span><span>The anchor typography is the only source of truth. Text is never re-rendered in the video stage.</span></li>
+              <li><span class="sq"></span><span>If text degrades: reduce motion magnitude, shorten the duration, or re-run with a stricter &ldquo;keep text static&rdquo; instruction. In that order.</span></li>
+              <li><span class="sq"></span><span>Prefer rigid-body text motion (translate, scale) over warp or rotate. Perspective rotation is the primary melt trigger.</span></li>
+              <li><span class="sq"></span><span>Verify the anchor still before any motion is generated. A misspelled anchor produces a perfectly stable misspelling.</span></li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ============ SETTINGS MODAL ============ -->
+    <div class="modalwrap" id="settingsModal">
+      <div class="modal">
+        <h3>Studio Settings</h3>
+        <p>The Invention Engine draws its blueprints by the studio hand, procedurally, in the browser. If you hold a Google AI key, the studio will instead render through <strong>Imagen 4</strong>, the model named in the original design. The key is held in this page&rsquo;s memory only: it is never stored, and it leaves with the tab.</p>
+        <div class="field">
+          <label class="flabel" for="apiKeyInput">Gemini API key (optional)</label>
+          <input type="text" id="apiKeyInput" placeholder="AIza..." autocomplete="off" spellcheck="false" />
+        </div>
+        <div class="btnrow">
+          <button class="btn" id="saveSettings">Keep Settings</button>
+          <button class="btn ghost" id="clearKey">Remove Key</button>
+          <button class="btn ghost" id="closeSettings">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" role="status"></div>
+
+    <script>
+      "use strict";
+      var $ = function (id) { return document.getElementById(id); };
+      var state = { mode: "invention", codex: [], apiKey: "", mirrorDir: "encode", mirrorFlipped: false, lastInvention: null, lastVitruvian: null };
+
+      /* ---------- toast ---------- */
+      var toastTimer = null;
+      function toast(msg) {
+        var t = $("toast");
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3000);
+      }
+
+      /* ---------- seeded rng ---------- */
+      function hashStr(s) {
+        var h = 2166136261;
+        for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+        return h >>> 0;
+      }
+      function mulberry32(a) {
+        return function () {
+          a |= 0; a = (a + 0x6D2B79F5) | 0;
+          var t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function pick(rng, arr) { return arr[Math.floor(rng() * arr.length)]; }
+      function esc(s) {
+        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      }
+      function copyText(text, msg) {
+        function done() { toast(msg || "Copied to the quill."); }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { fallback(); });
+        } else { fallback(); }
+        function fallback() {
+          var ta = document.createElement("textarea");
+          ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); done(); } catch (e) { toast("Copy failed. Select the text by hand."); }
+          document.body.removeChild(ta);
+        }
+      }
+      function download(name, text, mime) {
+        var blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 800);
+      }
+
+      /* ---------- navigation ---------- */
+      var navBtns = document.querySelectorAll("#mainnav .navbtn");
+      navBtns.forEach(function (b) {
+        b.addEventListener("click", function () { switchMode(b.getAttribute("data-mode")); });
+      });
+      function switchMode(m) {
+        state.mode = m;
+        navBtns.forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-mode") === m); });
+        document.querySelectorAll(".panel").forEach(function (p) { p.classList.toggle("active", p.id === "panel-" + m); });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      /* ---------- quotes ---------- */
+      var QUOTES = [
+        "Observe the flight of the birds; therein lies the secret.",
+        "Simplicity is the ultimate sophistication.",
+        "Iron rusts from disuse... even so does inaction sap the vigor of the mind.",
+        "Time stays long enough for anyone who will use it.",
+        "The noblest pleasure is the joy of understanding.",
+        "Learning never exhausts the mind."
+      ];
+      var qi = 0;
+      setInterval(function () {
+        var box = $("quoteBox");
+        if (!box) return;
+        box.style.opacity = "0";
+        setTimeout(function () {
+          qi = (qi + 1) % QUOTES.length;
+          $("quoteText").textContent = QUOTES[qi];
+          box.style.opacity = "1";
+        }, 500);
+      }, 9000);
+
+      /* ================================================================
+         INVENTION ENGINE
+         ================================================================ */
+      var PREFIXES = ["Aerial Screw of", "Automated Gearbox for", "Hydraulic Pump of", "Clockwork Mechanism for", "Armored Carriage of", "Flying Wing of", "Perpetual Motion Engine for", "Double-Hull Vessel for", "Siege Engine for", "Windlass Crane for"];
+      var SUFFIXES = ["Florence", "the Heavens", "Eternal Motion", "the Golden Ratio", "Venetian Defense", "Mechanical Labor", "Divine Proportion", "Vitruvian Balance", "the Milanese Court"];
+      var FEATURES = [
+        "interlocking gears of seasoned oak", "weighted pulleys on hempen rope", "a counterweight of river stone",
+        "an iron-bound flywheel", "a screw wrapped in linen and pitch", "ratchet and pawl of hardened steel",
+        "a treadle worked by two men", "levers plated in bronze", "a reservoir of drawn water",
+        "coiled springs of Milanese steel", "a chain of forged links", "paddles faced with copper"
+      ];
+      var PURPOSES = [
+        "to spare the backs of laborers", "to do in one hour the work of ten men",
+        "to move what horses cannot", "to hold steady against wind and current",
+        "to turn slow force into swift motion", "to lift, draw, and set down without spilling"
+      ];
+
+      function inventionName(topic, rng) {
+        var prefix = pick(rng, PREFIXES);
+        if (!topic) return prefix + " " + pick(rng, SUFFIXES);
+        return prefix + " " + topic.charAt(0).toUpperCase() + topic.slice(1);
+      }
+      function inventionPrompt(title) {
+        return "sketch by Leonardo da Vinci of " + title + ", technical drawing on old parchment paper, sepia ink lines, detailed internal mechanics, cross-section, renaissance style, anatomical precision, rough sketch aesthetic";
+      }
+      function archetypeFor(text) {
+        var t = text.toLowerCase();
+        if (/wing|fly|flight|bird|glid/.test(t)) return "wing";
+        if (/screw|aerial|heaven|air|propel/.test(t)) return "screw";
+        if (/pump|water|hydraulic|river|flood|well|lift.*water/.test(t)) return "pump";
+        if (/carriage|armor|siege|wheel|cart|vehicle|tank/.test(t)) return "carriage";
+        return "gears";
+      }
+
+      /* ----- blueprint drawing (procedural studio hand) ----- */
+      function drawGear(ctx, cx, cy, r, teeth, rot, ink) {
+        var outer = r * 1.16, step = (Math.PI * 2) / teeth, i, a, pts, j, x, y;
+        ctx.beginPath();
+        for (i = 0; i < teeth; i++) {
+          a = rot + i * step;
+          pts = [[a, r], [a + step * 0.28, r], [a + step * 0.36, outer], [a + step * 0.62, outer], [a + step * 0.7, r]];
+          for (j = 0; j < pts.length; j++) {
+            x = cx + Math.cos(pts[j][0]) * pts[j][1];
+            y = cy + Math.sin(pts[j][0]) * pts[j][1];
+            if (i === 0 && j === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, r * 0.62, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, r * 0.2, 0, Math.PI * 2); ctx.stroke();
+        for (i = 0; i < 6; i++) {
+          a = rot + i * (Math.PI / 3);
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(a) * r * 0.2, cy + Math.sin(a) * r * 0.2);
+          ctx.lineTo(cx + Math.cos(a) * r * 0.62, cy + Math.sin(a) * r * 0.62);
+          ctx.stroke();
+        }
+      }
+      function drawWheel(ctx, cx, cy, r, ink) {
+        ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, r * 0.86, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, r * 0.16, 0, Math.PI * 2); ctx.stroke();
+        for (var i = 0; i < 10; i++) {
+          var a = (i / 10) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(cx + Math.cos(a) * r * 0.16, cy + Math.sin(a) * r * 0.16);
+          ctx.lineTo(cx + Math.cos(a) * r * 0.86, cy + Math.sin(a) * r * 0.86);
+          ctx.stroke();
+        }
+      }
+      function dimension(ctx, x1, x2, y, label) {
+        ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+        [x1, x2].forEach(function (x) {
+          ctx.beginPath(); ctx.moveTo(x, y - 7); ctx.lineTo(x, y + 7); ctx.stroke();
+        });
+        ctx.beginPath();
+        ctx.moveTo(x1, y); ctx.lineTo(x1 + 9, y - 3.4); ctx.lineTo(x1 + 9, y + 3.4); ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x2, y); ctx.lineTo(x2 - 9, y - 3.4); ctx.lineTo(x2 - 9, y + 3.4); ctx.closePath(); ctx.fill();
+        ctx.font = "italic 15px 'EB Garamond', serif";
+        ctx.textAlign = "center";
+        ctx.fillText(label, (x1 + x2) / 2, y - 9);
+        ctx.textAlign = "left";
+      }
+      function leader(ctx, x1, y1, x2, y2, label) {
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x1, y1, 2.4, 0, Math.PI * 2); ctx.fill();
+        ctx.font = "italic 15.5px 'EB Garamond', serif";
+        ctx.fillText(label, x2 + 6, y2 + 5);
+      }
+      function hatch(ctx, x, y, w, h, gap) {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+        ctx.beginPath();
+        for (var i = -h; i < w + h; i += gap) {
+          ctx.moveTo(x + i, y + h); ctx.lineTo(x + i + h, y);
+        }
+        ctx.globalAlpha = 0.4; ctx.stroke(); ctx.restore();
+      }
+
+      function drawBlueprint(canvas, title, topic, seed) {
+        var ctx = canvas.getContext("2d");
+        var W = canvas.width, H = canvas.height;
+        var rng = mulberry32(seed);
+        var ink = "#4a3226", faint = "rgba(74,50,38,0.45)";
+        /* parchment ground */
+        ctx.fillStyle = "#f4ecd7"; ctx.fillRect(0, 0, W, H);
+        var g = ctx.createRadialGradient(W / 2, H / 2, 120, W / 2, H / 2, W * 0.75);
+        g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(120,86,40,0.16)");
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        for (var s = 0; s < 260; s++) {
+          ctx.fillStyle = "rgba(120,90,50," + (rng() * 0.05) + ")";
+          ctx.fillRect(rng() * W, rng() * H, 1.6, 1.6);
+        }
+        ctx.strokeStyle = ink; ctx.fillStyle = ink; ctx.lineWidth = 1.3; ctx.lineCap = "round";
+        /* double rule border */
+        ctx.strokeRect(16, 16, W - 32, H - 32);
+        ctx.lineWidth = 0.6; ctx.strokeRect(23, 23, W - 46, H - 46); ctx.lineWidth = 1.3;
+
+        var arch = archetypeFor(title + " " + (topic || ""));
+        var cx = W * 0.44, cy = H * 0.46;
+
+        if (arch === "screw") {
+          /* aerial screw: mast + helical sail */
+          var topY = cy - 165, botY = cy + 130, turns = 2.15, R = 148;
+          ctx.beginPath(); ctx.moveTo(cx, topY - 34); ctx.lineTo(cx, botY + 36); ctx.stroke();
+          for (var side = 0; side < 2; side++) {
+            ctx.beginPath();
+            for (var i = 0; i <= 90; i++) {
+              var f = i / 90, th = f * turns * Math.PI * 2 + side * Math.PI;
+              var rx = Math.sin(th) * R * (1 - f * 0.22);
+              var y = botY - f * (botY - topY);
+              if (i === 0) ctx.moveTo(cx + rx, y); else ctx.lineTo(cx + rx, y);
+            }
+            ctx.stroke();
+          }
+          for (var r2 = 0; r2 < 5; r2++) {
+            var f2 = r2 / 4, th2 = f2 * turns * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - Math.abs(Math.sin(th2)) * R * (1 - f2 * 0.22) * Math.sign(Math.sin(th2) || 1), botY - f2 * (botY - topY));
+            ctx.lineTo(cx + Math.abs(Math.sin(th2 + Math.PI)) * R * (1 - f2 * 0.22), botY - f2 * (botY - topY));
+            ctx.globalAlpha = 0.35; ctx.stroke(); ctx.globalAlpha = 1;
+          }
+          ctx.beginPath(); ctx.moveTo(cx - 120, botY + 36); ctx.lineTo(cx + 120, botY + 36); ctx.lineTo(cx, botY + 96); ctx.closePath(); ctx.stroke();
+          drawGear(ctx, cx - 205, botY + 62, 42, 10, 0.4, ink);
+          drawGear(ctx, cx + 218, botY + 74, 30, 8, 0.1, ink);
+          dimension(ctx, cx - R, cx + R, botY + 128, "braccia 4");
+          leader(ctx, cx + 92, cy - 88, cx + 168, cy - 140, "the sail of linen,");
+          leader(ctx, cx + 60, cy + 30, cx + 190, cy + 6, "turned by windlass");
+          leader(ctx, cx - 205, botY + 62, cx - 300, botY + 20, "the drive wheel");
+        } else if (arch === "wing") {
+          /* flying wing: ribbed membrane */
+          ctx.beginPath(); ctx.moveTo(cx - 230, cy + 66); ctx.quadraticCurveTo(cx, cy - 190, cx + 238, cy + 40); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 230, cy + 66); ctx.quadraticCurveTo(cx - 10, cy - 60, cx + 238, cy + 40); ctx.stroke();
+          for (var wI = 0; wI <= 7; wI++) {
+            var wf = wI / 7;
+            var xTop = (cx - 230) + (238 + 230) * wf;
+            var yTop = cy + 66 + (Math.sin(wf * Math.PI) * -128) * (1 - wf * 0.25) - wf * 26;
+            var yBot = cy + 66 - Math.sin(wf * Math.PI) * 84 - wf * 18;
+            ctx.beginPath(); ctx.moveTo(xTop, yBot + 40); ctx.lineTo(xTop - 14, yTop - 66 + 106); ctx.stroke();
+          }
+          ctx.beginPath(); ctx.moveTo(cx - 60, cy + 96); ctx.lineTo(cx + 44, cy + 96); ctx.lineTo(cx + 22, cy + 138); ctx.lineTo(cx - 36, cy + 138); ctx.closePath(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 8, cy + 96); ctx.lineTo(cx - 8, cy + 60); ctx.stroke();
+          drawGear(ctx, cx - 250, cy + 150, 34, 9, 0.2, ink);
+          drawWheel(ctx, cx + 252, cy + 138, 40, ink);
+          dimension(ctx, cx - 238, cx + 238, cy + 196, "span of braccia 12");
+          leader(ctx, cx + 60, cy - 140, cx + 150, cy - 176, "ribs of cane,");
+          leader(ctx, cx + 120, cy - 40, cx + 216, cy - 66, "membrane of starched linen");
+          leader(ctx, cx - 8, cy + 118, cx - 190, cy + 150, "the pilot's cradle");
+        } else if (arch === "pump") {
+          /* hydraulic pump: cylinder, piston, flywheel, screw */
+          ctx.beginPath(); ctx.rect(cx - 56, cy - 60, 112, 216); ctx.stroke();
+          ctx.beginPath(); ctx.rect(cx - 56, cy - 96, 112, 36); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx, cy - 96); ctx.lineTo(cx, cy - 168); ctx.stroke();
+          drawWheel(ctx, cx + 168, cy - 128, 62, ink);
+          ctx.beginPath(); ctx.moveTo(cx, cy - 168); ctx.lineTo(cx + 128, cy - 142); ctx.stroke();
+          for (var pI = 0; pI < 5; pI++) {
+            ctx.beginPath(); ctx.moveTo(cx - 56, cy + 6 + pI * 30); ctx.lineTo(cx + 56, cy + 6 + pI * 30); ctx.globalAlpha = 0.4; ctx.stroke(); ctx.globalAlpha = 1;
+          }
+          ctx.beginPath();
+          for (var aI = 0; aI <= 40; aI++) {
+            var af = aI / 40, ax = cx - 210 + af * 92, ay = cy + 156 - Math.sin(af * Math.PI * 3) * 10 - af * 22;
+            if (aI === 0) ctx.moveTo(ax, ay); else ctx.lineTo(ax, ay);
+          }
+          ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 210, cy + 170); ctx.lineTo(cx - 104, cy + 170); ctx.stroke();
+          hatch(ctx, cx - 250, cy + 176, 500, 16, 7);
+          dimension(ctx, cx - 56, cx + 56, cy + 196, "bore of half a braccio");
+          leader(ctx, cx + 168, cy - 128, cx + 214, cy - 190, "the flywheel");
+          leader(ctx, cx - 20, cy - 96, cx - 190, cy - 150, "the piston rod");
+          leader(ctx, cx - 160, cy + 134, cx - 268, cy + 96, "the feed screw");
+        } else if (arch === "carriage") {
+          /* armored carriage: hull + great wheels */
+          ctx.beginPath();
+          ctx.moveTo(cx - 220, cy + 60);
+          ctx.quadraticCurveTo(cx - 190, cy - 92, cx - 40, cy - 108);
+          ctx.lineTo(cx + 120, cy - 108);
+          ctx.quadraticCurveTo(cx + 216, cy - 92, cx + 226, cy + 60);
+          ctx.closePath(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 220, cy + 60); ctx.lineTo(cx + 226, cy + 60); ctx.stroke();
+          for (var cI = 1; cI < 5; cI++) {
+            ctx.beginPath(); ctx.moveTo(cx - 220 + cI * 88, cy - 100 + Math.abs(cI - 2.5) * 4); ctx.lineTo(cx - 220 + cI * 88, cy + 60); ctx.globalAlpha = 0.45; ctx.stroke(); ctx.globalAlpha = 1;
+          }
+          drawWheel(ctx, cx - 128, cy + 106, 66, ink);
+          drawWheel(ctx, cx + 138, cy + 106, 66, ink);
+          ctx.beginPath(); ctx.arc(cx + 4, cy - 142, 30, Math.PI, 0); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx + 4, cy - 142); ctx.lineTo(cx + 4, cy - 108); ctx.stroke();
+          hatch(ctx, cx - 260, cy + 176, 520, 15, 7);
+          dimension(ctx, cx - 194, cx + 204, cy + 210, "axle span of braccia 7");
+          leader(ctx, cx - 40, cy - 108, cx - 170, cy - 168, "plates of oak, iron-bound");
+          leader(ctx, cx + 138, cy + 106, cx + 216, cy + 40, "the great wheel");
+          leader(ctx, cx + 4, cy - 150, cx + 90, cy - 196, "the lookout turret");
+        } else {
+          /* gearworks: meshing gear train */
+          drawGear(ctx, cx - 96, cy - 18, 104, 14, 0.32, ink);
+          drawGear(ctx, cx + 92, cy + 44, 66, 11, 0.86, ink);
+          drawGear(ctx, cx + 34, cy - 118, 44, 9, 0.1, ink);
+          ctx.beginPath(); ctx.moveTo(cx - 96, cy - 18); ctx.lineTo(cx - 96, cy + 158); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 176, cy + 158); ctx.lineTo(cx - 16, cy + 158); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(cx - 150, cy + 158); ctx.lineTo(cx - 128, cy + 104); ctx.moveTo(cx - 42, cy + 158); ctx.lineTo(cx - 64, cy + 104); ctx.stroke();
+          drawWheel(ctx, cx + 196, cy + 132, 42, ink);
+          ctx.beginPath(); ctx.moveTo(cx + 92, cy + 44); ctx.lineTo(cx + 168, cy + 108); ctx.stroke();
+          hatch(ctx, cx - 220, cy + 186, 470, 14, 7);
+          dimension(ctx, cx - 200, cx - 6, cy + 168, "the great wheel, braccia 3");
+          leader(ctx, cx - 150, cy - 92, cx - 268, cy - 148, "the great wheel");
+          leader(ctx, cx + 128, cy - 8, cx + 208, cy - 60, "the lantern pinion");
+          leader(ctx, cx + 40, cy - 132, cx + 120, cy - 186, "the escape wheel");
+        }
+
+        /* faint construction circle */
+        ctx.strokeStyle = faint; ctx.lineWidth = 0.7;
+        ctx.beginPath(); ctx.arc(cx, cy, 218, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = ink; ctx.lineWidth = 1.3;
+
+        /* title block */
+        ctx.font = "600 21px 'Cormorant Garamond', serif";
+        var tw = ctx.measureText(title).width;
+        var tx = W - 40 - Math.min(tw, W - 80);
+        ctx.textAlign = "right";
+        wrapText(ctx, title, W - 40, H - 96, W - 90, 25);
+        ctx.font = "italic 14.5px 'EB Garamond', serif";
+        ctx.fillText("Studio of Leonardo · Fig. 1 · drawn in sepia", W - 40, H - 42);
+        ctx.textAlign = "left";
+        ctx.font = "italic 14.5px 'EB Garamond', serif";
+        ctx.fillText("Let the drawing be the proof of the thought.", 40, H - 42);
+      }
+      function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+        var words = text.split(" "), line = "", lines = [];
+        for (var i = 0; i < words.length; i++) {
+          var test = line ? line + " " + words[i] : words[i];
+          if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = words[i]; }
+          else line = test;
+        }
+        lines.push(line);
+        var startY = y - (lines.length - 1) * lineHeight;
+        lines.forEach(function (l, idx) { ctx.fillText(l, x, startY + idx * lineHeight); });
+      }
+
+      /* ----- generation flow ----- */
+      var SUBJECT_IDEAS = ["crossing a flooded river", "lifting water to a hill town", "flight above the Arno", "grinding grain without horses", "a harbor that defends itself", "carrying stone up a cathedral wall", "draining a marsh", "seeing around a corner"];
+      $("invSurprise").addEventListener("click", function () {
+        $("invInput").value = SUBJECT_IDEAS[Math.floor(Math.random() * SUBJECT_IDEAS.length)];
+        generateInvention();
+      });
+      $("invGenerate").addEventListener("click", generateInvention);
+      $("invInput").addEventListener("keydown", function (e) { if (e.key === "Enter") generateInvention(); });
+
+      function generateInvention() {
+        var topic = $("invInput").value.trim();
+        var rng = mulberry32(hashStr(topic + "|" + Date.now()));
+        var title = inventionName(topic, rng);
+        var pool = FEATURES.slice();
+        for (var si = pool.length - 1; si > 0; si--) { var sj = Math.floor(rng() * (si + 1)); var tmp = pool[si]; pool[si] = pool[sj]; pool[sj] = tmp; }
+        var f = [pool[0], pool[1], pool[2]];
+        var desc = "A mechanism designed to harness the properties of " + (topic || "its subject") + ", purposed " + pick(rng, PURPOSES) + ". It is built upon " + f[0] + ", " + f[1] + ", and " + f[2] + ", the whole framed in a reinforced oak chassis and proven first in drawing, as all honest machines must be.";
+        var entry = {
+          id: Date.now(), type: "invention", title: title, topic: topic,
+          description: desc, prompt: inventionPrompt(title),
+          date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+          imageUrl: null
+        };
+        state.lastInvention = entry;
+        renderInvention(entry, true);
+        if (state.apiKey) {
+          fetchImagen(entry).then(function (url) {
+            if (url) { entry.imageUrl = url; renderInvention(entry, false); }
+            else { toast("Imagen did not answer. The studio sketch stands."); }
+          });
+        }
+      }
+
+      function fetchImagen(entry) {
+        var ctrl = new AbortController();
+        var to = setTimeout(function () { ctrl.abort(); }, 45000);
+        return fetch("https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": state.apiKey },
+          body: JSON.stringify({ instances: [{ prompt: entry.prompt }], parameters: { sampleCount: 1 } }),
+          signal: ctrl.signal
+        }).then(function (r) {
+          clearTimeout(to);
+          if (!r.ok) throw new Error("bad status");
+          return r.json();
+        }).then(function (j) {
+          if (j && j.predictions && j.predictions[0] && j.predictions[0].bytesBase64Encoded) {
+            return "data:image/png;base64," + j.predictions[0].bytesBase64Encoded;
+          }
+          throw new Error("no image");
+        }).catch(function () { clearTimeout(to); return null; });
+      }
+
+      function renderInvention(entry, animate) {
+        var wrap = $("invResult");
+        var visual = entry.imageUrl
+          ? '<img class="blueprint" alt="Generated blueprint of ' + esc(entry.title) + '" src="' + entry.imageUrl + '">'
+          : '<canvas id="bpCanvas" width="960" height="640"></canvas>';
+        wrap.innerHTML =
+          '<div class="card">' +
+            '<div class="metaline">Plate No. ' + (entry.id % 997) + ' &middot; ' + esc(entry.date) + '</div>' +
+            '<div class="result-title">' + esc(entry.title) + '</div>' +
+            '<p class="result-desc">' + esc(entry.description) + '</p>' +
+            '<div class="sheet" style="margin-top:14px">' + visual + '</div>' +
+            '<div class="sheetcap">' + (entry.imageUrl
+              ? 'Rendered by Imagen 4 from the prompt below.'
+              : 'Drawn by the studio hand in the browser. Set a Gemini key in Studio Settings to render this plate through Imagen 4 instead.') + '</div>' +
+            '<label class="flabel" style="margin-top:18px">The rendering prompt</label>' +
+            '<div class="promptbox" id="invPromptBox">' + esc(entry.prompt) + '</div>' +
+            '<div class="btnrow">' +
+              '<button class="btn" id="invSave">Record in Codex</button>' +
+              '<button class="btn ghost" id="invCopyPrompt">Copy Prompt</button>' +
+              '<button class="btn ghost" id="invDownload">Download Plate (.png)</button>' +
+            '</div>' +
+          '</div>';
+        if (!entry.imageUrl) {
+          var canvas = $("bpCanvas");
+          if (animate) sketchIn(canvas, entry); else drawBlueprint(canvas, entry.title, entry.topic, hashStr(entry.title));
+        }
+        $("invSave").addEventListener("click", function () { addToCodex(entry); });
+        $("invCopyPrompt").addEventListener("click", function () { copyText(entry.prompt); });
+        $("invDownload").addEventListener("click", function () {
+          if (entry.imageUrl) { downloadURI(entry.imageUrl, entry); }
+          else {
+            var c = $("bpCanvas");
+            downloadURI(c.toDataURL("image/png"), entry);
+          }
+        });
+      }
+      function downloadURI(uri, entry) {
+        var a = document.createElement("a");
+        a.href = uri;
+        a.download = entry.title.toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".png";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        toast("Plate downloaded.");
+      }
+      /* sketching animation, then the finished plate */
+      function sketchIn(canvas, entry) {
+        var ctx = canvas.getContext("2d");
+        var W = canvas.width, H = canvas.height, t = 0, frames = 0, done = false;
+        function finish() {
+          if (done) return;
+          done = true;
+          drawBlueprint(canvas, entry.title, entry.topic, hashStr(entry.title));
+        }
+        var watchdog = setTimeout(finish, 1100);
+        function frame() {
+          if (done) return;
+          ctx.fillStyle = "rgba(244,236,215,0.25)"; ctx.fillRect(0, 0, W, H);
+          ctx.strokeStyle = "#5d4037"; ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          for (var i = 0; i < 5; i++) {
+            var x = W / 2 + Math.cos(t * 1.5 + i) * (120 + Math.sin(t * 3) * 40);
+            var y = H / 2 + Math.sin(t * 1.2 + i) * (110 + Math.cos(t * 2) * 36);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+          ctx.beginPath(); ctx.arc(W / 2, H / 2, 90 + Math.sin(t) * 8, 0, Math.PI * 2); ctx.stroke();
+          t += 0.09; frames++;
+          if (frames < 26) requestAnimationFrame(frame);
+          else { clearTimeout(watchdog); finish(); }
+        }
+        ctx.fillStyle = "#f4ecd7"; ctx.fillRect(0, 0, W, H);
+        frame();
+      }
+
+      /* ================================================================
+         MIRROR WRITER
+         ================================================================ */
+      function reverseText(s) { return s.split("").reverse().join(""); }
+      function updateMirror() {
+        var raw = $("mirInput").value;
+        var out = raw ? reverseText(raw) : "";
+        var el = $("mirOut");
+        if (!raw) {
+          el.textContent = state.mirrorDir === "encode" ? "The mirrored words will appear here." : "Paste mirrored script and it will be read back plainly here.";
+        } else {
+          el.textContent = out;
+        }
+        el.classList.toggle("mirror-flip", state.mirrorFlipped && !!raw);
+        $("mirMeta").textContent = raw ? raw.length + " characters · " + raw.trim().split(/\s+/).filter(Boolean).length + " words" : "";
+        return out;
+      }
+      $("mirInput").addEventListener("input", updateMirror);
+      $("segEncode").addEventListener("click", function () { setMirrorDir("encode"); });
+      $("segDecode").addEventListener("click", function () { setMirrorDir("decode"); });
+      function setMirrorDir(d) {
+        state.mirrorDir = d;
+        $("segEncode").classList.toggle("active", d === "encode");
+        $("segDecode").classList.toggle("active", d === "decode");
+        $("mirInput").placeholder = d === "encode" ? "Write as you think it..." : "Paste the mirrored script here...";
+        updateMirror();
+      }
+      $("mirFlip").addEventListener("click", function () {
+        state.mirrorFlipped = !state.mirrorFlipped;
+        $("mirFlip").textContent = state.mirrorFlipped ? "Lay the Mirror Down" : "Hold to Mirror";
+        updateMirror();
+      });
+      $("mirCopy").addEventListener("click", function () {
+        var raw = $("mirInput").value;
+        if (!raw) { toast("The page is blank. Provide a subject."); return; }
+        copyText(reverseText(raw), "Mirrored text copied.");
+      });
+      $("mirClear").addEventListener("click", function () { $("mirInput").value = ""; state.mirrorFlipped = false; $("mirFlip").textContent = "Hold to Mirror"; updateMirror(); });
+      $("mirSave").addEventListener("click", function () {
+        var raw = $("mirInput").value;
+        if (!raw) { toast("The page is blank. Provide a subject."); return; }
+        addToCodex({
+          id: Date.now(), type: "mirror",
+          title: state.mirrorDir === "encode" ? "Mirror Script" : "Mirrored Script, Read Plain",
+          original: raw, mirrored: reverseText(raw),
+          date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+        });
+      });
+
+      /* ================================================================
+         VITRUVIAN ANALYSIS
+         ================================================================ */
+      var CANON = [
+        "Four fingers make one palm; four palms make one foot.",
+        "Six palms make one cubit; four cubits make the height of a man.",
+        "The span of a man's outstretched arms is equal to his height.",
+        "The navel lies at the centre of the circle described by the limbs.",
+        "From the hairline to the chin is one tenth of the height; the head, chin to crown, one eighth."
+      ];
+      $("vitMeasure").addEventListener("click", measureVitruvian);
+      $("vitInput").addEventListener("keydown", function (e) { if (e.key === "Enter") measureVitruvian(); });
+
+      function measureVitruvian() {
+        var subject = $("vitInput").value.trim();
+        if (!subject) { toast("The page is blank. Provide a subject."); return; }
+        var rng = mulberry32(hashStr("vitruvian|" + subject.toLowerCase()));
+        var ratio = (1.618 + (rng() - 0.5) * 0.09).toFixed(4);
+        var metrics = [
+          { name: "Divine Proportion", val: Math.round(88 + rng() * 11) },
+          { name: "Symmetry", val: Math.round(82 + rng() * 17) },
+          { name: "Structural Harmony", val: Math.round(80 + rng() * 19) },
+          { name: "Anatomical Balance", val: Math.round(84 + rng() * 15) }
+        ];
+        var verdict = parseFloat(ratio) >= 1.618
+          ? "The subject leans toward the greater segment: it grows as the whole grows, part answering to part."
+          : "The subject leans toward the lesser segment: compact, self-contained, its strength in the parts rather than the span.";
+        var entry = {
+          id: Date.now(), type: "vitruvian", title: "Proportion Analysis",
+          subject: subject, ratio: ratio, metrics: metrics, verdict: verdict,
+          date: new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+        };
+        state.lastVitruvian = entry;
+        renderVitruvian(entry);
+        toast("Measure taken.");
+      }
+
+      function renderVitruvian(entry) {
+        var wrap = $("vitResult");
+        var bars = entry.metrics.map(function (m) {
+          return '<div class="metric"><div class="mhead"><span>' + m.name + '</span><span class="mval">' + m.val + ' / 100</span></div><div class="bar"><div data-w="' + m.val + '"></div></div></div>';
+        }).join("");
+        var canon = CANON.map(function (c, i) {
+          return '<li><span class="n">' + ["i", "ii", "iii", "iv", "v"][i] + '</span><span>' + c + '</span></li>';
+        }).join("");
+        wrap.innerHTML =
+          '<div class="card">' +
+            '<div class="row" style="align-items:flex-start">' +
+              '<div style="flex:1 1 320px">' +
+                '<div class="metaline">Subject of measure</div>' +
+                '<div class="result-title" style="margin-bottom:14px">' + esc(entry.subject) + '</div>' +
+                '<div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap"><div class="phi-big">&phi; ' + entry.ratio + '</div><div class="metaline">against the divine<br/>proportion 1.6180</div></div>' +
+                '<p class="result-desc" style="margin-top:14px">' + esc(entry.verdict) + ' Structural integrity is high where the measures agree; where they scatter, the design asks to be redrawn.</p>' +
+                '<div style="margin-top:18px">' + bars + '</div>' +
+              '</div>' +
+              '<div style="flex:1 1 300px">' +
+                '<div class="sheet">' + vitruvianSVG() + '</div>' +
+                '<div class="sheetcap">The subject set within the square and the circle, after the canon of Vitruvius.</div>' +
+              '</div>' +
+            '</div>' +
+            '<h3 style="margin-top:22px">The Canon of Proportions</h3>' +
+            '<ul class="canon">' + canon + '</ul>' +
+            '<div class="btnrow"><button class="btn" id="vitSave">Record in Codex</button>' +
+            '<button class="btn ghost" id="vitCopy">Copy Analysis</button></div>' +
+          '</div>';
+        requestAnimationFrame(function () {
+          setTimeout(function () {
+            wrap.querySelectorAll(".bar > div").forEach(function (b) { b.style.width = b.getAttribute("data-w") + "%"; });
+          }, 40);
+        });
+        $("vitSave").addEventListener("click", function () { addToCodex(entry); });
+        $("vitCopy").addEventListener("click", function () { copyText(vitruvianText(entry), "Analysis copied."); });
+      }
+      function vitruvianText(e) {
+        var lines = e.metrics.map(function (m) { return "  " + m.name + ": " + m.val + " / 100"; }).join("\n");
+        return "PROPORTION ANALYSIS — " + e.subject + "\nDivine Proportion (phi): " + e.ratio + "\n" + lines + "\n" + e.verdict + "\nRecorded " + e.date;
+      }
+      function vitruvianSVG() {
+        var ink = "#4a3226";
+        return '<svg viewBox="0 0 400 400" width="100%" role="img" aria-label="Vitruvian figure inside a circle and square">' +
+          '<circle cx="200" cy="200" r="168" fill="none" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<rect x="76" y="76" width="248" height="248" fill="none" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<line x1="200" y1="32" x2="200" y2="368" stroke="' + ink + '" stroke-width="0.6" opacity="0.45"/>' +
+          '<line x1="32" y1="200" x2="368" y2="200" stroke="' + ink + '" stroke-width="0.6" opacity="0.45"/>' +
+          '<circle cx="200" cy="128" r="30" fill="none" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<line x1="200" y1="158" x2="200" y2="252" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<line x1="200" y1="182" x2="76" y2="128" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<line x1="200" y1="182" x2="324" y2="128" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<line x1="200" y1="182" x2="52" y2="200" stroke="' + ink + '" stroke-width="1.1" opacity="0.6"/>' +
+          '<line x1="200" y1="182" x2="348" y2="200" stroke="' + ink + '" stroke-width="1.1" opacity="0.6"/>' +
+          '<line x1="200" y1="252" x2="118" y2="352" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<line x1="200" y1="252" x2="282" y2="352" stroke="' + ink + '" stroke-width="1.6"/>' +
+          '<line x1="200" y1="252" x2="130" y2="324" stroke="' + ink + '" stroke-width="1.1" opacity="0.6"/>' +
+          '<line x1="200" y1="252" x2="270" y2="324" stroke="' + ink + '" stroke-width="1.1" opacity="0.6"/>' +
+          '<circle cx="200" cy="216" r="4" fill="' + ink + '"/>' +
+          '<text x="200" y="392" text-anchor="middle" font-family="EB Garamond, serif" font-style="italic" font-size="14" fill="' + ink + '">the navel, centre of the circle</text>' +
+          '<text x="200" y="24" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="2" fill="' + ink + '">&#966; = 1.618</text>' +
+        '</svg>';
+      }
+
+      /* ================================================================
+         CODEX
+         ================================================================ */
+      function entryBody(e) {
+        if (e.type === "invention") return e.description + "\n\nRendering prompt: " + e.prompt;
+        if (e.type === "mirror") return "As written:\n" + e.original + "\n\nAs mirrored:\n" + e.mirrored;
+        if (e.type === "vitruvian") return vitruvianText(e);
+        return "";
+      }
+      function entryHeading(e) {
+        if (e.type === "invention") return e.title;
+        if (e.type === "mirror") return e.title;
+        if (e.type === "vitruvian") return "Proportion Analysis — " + e.subject;
+        return "Entry";
+      }
+      function addToCodex(entry) {
+        state.codex.unshift(entry);
+        renderCodex();
+        toast("Recorded in Codex.");
+      }
+      function deleteFromCodex(id) {
+        state.codex = state.codex.filter(function (e) { return e.id !== id; });
+        renderCodex();
+        toast("Page torn from the Codex.");
+      }
+      function renderCodex() {
+        var list = $("codexList");
+        var badge = $("codexCount");
+        badge.style.display = state.codex.length ? "inline-block" : "none";
+        badge.textContent = state.codex.length;
+        if (!state.codex.length) {
+          list.innerHTML = '<div class="empty-note"><span class="big">The Codex is unbound and empty</span>Draft an invention, mirror a passage, or take a measure, then record it here. Nothing is kept between sittings, so download the manuscript before you leave.</div>';
+          return;
+        }
+        list.innerHTML = state.codex.map(function (e) {
+          var label = e.type === "invention" ? "Invention" : e.type === "mirror" ? "Mirror Script" : "Vitruvian";
+          return '<article class="codex-item">' +
+            '<div class="chead"><span class="badge">' + label + '</span><h4>' + esc(entryHeading(e)) + '</h4>' +
+            '<div class="cactions">' +
+              '<button class="iconbtn" data-act="copy" data-id="' + e.id + '" title="Copy entry"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>' +
+              '<button class="iconbtn" data-act="dl" data-id="' + e.id + '" title="Download entry"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 21h16"/></svg></button>' +
+              '<button class="iconbtn danger" data-act="del" data-id="' + e.id + '" title="Tear out this page"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg></button>' +
+            '</div></div>' +
+            '<div class="metaline" style="margin-top:6px">' + esc(e.date) + '</div>' +
+            '<div class="cbody">' + esc(entryBody(e)) + '</div>' +
+          '</article>';
+        }).join("");
+        list.querySelectorAll("button[data-act]").forEach(function (b) {
+          b.addEventListener("click", function () {
+            var id = parseInt(b.getAttribute("data-id"), 10);
+            var e = state.codex.find(function (x) { return x.id === id; });
+            if (!e) return;
+            var act = b.getAttribute("data-act");
+            if (act === "del") deleteFromCodex(id);
+            else if (act === "copy") copyText(entryHeading(e) + "\n\n" + entryBody(e), "Entry copied.");
+            else if (act === "dl") download(entryHeading(e).toLowerCase().replace(/[^a-z0-9]+/g, "-") + ".txt", entryHeading(e) + "\n" + e.date + "\n\n" + entryBody(e));
+          });
+        });
+      }
+      $("codexDownload").addEventListener("click", function () {
+        if (!state.codex.length) { toast("The Codex is empty. Nothing to bind."); return; }
+        var md = "# THE DAVINCI CODEX\n\n" + state.codex.map(function (e) {
+          return "## " + entryHeading(e) + "\n*" + e.date + " — " + e.type + "*\n\n" + entryBody(e);
+        }).join("\n\n---\n\n") + "\n";
+        download("davinci-codex.md", md, "text/markdown;charset=utf-8");
+        toast("Codex downloaded.");
+      });
+      $("codexClear").addEventListener("click", function () {
+        if (!state.codex.length) { toast("The Codex is already empty."); return; }
+        state.codex = [];
+        renderCodex();
+        toast("The Codex is burned. The studio remembers nothing.");
+      });
+      renderCodex();
+
+      /* ================================================================
+         PROTOCOL BUILDERS
+         ================================================================ */
+      function buildProtocol() {
+        var sign = $("pSign").value || "FUTURE";
+        var scene = $("pScene").value;
+        var aes = $("pAesthetic").value;
+        var motion = $("pMotion").value;
+        var mag = parseInt($("pMagnitude").value, 10);
+        $("magVal").textContent = mag;
+        $("anchorOut").textContent = "A cinematic wide shot of " + scene + " that says \"" + sign.toUpperCase() + "\", " + aes + ", 8k resolution, precise typography.";
+        var motionWord = mag <= 3 ? "minimal, barely perceptible motion" : mag <= 6 ? "restrained, low-magnitude motion" : "measured motion, kept rigid";
+        $("motionOut").textContent = motion + ", high fidelity, keeping the text sign stable and legible, cinematic lighting. " + motionWord + "; the sign is a rigid body: translate or scale only, no warp, no rotation, no morphing of letterforms.";
+        $("polishOut").textContent = "Topaz Video AI — Model: Proteus (or Iris for faces near text)\nUpscale: 4K -> 8K, enhancement tuned for text edges\nFrame interpolation: to 60fps (Apollo / Chronos)\nDenoise: high-contrast regions only, strength low\nExport: visually lossless master, then delivery encode";
+        $("solvedSign").textContent = sign.toUpperCase() || "FUTURE";
+      }
+      ["pSign", "pScene", "pAesthetic", "pMotion", "pMagnitude"].forEach(function (id) {
+        $(id).addEventListener("input", buildProtocol);
+        $(id).addEventListener("change", buildProtocol);
+      });
+      buildProtocol();
+      document.querySelectorAll("[data-copy]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          copyText($(b.getAttribute("data-copy")).textContent, "Copied. To the next phase.");
+        });
+      });
+
+      /* ================================================================
+         SETTINGS
+         ================================================================ */
+      $("openSettings").addEventListener("click", function () {
+        $("apiKeyInput").value = state.apiKey;
+        $("settingsModal").classList.add("open");
+      });
+      $("closeSettings").addEventListener("click", function () { $("settingsModal").classList.remove("open"); });
+      $("settingsModal").addEventListener("click", function (e) { if (e.target === this) this.classList.remove("open"); });
+      $("saveSettings").addEventListener("click", function () {
+        state.apiKey = $("apiKeyInput").value.trim();
+        $("keyDot").classList.toggle("set", !!state.apiKey);
+        $("settingsModal").classList.remove("open");
+        toast(state.apiKey ? "Key kept in memory. Imagen rendering armed." : "Settings kept. The studio hand draws.");
+      });
+      $("clearKey").addEventListener("click", function () {
+        state.apiKey = ""; $("apiKeyInput").value = "";
+        $("keyDot").classList.remove("set");
+        toast("Key removed from memory.");
+      });
+
+      updateMirror();
+    </script>
+  </body>
+</html>
