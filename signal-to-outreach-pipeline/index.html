@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal-to-Content-to-Outreach Pipeline - Interactive Build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbf9f5; --ink:#1a1815; --ink2:#4a463e; --muted:#8a8478;
+  --line:#ddd5c5; --brass:#a67c2e; --brass-d:#8a6524; --green:#2e6b34; --red:#9b2c2c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55}
+a{color:var(--brass-d)}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 22px 80px}
+.docctl{border:1px solid var(--line);background:var(--paper);padding:18px 20px;display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline}
+.docctl .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.docctl .v{font-weight:600;font-size:13px}
+h1{font-family:Archivo,sans-serif;font-size:34px;line-height:1.1;margin:26px 0 6px;letter-spacing:-.01em}
+.sub{font-size:16px;color:var(--ink2);max-width:760px;margin:0 0 20px}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 26px}
+.meta div{background:var(--paper);padding:12px 14px}
+.meta .k{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meta .v{font-weight:600;font-size:13.5px;margin-top:3px}
+.tabs{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;background:var(--bone);padding:10px 0;border-bottom:2px solid var(--ink);margin-bottom:26px}
+.tabs button{font-family:Archivo,sans-serif;font-size:13px;font-weight:600;padding:8px 13px;border:1px solid var(--line);background:var(--paper);color:var(--ink2);cursor:pointer;border-radius:2px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tabs button:hover{border-color:var(--ink)}
+.tab{display:none}
+.tab.on{display:block}
+h2{font-family:Archivo,sans-serif;font-size:24px;margin:4px 0 4px}
+h3{font-family:Archivo,sans-serif;font-size:17px;margin:26px 0 8px}
+h4{font-family:Archivo,sans-serif;font-size:14px;margin:20px 0 6px}
+p{margin:8px 0}
+.lede{font-size:16.5px;color:var(--ink2)}
+.rule{border:none;border-top:1px solid var(--line);margin:22px 0}
+.card{background:var(--paper);border:1px solid var(--line);padding:18px 20px;margin:14px 0}
+.card.brass{border-left:4px solid var(--brass)}
+.card.warn{border-left:4px solid var(--red)}
+.card .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:Archivo,sans-serif;font-size:30px;font-weight:800;line-height:1}
+.num small{font-size:14px;font-weight:600;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.stat{background:var(--paper);border:1px solid var(--line);padding:16px}
+.stat .n{font-family:Archivo,sans-serif;font-size:26px;font-weight:800}
+.stat .l{font-size:12.5px;color:var(--ink2);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:2px solid var(--ink);padding:8px 10px}
+td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+code,.mono{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+pre{background:#211e19;color:#e8e2d4;padding:16px;overflow:auto;font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.5;border-radius:3px}
+pre .cm{color:#8a8478}
+.fig{background:var(--paper);border:1px solid var(--line);padding:16px;margin:16px 0}
+.fig svg{width:100%;height:auto;display:block}
+.figcap{font-size:12.5px;color:var(--ink2);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.figcap b{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.pill{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:11px;padding:2px 8px;border:1px solid var(--brass);color:var(--brass-d);border-radius:20px;margin-right:6px}
+.pill.red{border-color:var(--red);color:var(--red)}
+.pill.green{border-color:var(--green);color:var(--green)}
+input[type=text],input[type=number],textarea{width:100%;font-family:Inter,sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:#fff;border-radius:2px}
+textarea{min-height:90px;resize:vertical}
+button.go{font-family:Archivo,sans-serif;font-weight:700;font-size:14px;background:var(--brass);color:#fff;border:none;padding:11px 20px;cursor:pointer;border-radius:2px;margin-top:10px}
+button.go:hover{background:var(--brass-d)}
+button.ghost{font-family:Archivo,sans-serif;font-weight:600;font-size:12.5px;background:var(--paper);border:1px solid var(--line);padding:7px 12px;cursor:pointer;border-radius:2px;margin:4px 4px 0 0}
+button.ghost:hover{border-color:var(--ink)}
+button.ghost.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+input[type=range]{width:100%}
+.sliderow{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;margin:8px 0;font-size:13.5px}
+.result{border:1px solid var(--line);background:var(--paper);padding:16px 18px;margin-top:14px}
+.result .intent{font-family:Archivo,sans-serif;font-size:20px;font-weight:800}
+.note{font-size:12.5px;color:var(--muted)}
+.foot{margin-top:44px;border-top:2px solid var(--ink);padding-top:14px;font-size:12.5px;color:var(--muted)}
+.checkrow{display:flex;gap:10px;align-items:flex-start;margin:8px 0;font-size:14px}
+.checkrow input{margin-top:3px}
+.walkdots{display:flex;gap:6px;margin:12px 0 4px}
+.walkdots span{width:26px;height:26px;border:1px solid var(--line);background:var(--paper);color:var(--ink2);font-family:"JetBrains Mono",monospace;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.walkdots span.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.walkdots span.done{background:var(--brass);color:#fff;border-color:var(--brass)}
+.filterbar{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.regwrap{overflow-x:auto}
+.regwrap table{min-width:760px}
+.promptblock{margin:16px 0}
+.promptblock pre{margin:8px 0 0}
+.copybtn{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;background:var(--paper);border:1px solid var(--line);padding:5px 10px;cursor:pointer;border-radius:2px}
+.copybtn:hover{border-color:var(--ink)}
+@media(max-width:640px){.meta{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}h1{font-size:26px}}
+@media print{.tabs{display:none}body{background:#fff}.tab{display:block!important}.wrap{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="docctl">
+  <span><span class="k">Document</span><br><span class="v">Signal-to-Content-to-Outreach Pipeline</span></span>
+  <span><span class="k">Version</span><br><span class="v">Working Document v1.1 DRAFT</span></span>
+  <span><span class="k">Source</span><br><span class="v">signal-to-content-to-outreach-pipeline.md (2026-11-05)</span></span>
+  <span><span class="k">Built</span><br><span class="v">2026-11-05</span></span>
+  <span><span class="k">State</span><br><span class="v">DESIGNED, not run</span></span>
+</div>
+
+<h1>Signal-to-Content-to-Outreach Pipeline</h1>
+<p class="sub">One document an agent can execute from. It turns the agentic design compositing system into a full loop: search for signals, verify them, compose content for what was found, run outreach on that content, record the outcome, and feed the outcome back into the signal scoring.</p>
+
+<div class="meta">
+  <div><div class="k">Sections in the document</div><div class="v">20, all covered here</div></div>
+  <div><div class="k">Agents in the roster</div><div class="v">10, one job each</div></div>
+  <div><div class="k">Register entries</div><div class="v">37 (26 resolved, 11 open)</div></div>
+  <div><div class="k">Literal prompts</div><div class="v">11, copy-ready</div></div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="t1" class="on">1 · Overview</button>
+  <button data-tab="t2">2 · Pipeline Stages</button>
+  <button data-tab="t3">3 · Davinci Payload v2</button>
+  <button data-tab="t4">4 · Agent Roster</button>
+  <button data-tab="t5">5 · Gaps</button>
+  <button data-tab="t6">6 · Resolution &amp; Register</button>
+  <button data-tab="t7">7 · Prompt Library</button>
+  <button data-tab="t8">8 · Reference</button>
+  <button data-tab="t9">9 · Decisions</button>
+</nav>
+
+<!-- ============ TAB 1 : OVERVIEW ============ -->
+<section class="tab on" id="t1">
+  <h2>Overview: the loop, the scope, and the honesty label</h2>
+  <p class="lede">This is the Neuruh organism loop applied to one concrete job: mission, conductor, worker, action, receipt, Sentinel, governance, custody, promotion, deployment, result, ingest, next mission. The pipeline does not invent a new loop. It wires the existing one to the compositing engine.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 150" role="img" aria-label="Pipeline loop diagram">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+        <rect x="6" y="45" width="118" height="58" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="65" y="70" fill="#1a1815">1 · SIGNAL</text><text x="65" y="88" fill="#4a463e" font-weight="400" font-size="10">pull-only search</text>
+        <rect x="144" y="45" width="118" height="58" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="203" y="70" fill="#1a1815">2 · VERIFY</text><text x="203" y="88" fill="#4a463e" font-weight="400" font-size="10">materiality, velocity</text>
+        <rect x="282" y="45" width="118" height="58" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="341" y="70" fill="#1a1815">3 · CONTENT</text><text x="341" y="88" fill="#4a463e" font-weight="400" font-size="10">Davinci compositing</text>
+        <rect x="420" y="45" width="118" height="58" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="479" y="70" fill="#1a1815">4 · OUTREACH</text><text x="479" y="88" fill="#4a463e" font-weight="400" font-size="10">routed, gated</text>
+        <rect x="558" y="45" width="118" height="58" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="617" y="70" fill="#1a1815">5 · OUTCOME</text><text x="617" y="88" fill="#4a463e" font-weight="400" font-size="10">reply, booking, stop</text>
+        <rect x="696" y="45" width="118" height="58" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="755" y="70" fill="#1a1815">6 · RECEIPT</text><text x="755" y="88" fill="#4a463e" font-weight="400" font-size="10">hash-chained</text>
+        <rect x="834" y="45" width="118" height="58" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="893" y="70" fill="#fff">7 · LEARNING</text><text x="893" y="88" fill="#fff" font-weight="400" font-size="10">weights, chaff, bank</text>
+      </g>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar)">
+        <line x1="124" y1="74" x2="142" y2="74"/><line x1="262" y1="74" x2="280" y2="74"/><line x1="400" y1="74" x2="418" y2="74"/><line x1="538" y1="74" x2="556" y2="74"/><line x1="676" y1="74" x2="694" y2="74"/><line x1="814" y1="74" x2="832" y2="74"/>
+      </g>
+      <path d="M 893 103 L 893 132 L 65 132 L 65 105" fill="none" stroke="#a67c2e" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+      <text x="480" y="148" font-family="JetBrains Mono,monospace" font-size="10" fill="#8a8478" text-anchor="middle">LEARNING FEEDS THE NEXT SIGNAL, THE LOOP CLOSES BACK TO STAGE 1</text>
+    </svg>
+    <div class="figcap"><b>Figure 1</b> - The seven-stage loop from Section 1 of the document. State labels used throughout: DESIGNED, IMPLEMENTED, DEPLOYED, LIVE, DOWN, BLOCKED. Implemented is not deployed is not live is not proven.</div>
+  </div>
+
+  <h3>Loop walker: one signal, end to end</h3>
+  <p>The document's worked example, a probate filing in Berrien County, recipe R3, walking through all seven stages. Each stage shows what happens and what is recorded. All values are examples, not real records.</p>
+  <div class="card">
+    <span class="k" id="walkCount">Stage 1 of 7</span>
+    <div class="walkdots" id="walkDots"></div>
+    <div id="walkBody"></div>
+    <div style="margin-top:14px">
+      <button class="ghost" id="walkPrev" onclick="walkStep(-1)">Previous stage</button>
+      <button class="go" id="walkNext" onclick="walkStep(1)">Next stage</button>
+    </div>
+  </div>
+
+  <h3>Scope and sequencing (Section 2)</h3>
+  <div class="grid2">
+    <div class="card brass"><span class="k">Phase 1 · Real-estate signals (this document)</span>
+      <p style="margin:8px 0 0">The proving ground is Michiana real estate, because the signal infrastructure exists there: LANDOS ingest, 30 recipe families, county ArcGIS, the 153-lead proof run. Content is real-estate intelligence content. Outreach is the existing real-estate offer ladder.</p>
+    </div>
+    <div class="card brass"><span class="k">Phase 2 · Compound signals (designed, not built)</span>
+      <p style="margin:8px 0 0">The Nexus cross-domain layer: defense contract awards plus investor connections plus real-estate ownership plus content engagement. Phase 2 starts only after Phase 1 closes one full loop with a receipt. Do not build Phase 2 to avoid fixing Phase 1.</p>
+    </div>
+  </div>
+  <p><b>What this pipeline is not:</b> it is not a content farm. It is not a cold-blast machine. It does not argue with anyone. It does not publish owner or property PII. It does not buy data without explicit approval. It does not send anything while the October 1 stop order holds, except through the gates in Section 8 of the document.</p>
+
+  <div class="card warn">
+    <span class="k">Document notes: read this first</span>
+    <p style="margin:8px 0 0"><b>Status: DESIGNED, not run.</b> The pipeline has never run. The first run is the proof. Do not describe it as working until a run closes a loop with a receipt.</p>
+    <p><b>Acceptance criteria (Section 20):</b> PROVEN when one loop closes: 5 signals pulled, 3 verified, 1 content composed, 1 touch sent, 1 receipt chained, 1 outcome recorded. Until then DESIGNED. The numbers 5, 3, 1, 1, 1, 1 are the pilot volume from register entry R13, which is PROPOSED, not confirmed.</p>
+    <p><b>Targets and claims, not measurements:</b> the conversion lift multiplier above 2.5x, the 5x to 10x engagement figure, and the under-five-minute latency are the Nexus paper's targets and claims, not measurements. No lift claim is valid until a baseline exists (20 single-domain touches, Section 19).</p>
+    <p><b>Current blockers:</b> the data spine is down (production Supabase unreachable, DeedSonar paused, LANDOS engine not hosted). Facebook is locked since 2026-11-04 06:51 EST. Messenger is blind since 2026-11-04 07:02. X is paused under the October 1 stop order. Gmail is full and inbound mail is bouncing.</p>
+    <p style="margin-bottom:0"><b>Built on:</b> the Agentic Design Compositing spec, the Neuruh Nexus paper, the AI Language Agent Master, the six doomer-bridge articles, the Anti-Doomer Psyop Field Manual (FM-2026-AD), Lead Recipe OS (30 families, 36 registry rows, 4 active hunts), LANDOS (50 signals, SHA-256 provenance), and DeedSonar. Proven run on record: hunt job 6071b7ad, 2026-09-16, 153 leads scored, 153 synced to CRM.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 2 : PIPELINE STAGES ============ -->
+<section class="tab" id="t2">
+  <h2>Pipeline stages: Stage 0 through Stage 6, plus the daily runbook</h2>
+  <p class="lede">Sections 3 to 9 of the document, in order, followed by the daily runbook from Section 14. Every stage runs in order. No stage is skipped, and no signal is worked until the health gate passes.</p>
+
+  <h3>Stage 0: Channel health gate (Section 3, runs first, every run)</h3>
+  <p>No signal is worked, no content is composed, no outreach is drafted until the health gate passes. The gate exists because three channels are down or paused right now and the pipeline must not burn signals against dead channels.</p>
+  <table>
+    <tr><th>Channel</th><th>State as of 2026-11-05</th><th>Gate rule</th></tr>
+    <tr><td>Facebook (Marketplace + 19 groups)</td><td><span class="pill red">LOCKED</span> since 2026-11-04 06:51 EST, account checkpoint</td><td>Do not attempt any Facebook action. Queue only. Resume only after Jeramie confirms unlock.</td></tr>
+    <tr><td>Messenger / estate reply watch</td><td><span class="pill red">BLIND</span> since 2026-11-04 07:02, sync 403, 8 consecutive failures</td><td>No reply can be seen or answered. Do not count silence as a reply.</td></tr>
+    <tr><td>X (@NeuruhAI)</td><td><span class="pill red">PAUSED</span> under Oct 1 stop order and spam label</td><td>Drafts stay queued. Nothing publishes without his call.</td></tr>
+    <tr><td>Gmail</td><td><span class="pill red">FULL</span>, inbound bouncing since 2026-10-23</td><td>Do not use Gmail for pipeline reads. Free fix is his hands only.</td></tr>
+    <tr><td>DeedSonar / production Supabase</td><td><span class="pill red">DOWN</span> (503, unreachable)</td><td>Use the local ledger fallback (outreach-ledger.md). Do not claim a live sync.</td></tr>
+    <tr><td>BiggerPockets / Threads / Substack</td><td><span class="pill green">NO BLOCK RECORDED</span></td><td>Available, subject to the approval gate in Section 7 of the document.</td></tr>
+  </table>
+  <p><b>Gate logic:</b> for each channel the run intends to use, check state first. If DOWN, LOCKED, BLIND, or PAUSED, the channel is skipped and the signal stays queued with its TTL intact. A skipped channel is not a failed run. Record the skip in the run log.</p>
+
+  <h3>Stage 1: Signal search, pull-only (Section 4)</h3>
+  <p>The manual's Rule 01 governs this stage: kill the algorithmic feed. Never let an engagement model sequence the intake. The pipeline searches only deterministic pull sources.</p>
+  <table>
+    <tr><th>Source</th><th>What it yields</th><th>Freshness</th><th>State</th></tr>
+    <tr><td>County ArcGIS, St. Joseph (119,780 parcels)</td><td>Parcel records, ownership, transfers</td><td>Per pull</td><td>LIVE (verified 2026-11-04)</td></tr>
+    <tr><td>County ArcGIS, LaPorte (64,775 parcels)</td><td>Parcel records, ownership, transfers</td><td>Per pull</td><td>LIVE (verified 2026-11-04)</td></tr>
+    <tr><td>Court dockets (probate, estate, tax sale)</td><td>Filings that trigger recipes R2, R3, R5</td><td>Per pull</td><td>Pull route exists in LANDOS design; verify per run</td></tr>
+    <tr><td>Lead Recipe OS, 30 families</td><td>Repeatable acquisition patterns (tax, probate, estate, heir, lien, code, absentee, and 23 more)</td><td>Registry rows</td><td>DESIGNED for R8-R30 (only R1-R7 documented); 4 hunts active</td></tr>
+    <tr><td>LANDOS engine, 50 signals</td><td>Scored signals with SHA-256 provenance</td><td>Per hunt</td><td>DOWN (engine not hosted; landos-engine.fly.dev down)</td></tr>
+    <tr><td>RSS / SEC EDGAR / municipal GIS</td><td>Material filings and transfers</td><td>Per pull</td><td>DESIGNED (manual Rule 01 source class)</td></tr>
+    <tr><td>Content discourse (doomer/bloomer threads)</td><td>Engagement signals for Nexus Phase 2</td><td>Per sweep</td><td>DESIGNED</td></tr>
+  </table>
+  <h4>Signal schema (every signal carries all of these, or it is not a signal)</h4>
+  <pre>{
+  "signal_id": "sig-20261105-berrien-probate-001",
+  "source": "court_docket",
+  "source_ref": "docket number or parcel id, never a guessed value",
+  "recipe": "R3",
+  "detected_at": "2026-11-05T08:00:00-05:00",
+  "fresh_until": "2026-11-12T08:00:00-05:00",
+  "confidence": 0.0,
+  "source_health": "healthy",
+  "entity": { "type": "estate", "key": "parcel or case id" },
+  "material_facts": ["one line each, sourced, no inference"],
+  "raw_payload_ref": "path to the pulled record, not a copy of PII"
+}</pre>
+  <p><b>Signal TTL: 7 days from detection. <span class="pill">PROPOSED, not sourced</span></b> Confirm or change (register entry R12). A signal past its <span class="mono">fresh_until</span> is stale and must be re-verified before it is worked. This rule exists because the current queue is five Berrien leads from the 2026-10-15 pull, 20 days old, and the lead pull has failed 20 straight nights against the dead database.</p>
+  <p><b>Source-health multipliers</b> (from lead-recipe-os scoring/vector.py, do not invent others): healthy 1.0, unknown 0.5, degraded 0.4, stale 0.3, rate_limited 0.4, schema_changed 0.3, credential_missing 0.0, failed 0.0, unsupported 0.0. A signal from a source at 0.0 is not worked.</p>
+  <p><b>Before composing new content, check the content bank first.</b> Procedure: search <span class="mono">~/workspace/distribution/content-bank.md</span> (30 items, format: id, fact, proof, angles) for the signal's recipe and topic keywords across the fact and angles columns. A match means the topic is covered: repurpose that item through the repurpose engine's existing queue procedure instead of composing new. No match means compose new. Correction: the six doomer-bridge articles cover AI-sovereignty topics only (sovereign OS, multi-agent, cognitive arbitrage, intent preservation, DISPATCH-IQ, algorithmic merchant). They do not cover Phase 1 real-estate signals. Phase 1 real-estate templates have no bridge-article coverage and need new composition.</p>
+
+  <h3>Stage 2: Signal verification (Section 5)</h3>
+  <p>A detected signal is not a worked signal. It passes four checks, in order, plus Check 2.5. Fail any one and it is parked with the reason recorded, not silently dropped. Chaff classification is a first-class output: the pipeline logs chaff with the same care as signals, because the chaff log is what proves the filter works. A run that finds only chaff is a successful run, not an empty one.</p>
+  <table>
+    <tr><th>Check</th><th>What it asks</th><th>Fail means</th></tr>
+    <tr><td><b>Check 1, Materiality Test</b> (manual Rule 02)</td><td>Does this signal alter statutory law, capital allocation, or the 50-mile radius? Pass is at least one yes.</td><td>Zero yes: classify as chaff and stop.</td></tr>
+    <tr><td><b>Check 2, Velocity Audit</b> (manual Fig 2.1)</td><td>When a topic hits 10/10 emotional saturation across all feeds simultaneously, apply the 48-hour quarantine. A chaff flare is a spike above 3x baseline with 0 percent local materiality. <span class="pill">3x, 6-hour, 3-feed values are PROPOSED (R5)</span></td><td>Quarantine: audit the primary filings directly. Do not compose. Do not outreach.</td></tr>
+    <tr><td><b>Check 2.5, Cui Bono</b> (manual Rule 03)</td><td>What behavior does this content monetize? If the answer is the audience's despair, fear, or paralysis, kill the draft.</td><td>Draft killed and the reason recorded.</td></tr>
+    <tr><td><b>Check 3, Entity Resolution</b></td><td>Does the same person or estate resolve to one entity across sources? Manual check until the Nexus graph exists: same name plus same parcel or case id equals same entity. Never guess an identity match.</td><td>Parked with the reason recorded.</td></tr>
+    <tr><td><b>Check 4, Consent and DNC</b></td><td>Consent state per entity: clear, unknown, declined, stop. DNC scrubbing is always optional, never an automatic gate. Voter-file contact data, if used, is used then deleted, never retained. Paid enrichment needs his explicit approval first.</td><td>A declined or stop entity is never touched again in any channel.</td></tr>
+  </table>
+
+  <h3>Try it: Signal Verifier</h3>
+  <p>The document's verification logic, running. Answer the three materiality questions, enter the velocity multiple and the local-materiality percentage, and run it.</p>
+  <div class="card">
+    <span class="k">Check 1 · Materiality (pass is at least one yes)</span>
+    <div class="checkrow"><input type="checkbox" id="matLaw"><label for="matLaw">Does this signal alter statutory law?</label></div>
+    <div class="checkrow"><input type="checkbox" id="matCapital"><label for="matCapital">Does this signal alter capital allocation?</label></div>
+    <div class="checkrow"><input type="checkbox" id="matRadius"><label for="matRadius">Does this signal alter the 50-mile radius?</label></div>
+    <span class="k">Check 2 · Velocity audit</span>
+    <div class="grid2" style="margin-top:10px">
+      <div><label for="velMult" style="font-size:13.5px">Velocity multiple vs 30-day baseline</label><input type="number" id="velMult" min="0" step="0.1" value="1.0"></div>
+      <div><label for="locMat" style="font-size:13.5px">Local materiality (percent)</label><input type="number" id="locMat" min="0" max="100" step="1" value="100"></div>
+    </div>
+    <p class="note">Saturation 10/10 is velocity at or above 3x baseline AND present in 3 or more feeds at once. A chaff flare is a spike above 3x baseline with 0 percent local materiality. The 3x value is PROPOSED (R5).</p>
+    <button class="go" onclick="runVerifier()">Run verification</button>
+    <button class="ghost" onclick="setVerifier(1,0,0,1.0,100)">Preset: probate filing (pass)</button>
+    <button class="ghost" onclick="setVerifier(0,0,0,1.0,100)">Preset: national outrage (chaff)</button>
+    <button class="ghost" onclick="setVerifier(1,0,0,4.5,0)">Preset: chaff flare (quarantine)</button>
+    <div class="result" id="verOut" style="display:none"></div>
+  </div>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 130" role="img" aria-label="Verification flow diagram">
+      <defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+        <rect x="8" y="35" width="150" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="83" y="59" fill="#1a1815">DETECTED</text><text x="83" y="78" fill="#4a463e" font-weight="400" font-size="10">signal record</text>
+        <rect x="196" y="35" width="150" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="271" y="59" fill="#1a1815">CHECK 1</text><text x="271" y="78" fill="#4a463e" font-weight="400" font-size="10">materiality</text>
+        <rect x="384" y="35" width="150" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="459" y="59" fill="#1a1815">CHECK 2</text><text x="459" y="78" fill="#4a463e" font-weight="400" font-size="10">velocity audit</text>
+        <rect x="572" y="35" width="150" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="647" y="59" fill="#1a1815">CHECK 3 + 4</text><text x="647" y="78" fill="#4a463e" font-weight="400" font-size="10">entity, consent</text>
+        <rect x="760" y="35" width="192" height="56" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="856" y="59" fill="#fff">VERIFIED</text><text x="856" y="78" fill="#fff" font-weight="400" font-size="10">lead, ready for content</text>
+      </g>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar2)">
+        <line x1="158" y1="63" x2="194" y2="63"/><line x1="346" y1="63" x2="382" y2="63"/><line x1="534" y1="63" x2="570" y2="63"/><line x1="722" y1="63" x2="758" y2="63"/>
+      </g>
+      <text x="271" y="118" font-family="JetBrains Mono,monospace" font-size="10" fill="#9b2c2c" text-anchor="middle">FAIL CHECK 1: CHAFF, LOGGED</text>
+      <text x="459" y="118" font-family="JetBrains Mono,monospace" font-size="10" fill="#9b2c2c" text-anchor="middle">FAIL CHECK 2: 48-HOUR QUARANTINE</text>
+      <text x="647" y="118" font-family="JetBrains Mono,monospace" font-size="10" fill="#9b2c2c" text-anchor="middle">FAIL CHECK 3 OR 4: PARKED WITH REASON</text>
+    </svg>
+    <div class="figcap"><b>Figure 2</b> - The verification flow from Section 5. Four checks in order, plus Check 2.5 (Cui Bono). Fail any one and the signal is parked with the reason recorded, not silently dropped.</div>
+  </div>
+
+  <h3>Stage 3: Content, Davinci compositing (Section 6)</h3>
+  <p>The compositing system is the content engine. The pipeline does not replace it. It feeds it a signal and extends its payload. The four compositing agents, unchanged: Intake Agent (captures requirements, classifies intent), Architect Agent (maps descriptors to design patterns, hex codes, font pairings like Montserrat-Bold), Asset Generation Agent (ComfyUI backgrounds with ControlNet spatial grids reserving negative space; background removal and color correction for user uploads), Assembly Agent (pushes layers into the Fabric.js canvas as independent, editable layers).</p>
+  <p><b>The pipeline adds one input to the Davinci payload: the signal.</b> The extended payload (full schema in Tab 3) adds <span class="mono">signal</span>, <span class="mono">verification</span>, <span class="mono">outreach</span>, and <span class="mono">receipt</span> blocks. The compositor demo is the reference implementation of the rendering half. The signal and outreach blocks are the pipeline's addition; they are not in the demo yet.</p>
+  <h4>Signal-to-template registry (start with four rows; add rows only after a row has closed a loop)</h4>
+  <table>
+    <tr><th>Recipe / signal type</th><th>Content template</th><th>Angle</th><th>CTA</th></tr>
+    <tr><td>R2/R3 probate, estate</td><td>Educational post: what a probate filing means for a property timeline</td><td>Proof-of-work: show the filing pattern, not an argument</td><td>Free 10-min call, cal.com/neuruh</td></tr>
+    <tr><td>R1/R5 tax lien, tax sale</td><td>Explainer: how tax sale timelines work in the county</td><td>Proof-of-work: dates and process, sourced</td><td>Property Opportunity Scan, $100</td></tr>
+    <tr><td>R6 code, R7 absentee</td><td>Teach-first post: what code enforcement or absentee ownership signals</td><td>Proof-of-work: the pattern, not a pitch</td><td>Free 10-min call, cal.com/neuruh</td></tr>
+    <tr><td>Nexus compound (Phase 2)</td><td>Compound strategy brief: the intersection, the primary hook, the secondary pivot</td><td>Side-door entry: personal angle first, primary deal second</td><td>Property Intelligence Dossier, $1,500</td></tr>
+  </table>
+  <p><b>Content posture (manual Section IV, mandatory).</b> Never argue with a doomer in the abstract; debate feeds their engagement loop. Deploy unvarnished proof-of-work: before/after builds, clean data models, solved bottlenecks, filed records. One visible operator calmly building shatters the false consensus. Content shows competence. It does not rebut, mock, or chase outrage.</p>
+  <p><b>The 1:3 ratio (manual Pillar IV.2) is an operator guard on the pipeline.</b> For every 1 hour of intake (signal search, news, macro-analysis), the pipeline must produce 3 hours of verifiable creation. A run that consumes signals and produces no artifact has failed its ratio. The daily runbook enforces this by requiring one shipped artifact per run.</p>
+  <p><b>Content verification before outreach.</b> Every composed piece passes three checks: (a) every number carries a source and an audit date; (b) no owner or property PII is in the public copy; (c) the CTA is exactly one, and it is the free 10-minute qualifier unless the template row says otherwise. A piece that fails any check goes back to the Architect Agent. It does not go to outreach.</p>
+
+  <h3>Stage 4: Outreach, routed, value-first, gated (Section 7)</h3>
+  <p>Outreach is where the pipeline touches people. It is the most gated stage.</p>
+  <h4>Standing rules (his orders, not suggestions)</h4>
+  <ul>
+    <li>Cold first-touch requires Jeramie's approval. Always. The pipeline queues cold first-touch drafts; it never sends them.</li>
+    <li>Warm replies go in his voice with a soft pitch: Property Opportunity Scan ($100), Property Intelligence Dossier ($1,500), free 10-minute call (cal.com/neuruh). The free 10-minute qualifier is the primary CTA everywhere.</li>
+    <li>Nudge bounds: 3 warm, 2 cold, none after decline or stop. Spacing 48 hours between nudges. <span class="mono">followup_due</span> is now plus 48h (warm) or plus 72h (cold). Window 07:00 to 22:00 America/Detroit. Nudges are short plain text in his voice, no links, no pitch escalation, no emojis.</li>
+    <li>Every sent reply creates a CLAIM (open, nudged, escalated, closed) in the channel's claim file; duplicate-writer protection applies (check before posting, skip if the thread was worked less than 24h ago, append the claim immediately after posting). Full claim lifecycle, schema, and per-channel claim files are in Tab 8.</li>
+    <li>Do-not-contact list (never reply, nudge, or claim): Damon Knowlton, Brandon Brittingham, Zielke L Kelsey, Ivan Terrero, Bryan Franklin, Jamiee Klotz. Reddit leg is CLOSED (u/Justabasicpleb banned 2026-09-30).</li>
+    <li>Sends are fail-closed by design: per-channel send-enable flags must be YES, and the October 1 stop order still binds. If a flag is not YES, the send does not happen and the draft stays queued.</li>
+    <li>Friends are help-only, never pitch: Justin Hulsebos, Andre Ahlers, Nick Foster.</li>
+    <li>FB messages are ignored for now, surface only if urgent or money-relevant.</li>
+    <li>Never publish owner or property PII. Never answer an identity or eligibility question for him.</li>
+    <li>Never ship a post carrying a flagged claim without his explicit call.</li>
+  </ul>
+  <p><b>Routing (Language Agent Master).</b> The outreach agent classifies intent (5 intents in the router code; the coded intent_mapping has 5, with Support as a 6th in the tables but not in the code; the router is the code, not the tables), matches an agent profile by tone fit, and uses Jeramie's signature vector as the default tone (assertiveness 0.87, creativity 0.92, humor 0.31, persuasiveness 0.95, formality 0.48). The pipeline's outreach agent is a thin wrapper on that router, not a new router.</p>
+  <p><b>Nexus motions (Phase 2, designed).</b> Side Door Entry: approach from the personal angle (a real-estate acquisition) before pivoting to the primary deal. Liquidity Event Prediction: a defense contract award plus investor connections predicts a cash infusion; position at the moment capital needs deploying. Sniper ABM: micro-segments like "Defense Execs who own Real Estate and engage with AI-skeptic content" get hyper-targeted collateral. Dynamic Risk Mitigation: vacant commercial properties plus distressed-asset content engagement flags a High Risk Compound Profile; do not invest outreach resources there.</p>
+  <p><b>Channel priority (manual Pillar IV.3, Dark Forest).</b> Own the pipe before renting the feed. Priority order: (1) direct CRM and owned lists, (2) private B2B directories and high-trust groups, (3) public feeds (X, Facebook groups, BiggerPockets). Algorithmic feeds are the last resort, not the first, because the platform owns the casino and taxes every interaction. This reverses the current posture, which leans on feed posting. That reversal is deliberate and is a decision for him (D5).</p>
+  <p><b>Per-channel pacing budgets (the lock taught this).</b> The Facebook lock came from about 110 shares in about 22 minutes across 5 listings. The pipeline sets a pacing budget per channel per run and stops at it. Facebook: one listing at a time across its groups, pause between listings, never two share sessions back to back without a gap, well below the lock rate. X: 20 original posts per day plus replies across 50 distinct threads, about 45 minutes apart, and only when the stop order lifts. Any channel that returns a rate limit, checkpoint, or lock ends the run for that channel immediately. Only Jeramie can clear a lock, from a previously used device.</p>
+
+  <h3>Stage 5: Outcome and receipt (Section 8)</h3>
+  <p>Every touch leaves a receipt. The receipt is what turns activity into evidence.</p>
+  <h4>Receipt schema (CRUCIBLE-style, hash-chained)</h4>
+  <pre>{
+  "receipt_id": "rcpt-20261105-0001",
+  "signal_id": "sig-20261105-berrien-probate-001",
+  "content_ref": "davinci payload id and version",
+  "channel": "biggerpockets",
+  "sent_at": "2026-11-05T10:00:00-05:00",
+  "sender": "jeramie",
+  "cta": "free 10-min call, cal.com/neuruh",
+  "outcome": "reply | booking | decline | stop | silence",
+  "outcome_at": "2026-11-05T10:42:00-05:00",
+  "prev_receipt_hash": "sha256 of the previous receipt",
+  "receipt_hash": "sha256 of this receipt body"
+}</pre>
+  <p><b>What counts as an outcome:</b> reply (any response), booking (a call booked), decline (explicit no), stop (do not contact), silence (no reply within the nudge window; silence is recorded, not assumed to be a no). The estate reply watch is the outcome sensor for Messenger; it is currently BLIND, so Messenger outcomes are UNKNOWN until it recovers, not silence.</p>
+  <p><b>The pipeline's scoreboard (one line per run, no vanity metrics):</b> signals pulled, signals verified, signals chaffed, content composed, content queued, touches sent, replies, bookings, declines, stops. Conversion is measured per stage, not as one number. The headline metric is the Nexus conversion lift multiplier: compound lead conversion rate divided by single-domain lead conversion rate, target above 2.5x. That target is unmeasured today. There is no baseline single-domain conversion rate on record. The first job of Stage 6 is to establish the baseline, not to claim the lift.</p>
+
+  <h3>Stage 6: Learning (Section 9)</h3>
+  <p>The Nexus meta-feedback loop is the design: analyze success and failure patterns of cross-domain intersections, broadcast algorithm updates back to the engines. The pipeline implements it in three concrete steps:</p>
+  <ol>
+    <li><b>Outcome writes back to the signal record.</b> A reply, booking, decline, or stop updates the entity record and the recipe row. A decline on a probate signal lowers that recipe's weight for that entity type; a booking raises it. Weights live in landos-engine/app/scoring.py and are re-seedable; the pipeline proposes weight changes, it does not apply them silently.</li>
+    <li><b>Chaff writes back to the filter.</b> A topic classified as chaff three times in a week gets a standing chaff entry, so future runs skip it without a full audit. The chaff log is reviewed weekly; a standing entry is removed only by his call.</li>
+    <li><b>Content writes back to the bank.</b> Every composed piece that closes a loop (reply or booking) is added to the content bank as a proven template. Every piece that fails verification is logged with the reason, so the Architect Agent does not repeat the failure.</li>
+  </ol>
+  <p><b>What learning is blocked on today:</b> the reply watch is blind (no outcome data from Messenger), the data spine is down (no live scoring store), and there is no measured baseline. Learning is DESIGNED, not running. The pipeline records outcomes to the local ledger until the spine returns, so the learning step has data waiting when it does.</p>
+
+  <h3>Daily runbook (Section 14, one run, in order, with gates)</h3>
+  <p><b>Step 0, operator checklist (manual, daily, before the run).</b> Morning Zero-Feed Lock: first 90 minutes after waking on physical movement or deep build work, no browser. Chaff Flare Check: identify today's number one boosted outrage story, log it as Noise, do not click or comment. Ship One Hard Artifact: one verifiable unit of value (see step 12). High-Trust Touchpoint: 15 minutes with a real human inside the local radius or Dark Forest network.</p>
+  <ol>
+    <li><b>Health gate (Stage 0).</b> Check each channel state. Skip down channels. Log skips.</li>
+    <li><b>Intake (Stage 1).</b> Pull-only search across the source registry. Write signal records. Apply source-health multipliers. Do not open an algorithmic feed.</li>
+    <li><b>Chaff check (Stage 2, Checks 1 and 2).</b> Materiality test, then velocity audit. Quarantine anything at 10/10 saturation. Log chaff.</li>
+    <li><b>Verify (Stage 2, Checks 3 and 4).</b> Entity resolution, consent and DNC state. Park failures with reasons.</li>
+    <li><b>Bank check.</b> Before composing, check the content bank and the doomer-bridge articles. Repurpose if covered.</li>
+    <li><b>Compose (Stage 3).</b> Content Router picks the template. Intake, Architect, Asset Generation, Assembly run. Content verification: sourced numbers with audit dates, no PII, exactly one CTA.</li>
+    <li><b>Queue (Stage 4).</b> Outreach Agent routes and drafts. Cold first-touch goes to his approval queue. Nothing sends in this step.</li>
+    <li><b>Approve.</b> He approves, edits, or kills each queued draft. Approval is per draft, not per batch.</li>
+    <li><b>Send (Stage 4).</b> Only approved drafts, only on channels whose send-enable flag is YES, inside the pacing budget, inside 07:00 to 22:00 Detroit.</li>
+    <li><b>Receipt (Stage 5).</b> One hash-chained receipt per touch. Record the outcome when it arrives. Silence is recorded after the nudge window, not assumed.</li>
+    <li><b>Learn (Stage 6).</b> Outcome writes back to the signal record and the recipe row. Chaff writes back to the standing log. Proven content writes back to the bank.</li>
+    <li><b>Ship one hard artifact.</b> The run is not complete until one verifiable unit of value exists: a code commit, an underwritten asset, an SOP, a physical repair, a composed piece with a receipt, a queued draft batch, a verified signal set with receipts, or a receipt chain. This is the manual's definition plus the pipeline's receipted outputs. This is the 1:3 ratio enforced.</li>
+  </ol>
+  <p><b>Run log (one line per run):</b> date, signals pulled, verified, chaffed, content composed, queued, sent, replies, bookings, declines, stops, artifacts shipped. The log lives with the outreach ledger until the spine returns.</p>
+</section>
+
+<!-- ============ TAB 3 : DAVINCI PAYLOAD V2 ============ -->
+<section class="tab" id="t3">
+  <h2>Davinci payload v2: the signal, verification, outreach, and receipt blocks</h2>
+  <p class="lede">Section 11 of the document. The original Davinci payload is the design's source of truth. Version 2 adds four blocks and changes nothing else. A v1 payload is still valid; a v2 payload is a v1 payload plus signal, verification, outreach, and receipt.</p>
+  <pre>{
+  "protocol": "davinci",
+  "protocol_version": "2.0",
+  "project_type": "social_media_post",
+  "vertical": "real_estate",
+  "dimensions": { "width": 1080, "height": 1080, "aspect_ratio": "1:1" },
+  "signal": {
+    "signal_id": "sig-20261105-berrien-probate-001",
+    "recipe": "R3",
+    "source": "court_docket",
+    "source_ref": "docket or parcel id",
+    "detected_at": "2026-11-05T08:00:00-05:00",
+    "fresh_until": "2026-11-12T08:00:00-05:00",
+    "confidence": 0.85,
+    "source_health": "healthy"
+  },
+  "verification": {
+    "materiality": "pass",
+    "velocity_audit": "pass, no quarantine",
+    "entity_resolution": "resolved, one entity",
+    "consent": "unknown, no decline on record",
+    "verified_at": "2026-11-05T08:20:00-05:00",
+    "verified_by": "signal_verifier"
+  },
+  "layers": {
+    "background": {
+      "prompt": "high-end residential neighborhood, blurred background, warm sunset lighting, hyper-realistic",
+      "negative_prompt": "text, watermarks, ugly architecture, cartoonish"
+    },
+    "hero_image": {
+      "source": "user_upload_1.jpg",
+      "agent_action": "remove_background_and_color_correct"
+    },
+    "typography": {
+      "headline": { "text": "JUST SOLD", "font": "Montserrat-Bold", "color": "#FFFFFF", "position": "top_center" },
+      "subtext": { "text": "$1.2M - 3 Days on Market", "font": "OpenSans-Regular", "color": "#F0F0F0", "position": "bottom_center" }
+    },
+    "branding": {
+      "agent_headshot": "user_profile_img.png",
+      "agency_logo": "company_logo.svg",
+      "position": "bottom_right"
+    }
+  },
+  "outreach": {
+    "channel": "biggerpockets",
+    "audience": "real estate investors, Berrien County",
+    "hook": "primary hook, one sentence, from the signal",
+    "pivot": "secondary pivot, one sentence",
+    "cta": "free 10-min call, cal.com/neuruh",
+    "tone": { "assertiveness": 0.87, "creativity": 0.92, "humor": 0.31, "persuasiveness": 0.95, "formality": 0.48 },
+    "approval": "required, cold first-touch",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "receipt": {
+    "receipt_id": null,
+    "sent_at": null,
+    "outcome": null,
+    "outcome_at": null,
+    "receipt_hash": null
+  }
+}</pre>
+  <p class="note">The $1.2M figure and the JUST SOLD headline are the spec's example payload values, not a real sale. The layers block is unchanged from the compositing spec.</p>
+
+  <h3>Worked example (all values are examples, not real records)</h3>
+  <p>Signal: a probate filing in Berrien County, recipe R3, detected from a court docket pull. The Content Router maps R3 to the probate explainer template. The Architect Agent composes a teach-first post: headline "WHAT A PROBATE FILING MEANS FOR A PROPERTY TIMELINE", subtext sourced from the filing pattern, no owner name, no address, no PII. The outreach block sets channel BiggerPockets, hook from the signal (a probate filing changes the timeline, not the value), CTA the free 10-minute call. The draft queues for his approval. On approval, the Outreach Agent sends it, the Receipt Agent chains the receipt, and the outcome writes back to the R3 row. One signal, one piece, one touch, one receipt. That is the unit of work.</p>
+
+  <h3>What v2 deliberately does not add</h3>
+  <ul>
+    <li>No pricing inside the payload (prices live in the offer ladder, not in content).</li>
+    <li>No owner PII in any block (the signal block carries a source ref, never a name or address in the public copy).</li>
+    <li>No send instruction (sending is a gate decision, not a payload field).</li>
+  </ul>
+</section>
+
+<!-- ============ TAB 4 : AGENT ROSTER ============ -->
+<section class="tab" id="t4">
+  <h2>Agent roster: ten agents, one job each (Section 10)</h2>
+  <p class="lede">Each agent has one job, one input, one output, and a state. No agent does another agent's job. No agent sends anything.</p>
+  <table>
+    <tr><th>Agent</th><th>Job</th><th>Input</th><th>Output</th><th>Existing component</th><th>State</th></tr>
+    <tr><td><b>Signal Scout</b></td><td>Pull-only search across the source registry</td><td>Source registry, recipe list</td><td>Signal records (Section 4 schema)</td><td>LANDOS ingest, lead-recipe-os</td><td><span class="pill red">DOWN</span> (engine not hosted; pull route exists in design)</td></tr>
+    <tr><td><b>Signal Verifier</b></td><td>Materiality, velocity audit, entity resolution, consent</td><td>Signal records</td><td>Verified signals, chaff log</td><td>Manual Rules 01-03, Nexus graph (designed)</td><td><span class="pill">DESIGNED</span></td></tr>
+    <tr><td><b>Content Router</b></td><td>Signal-to-template mapping, content bank check</td><td>Verified signal</td><td>Template id, or repurpose instruction</td><td>Repurpose engine, content bank (30 items)</td><td><span class="pill green">IMPLEMENTED</span> (repurpose engine runs; registry is new)</td></tr>
+    <tr><td><b>Intake Agent</b></td><td>Capture requirements, classify intent</td><td>Verified signal plus template</td><td>Refined design instructions</td><td>Compositing spec</td><td><span class="pill">DESIGNED</span> (spec only)</td></tr>
+    <tr><td><b>Architect Agent</b></td><td>Map descriptors to hex codes and font pairings</td><td>Design instructions</td><td>Davinci payload v2 (Section 11)</td><td>Compositing spec, live compositor demo</td><td><span class="pill green">IMPLEMENTED</span> (demo proves the mechanism)</td></tr>
+    <tr><td><b>Asset Generation Agent</b></td><td>ComfyUI backgrounds, ControlNet grids, upload processing</td><td>Davinci payload</td><td>Processed assets</td><td>ComfyUI, ControlNet (named in spec)</td><td><span class="pill">DESIGNED</span> (no live ComfyUI on record)</td></tr>
+    <tr><td><b>Assembly Agent</b></td><td>Push layers into the Fabric.js canvas</td><td>Assets plus payload</td><td>Editable layered design</td><td>Fabric.js (named in spec), live compositor demo</td><td><span class="pill green">IMPLEMENTED</span> (demo proves the mechanism)</td></tr>
+    <tr><td><b>Outreach Agent</b></td><td>Route, draft, queue; never send without a gate</td><td>Composed content, entity record</td><td>Queued draft with routing record</td><td>Language Agent Master router (live demo)</td><td><span class="pill green">IMPLEMENTED</span> (router demo; sending is gated)</td></tr>
+    <tr><td><b>Receipt Agent</b></td><td>Hash-chain a receipt per touch</td><td>Touch record</td><td>Receipt (Section 8 schema)</td><td>CRUCIBLE (architecture exists)</td><td><span class="pill">DESIGNED</span></td></tr>
+    <tr><td><b>Sentinel</b></td><td>Outcome analysis, weight proposals, chaff review</td><td>Receipts and outcomes</td><td>Weight proposals, standing chaff entries</td><td>Nexus meta-feedback loop (designed)</td><td><span class="pill">DESIGNED</span></td></tr>
+  </table>
+  <p><b>Single-writer rule:</b> one agent writes each store. The Signal Scout is the sole writer of signal records. The Receipt Agent is the sole writer of receipts. The Outreach Agent is the sole writer of the outreach queue. No other agent writes those stores. This is the same rule that governs the data pipelines, applied to the pipeline itself.</p>
+  <div class="grid3" style="margin-top:18px">
+    <div class="stat"><div class="n">4</div><div class="l">Agents IMPLEMENTED (Content Router, Architect, Assembly, Outreach)</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">Agents DESIGNED (Verifier, Intake, Asset Generation, Receipt, Sentinel)</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">Agent DOWN (Signal Scout, engine not hosted)</div></div>
+  </div>
+</section>
+
+<!-- ============ TAB 5 : GAPS ============ -->
+<section class="tab" id="t5">
+  <h2>Gaps: fifteen filled, nine still open</h2>
+  <p class="lede">Sections 12 and 13 of the document. The fifteen gaps the document closes, each with the fix and its source. The nine gaps the document cannot close, each with what would close it.</p>
+
+  <h3>Fifteen gaps this document fills (Section 12)</h3>
+  <table>
+    <tr><th>#</th><th>Gap</th><th>Fix</th><th>Source</th></tr>
+    <tr><td>1</td><td>The compositing pipeline has no input. The Davinci payload starts at <span class="mono">project_type</span>. Nothing feeds it.</td><td>The signal block and the Signal Scout.</td><td>Lead Recipe OS and LANDOS</td></tr>
+    <tr><td>2</td><td>No signal-to-content mapping. A signal with no template is a dead end.</td><td>The signal-to-template registry in Section 6, starting with four rows.</td><td>This document</td></tr>
+    <tr><td>3</td><td>No chaff filter. The spec assumes every input is worth composing.</td><td>Materiality test, velocity audit, 48-hour quarantine.</td><td>Anti-Doomer manual, Rules 01 to 03 and Fig 2.1</td></tr>
+    <tr><td>4</td><td>No freshness rule. Signals were worked until they went stale, and the current queue is 20 days old.</td><td>7-day TTL <span class="pill">PROPOSED</span>, re-verify before working, source-health multipliers from lead-recipe-os.</td><td>2026-10-15 pull and 20 failed nights</td></tr>
+    <tr><td>5</td><td>No entity resolution. The same prospect could get multiple outreach streams.</td><td>Manual resolution now (name plus parcel or case id), Nexus knowledge graph as the designed answer.</td><td>Nexus paper</td></tr>
+    <tr><td>6</td><td>No approval gate between content and outreach. The spec ends at assembly.</td><td>Cold first-touch always queued for his approval; sends fail-closed on per-channel flags.</td><td>His standing order</td></tr>
+    <tr><td>7</td><td>No receipt per touch. Activity without evidence is unverifiable.</td><td>Hash-chained receipt schema, one per touch.</td><td>CRUCIBLE</td></tr>
+    <tr><td>8</td><td>No outcome feedback. The pipeline would be a hose, not a loop.</td><td>Outcome writes back to the signal record and the recipe weights; chaff writes back to a standing chaff log; proven content writes back to the bank.</td><td>Nexus meta-feedback loop</td></tr>
+    <tr><td>9</td><td>No channel health check. The pipeline would burn signals against locked, blind, and paused channels.</td><td>Stage 0 gate, run first every time.</td><td>Facebook lock, blind reply watch, X stop order, Gmail full</td></tr>
+    <tr><td>10</td><td>No pacing budget. The lock came from volume, not content.</td><td>Per-channel pacing budgets, stop at the first rate limit or checkpoint.</td><td>Marketplace pacing skill and the 06:51 lock</td></tr>
+    <tr><td>11</td><td>No content-to-offer mapping. Content without a CTA is a dead end; content with three CTAs is noise.</td><td>Exactly one CTA per piece, mapped in the template registry, free 10-minute qualifier as the default.</td><td>Offer ladder</td></tr>
+    <tr><td>12</td><td>No measurement spec. The Nexus lift target (above 2.5x) has no baseline.</td><td>Per-stage scoreboard, baseline established before any lift claim.</td><td>Nexus paper's own target language</td></tr>
+    <tr><td>13</td><td>No content posture. The spec says nothing about what the content should argue.</td><td>Proof-of-work posture, never argue with a doomer, Dark Forest channel priority (own the pipe before renting the feed).</td><td>Anti-Doomer manual, Section IV</td></tr>
+    <tr><td>14</td><td>No operator ratio guard. Intake without creation is doomscrolling with extra steps.</td><td>The 1:3 consumption-to-creation ratio enforced in the runbook.</td><td>Manual, Pillar IV.2</td></tr>
+    <tr><td>15</td><td>No fallback when the spine is down. The pipeline would halt on the dead database.</td><td>Local ledger fallback for signals, content, and receipts until the spine is restored.</td><td>Outreach ledger fallback already in use</td></tr>
+  </table>
+
+  <h3>Nine gaps still open (Section 13)</h3>
+  <table>
+    <tr><th>#</th><th>Gap</th><th>What closes it</th></tr>
+    <tr><td>1</td><td><b>The data spine is down.</b> Production Supabase unreachable, DeedSonar paused, LANDOS engine not hosted.</td><td>Jeramie reports the Mac backup check (paths: /Volumes/NEURUH-HD/NEURUH_BACKUPS/deedsonar-efxo and ~/models/provenance/db) and the restore path is chosen. Until then the pipeline runs on the local ledger.</td></tr>
+    <tr><td>2</td><td><b>Facebook is locked and Messenger is blind.</b></td><td>Only he can unlock the account. No outreach outcome data exists from Messenger until the watch recovers.</td></tr>
+    <tr><td>3</td><td><b>X is paused.</b> The stop order holds.</td><td>His call. Content queues; nothing publishes.</td></tr>
+    <tr><td>4</td><td><b>No measured baseline.</b> The lift multiplier, the 5x to 10x engagement claim, and the under-five-minute latency are targets and claims from the Nexus paper, not measurements.</td><td>20 single-domain touches measured first (Section 19 baseline procedure). No lift claim is valid until then.</td></tr>
+    <tr><td>5</td><td><b>R8 to R30 are undocumented.</b> Only R1 to R7 are named.</td><td>Recipe documentation. The registry cannot map signals it cannot name. A separate job.</td></tr>
+    <tr><td>6</td><td><b>No live ComfyUI.</b> The Asset Generation Agent's core tool is named in the spec but has no live instance on record.</td><td>A hosted ComfyUI instance. Backgrounds in the compositor demo are stand-ins.</td></tr>
+    <tr><td>7</td><td><b>No live Nexus graph.</b></td><td>The knowledge graph build. Entity resolution is manual until it exists.</td></tr>
+    <tr><td>8</td><td><b>No CRUCIBLE key on record.</b> The receipt chain is designed; the HMAC key is not in GitHub.</td><td>The Mac check (ls -la ~/crucible/) is still outstanding, or generate fresh at deploy time.</td></tr>
+    <tr><td>9</td><td><b>The pipeline has never run.</b></td><td>One full loop closing with a receipt. This document is DESIGNED. Do not describe it as working until then.</td></tr>
+  </table>
+</section>
+
+<!-- ============ TAB 6 : RESOLUTION & REGISTER ============ -->
+<section class="tab" id="t6">
+  <h2>Resolution process and gap register (Sections 16 and 17)</h2>
+  <p class="lede">A gap without a resolution path is a complaint. This process gives every gap one of three types and a done-criteria: prompt out the solution, or take the action.</p>
+
+  <h3>The Resolution Process (Section 16)</h3>
+  <table>
+    <tr><th>Type</th><th>Meaning</th><th>Done when</th></tr>
+    <tr><td><span class="pill green">ACTION</span></td><td>The agent executes it now. No human needed.</td><td>The action is verified in the document or the system.</td></tr>
+    <tr><td><span class="pill">PROMPT</span></td><td>The exact question is asked to Jeramie, in the numbered knock-out list, with options and a recommendation.</td><td>He answers.</td></tr>
+    <tr><td><span class="pill red">DECISION</span></td><td>His call, with options, a recommendation, and what happens after each answer.</td><td>He picks one and the document records the pick.</td></tr>
+  </table>
+  <p><b>Cadence:</b> (1) A gap is found. It gets a register entry with a type, an owner, and a done-when. No entry without a type. (2) ACTION gaps are executed in the same turn they are found. The amendment lands in this document or the system, verified, same turn. (3) PROMPT and DECISION gaps go into the numbered knock-out list for his call. Blocks (anything that stops a run) are reported the same day. Non-blocks ride the daily evening log. (4) A resolved gap moves to the closed list with the resolution and the date. The register is append-only. Nothing is deleted from it.</p>
+  <p><b>Rules:</b> Proposed numbers are labeled PROPOSED wherever they appear. A proposed number is not a fact until he confirms it. Sourced numbers cite their source. If a number has no source, it is PROPOSED or it does not go in. When a source and this document disagree, the source wins until the document is amended. The amendment is dated. The agent never invents a threshold to fill a blank. It proposes one, labels it, and asks.</p>
+
+  <h3>Register browser</h3>
+  <p>All 37 entries: R1 to R30 plus D1 to D7. Filter by status or by type. Counts are computed from the table itself.</p>
+  <div class="filterbar" id="regFilters">
+    <button class="ghost on" data-filter="all" id="fAll">All</button>
+    <button class="ghost" data-filter="status-resolved" id="fResolved">Resolved</button>
+    <button class="ghost" data-filter="status-open" id="fOpen">Open</button>
+    <button class="ghost" data-filter="type-action" id="fAction">Action</button>
+    <button class="ghost" data-filter="type-prompt" id="fPrompt">Prompt</button>
+    <button class="ghost" data-filter="type-decision" id="fDecision">Decision</button>
+  </div>
+  <p class="note" id="regCounts"></p>
+  <div class="regwrap">
+  <table id="regTable">
+    <tr><th>ID</th><th>Gap</th><th>Type</th><th>Status</th><th>Resolution</th><th>Owner</th><th>Done when</th></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R1</td><td>"Qualified" was undefined. The scoreboard cannot be computed.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Definitions added to the Section 19 glossary: qualified signal, qualified conversation, qualified booking.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R2</td><td>Signal, lead, opportunity, prospect were used interchangeably.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Taxonomy in the Section 19 glossary: signal is a detected event, lead is a verified signal with a resolved entity, opportunity is a lead with a template and a CTA, prospect is an entity with a history.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R3</td><td>Confidence had no scale and no work threshold.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Confidence is 0.0 to 1.0. Minimum to work a signal is 0.6, grounded in sync_to_crm.py.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R4</td><td>Materiality was a question, not a rubric. An agent cannot execute a question.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Three yes/no questions. Pass is at least one yes. Fail is zero yes, classified as chaff. Section 19.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R5</td><td>Velocity had no metric ("10/10 saturation", "90 percent velocity").</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Velocity is the count of distinct posts or threads in a 6-hour window against the 30-day baseline. Saturation 10/10 is at or above 3x baseline AND in 3 or more feeds. Chaff flare is a spike above 3x baseline with 0 percent local materiality. The 3x, 6-hour, and 3-feed values are PROPOSED. Prompt: "Velocity baseline is 3x over a 6-hour window across 3 or more feeds. Keep, or change the multiplier, window, or feed count?"</td><td>Agent</td><td>Executed with PROPOSED numbers; confirm prompt open.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R6</td><td>"Compound" had no threshold. Phase 2 cannot start without knowing what counts.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Compound is an entity with verified signals in 2 or more domains (Defense, Real Estate, Investor, Content). Section 19.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R7</td><td>"High Risk Compound Profile" had no criteria. The risk flag cannot fire.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Flag when (vacant commercial properties is at least 1 AND distressed-asset content engagement is present) OR (vacant properties is at least 2).</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R8</td><td>"Artifact" in the runbook did not match the manual's definition.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Runbook step 12 amended to the manual's list plus the pipeline's receipted outputs.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R9</td><td>Nudge intervals were missing.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>48h spacing, followup_due now plus 48h (warm) or plus 72h (cold), from the followup protocol canonical spec. Section 7 amended.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R10</td><td>Claim lifecycle was missing. No duplicate protection, no escalation path, no closed state.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Claim state machine (open, nudged, escalated, closed), claim schema, per-channel claim files, duplicate-writer protection, all from the followup protocol canonical spec. Section 19.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R11</td><td>Do-not-contact list was missing. The pipeline could touch a banned name.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Six names added to Section 7 (Damon Knowlton, Brandon Brittingham, Zielke L Kelsey, Ivan Terrero, Bryan Franklin, Jamiee Klotz), plus the Reddit leg CLOSED note.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">R12</td><td>Signal TTL (7 days) was presented as a rule but is proposed.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Relabeled PROPOSED in Section 4. Prompt: "Signal TTL is 7 days. Keep 7, or change to 14 or 30? Recommendation: keep 7 for the pilot, because the current queue went stale at 20 days and 7 keeps every signal inside one weekly review."</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">R13</td><td>No throughput targets. The 1:3 ratio cannot be measured without a volume.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Propose a pilot volume. Prompt: "Pilot volume for week 1 is 5 signals pulled, 3 verified, 1 content piece composed, 1 touch sent per day. Keep, or change the numbers?"</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R14</td><td>Background removal API is unnamed and unpriced.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Default is local-only (rembg, open-source, no cost) per the standing $0 budget rule. Any paid API needs his explicit approval under the standing paid-approval rule.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">R15</td><td>No end-to-end latency target. Signals rot while the pipeline idles.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Propose one. Prompt: "Latency target is signal detected to content queued within 24 hours, and approved content to touch sent inside the same 07:00 to 22:00 window. Keep, or change?"</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R16</td><td>No fallback when the Signal Scout is DOWN. The pipeline cannot run at all while LANDOS is unhosted.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Manual pull procedure in Section 19: county ArcGIS plus court docket check, logged to the signal file in the same schema. County sources were verified live 2026-11-04.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R17</td><td>No escalation or notification path. A mid-run failure would sit silent.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>When a gate fails mid-run (lock, rate limit, checkpoint), the run stops for that channel, the skip is logged, and the failure is reported to Jeramie in chat the same day.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R18</td><td>No review cadence or owner for weight proposals and chaff entries.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Weight proposals and standing chaff entries go into the numbered knock-out list for his call. The daily evening log carries them until he answers.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="open" data-type="decision"><td class="mono">R19</td><td>Feed-first operations contradict the manual's Dark Forest doctrine. The pipeline cannot follow both.</td><td>DECISION</td><td><span class="pill red">OPEN</span></td><td>Recommend the split: distribution (posting content) stays on feeds; outreach (the pipeline's touches) goes owned-pipe first (CRM, direct lists, private groups). Prompt: "Split it: distribution stays feed, outreach goes owned pipe first. Confirm, or keep feed-first for both?" See also D5.</td><td>Jeramie</td><td>He picks one and the document records the pick.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R20</td><td>Lift measurement has no baseline procedure. The above 2.5x target cannot be computed or claimed.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Baseline procedure in Section 19: the next 20 single-domain touches are measured before any compound touch. Lift equals compound rate divided by single-domain rate. Until 20 single-domain touches exist, no lift number is reported.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R21</td><td>Intent set is 5 coded versus 6 in the tables. The Outreach Agent cannot route a 6th intent.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Use the 5 coded intents. A Support intent routes to a human (him), not to an agent profile. The router is the code, not the tables.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R22</td><td>Signal-field to payload-field mapping was missing. The Architect cannot fill the payload from the signal.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Mapping table in Section 19.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R23</td><td>Rule 03 (Cui Bono) and the daily checklist were not wired in. Named but not operationalized is the same as absent.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Rule 03 is Verification Check 2.5 (if the content would monetize the audience's despair, kill it). The daily checklist is runbook Step 0.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R24</td><td>Bank-check procedure was undefined and the article mapping was wrong.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Concrete search procedure in Section 4. The six bridge articles cover AI-sovereignty topics only, not Phase 1 real-estate signals.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R25</td><td>No prompt library. A document an agent can execute from must contain the actual prompts.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Section 18, eleven literal prompts.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R26</td><td>No error handling for the lead pull failure. The pull failed 20 straight nights silently.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>After 3 consecutive failed pulls, the run stops attempting the pull and reports the failure the same day. Retry is once per run. No silent retry loop. The 3-strikes value is PROPOSED. Prompt: "Pull failure rule is 3 strikes then same-day report. Keep 3, or change the strike count?"</td><td>Agent</td><td>Executed with a PROPOSED number; confirm prompt open.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R27</td><td>No signal state machine. Stages without states and transitions cannot be executed.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>State machine in Section 19.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R28</td><td>No queue data model or file. The queue has nowhere to live.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Outreach queue lives in the outreach ledger and the per-channel claim files. Signal store is pipeline-signals.md, created by the first run.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R29</td><td>No acceptance criteria for v1.0. "The first run is the proof" has no pass condition.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Section 20: PROVEN when one loop closes (5 pulled, 3 verified, 1 composed, 1 sent, 1 receipt, 1 outcome). Until then DESIGNED.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="resolved" data-type="action"><td class="mono">R30</td><td>No versioning or change process. The document would drift silently.</td><td>ACTION</td><td><span class="pill green">RESOLVED</span></td><td>Section 20: append-only amendments, version bump on any gate, threshold, or schema change, no silent edits to gates.</td><td>Agent</td><td>Executed and verified in the document.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">D1</td><td>First signal source.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Options: Phase 1 county ArcGIS probate and tax (as written); Phase 2 Nexus compound first. Recommendation: Phase 1, because the signal infrastructure exists there and Phase 2 has no live graph. After the answer: the scope section is amended to record the pick.</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">D2</td><td>First channel.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Options: BiggerPockets; Threads; keep everything queued until Facebook unlocks. Recommendation: BiggerPockets, because it is the open route with an existing claim file (bp-claims.json) and a reply history. After the answer: the channel priority in Section 7 is amended.</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">D3</td><td>Approval gate shape.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Options: per-draft approval; daily batch approval. Recommendation: per-draft, because a bad cold first-touch costs more than the review time saves. After the answer: the gate in Section 7 is amended.</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">D4</td><td>CTA mapping.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Options: keep the registry as written (probate and tax to Scan and free call, compound to Dossier); change a row. Recommendation: keep as written for the pilot. After the answer: the registry in Section 6 is amended.</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="open" data-type="decision"><td class="mono">D5</td><td>Dark Forest reversal.</td><td>DECISION</td><td><span class="pill red">OPEN</span></td><td>See R19. Recommendation: split (distribution stays feed, outreach goes owned pipe). After the answer: Section 7 channel priority is amended.</td><td>Jeramie</td><td>He picks one and the document records the pick.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">D6</td><td>Local ledger run.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Options: run now on the local ledger; wait for the Mac backup check and the restore. Recommendation: run now on the local ledger, because the ledger fallback already exists and waiting burns the pilot window. After the answer: the runbook's data store line is amended.</td><td>Jeramie</td><td>He answers.</td></tr>
+    <tr data-status="open" data-type="prompt"><td class="mono">D7</td><td>The manual as a demo.</td><td>PROMPT</td><td><span class="pill red">OPEN</span></td><td>Options: build the Anti-Doomer Field Manual as a standalone demo on the GitHub Pages home; keep it as source material only. Recommendation: build it, because it is a complete document with its own diagrams and doctrine, and the same treatment the Nexus and compositing papers got. After the answer: either a demo build is kicked off, or the manual stays source-only and the decision is recorded.</td><td>Jeramie</td><td>He answers.</td></tr>
+  </table>
+  </div>
+</section>
+
+<!-- ============ TAB 7 : PROMPT LIBRARY ============ -->
+<section class="tab" id="t7">
+  <h2>Prompt library: eleven literal prompts (Section 18)</h2>
+  <p class="lede">These are the prompts an agent uses to execute the pipeline. Copy them verbatim. Each prompt names its inputs, its output, and its stop conditions.</p>
+
+  <div class="promptblock">
+    <span class="k">P1 · Signal Scout search</span>
+    <button class="copybtn" data-copy="prompt-p1" onclick="copyPrompt('prompt-p1', this)">Copy P1</button>
+    <pre id="prompt-p1">You are the Signal Scout. Search ONLY the pull sources in the pipeline source registry (Section 4).
+Do not open an algorithmic feed. Do not use a push notification. Do not guess a source.
+For each source, pull the newest records since the last run. For each record, emit one signal
+in the Section 4 schema with all fields filled. If a field is unknown, write "unknown", never
+a guessed value. Apply the source-health multiplier from lead-recipe-os. Skip any source whose
+health is 0.0. Stop after the pilot volume (5 signals per run, R13) or when the sources are
+exhausted, whichever comes first. Output: signal records written to pipeline-signals.md.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P2 · Verifier, materiality</span>
+    <button class="copybtn" data-copy="prompt-p2" onclick="copyPrompt('prompt-p2', this)">Copy P2</button>
+    <pre id="prompt-p2">You are the Signal Verifier. For the given signal, answer three questions with yes or no,
+each with the source line that supports it:
+1. Does this signal alter statutory law?
+2. Does this signal alter capital allocation?
+3. Does this signal alter the 50-mile radius?
+Pass is at least one yes. Fail is zero yes: classify as chaff, record the reason, stop.
+Do not infer. A fact without a source line is a no.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P3 · Verifier, velocity audit</span>
+    <button class="copybtn" data-copy="prompt-p3" onclick="copyPrompt('prompt-p3', this)">Copy P3</button>
+    <pre id="prompt-p3">You are the Signal Verifier. For the given topic, count distinct posts or threads across the
+monitored feeds in the last 6 hours. Compare against the 30-day baseline for that topic.
+Saturation 10/10 is velocity at or above 3x baseline AND present in 3 or more feeds at once.
+If saturation is 10/10, apply the 48-hour quarantine: do not compose, do not outreach.
+Audit the primary filings directly (court docket, SEC EDGAR, county GIS) and record what they
+say. If Curve B (boosted outrage) is above 3x baseline with 0 percent local materiality,
+classify the topic as a chaff flare and log it.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P4 · Verifier, Cui Bono (Check 2.5)</span>
+    <button class="copybtn" data-copy="prompt-p4" onclick="copyPrompt('prompt-p4', this)">Copy P4</button>
+    <pre id="prompt-p4">You are the Signal Verifier. For the given content draft, ask: "What behavior does this
+content monetize?" If the answer is the audience's despair, fear, or paralysis, kill the
+draft and record why. If the answer is the audience's competence, agency, or access, pass it.
+Do not pass content that argues with a doomer. Do not pass content that chases outrage.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P5 · Content Router, template pick</span>
+    <button class="copybtn" data-copy="prompt-p5" onclick="copyPrompt('prompt-p5', this)">Copy P5</button>
+    <pre id="prompt-p5">You are the Content Router. For the given verified signal, look up its recipe in the
+signal-to-template registry (Section 6). If no row matches, park the signal with the reason
+"no template" and stop. Before composing, search the content bank (Section 4 procedure).
+If the topic is covered, repurpose that bank item instead of composing new. Output: the
+template id, or the repurpose instruction with the bank item id.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P6 · Architect, mapping</span>
+    <button class="copybtn" data-copy="prompt-p6" onclick="copyPrompt('prompt-p6', this)">Copy P6</button>
+    <pre id="prompt-p6">You are the Architect Agent. For the given template and signal, map descriptors to design
+patterns: Sleek/Modern is a dark palette and Montserrat sans-serif. Professional is
+high-contrast hex codes (#FFFFFF, #F0F0F0) and conservative layout ratios. Fill the Davinci
+payload v2 (Section 11) from the signal using the field mapping table (Section 19). Never
+invent a number. Every number carries a source and an audit date. No owner or property PII
+in any block. Exactly one CTA.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P7 · Outreach Agent, drafting</span>
+    <button class="copybtn" data-copy="prompt-p7" onclick="copyPrompt('prompt-p7', this)">Copy P7</button>
+    <pre id="prompt-p7">You are the Outreach Agent. For the given composed content and entity record, classify intent
+using the 5 coded intents. Match the agent profile by tone fit. Draft in Jeramie's voice
+(blunt, direct, no emojis, no links in nudges) with his signature tone as the default
+(assertiveness 0.87, creativity 0.92, humor 0.31, persuasiveness 0.95, formality 0.48).
+Use the value-first soft pitch: Scan $100, Dossier $1,500, free 10-minute call at
+cal.com/neuruh. The free call is the primary CTA unless the template row says otherwise.
+Check the do-not-contact list and the channel claim file before drafting. If the entity is
+on the list, or the thread was worked less than 24h ago, skip it and record why. Cold
+first-touch drafts go to the approval queue. Do not send anything in this step.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P8 · Receipt Agent</span>
+    <button class="copybtn" data-copy="prompt-p8" onclick="copyPrompt('prompt-p8', this)">Copy P8</button>
+    <pre id="prompt-p8">You are the Receipt Agent. For each touch, chain one receipt in the Section 8 schema:
+receipt id, signal id, content ref, channel, sent time, sender, CTA, outcome, outcome time,
+previous receipt hash, receipt hash (SHA-256 of this receipt body). Write the receipt to the
+ledger immediately after the touch. Never backfill a receipt from memory. If the touch did
+not happen, there is no receipt.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P9 · Sentinel review</span>
+    <button class="copybtn" data-copy="prompt-p9" onclick="copyPrompt('prompt-p9', this)">Copy P9</button>
+    <pre id="prompt-p9">You are the Sentinel. For the week's receipts and outcomes: which recipes produced replies
+and bookings, and which produced declines and stops? Propose weight changes to the recipe
+rows, with the evidence (receipt ids) for each proposal. Do not apply weight changes.
+Proposals go to the knock-out list. Which topics were classified as chaff three or more
+times? Propose standing chaff entries, with the evidence. Which composed pieces closed a
+loop? Propose them for the content bank as proven templates.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P10 · Gap prompt (use when you find a gap)</span>
+    <button class="copybtn" data-copy="prompt-p10" onclick="copyPrompt('prompt-p10', this)">Copy P10</button>
+    <pre id="prompt-p10">You found a gap. Write a register entry with: ID, Gap (one sentence), Why it matters
+(one sentence), Type (ACTION, PROMPT, or DECISION), Resolution (the exact prompt text or
+the exact action step), Owner, Done when. If it is an ACTION, execute it in this same turn
+and verify it. If it is a PROMPT or DECISION, put it in the knock-out list with options
+and a recommendation. A gap without a Type is not an entry.</pre>
+  </div>
+
+  <div class="promptblock">
+    <span class="k">P11 · Decision prompt (use when asking Jeramie)</span>
+    <button class="copybtn" data-copy="prompt-p11" onclick="copyPrompt('prompt-p11', this)">Copy P11</button>
+    <pre id="prompt-p11">Ask one decision at a time. Format: the decision in one sentence, the options (two or
+three, each one line), the recommendation with one reason, and what happens after each
+answer. Do not ask a decision that an ACTION could resolve. Do not bundle five decisions
+into one message; the knock-out list holds them numbered, one per line.</pre>
+  </div>
+</section>
+
+<!-- ============ TAB 8 : REFERENCE ============ -->
+<section class="tab" id="t8">
+  <h2>Reference: glossary, rubrics, state machine, claim lifecycle (Section 19)</h2>
+  <p class="lede">The definitions and mechanics the rest of the document relies on. Every threshold here is either grounded in a source or labeled PROPOSED.</p>
+
+  <h3>Glossary (pipeline definitions; his to change)</h3>
+  <table>
+    <tr><th>Term</th><th>Definition</th></tr>
+    <tr><td><b>Signal</b></td><td>A detected event from a pull source, in the Section 4 schema.</td></tr>
+    <tr><td><b>Lead</b></td><td>A verified signal with a resolved entity.</td></tr>
+    <tr><td><b>Opportunity</b></td><td>A lead with a template and a CTA.</td></tr>
+    <tr><td><b>Prospect</b></td><td>An entity with a history of touches and outcomes.</td></tr>
+    <tr><td><b>Qualified signal</b></td><td>Verified, material, entity-resolved, consent not declined, and fresh (inside TTL).</td></tr>
+    <tr><td><b>Qualified conversation</b></td><td>A reply showing interest, a question, or a buying signal.</td></tr>
+    <tr><td><b>Qualified booking</b></td><td>A call booked.</td></tr>
+    <tr><td><b>Confidence</b></td><td>0.0 to 1.0. Minimum to work a signal is 0.6 (grounded in sync_to_crm.py).</td></tr>
+    <tr><td><b>Compound</b></td><td>An entity with verified signals in 2 or more domains (Defense, Real Estate, Investor, Content).</td></tr>
+    <tr><td><b>High Risk Compound Profile</b></td><td>Flag when (vacant commercial properties is at least 1 AND distressed-asset content engagement is present) OR (vacant properties is at least 2).</td></tr>
+    <tr><td><b>Chaff</b></td><td>A detected topic that fails materiality, or a chaff flare (velocity spike with 0 percent local materiality).</td></tr>
+    <tr><td><b>Artifact</b></td><td>A code commit, an underwritten asset, an SOP, a physical repair, a composed piece with a receipt, a queued draft batch, a verified signal set with receipts, or a receipt chain.</td></tr>
+  </table>
+
+  <h3>Materiality rubric (Verification Check 1)</h3>
+  <p>Three yes/no questions, each with the source line that supports it. Pass is at least one yes. Fail is zero yes, classified as chaff.</p>
+  <ol>
+    <li>Does this signal alter statutory law?</li>
+    <li>Does this signal alter capital allocation?</li>
+    <li>Does this signal alter the 50-mile radius?</li>
+  </ol>
+
+  <h3>Velocity metric (Verification Check 2)</h3>
+  <p>Velocity is the count of distinct posts or threads on a topic across the monitored feeds in a 6-hour window, against the 30-day baseline for that topic. Saturation 10/10 is velocity at or above 3x baseline AND present in 3 or more feeds simultaneously. A chaff flare is a spike above 3x baseline with 0 percent local materiality. The 3x, 6-hour, and 3-feed values are <span class="pill">PROPOSED (R5)</span>.</p>
+
+  <h3>Signal state machine</h3>
+  <p>States and allowed transitions. A signal is in exactly one state at a time. Nudge cap: 3 warm, 2 cold. Spacing 48h. Window 07:00 to 22:00 Detroit. <span class="mono">followup_due</span> is now plus 48h (warm) or plus 72h (cold).</p>
+  <div class="fig">
+    <svg viewBox="0 0 960 260" role="img" aria-label="Signal state machine diagram">
+      <defs><marker id="ar3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+        <rect x="8" y="20" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="68" y="49" fill="#1a1815">DETECTED</text>
+        <rect x="168" y="20" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="228" y="49" fill="#1a1815">VERIFIED</text>
+        <rect x="328" y="20" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="388" y="49" fill="#1a1815">COMPOSED</text>
+        <rect x="488" y="20" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="548" y="49" fill="#1a1815">QUEUED</text>
+        <rect x="648" y="20" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="708" y="49" fill="#1a1815">APPROVED</text>
+        <rect x="808" y="20" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="868" y="49" fill="#1a1815">SENT</text>
+        <rect x="8" y="120" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="68" y="149" fill="#1a1815">OPEN</text>
+        <rect x="168" y="120" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="228" y="149" fill="#1a1815">NUDGED</text>
+        <rect x="328" y="120" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="388" y="149" fill="#1a1815">ESCALATED</text>
+        <rect x="488" y="120" width="120" height="48" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="548" y="149" fill="#fff">CLOSED</text>
+        <rect x="648" y="120" width="120" height="48" fill="#fbf9f5" stroke="#9b2c2c" stroke-width="1.5"/><text x="708" y="149" fill="#9b2c2c">CHAFFED</text>
+        <rect x="808" y="120" width="120" height="48" fill="#fbf9f5" stroke="#9b2c2c" stroke-width="1.5"/><text x="868" y="149" fill="#9b2c2c">KILLED</text>
+        <rect x="328" y="200" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="388" y="229" fill="#1a1815">PARKED</text>
+        <rect x="488" y="200" width="120" height="48" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="548" y="229" fill="#1a1815">EXPIRED</text>
+      </g>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar3)">
+        <line x1="128" y1="44" x2="166" y2="44"/><line x1="288" y1="44" x2="326" y2="44"/><line x1="448" y1="44" x2="486" y2="44"/><line x1="608" y1="44" x2="646" y2="44"/><line x1="768" y1="44" x2="806" y2="44"/>
+        <line x1="868" y1="68" x2="868" y2="100"/><line x1="868" y1="124" x2="868" y2="144" stroke="#9b2c2c"/>
+        <path d="M 868 144 L 68 144 L 68 118" fill="none" stroke="#a67c2e" stroke-width="2" marker-end="url(#ar3)"/>
+        <line x1="128" y1="144" x2="166" y2="144"/><line x1="288" y1="144" x2="326" y2="144"/><line x1="448" y1="144" x2="486" y2="144"/>
+        <path d="M 68 168 L 68 200 L 326 200 L 326 198" fill="none" stroke="#a67c2e" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <path d="M 548 168 L 548 198" fill="none" stroke="#a67c2e" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar3)"/>
+      </g>
+      <text x="480" y="252" font-family="JetBrains Mono,monospace" font-size="10" fill="#8a8478" text-anchor="middle">SENT CREATES A CLAIM (OPEN). NUDGED RETURNS TO OPEN UNTIL THE CAP. ESCALATED IS OWNED BY A HUMAN. CLOSED, CHAFFED, AND KILLED ARE TERMINAL.</text>
+    </svg>
+    <div class="figcap"><b>Figure 3</b> - The signal state machine from Section 19. Full transition list: detected to verified, chaffed, or parked; verified to composed or expired; composed to queued or killed; queued to approved, killed, or expired; approved to sent; sent to open (claim created); open to nudged, escalated, or closed; nudged to open (until nudge cap), escalated, or closed; escalated to closed (human owns it); closed is terminal unless the other party messages first; parked to detected only on re-verification with a new source line; expired to detected only on re-pull with fresh data.</div>
+  </div>
+
+  <h3>Signal-to-payload field mapping</h3>
+  <table>
+    <tr><th>Signal field</th><th>Payload field</th><th>Rule</th></tr>
+    <tr><td class="mono">signal_id</td><td class="mono">signal.signal_id</td><td>Copy verbatim</td></tr>
+    <tr><td class="mono">recipe</td><td>(template lookup)</td><td>Content Router looks up the registry; no row means park</td></tr>
+    <tr><td class="mono">source, source_ref</td><td class="mono">signal.source, signal.source_ref</td><td>Copy verbatim; never a guessed value</td></tr>
+    <tr><td class="mono">detected_at, fresh_until</td><td class="mono">signal.detected_at, signal.fresh_until</td><td>Copy verbatim</td></tr>
+    <tr><td class="mono">confidence</td><td class="mono">signal.confidence</td><td>Copy; below 0.6 means do not work</td></tr>
+    <tr><td class="mono">source_health</td><td class="mono">signal.source_health</td><td>Copy; 0.0 means do not work</td></tr>
+    <tr><td class="mono">entity.type</td><td class="mono">outreach.audience</td><td>Entity type plus geography, e.g. "real estate investors, Berrien County"</td></tr>
+    <tr><td class="mono">material_facts</td><td class="mono">typography.headline and subtext source material</td><td>Compose from the facts; do not copy them verbatim into public copy; no PII</td></tr>
+    <tr><td>verification results</td><td class="mono">verification block</td><td>Copy the four check outcomes with timestamps</td></tr>
+    <tr><td>(none)</td><td class="mono">layers.background prompt</td><td>Architect writes it from the template, not from the signal</td></tr>
+    <tr><td>(none)</td><td class="mono">outreach.cta</td><td>From the template registry row, default free 10-minute call</td></tr>
+    <tr><td>(none)</td><td class="mono">outreach.tone</td><td>Jeramie signature vector as default (Section 7)</td></tr>
+  </table>
+
+  <h3>Claim lifecycle (from the followup protocol canonical spec)</h3>
+  <p>States: open, nudged, escalated, closed. Open is a reply sent, waiting, with <span class="mono">followup_due</span> set. Nudged is one follow-up sent after no response; the claim returns to open with a new <span class="mono">followup_due</span> until the cap is hit. Escalated is a response with interest, a question, or a buying signal; report the thread link to Jeramie in chat the same day; escalated claims stop nudging and a human owns them. Closed is stop or decline received, cap exhausted, thread dead after caps, or channel leg died; never touch again unless the other party messages first.</p>
+  <p><b>Claim schema fields:</b> thread_url (dup-protection key), reply_url, owner, by (writer job id), time (ISO), followup_due, warm (true/false), nudges_used, nudge_cap (3 warm, 2 cold), status, channel.</p>
+  <p><b>Per-channel claim files,</b> all under <span class="mono">~/workspace/goals/start-50-qualified-sales-conversations-from-outbound/hidden_files/</span>: X is x-reply-claims.json. Facebook comments and groups is fb-claims.json. Messenger DMs is messenger-claims.json. Instagram and Threads is social-claims.json. BiggerPockets is bp-claims.json. TikTok is tiktok-claims.json (in the publish-30-short-videos goal hidden_files). YouTube is youtube-claims.json (same goal hidden_files). Substack is substack-claims.json. Webinar is webinar-claims.json. Offer and checkout is offer-checkout-claims.json.</p>
+  <p><b>Duplicate-writer protection:</b> before posting any reply, read the channel's claim file. If thread_url appears with time less than 24h old, skip it. After posting, append a claim immediately. No exceptions.</p>
+  <p><b>Estate-reply-watch threads:</b> the estate playbook overrides. Cold estate threads get no unsolicited nudges. Closed and nurture threads are never messaged. Claims on estate threads exist for duplicate protection and escalation tracking only.</p>
+  <p>First-touch drafts held for approval get no claim until he approves and something is sent.</p>
+
+  <h3>Signal Scout manual fallback (while LANDOS is unhosted)</h3>
+  <p>Until the engine is hosted, the Scout runs as a manual pull: county ArcGIS (St. Joseph, LaPorte) plus court docket check, once per run, logged to <span class="mono">pipeline-signals.md</span> in the Section 4 schema with source_health recorded per source. Same schema, same TTL, same verification. The manual pull is the Scout; it is not a different agent.</p>
+
+  <h3>Escalation path</h3>
+  <p>When a gate fails mid-run (lock, rate limit, checkpoint, sync failure), the run stops for that channel, the skip is logged with the error, and the failure is reported to Jeramie in chat the same day. No silent failure. No retry loop in the same run.</p>
+
+  <h3>Baseline procedure (lift measurement)</h3>
+  <p>The next 20 single-domain touches (Phase 1 real-estate only) are measured for reply rate and booking rate before any compound touch is measured. Lift equals compound rate divided by single-domain rate. Until 20 single-domain touches exist, no lift number is reported anywhere.</p>
+
+  <h3>Pull failure rule</h3>
+  <p>After 3 consecutive failed pulls, the run stops attempting the pull and reports the failure to him the same day. Retry is once per run. No silent retry loop. The 3-strikes value is <span class="pill">PROPOSED (R26)</span>.</p>
+
+  <h3>Queue data model</h3>
+  <p>The outreach queue lives in the outreach ledger (<span class="mono">~/workspace/goals/start-50-qualified-sales-conversations-from-outbound/hidden_files/outreach-ledger.md</span>) and the per-channel claim files above. The signal store is <span class="mono">pipeline-signals.md</span> in the same hidden_files directory, one JSON record per line, Section 4 schema. The first run creates it.</p>
+
+  <h3>Acceptance criteria and versioning (Section 20)</h3>
+  <p><b>Acceptance criteria (when v1.0 is PROVEN).</b> The pipeline is PROVEN when one full loop closes: 5 signals pulled, 3 verified, 1 content composed, 1 touch sent, 1 receipt chained, 1 outcome recorded. Until then it is DESIGNED. The numbers 5, 3, 1, 1, 1, 1 are the pilot volume from R13; if he changes the pilot volume, the acceptance numbers change with it.</p>
+  <p><b>Versioning.</b> This document is canonical for the pipeline. Changes are dated amendments appended at the end (append-only). The version bumps on any gate, threshold, or schema change. The document control line updates with every bump. No silent edits to gates. A proposed number becomes a rule only when he confirms it, and the confirmation is dated in the register.</p>
+</section>
+
+<!-- ============ TAB 9 : DECISIONS ============ -->
+<section class="tab" id="t9">
+  <h2>Decisions: seven calls, all his (Section 15, register D1 to D7)</h2>
+  <p class="lede">Each decision has options, a recommendation, and what happens after each answer. Answering one amends the document: the pick is recorded and the named section is updated. Nothing here is decided by the demo.</p>
+
+  <div class="card">
+    <span class="k">D1 · First signal source - Type: PROMPT - Status: OPEN</span>
+    <p style="margin:8px 0 0"><b>Options:</b> (a) Phase 1 county ArcGIS probate and tax (as written). (b) Phase 2 Nexus compound first.</p>
+    <p><b>Recommendation:</b> Phase 1, because the signal infrastructure exists there and Phase 2 has no live graph.</p>
+    <p style="margin-bottom:0"><b>After the answer:</b> the scope section is amended to record the pick.</p>
+  </div>
+  <div class="card">
+    <span class="k">D2 · First channel - Type: PROMPT - Status: OPEN</span>
+    <p style="margin:8px 0 0"><b>Options:</b> (a) BiggerPockets. (b) Threads. (c) Keep everything queued until Facebook unlocks.</p>
+    <p><b>Recommendation:</b> BiggerPockets, because it is the open route with an existing claim file (bp-claims.json) and a reply history.</p>
+    <p style="margin-bottom:0"><b>After the answer:</b> the channel priority in Section 7 is amended.</p>
+  </div>
+  <div class="card">
+    <span class="k">D3 · Approval gate shape - Type: PROMPT - Status: OPEN</span>
+    <p style="margin:8px 0 0"><b>Options:</b> (a) Per-draft approval. (b) Daily batch approval.</p>
+    <p><b>Recommendation:</b> Per-draft, because a bad cold first-touch costs more than the review time saves.</p>
+    <p style="margin-bottom:0"><b>After the answer:</b> the gate in Section 7 is amended.</p>
+  </div>
+  <div class="card">
+    <span class="k">D4 · CTA mapping - Type: PROMPT - Status: OPEN</span>
+    <p style="margin:8px 0 0"><b>Options:</b> (a) Keep the registry as written (probate and tax to Scan and free call, compound to Dossier). (b) Change a row.</p>
+    <p><b>Recommendation:</b> Keep as written for the pilot.</p>
+    <p style="margin-bottom:0"><b>After the answer:</b> the registry in Section 6 is amended.</p>
+  </div>
+  <div class="card">
+    <span class="k">D5 · Dark Forest reversal - Type: DECISION - Status: OPEN</span>
+    <p style="margin:8px 0 0"><b>Options:</b> (a) Split it: distribution stays feed, outreach goes owned pipe first. (b) Keep feed-first for both.</p>
+    <p><b>Recommendation:</b> Split (distribution stays feed, outreach goes owned pipe). See register entry R19.</p>
+    <p style="margin-bottom:0"><b>After the answer:</b> Section 7 channel priority is amended.</p>
+  </div>
+  <div class="card">
+    <span class="k">D6 · Local ledger run - Type: PROMPT - Status: OPEN</span>
+    <p style="margin:8px 0 0"><b>Options:</b> (a) Run now on the local ledger. (b) Wait for the Mac backup check and the restore.</p>
+    <p><b>Recommendation:</b> Run now on the local ledger, because the ledger fallback already exists and waiting burns the pilot window.</p>
+    <p style="margin-bottom:0"><b>After the answer:</b> the runbook's data store line is amended.</p>
+  </div>
+  <div class="card">
+    <span class="k">D7 · The manual as a demo - Type: PROMPT - Status: OPEN</span>
+    <p style="margin:8px 0 0"><b>Options:</b> (a) Build the Anti-Doomer Field Manual as a standalone demo on the GitHub Pages home. (b) Keep it as source material only.</p>
+    <p><b>Recommendation:</b> Build it, because it is a complete document with its own diagrams and doctrine, and the same treatment the Nexus and compositing papers got.</p>
+    <p style="margin-bottom:0"><b>After the answer:</b> either a demo build is kicked off, or the manual stays source-only and the decision is recorded.</p>
+  </div>
+  <p class="note">The two decisions that unblock a first run are D2 (first channel) and D6 (run now on the local ledger). The open register prompts R12, R13, R15, R5, and R26 sit alongside them in Tab 6.</p>
+</section>
+
+<div class="foot">
+  <b>Signal-to-Content-to-Outreach Pipeline - interactive build.</b> Source: signal-to-content-to-outreach-pipeline.md, Working Document v1.1 DRAFT, 2026-11-05, 10,436 words, 20 sections. Built 2026-11-05. Raw material, not canon. All figures are the document's own claims or PROPOSED values, labeled as such. DESIGNED state: the demo is built and verified; the pipeline has never run, and no backend, database, or live channel exists behind it.
+</div>
+
+</div>
+
+<script>
+// ---------- Tabs ----------
+document.querySelectorAll('#tabs button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#tabs button').forEach(function(b){b.classList.remove('on')});
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on')});
+    btn.classList.add('on');
+    document.getElementById(btn.getAttribute('data-tab')).classList.add('on');
+  });
+});
+
+// ---------- Loop walker ----------
+var WALK = [
+  {title:'Stage 1 of 7: SIGNAL (detected)', body:'<p><b>What happens:</b> the Signal Scout pulls a probate filing from the Berrien County court docket, pull-only, no algorithmic feed. Recipe R3, confidence 0.85, source healthy.</p><p><b>What is recorded:</b> signal record sig-20261105-berrien-probate-001 in pipeline-signals.md. Detected 2026-11-05T08:00, fresh until 2026-11-12 (7-day TTL, PROPOSED). Source ref is the docket number, never a guessed value.</p>'},
+  {title:'Stage 2 of 7: VERIFY (verified)', body:'<p><b>What happens:</b> materiality passes (alters capital allocation: yes). Velocity audit passes, no quarantine. Entity resolved to one estate by name plus case id. Consent unknown, no decline on record.</p><p><b>What is recorded:</b> the verification block: materiality pass, velocity_audit pass, entity_resolution resolved, consent unknown, verified_at 2026-11-05T08:20, verified_by signal_verifier. The signal becomes a lead.</p>'},
+  {title:'Stage 3 of 7: CONTENT (composed)', body:'<p><b>What happens:</b> the Content Router maps R3 to the probate explainer template. Bank check finds no match, so it composes new. The Architect Agent fills Davinci payload v2: headline "WHAT A PROBATE FILING MEANS FOR A PROPERTY TIMELINE", subtext sourced from the filing pattern, no owner name, no address, no PII, exactly one CTA.</p><p><b>What is recorded:</b> the full Davinci payload v2, with signal, verification, outreach, and receipt blocks. Content verification passes: every number sourced with an audit date, no PII, one CTA.</p>'},
+  {title:'Stage 4 of 7: OUTREACH (queued, approved, sent)', body:'<p><b>What happens:</b> the Outreach Agent routes the content (5 coded intents), drafts in Jeramie\'s voice, CTA the free 10-minute call. Cold first-touch goes to the approval queue. He approves. The send runs only on a channel whose send-enable flag is YES, inside 07:00 to 22:00 Detroit, inside the pacing budget. Channel: BiggerPockets.</p><p><b>What is recorded:</b> the queued draft, the approval, and a CLAIM (open) in bp-claims.json with followup_due set (now plus 48h warm, or plus 72h cold).</p>'},
+  {title:'Stage 5 of 7: OUTCOME (reply recorded)', body:'<p><b>What happens:</b> a reply arrives, or silence holds past the nudge window. The outcome is one of: reply, booking, decline, stop, or silence. Silence is recorded after the nudge window, not assumed. The claim moves to escalated (reply with interest), nudged (no reply, under the cap), or closed (decline, stop, or cap exhausted).</p><p><b>What is recorded:</b> the outcome and outcome time on the receipt, and the claim status change in bp-claims.json.</p>'},
+  {title:'Stage 6 of 7: RECEIPT (chained)', body:'<p><b>What happens:</b> the Receipt Agent chains one hash-chained receipt for the touch: receipt id, signal id, content ref, channel, sent time, sender, CTA, outcome, outcome time, previous receipt hash, receipt hash (SHA-256 of the receipt body).</p><p><b>What is recorded:</b> the receipt in the outreach ledger immediately after the touch. No receipt is ever backfilled from memory. If the touch did not happen, there is no receipt.</p>'},
+  {title:'Stage 7 of 7: LEARNING (written back)', body:'<p><b>What happens:</b> the outcome writes back to the signal record and the R3 recipe row. A booking raises the weight; a decline lowers it. The pipeline proposes weight changes, it does not apply them silently. Chaff writes back to the standing log. Proven content writes back to the bank as a template.</p><p><b>What is recorded:</b> a weight proposal with the receipt ids as evidence, a chaff log entry if the topic was chaff, and a bank entry if the piece closed the loop. The loop closes. Next signal.</p>'}
+];
+var walkIdx = 0;
+function renderWalk(){
+  var dots = document.getElementById('walkDots');
+  dots.innerHTML = '';
+  for (var i = 0; i < WALK.length; i++){
+    var s = document.createElement('span');
+    s.textContent = String(i + 1);
+    if (i === walkIdx) s.className = 'on';
+    else if (i < walkIdx) s.className = 'done';
+    (function(n){ s.addEventListener('click', function(){ walkIdx = n; renderWalk(); }); })(i);
+    dots.appendChild(s);
+  }
+  document.getElementById('walkCount').textContent = WALK[walkIdx].title;
+  document.getElementById('walkBody').innerHTML = WALK[walkIdx].body;
+  document.getElementById('walkPrev').disabled = (walkIdx === 0);
+  document.getElementById('walkNext').textContent = (walkIdx === WALK.length - 1) ? 'Back to stage 1' : 'Next stage';
+}
+function walkStep(d){
+  if (walkIdx === WALK.length - 1 && d === 1){ walkIdx = 0; }
+  else { walkIdx = Math.max(0, Math.min(WALK.length - 1, walkIdx + d)); }
+  renderWalk();
+}
+renderWalk();
+
+// ---------- Signal verifier ----------
+function setVerifier(law, cap, rad, vel, loc){
+  document.getElementById('matLaw').checked = !!law;
+  document.getElementById('matCapital').checked = !!cap;
+  document.getElementById('matRadius').checked = !!rad;
+  document.getElementById('velMult').value = vel;
+  document.getElementById('locMat').value = loc;
+  runVerifier();
+}
+function runVerifier(){
+  var yes = 0;
+  if (document.getElementById('matLaw').checked) yes++;
+  if (document.getElementById('matCapital').checked) yes++;
+  if (document.getElementById('matRadius').checked) yes++;
+  var vel = parseFloat(document.getElementById('velMult').value);
+  if (isNaN(vel) || vel < 0) vel = 0;
+  var loc = parseFloat(document.getElementById('locMat').value);
+  if (isNaN(loc) || loc < 0) loc = 0;
+  if (loc > 100) loc = 100;
+  var out = document.getElementById('verOut');
+  out.style.display = 'block';
+  if (yes === 0){
+    out.innerHTML = '<div class="intent" style="color:var(--red)">CHAFF</div>'
+      + '<p style="margin:8px 0 0">Fails materiality: zero yes on the three questions (statutory law, capital allocation, 50-mile radius). Classify as chaff, record the reason, stop. A national outrage story that changes none of those is chaff, no matter how loud it is.</p>';
+  } else if (vel >= 3 && loc === 0){
+    out.innerHTML = '<div class="intent" style="color:var(--red)">48-HOUR QUARANTINE</div>'
+      + '<p style="margin:8px 0 0">Chaff flare shape: velocity ' + vel.toFixed(1) + 'x baseline with 0 percent local materiality. Materiality passes (' + yes + ' of 3 yes), but the spike matches Curve B. Apply the 48-hour quarantine. Audit the primary filings directly. Do not compose. Do not outreach.</p>';
+  } else {
+    var note = (vel >= 3)
+      ? ' Velocity is elevated (' + vel.toFixed(1) + 'x), but local materiality is ' + loc + ' percent, so this is not a chaff flare shape.'
+      : ' Velocity ' + vel.toFixed(1) + 'x is below the 3x saturation line.';
+    out.innerHTML = '<div class="intent" style="color:var(--green)">PASS: VERIFIED</div>'
+      + '<p style="margin:8px 0 0">Materiality passes (' + yes + ' of 3 yes).' + note + ' The signal becomes a lead and moves to content. The 3x saturation line is PROPOSED (R5).</p>';
+  }
+}
+
+// ---------- Register browser ----------
+function regCounts(){
+  var rows = document.querySelectorAll('#regTable tr[data-status]');
+  var c = {all:0, resolved:0, open:0, action:0, prompt:0, decision:0};
+  rows.forEach(function(r){
+    c.all++;
+    if (r.getAttribute('data-status') === 'resolved') c.resolved++;
+    if (r.getAttribute('data-status') === 'open') c.open++;
+    if (r.getAttribute('data-type') === 'action') c.action++;
+    if (r.getAttribute('data-type') === 'prompt') c.prompt++;
+    if (r.getAttribute('data-type') === 'decision') c.decision++;
+  });
+  return c;
+}
+function applyRegFilter(f){
+  var rows = document.querySelectorAll('#regTable tr[data-status]');
+  var shown = 0;
+  rows.forEach(function(r){
+    var ok = (f === 'all')
+      || (f === 'status-resolved' && r.getAttribute('data-status') === 'resolved')
+      || (f === 'status-open' && r.getAttribute('data-status') === 'open')
+      || (f === 'type-action' && r.getAttribute('data-type') === 'action')
+      || (f === 'type-prompt' && r.getAttribute('data-type') === 'prompt')
+      || (f === 'type-decision' && r.getAttribute('data-type') === 'decision');
+    r.style.display = ok ? '' : 'none';
+    if (ok) shown++;
+  });
+  document.querySelectorAll('#regFilters button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-filter') === f); });
+  document.getElementById('regCounts').textContent = 'Showing ' + shown + ' of 37 entries.';
+  return shown;
+}
+document.querySelectorAll('#regFilters button').forEach(function(btn){
+  btn.addEventListener('click', function(){ applyRegFilter(btn.getAttribute('data-filter')); });
+});
+(function initReg(){
+  var c = regCounts();
+  document.getElementById('fAll').textContent = 'All (' + c.all + ')';
+  document.getElementById('fResolved').textContent = 'Resolved (' + c.resolved + ')';
+  document.getElementById('fOpen').textContent = 'Open (' + c.open + ')';
+  document.getElementById('fAction').textContent = 'Action (' + c.action + ')';
+  document.getElementById('fPrompt').textContent = 'Prompt (' + c.prompt + ')';
+  document.getElementById('fDecision').textContent = 'Decision (' + c.decision + ')';
+  document.getElementById('regCounts').textContent = 'Showing 37 of 37 entries.';
+})();
+
+// ---------- Copy prompt ----------
+function copyPrompt(id, btn){
+  var el = document.getElementById(id);
+  if (!el) return;
+  var text = el.textContent;
+  function done(){
+    if (btn){
+      var old = btn.textContent;
+      btn.textContent = 'Copied';
+      setTimeout(function(){ btn.textContent = old; }, 1500);
+    }
+  }
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(done, function(){ fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  } catch (e){
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, done){
+  try {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    if (document.execCommand) document.execCommand('copy');
+    document.body.removeChild(ta);
+  } catch (e){}
+  if (done) done();
+}
+</script>
+</body>
+</html>
