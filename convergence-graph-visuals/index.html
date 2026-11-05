@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>Convergence Graph Visuals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3EFE6; --surface:#FFFEF9; --surface2:#EDE8DB; --ink:#16130E; --muted:#6B6455; --line:#D8D0BE;
+  --brass:#9A7B2D; --brass2:#C19A3A; --brass-bg:#FFF6D6; --red:#8B2E2E; --red-bg:#FDF0EF; --green:#2E5E3A; --green-bg:#EDF5EE;
+  --chip:#E9E2D0;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#12100C; --surface:#1C1913; --surface2:#24211A; --ink:#EDE8DB; --muted:#A79D88; --line:#3A352A; --brass:#D4A94E; --brass2:#E8C26A; --brass-bg:#2E2812; --red:#E88A8A; --red-bg:#2E1A1A; --green:#8AC79A; --green-bg:#18261C; --chip:#2A261C; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55}
+a{color:var(--brass)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 64px}
+.top{padding:36px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:600}
+h1{font-family:Archivo,sans-serif;font-size:clamp(34px,6vw,58px);line-height:.95;letter-spacing:-.02em;margin:10px 0 14px;font-weight:800}
+h1 span{color:var(--brass)}
+.lede{font-size:18px;max-width:760px;color:var(--ink)}
+.lede b{font-weight:600}
+.sub{color:var(--muted);max-width:700px;font-size:15px}
+.predicate{margin:28px 0 8px;background:var(--ink);color:var(--bg);border-radius:16px;padding:20px}
+@media (prefers-color-scheme: dark){.predicate{background:#EDE8DB;color:#16130E}}
+.predicate h2{font-family:Archivo,sans-serif;margin:0 0 4px;font-size:18px}
+.predicate p{margin:0 0 14px;opacity:.75;font-size:13.5px}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chain span{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.04em;background:rgba(128,128,128,.18);border:1px solid rgba(128,128,128,.25);padding:7px 9px;border-radius:999px;white-space:nowrap}
+.chain i{font-style:normal;opacity:.5;font-size:12px}
+.predicate .foot{margin-top:14px;font-size:13px;opacity:.85;border-top:1px solid rgba(128,128,128,.25);padding-top:12px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0 28px}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.stat b{font-family:Archivo,sans-serif;font-size:24px;display:block;line-height:1}
+.stat span{font-size:12.5px;color:var(--muted)}
+h2.sec{font-family:Archivo,sans-serif;font-size:26px;margin:36px 0 6px;letter-spacing:-.01em}
+.secsub{color:var(--muted);font-size:14.5px;margin:0 0 16px;max-width:720px}
+
+/* Explorer */
+.explorer{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:860px){.explorer{grid-template-columns:minmax(0,1fr)}}
+.panel{min-width:0}
+.node{overflow-wrap:anywhere}
+.nav{display:flex;flex-direction:column;gap:6px;position:sticky;top:16px}
+@media(max-width:860px){.nav{position:static;flex-direction:row;flex-wrap:wrap}}
+.navbtn{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;color:var(--ink);display:flex;gap:10px;align-items:flex-start}
+.navbtn:hover{border-color:var(--brass)}
+.navbtn.active{border-color:var(--brass);background:var(--brass-bg);box-shadow:inset 3px 0 0 var(--brass)}
+.navbtn .letter{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:12px;background:var(--ink);color:var(--bg);width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex-shrink:0}
+.navbtn.active .letter{background:var(--brass);color:#fff}
+.navbtn b{font-size:13.5px;line-height:1.25;display:block;font-family:Archivo,sans-serif}
+.navbtn small{color:var(--muted);font-size:11.5px;line-height:1.3;display:block}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;min-height:520px}
+.panelhead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:18px}
+.panelhead h3{font-family:Archivo,sans-serif;font-size:24px;margin:2px 0 4px;line-height:1.1}
+.panelhead p{margin:0;color:var(--muted);font-size:14px;max-width:560px}
+.badge{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;background:var(--chip);padding:6px 8px;border-radius:999px;height:fit-content;white-space:nowrap}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.btn{background:var(--ink);color:var(--bg);border:0;padding:9px 14px;border-radius:999px;font-weight:600;font-size:13px;cursor:pointer}
+.btn.secondary{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.progress{height:6px;background:var(--surface2);border-radius:999px;overflow:hidden;margin-bottom:18px}
+.progress i{display:block;height:100%;background:var(--brass);width:0;transition:width .4s}
+.flow{position:relative;padding-left:28px}
+.flow:before{content:"";position:absolute;left:11px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.node{position:relative;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:.25s;opacity:.92}
+.node:before{content:"";position:absolute;left:-22px;top:16px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--brass)}
+.node.active{border-color:var(--brass);background:var(--brass-bg);transform:translateX(4px);opacity:1}
+.node.done{border-color:var(--brass);opacity:1}
+.node .n{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.node b{font-family:Archivo,sans-serif;font-size:15px;display:block;margin:2px 0}
+.node p{margin:0;color:var(--muted);font-size:13px}
+.node code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surface);border:1px solid var(--line);padding:1px 5px;border-radius:5px;color:var(--ink)}
+.note{margin-top:16px;border-radius:12px;padding:14px 16px;font-size:14px}
+.note.warn{background:var(--red-bg);border:1px solid color-mix(in srgb, var(--red) 30%, transparent);color:var(--ink)}
+.note.brass{background:var(--brass-bg);border:1px solid color-mix(in srgb, var(--brass) 35%, transparent)}
+.note.green{background:var(--green-bg);border:1px solid color-mix(in srgb, var(--green) 30%, transparent)}
+.note b{font-family:Archivo,sans-serif}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.grid{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;cursor:pointer;min-width:0;overflow:hidden}
+.card:hover{border-color:var(--brass)}
+.card .letter{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:var(--brass);overflow-wrap:anywhere}
+.card h3{font-family:Archivo,sans-serif;margin:6px 0 6px;font-size:16px;line-height:1.2;overflow-wrap:anywhere}
+.card p{margin:0;color:var(--muted);font-size:13px;overflow-wrap:anywhere}
+.card .steps{margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);line-height:1.6;overflow-wrap:anywhere;word-break:break-word}
+
+/* Two col */
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media(max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.box h3{font-family:Archivo,sans-serif;margin:0 0 12px;font-size:17px}
+.checklist{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.checklist li{display:flex;gap:10px;font-size:14px;align-items:flex-start}
+.dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex-shrink:0;margin-top:1px;font-weight:700}
+.dot.yes{background:var(--green-bg);color:var(--green);border:1px solid var(--green)}
+.dot.no{background:var(--red-bg);color:var(--red);border:1px solid var(--red)}
+.stopgrid{display:flex;flex-wrap:wrap;gap:8px}
+.stop{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600;background:var(--red-bg);border:1px solid color-mix(in srgb, var(--red) 35%, transparent);color:var(--ink);padding:8px 10px;border-radius:999px}
+.hubs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:800px){.hubs{grid-template-columns:minmax(0,1fr)}}
+.hub{min-width:0;overflow-wrap:anywhere}
+.hub{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.hub b{font-family:Archivo,sans-serif;display:block;margin-bottom:6px}
+.hub p{margin:0;color:var(--muted);font-size:13.5px}
+.hub .links{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.hub .links span{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--surface2);border:1px solid var(--line);padding:4px 7px;border-radius:999px}
+.footer{margin-top:36px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:13px}
+.search{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:14px;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Neuruh · Convergence Graph · Design Specification</div>
+    <h1>One graph.<br><span>Every system connected.</span></h1>
+    <p class="lede">This is the convergence graph. It connects the <b>organ registry, current gates, DeedSonar, commercial proof, runtime promotion and learning</b> into one dependency system — not a set of separate diagrams.</p>
+    <p class="sub">Read it as dependencies, not decoration. If a step is missing, everything downstream of it is not proven. The graph exists in source. The live handoffs are what turn it from architecture into an organism.</p>
+  </header>
+
+  <section class="predicate" aria-label="Whole-system success predicate">
+    <h2>Whole-system success predicate</h2>
+    <p>One bounded real target travels the full chain without the founder manually carrying machine state between agents. That is the operational definition of the organism.</p>
+    <div class="chain">
+      <span>INTAKE</span><i>→</i><span>MISSION</span><i>→</i><span>AUTHORITY</span><i>→</i><span>EXECUTION</span><i>→</i><span>COURT</span><i>→</i><span>CUSTODY / PROMOTION</span><i>→</i><span>DELIVERY</span><i>→</i><span>RECEIPT</span><i>→</i><span>OUTCOME</span><i>→</i><span>LEARNING</span><i>→</i><span>PUBLIC-SAFE PROOF</span>
+    </div>
+    <div class="foot">Break any link — a missing receipt, a skipped court, an outcome never recorded — and the chain stops being evidence. It becomes a story.</div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><b>13 + J</b><span>DAGs A–I, K–N · plus §J boundary</span></div>
+    <div class="stat"><b>11</b><span>Steps in the success predicate</span></div>
+    <div class="stat"><b>11</b><span>Global stop conditions</span></div>
+    <div class="stat"><b>1</b><span>P0 seam named in DAG A</span></div>
+  </div>
+
+  <h2 class="sec">The DAG explorer</h2>
+  <p class="secsub">Select a DAG on the left. Play it through step by step, or click any card below to jump straight to it. Branch points, gates, and hard rules are kept in the step text — not simplified away.</p>
+
+  <input class="search" id="search" type="search" placeholder="Filter DAGs — try “court”, “DeedSonar”, “proof”, “learning”…" aria-label="Filter DAGs">
+
+  <div class="explorer">
+    <nav class="nav" id="nav" aria-label="DAG list"></nav>
+    <article class="panel" id="panel"></article>
+  </div>
+
+  <h2 class="sec">All thirteen DAGs at a glance</h2>
+  <p class="secsub">The full dependency surface. Execution, product, commercial, and learning are not separate roadmaps — they feed each other.</p>
+  <div class="grid" id="grid"></div>
+
+  <h2 class="sec">Where the DAGs converge</h2>
+  <p class="secsub">Six hubs appear again and again. They are the joints of the graph. Lose one and multiple DAGs fail at once.</p>
+  <div class="hubs">
+    <div class="hub"><b>Receipt</b><p>The universal handoff. Execution, delivery, custody, and proof all require one. A receipt-chain break is a global stop.</p><div class="links"><span>A</span><span>E</span><span>H</span><span>I</span><span>K</span></div></div>
+    <div class="hub"><b>Independent Court / Sentinel</b><p>Nothing promotes itself. Source, release, product, claim, and behavior changes all pass an independent check.</p><div class="links"><span>A</span><span>B</span><span>C</span><span>K</span><span>M</span></div></div>
+    <div class="hub"><b>OutcomeRecord</b><p>The point where prediction meets reality. It closes execution, DeedSonar, commercial, and learning loops.</p><div class="links"><span>A</span><span>C</span><span>D</span><span>F</span><span>K</span></div></div>
+    <div class="hub"><b>Governance / Promotion Gate</b><p>Merge, promote, deploy, and behavior updates require authority outside the worker that produced the work.</p><div class="links"><span>A</span><span>F</span><span>G</span></div></div>
+    <div class="hub"><b>Proofstream</b><p>Internal receipts become public-safe proof only after redaction and a wording-ceiling check. Proof then drives distribution and sales.</p><div class="links"><span>E</span><span>H</span><span>M</span></div></div>
+    <div class="hub"><b>Calibration</b><p>Forecasts are captured before outcomes, then scored. Learning, opportunity scoring, and cost decisions all depend on it.</p><div class="links"><span>D</span><span>F</span><span>N</span></div></div>
+  </div>
+
+  <h2 class="sec">Founder attention boundary</h2>
+  <p class="secsub">Section J is a design rule, not a preference. The founder is the authority at specific points — and explicitly not the transport layer everywhere else.</p>
+  <div class="two">
+    <div class="box">
+      <h3>Founder input belongs here only</h3>
+      <ul class="checklist">
+        <li><span class="dot yes">✓</span> Objective — what is being pursued and why</li>
+        <li><span class="dot yes">✓</span> Consequence — weighing what happens if it is wrong</li>
+        <li><span class="dot yes">✓</span> Joint business authority — decisions that bind the venture</li>
+        <li><span class="dot yes">✓</span> Ambiguous canonical conflict — when two sources of truth disagree</li>
+        <li><span class="dot yes">✓</span> Legal / financial commitment</li>
+        <li><span class="dot yes">✓</span> Irreversible / destructive action</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>The founder should not be</h3>
+      <ul class="checklist">
+        <li><span class="dot no">×</span> Receipt courier — carrying receipts between agents</li>
+        <li><span class="dot no">×</span> Session memory — remembering state the system should hold</li>
+        <li><span class="dot no">×</span> PR scheduler — sequencing merges by hand</li>
+        <li><span class="dot no">×</span> Runtime watchdog — watching for failures the system should surface</li>
+        <li><span class="dot no">×</span> Handoff transport — moving work from one stage to the next</li>
+      </ul>
+      <div class="note brass" style="margin-top:14px"><b>Why this matters:</b> Every time the founder carries machine state, the graph has a hidden human edge. That edge does not scale, does not log, and does not survive absence.</div>
+    </div>
+  </div>
+
+  <h2 class="sec">Global stop conditions</h2>
+  <p class="secsub">Any one of these stops the line. They apply across all DAGs, not just the one where they were first noticed.</p>
+  <div class="box">
+    <div class="stopgrid">
+      <span class="stop">STOP · Identity conflict</span>
+      <span class="stop">STOP · Unexpected dirty tree</span>
+      <span class="stop">STOP · Different writer already active</span>
+      <span class="stop">STOP · Missing authority</span>
+      <span class="stop">STOP · Provider limit</span>
+      <span class="stop">STOP · Semantic health failure</span>
+      <span class="stop">STOP · Source / runtime mismatch</span>
+      <span class="stop">STOP · Unproven public claim</span>
+      <span class="stop">STOP · Scope expansion</span>
+      <span class="stop">STOP · Receipt-chain break</span>
+      <span class="stop">STOP · Duplicate-controller proposal</span>
+    </div>
+    <p style="color:var(--muted);font-size:13.5px;margin:14px 0 0">A stop is not a failure of the graph. It is the graph working — refusing to promote, publish, or proceed on unproven state.</p>
+  </div>
+
+  <div class="footer">
+    <strong>Reading note:</strong> This board visualizes the convergence graph as specified in the source brief — DAGs A–I and K–N, section J (the founder attention boundary), global stop conditions, and the whole-system success predicate. It is a design and dependency map, not live telemetry, runtime status, or proof that any handoff is currently automated. The P0 seam named in DAG A is shown as specified.
+  </div>
+</div>
+
+<script>
+var DAGS=[
+{id:"A",title:"Governed execution DAG",cat:"Execution · Core",desc:"The main line. Founder intent becomes governed, receipted, court-checked work that can be promoted and verified in runtime.",note:{type:"warn",title:"Current activation defect — P0 continuity seam: ",body:"The graph exists in source. The live automatic handoff at receipt watcher / Sentinel invocation / result ingest remains the current P0 continuity seam."},steps:[
+["FOUNDER INTENT","The starting point. Intent alone carries no authority to execute."],
+["Mission Compiler / Founder Runtime","Intent is compiled into a mission with scope and constraints."],
+["Approved Work Spec + authority","Execution may only begin from an approved spec with explicit authority."],
+["Workers / JobQueue","Bounded workers pick up the work. No open-ended execution."],
+["Bounded execution","Work runs inside its spec, budget, and scope."],
+["Execution receipt","What was done is recorded as a receipt, not a claim."],
+["receipt.sealed","The receipt is sealed so downstream steps can trust it."],
+["Switchboard / SWITCHAROO","Routing layer that hands the sealed receipt toward court."],
+["court.requested","Independent review is formally requested."],
+["Independent Sentinel","A checker that did not do the work evaluates it."],
+["court.passed / court.failed","Branch point. Failure stops promotion. Only PASS continues."],
+["Git Custodian / Honey Pot","On PASS only: custody of the code change begins."],
+["Feature branch / PR / CI","The change enters the normal review and test path."],
+["Governance / promotion authority","A separate authority decides merge / promote."],
+["Merge / promote","The change becomes canonical."],
+["SOPS / deploy marshal","Deployment is marshalled, not improvised."],
+["Runtime semantic verification","The running system is checked for meaning, not just uptime."],
+["OutcomeRecord","The result is recorded so learning and proof can use it."]]},
+{id:"B",title:"T02 source / runtime DAG",cat:"Runtime · No bypass",desc:"A strict linear pin: source truth must be independently passed, receipted, and pinned before runtime is allowed to move. No parallel bypass.",note:{type:"brass",title:"Hard rule: ",body:"No parallel bypass. Every step is sequential and gated by the previous receipt."},steps:[
+["H02 merged","Source change is merged."],
+["H01 independent PASS / canonicalization","An independent pass canonicalizes the result."],
+["R02D sender","The sender prepares the source for receipt."],
+["Final T02 source receipt","Source state is receipted."],
+["H04 source / runtime pin court","Court checks that source and runtime pins match."],
+["Exact pin update","Only the exact, court-approved pin is applied."],
+["Supervised restart","Runtime restarts under supervision."],
+["Serving SHA","The SHA actually serving is observed and recorded."],
+["SAME Mission B","The same mission continues — not a new, disconnected one."],
+["R13 LandOS supervised cutover","LandOS cutover happens supervised, as the final step."]]},
+{id:"C",title:"DeedSonar release DAG",cat:"DeedSonar · Release",desc:"From provider and compute evidence to a paid economic outcome. Explanation, membership, contact semantics, and forecast discipline are release steps, not afterthoughts.",note:{type:"green",title:"Endpoint: ",body:"This DAG does not end at merge or deploy. It ends at operator E2E and a paid economic outcome."},steps:[
+["R01 EXPLAIN / provider / compute evidence","Evidence for how the system explains, which providers it uses, and what it costs to compute."],
+["One bounded C6","A single bounded change — not a batch of unrelated changes."],
+["If healthy, court seats","Court only seats when health evidence supports it."],
+["C6.2 – C6.6","The sequenced follow-on steps."],
+["R01_FINAL_INDEPENDENT_CLOSE = YES","Independent close must be explicit."],
+["PR51 release court","The release itself is courted."],
+["Merge","Only after release court."],
+["Production verify","Production is verified, not assumed."],
+["candidate_recipe_membership","Which recipes a candidate belongs to."],
+["Multi-recipe explanation","A parcel can belong to many recipes — and must explain each."],
+["NBE visibility","Next-best-explanation / next-best-action visibility."],
+["Contact semantics","What contact means, what is allowed, and what is recorded."],
+["Forecast-before-outcome","The forecast is captured before the outcome is known."],
+["OutcomeRecord adapter","Outcomes are adapted into the canonical record."],
+["One-day surgical UI polish","A bounded, time-boxed polish pass."],
+["Operator E2E","A real operator runs it end to end."],
+["Paid economic outcome","The release is proven by economics, not by deployment alone."]]},
+{id:"D",title:"Opportunity intelligence DAG",cat:"Intelligence · DeedSonar",desc:"The full pipeline from a source registry to a calibrated outcome. Every parcel earns its score through evidence, resolution, and per-recipe scoring.",steps:[
+["SOURCE REGISTRY","Every source is registered before it is trusted."],
+["Fetch / snapshot","Data is fetched and snapshotted so it can be re-checked."],
+["Parse / normalize","Raw data becomes a common shape."],
+["Evidence / fact","Only what can be evidenced becomes a fact."],
+["Entity / property resolution","Records are resolved to a real entity and property."],
+["Signal","Resolved facts produce a signal."],
+["Recipe eligibility","Is this property eligible for any recipe at all?"],
+["Per-recipe score vector","Not one score — a vector, one per recipe."],
+["Multi-recipe membership","A property can belong to multiple recipes at once."],
+["NBE","Next best explanation / action is surfaced."],
+["Contact evidence","Contact is based on evidence, not assumption."],
+["DNC / consent / policy","Do-not-contact, consent, and policy gate contact."],
+["DeedSonar decision","The product decision point."],
+["Authorized action","Only authorized actions proceed."],
+["CRM / workflow","The action enters the working system."],
+["Outcome","What actually happened."],
+["Calibration","The outcome scores the earlier forecast."]]},
+{id:"E",title:"Commercial DAG",cat:"Commercial · Proof to revenue",desc:"Public-safe proof becomes an offer, a paid intake, a governed fulfillment, and a delivery receipt — then a customer outcome that becomes the next proof.",note:{type:"brass",title:"Near-term preferred proof: ",body:"Five public-safe opportunities → O02 / Property Scan → one buyer → founder delivery → receipt → outcome → Managed Opportunity Desk."},steps:[
+["PUBLIC-SAFE PROOF / OFFER","Only proof that is safe to publish can become an offer."],
+["Exact price or quote","No vague pricing. Exact price or a real quote."],
+["Checkout / invoice","A real payment path."],
+["Persisted intake","Intake is stored, not held in a chat thread."],
+["Founder Runtime mission","Fulfillment becomes a governed mission."],
+["Bounded fulfillment","Delivery runs inside scope."],
+["Product / output court","The deliverable is independently checked."],
+["Buyer-safe deliverable","What the buyer receives is safe and complete."],
+["Delivery channel","Delivered through a defined channel."],
+["Delivery receipt","Delivery itself is receipted."],
+["Support / redo / refund","The post-delivery path is part of the DAG."],
+["Customer outcome","What changed for the customer."],
+["Proof candidate","A real outcome becomes a candidate for proof."],
+["Repeat / retainer / managed desk","One sale compounds into a continuing relationship."]]},
+{id:"F",title:"Learning DAG",cat:"Learning · No silent change",desc:"Prediction first, outcome second, calibration always. Behavior only changes through a proposal, a gate, and governance — never silently.",note:{type:"warn",title:"Hard rule: ",body:"No silent self-modification. Every behavior update is versioned and governed."},steps:[
+["Prediction captured BEFORE outcome","The forecast must exist before the result is known."],
+["Evidence / version / context bound","The prediction is bound to its evidence and version."],
+["Action / decision","What was actually done."],
+["Observed outcome","What actually happened."],
+["OutcomeRecord","Outcome enters the canonical record."],
+["Calibration ledger","Predictions are scored over time."],
+["Learning proposal","A change is proposed, not applied."],
+["N-Lab / challenger evaluation","If appropriate, the proposal is challenged and evaluated."],
+["Promotion Gate","A gate decides whether it may advance."],
+["Governance","Governance approves the change."],
+["Versioned behavior update","Only then does behavior change — as a new version."]]},
+{id:"G",title:"State DAG",cat:"State · Canonical truth",desc:"How observed provider state becomes effective canonical state in the Cockpit, with drift and conflict reconciled through authorization.",steps:[
+["SOPS / provider observation","State is observed from providers via SOPS."],
+["N-Cell projection","Observation is projected into the N-Cell model."],
+["Lifecycle state","Where the thing is in its lifecycle."],
+["Capability availability","What can actually be done right now."],
+["state_digest","A digest summarizes the state for comparison."],
+["Effective canonical state","The single state the system acts on."],
+["Cockpit","The operator sees canonical state, not raw noise."],
+["Conflict / drift","Disagreement with reality is surfaced."],
+["Reconciliation proposal","A fix is proposed, not auto-applied."],
+["Authorization","Reconciliation requires authority."],
+["Revision receipt / ledger","The change is receipted and ledgered."]]},
+{id:"H",title:"Public-proof DAG",cat:"Proof · Publication",desc:"An internal receipt is not a public claim. It becomes proof only after redaction, a wording ceiling, and publication through Proofstream.",steps:[
+["Internal receipt","True internally. Not yet safe or worded for public use."],
+["Public-safe redaction","Private and sensitive material is removed."],
+["Wording ceiling","Claims are capped at what the evidence supports."],
+["Proof card","Proof is packaged as a discrete card / object."],
+["Proofstream","Proof enters the publishing stream."],
+["neuruh.com / article / demo / sales collateral","Where proof is actually used."],
+["Attribution","Results are attributed back to the proof."],
+["Economic result","Did the proof produce an economic result?"],
+["Updated proof","Proof is revised from results, strengthened or corrected."]]},
+{id:"I",title:"Local custody DAG",cat:"Custody · Local to canonical",desc:"Nothing local is cleaned up until it is identified, hashed, compared, classified, and its unique residue is preserved with a receipt.",note:{type:"warn",title:"Order matters: ",body:"Cleanup eligibility is the last step, never the first. Preserve unique residue before any deletion is even eligible."},steps:[
+["Folder / worktree / file","The local artifact as found."],
+["Identify repo / owner","Who owns this canonically?"],
+["Hash / status","Hash it and record its status."],
+["Compare current remote / canon","How does it differ from what already exists remotely?"],
+["Classify","Keep, merge, archive, or residue?"],
+["Preserve unique residue","Anything unique is preserved first."],
+["Remote custody / canonical owner / archive receipt","Custody moves to its canonical owner with a receipt."],
+["Only then: cleanup eligibility","Local cleanup becomes eligible only now."]]},
+{id:"K",title:"Offer Foundry / demand-learning DAG",cat:"Commercial · Foundry",desc:"Market pain either matches an existing offer or becomes a recipe built from ingredients — and unmet demand itself becomes a build signal.",note:{type:"brass",title:"Demand loop: ",body:"If no viable recipe exists, the gap is not discarded. It becomes a MISSING_INGREDIENT signal that is aggregated, ranked, and re-evaluated once a new ingredient exists."},steps:[
+["CUSTOMER / MARKET PAIN","A real problem from a real customer or market."],
+["Normalize problem + desired outcome","Pain becomes a structured problem and outcome."],
+["Current offer match?","Branch: does an existing offer already solve this?"],
+["If YES: route existing offer","Use what already exists. Do not rebuild."],
+["If NO: ingredient retrieval","Search the ingredient library for composable parts."],
+["Compatibility / restriction / cost filter","Ingredients are filtered for fit and cost."],
+["Candidate recipe(s)","One or more composable fulfillment recipes."],
+["Fulfillment feasibility","Can this actually be delivered?"],
+["RICHIE economic court","Economics are courted before an offer is made."],
+["Buyer-safe offer contract","The offer becomes a clear, buyer-safe contract."],
+["Existing intake / payment / delivery binding","Reuse existing commercial plumbing."],
+["Paid / manual or automated fulfillment","Fulfillment runs, by hand or by system."],
+["Delivery receipt","Delivery is receipted."],
+["OutcomeRecord","The outcome closes the loop."],
+["If no viable recipe: MISSING_INGREDIENT","The gap is recorded as a demand signal."],
+["Aggregate repeated demand","Single requests become a pattern."],
+["Economic / reuse ranking","Repeated, valuable gaps rank highest."],
+["Canonical owner / JGI integration decision","Who should own the new ingredient?"],
+["Bounded build candidate","A scoped build is proposed."],
+["Independent court","The new ingredient is independently checked."],
+["New ingredient","It enters the library."],
+["Re-evaluate waiting demand","Waiting demand is checked against the new ingredient."]]},
+{id:"L",title:"Commercial compounding DAG",cat:"Commercial · Maturity path",desc:"How a single paid diagnostic compounds into a managed operation, a standardized World, and eventually partner and enterprise channels — in order, with proof at each rung.",note:{type:"green",title:"Scope note: ",body:"This is a maturity path, not a requirement that every offer climb every rung."},steps:[
+["PAID DIAGNOSTIC / SCAN","Entry point: a paid, bounded diagnostic."],
+["Accepted result","The buyer accepts the result as useful."],
+["Repeat same core problem","The same problem recurs — a signal of a system need."],
+["Fixed pilot","A fixed-scope pilot proves repeatability."],
+["Recurring managed operation","The work becomes a managed, recurring operation."],
+["Stable repeatable recipe","The operation stabilizes into a recipe."],
+["Standardized operator World","The recipe becomes a standard World an operator can run."],
+["White-label / partner channel","Only after isolation and delivery proof."],
+["API / data / OEM","Only after source rights and unit economics are proven."],
+["Enterprise governed deployment","Only after assurance and security evidence exists."]]},
+{id:"M",title:"Distribution DAG",cat:"Distribution · Proof to pipeline",desc:"A verified outcome becomes distribution only through a public claim court — and distribution results strengthen or revise the original claim.",steps:[
+["VERIFIED CASE / OUTCOME","Distribution starts from a verified outcome, not a claim."],
+["COMMONS public claim court","The public wording is courted."],
+["Proofstream proof object","Approved proof becomes a reusable object."],
+["ICP / channel-specific projection","Proof is projected for a specific audience and channel."],
+["Direct prospect / partner / search / marketplace distribution","Distribution happens across defined channels."],
+["Attributed intake","New interest is attributed to its source proof."],
+["RICHIE ranks opportunity","Incoming opportunity is ranked."],
+["BOB commercial mission","Ranked opportunity becomes a commercial mission."],
+["Fulfillment","The work is fulfilled."],
+["Outcome","The result is observed."],
+["Proof strengthened or claim revised","Distribution feeds back into proof quality."]]},
+{id:"N",title:"Cost-compilation DAG",cat:"Efficiency · Compile down",desc:"Expensive reasoning is not repeated forever. Successful patterns compile down into contracts, recipes, typed logic, and cached primitives — without outranking truth.",note:{type:"warn",title:"Constraint: ",body:"Independent court and outcome calibration remain necessary. Cost optimization never outranks truth or consequence."},steps:[
+["Novel / high-ambiguity reasoning","New problems start with full reasoning. It is expensive and necessary."],
+["Repeated successful pattern","The same reasoning succeeds repeatedly."],
+["Reusable worker / prompt contract","The pattern becomes a reusable contract."],
+["Recipe","The contract becomes a named recipe."],
+["Typed deterministic logic","Where valid, logic replaces model calls."],
+["Cached / precomputed primitive","Where valid, results are cached or precomputed."],
+["Cheaper-capable routing","Work routes to the cheapest capable path."]]}
+];
+
+var current=0, playTimer=null, playIndex=0;
+var nav=document.getElementById('nav'), panel=document.getElementById('panel'), grid=document.getElementById('grid');
+
+function renderNav(filter){
+  nav.innerHTML='';
+  DAGS.forEach(function(d,i){
+    if(filter && (d.title+' '+d.cat+' '+d.desc).toLowerCase().indexOf(filter.toLowerCase())===-1) return;
+    var b=document.createElement('button'); b.className='navbtn'+(i===current?' active':'');
+    b.innerHTML='<span class="letter">'+d.id+'</span><span><b>'+d.title+'</b><small>'+d.cat+' · '+d.steps.length+' steps</small></span>';
+    b.onclick=function(){select(i,true)};
+    nav.appendChild(b);
+  });
+}
+function renderGrid(){
+  grid.innerHTML='';
+  DAGS.forEach(function(d,i){
+    var c=document.createElement('div'); c.className='card';
+    c.innerHTML='<div class="letter">DAG '+d.id+' — '+d.cat.toUpperCase()+'</div><h3>'+d.title+'</h3><p>'+d.desc+'</p><div class="steps">'+d.steps.map(function(s){return s[0]}).join(' → ')+'</div>';
+    c.onclick=function(){select(i,true); window.scrollTo({top:document.querySelector('.explorer').offsetTop-20,behavior:'smooth'})};
+    grid.appendChild(c);
+  });
+}
+function renderPanel(){
+  var d=DAGS[current];
+  var noteHtml=d.note?'<div class="note '+d.note.type+'"><b>'+d.note.title+'</b>'+d.note.body+'</div>':'';
+  var flow=d.steps.map(function(s,i){
+    return '<div class="node" data-i="'+i+'"><div class="n">Step '+(i+1)+' / '+d.steps.length+'</div><b>'+s[0]+'</b><p>'+s[1]+'</p></div>';
+  }).join('');
+  panel.innerHTML='<div class="panelhead"><div><div class="eyebrow">DAG '+d.id+' · '+d.cat+'</div><h3>'+d.title+'</h3><p>'+d.desc+'</p></div><span class="badge">'+d.steps.length+' steps</span></div>'
+  +'<div class="controls"><button class="btn" id="playBtn">▶ Play through</button><button class="btn secondary" id="resetBtn">Reset</button><button class="btn secondary" id="prevDag">← Prev DAG</button><button class="btn secondary" id="nextDag">Next DAG →</button></div>'
+  +'<div class="progress"><i id="prog"></i></div><div class="flow" id="flow">'+flow+'</div>'+noteHtml;
+  document.getElementById('playBtn').onclick=play;
+  document.getElementById('resetBtn').onclick=resetPlay;
+  document.getElementById('prevDag').onclick=function(){select((current-1+DAGS.length)%DAGS.length,false)};
+  document.getElementById('nextDag').onclick=function(){select((current+1)%DAGS.length,false)};
+  resetPlay();
+}
+function select(i,scroll){
+  stopPlay(); current=i; renderNav(document.getElementById('search').value); renderPanel();
+}
+function highlight(){
+  var nodes=panel.querySelectorAll('.node');
+  nodes.forEach(function(n,idx){ n.classList.toggle('active', idx===playIndex); n.classList.toggle('done', idx<playIndex); });
+  var prog=document.getElementById('prog'); if(prog) prog.style.width=((playIndex+1)/nodes.length*100)+'%';
+  var cur=panel.querySelector('.node.active'); if(cur) cur.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function play(){
+  stopPlay(); playIndex=0; highlight();
+  playTimer=setInterval(function(){
+    playIndex++;
+    if(playIndex>=DAGS[current].steps.length){ stopPlay(); return; }
+    highlight();
+  },900);
+}
+function stopPlay(){ if(playTimer){clearInterval(playTimer); playTimer=null;} }
+function resetPlay(){ stopPlay(); playIndex=0; var nodes=panel.querySelectorAll('.node'); nodes.forEach(function(n){n.classList.remove('active','done')}); var prog=document.getElementById('prog'); if(prog) prog.style.width='0'; }
+
+document.getElementById('search').addEventListener('input',function(e){ renderNav(e.target.value); });
+renderNav(''); renderGrid(); renderPanel();
+</script>
+</body>
+</html>
