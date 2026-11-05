@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>Swarm Visuals — The Governed Swarm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3EFE6; --bg2:#EDE8DB; --surface:#FFFEFA; --surface2:#E9E2D3;
+  --ink:#14120F; --ink2:#3E3A33; --muted:#7A7368; --line:#D8CFBD; --line2:#C9BFA8;
+  --brass:#9C7C3C; --brass2:#B9975B; --brass-ink:#7A5E28;
+  --obsidian:#14120F; --bone:#F3EFE6;
+  --ok:#2F6B3A; --warn:#8A5A12; --bad:#9B2C2C;
+  --radius:14px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0E0D0B; --bg2:#121110; --surface:#1A1916; --surface2:#22201C;
+    --ink:#EDE8DB; --ink2:#D6CFC0; --muted:#9C968A; --line:#2E2B26; --line2:#3A372F;
+    --brass:#C5A059; --brass2:#D4B06A; --brass-ink:#E2C07A;
+    --ok:#7BC48A; --warn:#E0B36A; --bad:#E08A8A;
+    color-scheme: dark;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--brass-ink)}
+.mono{font-family:"JetBrains Mono",monospace}
+h1,h2,h3{font-family:Archivo,Inter,sans-serif;line-height:.95;letter-spacing:-.02em;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.topbar span:last-child{color:var(--muted);letter-spacing:.08em;text-transform:none;font-weight:500}
+.hero{padding:44px 0 28px;display:grid;grid-template-columns:1.25fr .75fr;gap:32px}
+@media(max-width:760px){.hero{grid-template-columns:1fr}}
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:14px}
+.hero h1{font-size:clamp(44px,7vw,76px);font-weight:800}
+.hero h1 em{font-style:normal;color:var(--brass)}
+.hero p.lead{font-size:18px;line-height:1.6;color:var(--ink2);margin-top:18px;max-width:620px}
+.rule{margin-top:22px;background:var(--obsidian);color:var(--bone);padding:18px 20px;border-radius:12px;display:flex;gap:16px;align-items:flex-start}
+@media (prefers-color-scheme: dark){.rule{background:#F3EFE6;color:#14120F}}
+.rule b{font-family:Archivo,sans-serif;font-size:15px}
+.rule p{margin:4px 0 0;font-size:13.5px;opacity:.85;line-height:1.5}
+.hero-side{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.hero-side h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px}
+.stat{background:var(--surface);padding:14px}
+.stat strong{font-family:Archivo,sans-serif;font-size:28px;display:block;line-height:1}
+.stat span{font-size:12px;color:var(--muted);line-height:1.3;display:block;margin-top:4px}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5}
+nav.tabs{position:sticky;top:0;z-index:20;background:var(--bg);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs a{display:inline-block;text-decoration:none;color:var(--ink2);font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);margin-right:8px;background:var(--surface)}
+nav.tabs a:hover{border-color:var(--brass);color:var(--ink)}
+section{padding:44px 0 8px}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.sec-head h2{font-size:34px;font-weight:800;max-width:520px}
+.sec-head p{max-width:440px;color:var(--muted);font-size:14.5px;margin:0;line-height:1.6}
+.kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:8px}
+/* Layers */
+.layers{display:flex;flex-direction:column;gap:8px}
+.layer{display:grid;grid-template-columns:92px 1fr auto;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+.layer:hover{border-color:var(--brass)}
+.layer.active{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass) inset}
+.layer .num{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--brass);font-weight:700}
+.layer h3{font-size:17px}
+.layer p{margin:3px 0 0;font-size:13.5px;color:var(--muted)}
+.layer .tag{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 9px;border-radius:999px;background:var(--surface2);white-space:nowrap}
+.layer-detail{margin-top:12px;background:var(--obsidian);color:#EDE8DB;border:1px solid var(--line2);border-radius:14px;padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:700px){.layer-detail{grid-template-columns:1fr}.layer{grid-template-columns:64px 1fr}.layer .tag{display:none}}
+.layer-detail h4{margin:0 0 8px;font-family:Archivo,sans-serif}
+.layer-detail ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.7;opacity:.9}
+.layer-detail .mono{font-size:12px;opacity:.75;line-height:1.7}
+/* Topology */
+.topo{display:grid;grid-template-columns:300px 1fr 300px;gap:16px;align-items:start}
+@media(max-width:980px){.topo{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.topo{grid-template-columns:1fr}}
+.rolelist{display:flex;flex-direction:column;gap:8px}
+.rolebtn{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px;cursor:pointer;font:inherit;color:inherit}
+.rolebtn.active{border-color:var(--brass);background:var(--surface2)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--brass);flex-shrink:0}
+.dot.dark{background:var(--ink)} .dot.hollow{background:transparent;border:2px solid var(--brass)}
+.rolebtn strong{font-size:14px;display:block;line-height:1.2}
+.rolebtn span{font-size:12px;color:var(--muted)}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px}
+.diagram svg{width:100%;height:auto;display:block}
+.detail{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;position:sticky;top:64px}
+.detail h3{font-size:22px;margin-bottom:6px}
+.detail .sub{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.detail p{font-size:14px;color:var(--ink2);line-height:1.6}
+.detail ul{padding-left:18px;font-size:13.5px;line-height:1.7;color:var(--ink2)}
+.pillrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.pill{font-size:11px;padding:5px 8px;border-radius:999px;border:1px solid var(--line);background:var(--bg);font-weight:600}
+/* Packet */
+.packetgrid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+@media(max-width:800px){.packetgrid{grid-template-columns:1fr}}
+.codebox{background:#121110;color:#EDE8DB;border-radius:14px;padding:18px;overflow:auto}
+.codebox pre{margin:0;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.7;white-space:pre-wrap}
+.k{color:#D4B06A}.s{color:#A8C8A0}.n{color:#E8A598}
+.annot{display:flex;flex-direction:column;gap:10px}
+.annot div{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px 14px}
+.annot strong{font-size:13px}
+.annot p{margin:3px 0 0;font-size:13px;color:var(--muted);line-height:1.5}
+/* Flow */
+.flowbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.btn{appearance:none;border:1px solid var(--line2);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer}
+.btn.secondary{background:var(--surface);color:var(--ink)}
+.flow{display:grid;grid-template-columns:repeat(11,1fr);gap:6px;margin-bottom:14px}
+@media(max-width:800px){.flow{grid-template-columns:repeat(6,1fr)}}
+.fstep{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px;text-align:center;cursor:pointer}
+.fstep b{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--brass)}
+.fstep span{font-size:10px;line-height:1.2;font-weight:600;margin-top:4px}
+.fstep.on{background:var(--brass);color:white;border-color:var(--brass)} .fstep.on b{color:white}
+.fstep.done{background:var(--surface2)}
+.flowcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}
+@media(max-width:640px){.flowcard{grid-template-columns:1fr}}
+.flowcard .big{font-family:Archivo,sans-serif;font-size:44px;font-weight:800;color:var(--brass);line-height:1}
+.flowcard h3{font-size:20px} .flowcard p{margin:6px 0 0;color:var(--muted);font-size:14px;line-height:1.6}
+.badge{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;border-radius:999px;background:var(--surface2);white-space:nowrap}
+/* Systems */
+.systems{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.systems{grid-template-columns:1fr}}
+.sys{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px}
+.sys .no{font-family:"JetBrains Mono",monospace;color:var(--brass);font-size:12px;font-weight:700}
+.sys h3{font-size:21px;margin:8px 0}
+.sys p{font-size:14px;color:var(--muted);line-height:1.6;margin:0}
+.sys ul{margin:12px 0 0;padding-left:18px;font-size:13.5px;line-height:1.7;color:var(--ink2)}
+.sys .measure{margin-top:14px;border-top:1px dashed var(--line2);padding-top:12px;font-size:12.5px}
+.sys .measure b{color:var(--brass-ink)}
+/* Multipliers */
+.mult{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media(max-width:900px){.mult{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.mult{grid-template-columns:1fr}}
+.mcard{background:var(--obsidian);color:#EDE8DB;border-radius:14px;padding:16px;min-height:210px;display:flex;flex-direction:column}
+@media(prefers-color-scheme:dark){.mcard{background:#F3EFE6;color:#14120F}}
+.mcard .n{font-family:Archivo,sans-serif;font-size:32px;color:var(--brass);line-height:1}
+.mcard h3{font-size:16px;margin:10px 0 6px;line-height:1.1}
+.mcard p{font-size:12.5px;line-height:1.55;opacity:.85;margin:0}
+.mcard .eff{margin-top:auto;padding-top:12px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--brass)}
+/* Compare */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.compare{grid-template-columns:1fr}}
+.panel{border-radius:14px;padding:20px;border:1px solid var(--line)}
+.panel.keep{background:var(--surface)} .panel.drop{background:transparent;border-style:dashed}
+.panel h3{font-size:18px;margin-bottom:12px}
+.panel ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.8;color:var(--ink2)}
+/* Invariants */
+.inv{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:800px){.inv{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.inv{grid-template-columns:1fr}}
+.inv div{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:16px}
+.inv strong{font-family:Archivo,sans-serif;font-size:15px;display:block}
+.inv p{font-size:13px;color:var(--muted);margin:6px 0 0;line-height:1.55}
+footer{margin-top:48px;border-top:1px solid var(--line);padding:22px 0 36px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:10px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar"><span>Neuruh — Swarm Visuals</span><span>From Mirror-X1 / OMNIA-6 + UIF + Stack Blueprint • Mid-2025 sources, filtered Oct 2026</span></div>
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Visual atlas • Proven pieces only</div>
+      <h1>The governed<br><em>swarm.</em></h1>
+      <p class="lead">Not a chatbot with helpers. A small set of specialized agents sharing one compounding knowledge mesh, speaking only in evidence packets, and blocked by deterministic gates they cannot override.</p>
+      <div class="rule"><div style="font-size:22px">⬢</div><div><b>Model output is evidence, never command authority.</b><p>Every consequential claim carries sources, confidence, and a falsifier. Irreversible actions — send, spend, delete, schedule — stop at a human checkpoint. That rule is the product.</p></div></div>
+    </div>
+    <aside class="hero-side">
+      <h3>At a glance</h3>
+      <div class="statgrid">
+        <div class="stat"><strong>9</strong><span>Swarm roles in the full set (7 to start, +2 after baseline)</span></div>
+        <div class="stat"><strong>7</strong><span>Layers, from sovereign data to product surfaces</span></div>
+        <div class="stat"><strong>4</strong><span>Buildable systems to run the first experiment</span></div>
+        <div class="stat"><strong>5</strong><span>10× multipliers that keep the invariants hard</span></div>
+      </div>
+      <p class="note"><b>How to use this page:</b> Click any layer or role to inspect it. Step through the live execution flow in §04. Everything speculative — quantum multipliers, near-term BCI, exhaustive domain catalogs — was stripped out before drawing.</p>
+    </aside>
+  </div>
+
+  <nav class="tabs">
+    <a href="#layers">01 Layers</a><a href="#topology">02 Topology</a><a href="#packet">03 Packet</a><a href="#flow">04 Execution flow</a><a href="#systems">05 Four systems</a><a href="#multipliers">06 10× loops</a><a href="#filter">07 Kept / discarded</a>
+  </nav>
+
+  <!-- 01 LAYERS -->
+  <section id="layers">
+    <div class="sec-head"><div><div class="kicker">01 — Canonical V2 Architecture</div><h2>Seven layers over a sovereign data plane</h2></div><p>Click a layer. The stack reads bottom-up: nothing above Layer 5 can bypass the governance plane, and nothing reaches a user without a packet and a receipt.</p></div>
+    <div class="layers" id="layerList"></div>
+    <div class="layer-detail" id="layerDetail"></div>
+  </section>
+
+  <!-- 02 TOPOLOGY -->
+  <section id="topology">
+    <div class="sec-head"><div><div class="kicker">02 — Swarm Topology</div><h2>One mesh. Nine roles. No free-form chatter.</h2></div><p>Agents exchange packets or capsule IDs only. The Fusion Gate is the only component allowed to collapse many packets into one. The Watchdog can kill any trace.</p></div>
+    <div class="topo">
+      <div class="rolelist" id="roleList"></div>
+      <div class="diagram" aria-label="Swarm network diagram">
+        <svg viewBox="0 0 520 520" role="img">
+          <defs><marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9C7C3C"/></marker></defs>
+          <!-- spokes -->
+          <g stroke="#C9BFA8" stroke-width="1.2" opacity=".9">
+            <line x1="260" y1="260" x2="260" y2="62"/><line x1="260" y1="260" x2="398" y2="122"/><line x1="260" y1="260" x2="438" y2="260"/><line x1="260" y1="260" x2="398" y2="398"/><line x1="260" y1="260" x2="260" y2="458"/><line x1="260" y1="260" x2="122" y2="398"/><line x1="260" y1="260" x2="82" y2="260"/><line x1="260" y1="260" x2="122" y2="122"/>
+          </g>
+          <circle cx="260" cy="260" r="118" fill="none" stroke="#9C7C3C" stroke-dasharray="5 6" stroke-width="1.2"/>
+          <circle cx="260" cy="260" r="72" fill="#14120F" stroke="#9C7C3C" stroke-width="1.5"/>
+          <text x="260" y="248" text-anchor="middle" fill="#F3EFE6" font-family="Archivo" font-weight="800" font-size="15">KNOWLEDGE</text>
+          <text x="260" y="268" text-anchor="middle" fill="#F3EFE6" font-family="Archivo" font-weight="800" font-size="15">MESH</text>
+          <text x="260" y="288" text-anchor="middle" fill="#C5A059" font-family="JetBrains Mono" font-size="10">capsules • links • lineage</text>
+          <!-- nodes -->
+          <g font-family="Inter" font-size="11" font-weight="700" text-anchor="middle">
+            <g class="node" data-role="governance"><circle cx="260" cy="62" r="30" fill="#9C7C3C"/><text x="260" y="59" fill="#fff">WATCH-</text><text x="260" y="72" fill="#fff">DOG</text></g>
+            <g class="node" data-role="ingestor"><circle cx="398" cy="122" r="28" fill="#fff" stroke="#14120F" stroke-width="1.5"/><text x="398" y="126" fill="#14120F">INGEST</text></g>
+            <g class="node" data-role="retriever"><circle cx="438" cy="260" r="28" fill="#fff" stroke="#14120F" stroke-width="1.5"/><text x="438" y="264" fill="#14120F">RETRIEVE</text></g>
+            <g class="node" data-role="reasoner"><circle cx="398" cy="398" r="28" fill="#14120F"/><text x="398" y="402" fill="#fff">REASON ×N</text></g>
+            <g class="node" data-role="fusion"><circle cx="260" cy="458" r="30" fill="#9C7C3C"/><text x="260" y="462" fill="#fff">FUSION GATE</text></g>
+            <g class="node" data-role="steward"><circle cx="122" cy="398" r="28" fill="#fff" stroke="#14120F" stroke-width="1.5"/><text x="122" y="402" fill="#14120F">STEWARD</text></g>
+            <g class="node" data-role="shadow"><circle cx="82" cy="260" r="28" fill="#fff" stroke="#14120F" stroke-width="1.5"/><text x="82" y="264" fill="#14120F">SHADOW</text></g>
+            <g class="node" data-role="proposer"><circle cx="122" cy="122" r="28" fill="#14120F"/><text x="122" y="126" fill="#fff">PROPOSE</text></g>
+          </g>
+          <text x="260" y="510" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#7A7368">OUTCOME LOGGER closes the loop from below — every result re-enters the mesh</text>
+        </svg>
+        <div class="legend"><span><i style="background:#9C7C3C"></i>Deterministic — no model inside</span><span><i style="background:#14120F"></i>Model-powered</span><span><i style="background:#fff;border:1.5px solid #14120F"></i>Service / retrieval</span></div>
+      </div>
+      <div class="detail" id="roleDetail"></div>
+    </div>
+  </section>
+
+  <!-- 03 PACKET -->
+  <section id="packet">
+    <div class="sec-head"><div><div class="kicker">03 — The Unit of Speech</div><h2>Every message is an evidence packet</h2></div><p>Free-form agent-to-agent text is disallowed — it would bypass the evidence invariant. If a packet lacks sources or a falsifier, the Fusion Gate refuses it.</p></div>
+    <div class="packetgrid">
+      <div class="codebox"><pre><span class="k">"packet"</span>: {
+  <span class="k">"claim"</span>: <span class="s">"Delaying the vendor payment
+           by 9 days keeps cash above floor."</span>,
+  <span class="k">"confidence"</span>: <span class="n">0.82</span>,
+  <span class="k">"supporting_capsules"</span>: [
+    <span class="s">"cap_contract_terms_v3"</span>,
+    <span class="s">"cap_cash_position_oct17"</span>,
+    <span class="s">"cap_prior_delay_outcome"</span>
+  ],
+  <span class="k">"falsifiers"</span>: [
+    <span class="s">"A receivable slips past Oct 24"</span>,
+    <span class="s">"Vendor invokes late-fee clause §4.2"</span>
+  ],
+  <span class="k">"heuristic"</span>: <span class="s">"preserve-floor-first"</span>,
+  <span class="k">"heuristic_calibration"</span>: <span class="n">0.71 (n=34)</span>,
+  <span class="k">"trace_id"</span>: <span class="s">"tr_8f31…"</span>,
+  <span class="k">"timestamp"</span>: <span class="s">"2026-10-18T11:42Z"</span>
+}</pre></div>
+      <div class="annot">
+        <div><strong>Claim + confidence</strong><p>One checkable assertion, never a paragraph of vibes. Confidence is calibrated against later outcomes, not self-reported flair.</p></div>
+        <div><strong>Supporting capsules</strong><p>Pointers into the mesh. Minimum coverage is enforced by code — below the floor, no positive claim is emitted; the gap is shown instead.</p></div>
+        <div><strong>Falsifiers</strong><p>What would make this wrong. The single most useful field in the packet, and the one unconstrained agents never produce.</p></div>
+        <div><strong>Trace + lineage</strong><p>Every packet is logged immutably. Rejected packets become synthetic stress cases replayed nightly.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 FLOW -->
+  <section id="flow">
+    <div class="sec-head"><div><div class="kicker">04 — Execution Flow</div><h2>“Should we delay the vendor payment?”</h2></div><p>Step through one real decision end to end. Notice where the human sits: not at the start, not reviewing raw model output — at the gate, holding the token.</p></div>
+    <div class="flowbar"><button class="btn" id="prevBtn">← Previous step</button><button class="btn" id="nextBtn">Next step →</button><button class="btn secondary" id="autoBtn">▶ Auto-play</button><span class="mono" id="flowCount" style="align-self:center;font-size:12px;color:var(--muted)"></span></div>
+    <div class="flow" id="flowSteps"></div>
+    <div class="flowcard" id="flowCard"></div>
+  </section>
+
+  <!-- 05 SYSTEMS -->
+  <section id="systems">
+    <div class="sec-head"><div><div class="kicker">05 — The Experiment</div><h2>Four systems. One mesh. 4–6 weeks.</h2></div><p>Small enough to instrument completely, large enough to prove whether reliability + compounding actually beat unconstrained agents.</p></div>
+    <div class="systems">
+      <article class="sys"><div class="no">SYSTEM 01</div><h3>Evidence-Gated Operator</h3><p>A single-domain founder/ops agent that only emits a recommendation when it can attach grounding — and never executes an irreversible action itself.</p><ul><li>Router: cheap model for summaries, strong model for multi-hop</li><li>Semantic-Fuse-style blocker under confidence / source floor</li><li>Human checkpoint before any send, schedule change, or spend</li></ul><div class="measure"><b>Measure:</b> acceptance rate · edit distance · source coverage · outcome match vs. unconstrained baseline, 30 days</div></article>
+      <article class="sys"><div class="no">SYSTEM 02</div><h3>Capsule Cascade Memory</h3><p>The knowledge base that sharpens with use. Atomic capsules, automatic links, context injection, cascade updates, noise filter.</p><ul><li>Correction to one capsule flags dependents for re-evaluation</li><li>Low-utility nodes archived, never silently deleted</li><li>Exportable “capsule packs” carry provenance with them</li></ul><div class="measure"><b>Measure:</b> retrieval precision · time-to-answer on repeats · contradiction detection rate over 4 weeks</div></article>
+      <article class="sys"><div class="no">SYSTEM 03</div><h3>Heuristic Extractor + Outcome Loop</h3><p>Mentors become procedures, not pastiche. Each heuristic is a falsifiable rule with applicability conditions and a live calibration score.</p><ul><li>Extract from source material + your own past decisions</li><li>Backtest on decisions whose outcomes are already known</li><li>Low-calibration heuristics demoted automatically</li></ul><div class="measure"><b>Measure:</b> calibration · outcome delta vs. unguided decisions · revision rate</div></article>
+      <article class="sys"><div class="no">SYSTEM 04</div><h3>Stack Constructor</h3><p>A factory that turns any new narrow task into a guarded, measurable stack using the AI Stack Blueprint: logic → execution → output → feedback.</p><ul><li>Standard guardrails instantiated: spend, scope, PII, checkpoints</li><li>Dashboard: success rate, source coverage, edit rate, cost / win</li><li>Its own design proposals must arrive as evidence packets</li></ul><div class="measure"><b>Measure:</b> time-to-first-working-stack · 1-week stability · do metrics surface problems faster than ad-hoc builds?</div></article>
+    </div>
+  </section>
+
+  <!-- 06 MULTIPLIERS -->
+  <section id="multipliers">
+    <div class="sec-head"><div><div class="kicker">06 — 10× Without Sacrifice</div><h2>Compound the evidence, not the risk</h2></div><p>The invariants never relax. Speed comes from propagating confirmed evidence faster and fusing independent traces before a human ever sees the result.</p></div>
+    <div class="mult">
+      <div class="mcard"><div class="n">×1</div><h3>Cascade amplification</h3><p>One confirmed correction re-scores dozens of dependent capsules and proposes new links. A small proposer model suggests; nothing commits without grounding.</p><div class="eff">Track: downstream citation rate</div></div>
+      <div class="mcard"><div class="n">×2</div><h3>Parallel traces + fusion</h3><p>3–5 independent traces per hard question. A claim survives only if ≥2 traces agree on overlapping sources. Disagreement is surfaced, never averaged away.</p><div class="eff">Track: fusion acceptance rate</div></div>
+      <div class="mcard"><div class="n">×3</div><h3>Outcome-conditioned promotion</h3><p>Heuristics harden into default logic only after measured outcomes cross threshold + sample size. Demotion is automatic and reversible.</p><div class="eff">Track: calibration trajectory</div></div>
+      <div class="mcard"><div class="n">×4</div><h3>Synthetic stress packets</h3><p>Every rejection, heavy edit, and outcome miss becomes a test case, replayed nightly. Regressions block promotion of any stack change.</p><div class="eff">Track: replay pass rate</div></div>
+      <div class="mcard"><div class="n">×5</div><h3>Externalization flywheel + shadow</h3><p>High-calibration packs export to other teams / verticals and return new outcome data. Shadow Simulator attaches consequence sketches — evidence, never orders.</p><div class="eff">Track: shadow accuracy</div></div>
+    </div>
+    <div style="margin-top:14px" class="inv">
+      <div><strong>Watchdog kills the trace</strong><p>Timeout, schema violation, or budget breach: trace dies, event logs, retry on a different Reasoner or return “insufficient evidence.”</p></div>
+      <div><strong>Conflict is a first-class output</strong><p>Two high-confidence packets disagree? Both capsule sets are shown side by side. No automatic averaging, no coin flip.</p></div>
+      <div><strong>Cost spike = degrade gracefully</strong><p>Router shifts work to cheaper models and cuts parallel traces. Governance Plane can hard-cap spend mid-flight.</p></div>
+    </div>
+  </section>
+
+  <!-- 07 FILTER -->
+  <section id="filter">
+    <div class="sec-head"><div><div class="kicker">07 — The Filter</div><h2>What survived 15 months</h2></div><p>Sources dated June–July 2025, re-read October 2026. The test applied throughout: can it be proven, built, and measured right now?</p></div>
+    <div class="compare">
+      <div class="panel keep"><h3>✓ Kept — build from this</h3><ul><li>Reliability primitives: Semantic Fuse, Hallucination Debouncer, Impedance Matcher / router, Context Buffer, watchdog timeouts</li><li>Governance: packets, deterministic policy gate, receipts, human-in-the-loop on irreversible actions</li><li>Self-Compounding Knowledge Engine: capsules, link matrix, context injection, update cascade, signal-to-noise filter</li><li>AI Stack Blueprint: logic, guardrails, embedded knowledge, modular build, metrics, versioning</li><li>Awareness → Automation → Augmentation → Transformation, applied to one domain at a time</li></ul></div>
+      <div class="panel drop"><h3>✕ Discarded / parked</h3><ul><li>Quantum equations claiming 4–6× from 20-qubit, 2023-era parameters — functional forms force the result; no reproducible benchmark supports them</li><li>Exhaustive 15-domain micro-agent catalogs before the core is measured</li><li>Pure stylistic mentor emulation without extracted, calibrated heuristics</li><li>Near-term BCI and full embodiment as product claims — horizon research only</li><li>Peer-to-peer AV pod concept — interesting, orthogonal, separate bet</li></ul></div>
+    </div>
+    <div style="margin-top:14px" class="inv">
+      <div><strong>Non-bypassable gates</strong><p>Source minimums, confidence floor, PII scrub, spend ceiling, scope boundary — deterministic code, not model judgment.</p></div>
+      <div><strong>Single source of state</strong><p>The mesh. Agents propose updates; only confirmed outcomes or human edits commit them. Capsules are versioned, never mutated.</p></div>
+      <div><strong>Measured continuously</strong><p>Source coverage · fusion rate · edit distance · outcome match · cascade citations · cost per grounded output · watchdog interventions.</p></div>
+    </div>
+  </section>
+
+  <footer><span>Swarm Visuals — visual synthesis of Mirror-X1 / OMNIA-6, Universal Interfacing Framework, Self-Compounding Knowledge Engine, and AI Stack Blueprint.</span><span class="mono">evidence &gt; authority</span></footer>
+</div>
+
+<script>
+var LAYERS=[
+ {n:"LAYER 0",t:"Sovereign Data Plane",s:"Vault Alpha + Knowledge Mesh",tag:"Foundation",d:"Continuous, provenance-tracked ingestion of journals, transcripts, docs, email, voice, CRM notes. Every chunk carries a cryptographic provenance chain.",pts:["Metadata: source · date · category · sentiment · location · tags · confidence · provenance","Founder Kernel pass: decision heuristics extracted as first-class objects","PII redaction / differential privacy at ingestion, not after","Staged ingestion with quality gates — replaces the fictional 1-week Phase 1"],code:"ingest → normalize → embed → version\nquality gate → mesh commit"},
+ {n:"LAYER 1",t:"Governed Reasoning & Action Core",s:"ReAct loop, instrumented",tag:"Core",d:"Query → Reasoning → Tool Selection → Execution → Reflection → Response — with a policy gate on every tool call and CodeAct execution.",pts:["Authorization checked against capability + self-model constraints before execution","CodeAct modules sandboxed: resource limits, timeouts","Receipt written for every execution","Counterfactual simulation hooks for decision checks"],code:"tool call → policy gate → contain → receipt"},
+ {n:"LAYER 2",t:"Prompt Mesh",s:"Modular cognition pipeline",tag:"Cognition",d:"ExtractIdentity → AnalyzeEmotions → TagHabits + ClusterBehaviors → SpotOpportunities → RecommendActions → SummarizeInsights, with ReviewPatterns fallback.",pts:["Calibrated confidence per module; low confidence escalates automatically","SpotOpportunities driven by the Inversion DSL, not free generation","RecommendActions must cite self-model alignment + inversion evidence","Module-level outcome tracking: did it move the metric?"],code:"DAG · parallel where safe · versioned modules"},
+ {n:"LAYER 3",t:"Self-Model",s:"Dynamical cognitive scaffold",tag:"Identity",d:"Values, goals with deadlines, roles, biases with scores, emotional state, habits, network, performance metrics — as a living system, not a JSON snapshot.",pts:["Continuous Bayesian / state-space updating, rate-limited shifts","Drift detection with statistical bounds + visualization","Coupled to external outcomes so predictive accuracy is scoreable","Snapshot versioning with rollback — the queryable 'Jeramie OS' kernel"],code:"update → drift check → integrity check → commit"},
+ {n:"LAYER 4",t:"Inversion Engine",s:"Negative-space discovery",tag:"Discovery",d:"A DSL (WHEN / THEN, SCOPE, PRIORITY) that finds what is absent: untagged themes, stagnant sentiment, emerging clusters, networking gaps.",pts:["Built-ins: count, avg, trend, days_since","Actions: FLAG · ANNOTATE · NOTIFY · ESCALATE · SUPPRESS","Full test suite mandatory before production","Precision measured against human-labeled blind spots"],code:"WHEN days_since(topic) > 45\nTHEN FLAG('neglected theme')"},
+ {n:"LAYER 5",t:"Governance Guardrails",s:"'God Mode' — deterministic",tag:"Enforcement",d:"Intercepts every final output. Factual accuracy + citations, privacy (AES-256, RBAC, minimization), disclosure metadata, jurisdictional checks.",pts:["Enforcement target under 150 ms; formalized as code the model cannot override","Immutable audit logs","Human escalation for low-confidence or flagged items","Emergency override: multi-factor + dual approval, itself logged"],code:"output → fuse → gate → log → release / escalate"},
+ {n:"LAYER 6",t:"Product Surfaces",s:"Where it earns",tag:"Surface",d:"Knowledge Capture Pipeline and Neuruh Data Bus turn the personal system into sellable infrastructure. Verticals sit on the shared governed substrate.",pts:["Capture: Kernel Extraction → Pattern Distillation → Auto-Sync → Governed Access","Data Bus: Connector SDK, Mapping Engine, Registry, Sidecar (PII stays in client VPC)","First vertical pattern: DeedSonar-style ranking with evidence attached","Onboarding time drops; the system outlives the individual"],code:"mesh + governance → vertical → receipts → learning"}
+];
+var layerList=document.getElementById('layerList'), layerDetail=document.getElementById('layerDetail'), curLayer=5;
+function renderLayers(){
+  layerList.innerHTML=LAYERS.map(function(l,i){return '<button class="layer'+(i===curLayer?' active':'')+'" data-i="'+i+'"><span class="num">'+l.n+'</span><span><h3>'+l.t+'</h3><p>'+l.s+'</p></span><span class="tag">'+l.tag+'</span></button>'}).join('');
+  layerList.querySelectorAll('.layer').forEach(function(b){b.onclick=function(){curLayer=+b.dataset.i;renderLayers()}});
+  var l=LAYERS[curLayer];
+  layerDetail.innerHTML='<div><h4>'+l.t+'</h4><p style="font-size:14px;line-height:1.6;opacity:.9;margin:0 0 10px">'+l.d+'</p><div class="mono">'+l.code.replace(/\n/g,'<br>')+'</div></div><ul>'+l.pts.map(function(p){return '<li>'+p+'</li>'}).join('')+'</ul>';
+}
+renderLayers();
+
+var ROLES={
+ governance:{name:"Watchdog / Governance Plane",sub:"Deterministic • No model inside",desc:"Enforces timeouts, packet schema, source minimums, spend ceilings, scope boundaries, and the human-token requirement. Can kill or quarantine any trace. Owns the immutable audit log.",pts:["Semantic Fuse: hard-blocks toxic / low-confidence output","Hallucination Debouncer: multi-sample consensus on high-stakes claims","The highest-value attack surface in the system — formally specified and load-tested"],tags:["Policy gate","Audit log","Kill switch"]},
+ ingestor:{name:"Ingestor",sub:"Service • Never answers queries",desc:"Watches mail, calendar, docs, CRM, and manual notes. Extracts atomic capsules with provenance and proposes links. Its only job is keeping the mesh current and honest.",pts:["Provenance chain on every chunk","Redaction at ingestion","Incremental sync — no big-bang re-ingest"],tags:["Capsules","Provenance","Sync"]},
+ retriever:{name:"Retriever / Linker",sub:"Service • Proposes, never deletes",desc:"Given a query or capsule ID, returns ranked capsules plus the link neighborhood. Runs the signal-to-noise filter continuously so the graph sharpens instead of bloating.",pts:["Embedding similarity + explicit relation extraction","Low-utility capsules archived, excluded from default context","Link proposals stay soft until proven useful"],tags:["Ranking","Link matrix","Noise filter"]},
+ reasoner:{name:"Reasoner (×N)",sub:"Model-powered • Routable",desc:"Multiple instances behind an Impedance Matcher router. Cheap models take narrow, well-grounded sub-questions; strong models take multi-hop reasoning and conflict resolution. Emits packets only.",pts:["Parallel traces with different seeds / models","Context Buffer compresses before window overflow","No direct free-text channel to other agents"],tags:["Router","Parallel traces","Packets only"]},
+ fusion:{name:"Fusion Gate",sub:"Deterministic • The only collapser",desc:"Receives N packets on one question. Keeps a claim only if it appears in at least two independent traces with overlapping capsules — or one uniquely grounded trace with no contradiction.",pts:["Disagreement outputs an explicit 'unresolved conflict' packet","Below source floor: refuses the claim, shows the gap","No model sits inside this step"],tags:["≥2 traces","Conflict surfacing","Source floor"]},
+ steward:{name:"Heuristic Steward",sub:"Governed automation",desc:"Maintains the small set of outcome-conditioned heuristics. Proposes promotion or demotion strictly from calibration tables — a heuristic becomes default logic only past threshold + sample size.",pts:["Promotion is reversible the moment outcomes drop the score","Cites calibration (e.g. 0.71, n=34) in every packet that uses it","Cannot invent new hard rules"],tags:["Calibration","Promotion","Demotion"]},
+ shadow:{name:"Shadow Simulator",sub:"Model-powered • Evidence only",desc:"For selected reversible or high-stakes proposals, runs a forward trace against the mesh and recent outcome history, attaching a consequence distribution to the packet. Never an order.",pts:["Its own past accuracy is tracked and weighted","Inaccuracy beyond threshold lowers its future weight automatically"],tags:["Simulation","Consequence sketch","Self-scored"]},
+ proposer:{name:"Action Proposer",sub:"Model-powered • Stops at the draft",desc:"Turns a fused, sufficiently grounded packet into a concrete draft: the email, the task update, the decision memo. Then it stops. The packet plus draft go to the human checkpoint together.",pts:["Draft always ships with its evidence attached","Cannot send, spend, delete, or schedule"],tags:["Drafts","Checkpoint handoff"]},
+ logger:{name:"Outcome Logger",sub:"Service • Closes the loop",desc:"Records accept / edit / reject, then the observed real-world result. Triggers cascade proposals, updates heuristic calibration, and mints synthetic stress cases from every miss.",pts:["The component that makes the whole swarm compound","Feeds Systems 1–3 from a single event stream"],tags:["Outcomes","Cascades","Stress cases"]}
+};
+var roleList=document.getElementById('roleList'), roleDetail=document.getElementById('roleDetail'), curRole='fusion';
+var order=['governance','ingestor','retriever','reasoner','fusion','steward','shadow','proposer','logger'];
+function renderRoles(){
+  roleList.innerHTML=order.map(function(k){var r=ROLES[k];var dc=(k==='governance'||k==='fusion')?'':(k==='reasoner'||k==='proposer')?' dark':' hollow';return '<button class="rolebtn'+(k===curRole?' active':'')+'" data-k="'+k+'"><span class="dot'+dc+'"></span><span><strong>'+r.name+'</strong><span>'+r.sub+'</span></span></button>'}).join('')+'<p style="font-size:12px;color:var(--muted);margin:4px 2px 0;line-height:1.5">Outcome Logger sits outside the diagram ring because it touches every step after the human decides.</p>';
+  roleList.querySelectorAll('.rolebtn').forEach(function(b){b.onclick=function(){curRole=b.dataset.k;renderRoles()}});
+  document.querySelectorAll('.node').forEach(function(n){n.style.opacity=(n.dataset.role===curRole)?'1':'.45'; n.style.cursor='pointer'; n.onclick=function(){curRole=n.dataset.role;renderRoles()}});
+  var r=ROLES[curRole];
+  roleDetail.innerHTML='<div class="sub">'+r.sub+'</div><h3>'+r.name+'</h3><p>'+r.desc+'</p><ul>'+r.pts.map(function(p){return '<li>'+p+'</li>'}).join('')+'</ul><div class="pillrow">'+r.tags.map(function(t){return '<span class="pill">'+t+'</span>'}).join('')+'</div>';
+}
+renderRoles();
+
+var FLOW=[
+ {t:"Query arrives",w:"GOVERNANCE",d:"“Should we delay the vendor payment?” hits the Governance Plane first. Scope and budget check run before any model is called. Out-of-scope or over-budget requests die here, cheaply."},
+ {t:"Retrieve",w:"RETRIEVER",d:"Relevant capsules pulled: contract terms, current cash position, prior delay outcomes, vendor relationship history. Each carries provenance and a confidence value."},
+ {t:"Route + parallel traces",w:"REASONER ×3",d:"The Impedance Matcher estimates complexity and launches three Reasoner traces in parallel — different models / seeds, same capsule set, fixed trace budget."},
+ {t:"Packets return",w:"REASONER ×3",d:"Each trace returns a packet: claim, confidence, supporting capsules, falsifiers. No prose, no chat. Two traces say delay; one flags the late-fee clause."},
+ {t:"Fusion",w:"FUSION GATE",d:"Deterministic collapse. The delay claim survives (2 traces, overlapping sources). The late-fee disagreement is not averaged away — it is attached as an explicit open conflict."},
+ {t:"Heuristic check",w:"STEWARD",d:"The promoted heuristic 'preserve-floor-first' applies. It is attached to the packet with its live calibration: 0.71 across 34 past outcomes."},
+ {t:"Shadow simulation",w:"SHADOW",d:"A forward trace sketches the next 14 days both ways: cash floor and vendor-relationship consequences. Attached as a distribution, labeled simulation, weighted by its past accuracy."},
+ {t:"Draft the action",w:"PROPOSER",d:"The recommendation and the exact vendor message are drafted. The Proposer stops here. It has no send capability and never will."},
+ {t:"Gate verifies",w:"GOVERNANCE",d:"Packet completeness checked: sources present, falsifiers present, confidence above floor, no PII leak. The human-token requirement is armed."},
+ {t:"Human decides",w:"HUMAN",d:"You see the fused packet, the conflict, the heuristic calibration, and the shadow — then approve, edit, or reject. This token is checked outside every model."},
+ {t:"Log + cascade",w:"LOGGER",d:"Decision and, later, the actual outcome are logged. A correction here cascades to dependent capsules and mints a stress case. The mesh the next query sees is sharper than this one."}
+];
+var curFlow=4, timer=null;
+var flowSteps=document.getElementById('flowSteps'), flowCard=document.getElementById('flowCard');
+function renderFlow(){
+  flowSteps.innerHTML=FLOW.map(function(f,i){return '<div class="fstep'+(i===curFlow?' on':i<curFlow?' done':'')+'" data-i="'+i+'"><b>'+String(i+1).padStart(2,'0')+'</b><span>'+f.t+'</span></div>'}).join('');
+  flowSteps.querySelectorAll('.fstep').forEach(function(s){s.onclick=function(){curFlow=+s.dataset.i;renderFlow()}});
+  var f=FLOW[curFlow];
+  flowCard.innerHTML='<div class="big">'+String(curFlow+1).padStart(2,'0')+'</div><div><h3>'+f.t+'</h3><p>'+f.d+'</p></div><span class="badge">'+f.w+'</span>';
+  document.getElementById('flowCount').textContent='Step '+(curFlow+1)+' of '+FLOW.length;
+}
+document.getElementById('nextBtn').onclick=function(){curFlow=Math.min(FLOW.length-1,curFlow+1);renderFlow()};
+document.getElementById('prevBtn').onclick=function(){curFlow=Math.max(0,curFlow-1);renderFlow()};
+document.getElementById('autoBtn').onclick=function(e){
+  if(timer){clearInterval(timer);timer=null;e.target.textContent='▶ Auto-play';return}
+  e.target.textContent='⏸ Pause';
+  timer=setInterval(function(){ if(curFlow>=FLOW.length-1){clearInterval(timer);timer=null;document.getElementById('autoBtn').textContent='▶ Auto-play';return} curFlow++;renderFlow() },1800);
+};
+renderFlow();
+</script>
+</body>
+</html>
