@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Neuruh Nexus: Interactive Build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbf9f5; --ink:#1a1815; --ink2:#4a463e; --muted:#8a8478;
+  --line:#ddd5c5; --brass:#a67c2e; --brass-d:#8a6524; --green:#2e6b34; --red:#9b2c2c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55}
+a{color:var(--brass-d)}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 22px 80px}
+.docctl{border:1px solid var(--line);background:var(--paper);padding:18px 20px;display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline}
+.docctl .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.docctl .v{font-weight:600;font-size:13px}
+h1{font-family:Archivo,sans-serif;font-size:34px;line-height:1.1;margin:26px 0 6px;letter-spacing:-.01em}
+.sub{font-size:16px;color:var(--ink2);max-width:760px;margin:0 0 20px}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 26px}
+.meta div{background:var(--paper);padding:12px 14px}
+.meta .k{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meta .v{font-weight:600;font-size:13.5px;margin-top:3px}
+.tabs{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;background:var(--bone);padding:10px 0;border-bottom:2px solid var(--ink);margin-bottom:26px}
+.tabs button{font-family:Archivo,sans-serif;font-size:13px;font-weight:600;padding:8px 13px;border:1px solid var(--line);background:var(--paper);color:var(--ink2);cursor:pointer;border-radius:2px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tabs button:hover{border-color:var(--ink)}
+.tab{display:none}
+.tab.on{display:block}
+h2{font-family:Archivo,sans-serif;font-size:24px;margin:4px 0 4px}
+h3{font-family:Archivo,sans-serif;font-size:17px;margin:26px 0 8px}
+h4{font-family:Archivo,sans-serif;font-size:14px;margin:20px 0 6px}
+p{margin:8px 0}
+.lede{font-size:16.5px;color:var(--ink2)}
+.rule{border:none;border-top:1px solid var(--line);margin:22px 0}
+.card{background:var(--paper);border:1px solid var(--line);padding:18px 20px;margin:14px 0}
+.card.brass{border-left:4px solid var(--brass)}
+.card.warn{border-left:4px solid var(--red)}
+.card .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:Archivo,sans-serif;font-size:30px;font-weight:800;line-height:1}
+.num small{font-size:14px;font-weight:600;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.stat{background:var(--paper);border:1px solid var(--line);padding:16px}
+.stat .n{font-family:Archivo,sans-serif;font-size:26px;font-weight:800}
+.stat .l{font-size:12.5px;color:var(--ink2);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:2px solid var(--ink);padding:8px 10px}
+td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+code,.mono{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+pre{background:#211e19;color:#e8e2d4;padding:16px;overflow:auto;font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.5;border-radius:3px}
+pre .cm{color:#8a8478}
+.fig{background:var(--paper);border:1px solid var(--line);padding:16px;margin:16px 0}
+.fig svg{width:100%;height:auto;display:block}
+.figcap{font-size:12.5px;color:var(--ink2);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.figcap b{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.pill{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:11px;padding:2px 8px;border:1px solid var(--brass);color:var(--brass-d);border-radius:20px;margin-right:6px}
+.pill.red{border-color:var(--red);color:var(--red)}
+.pill.green{border-color:var(--green);color:var(--green)}
+input[type=text],textarea{width:100%;font-family:Inter,sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:#fff;border-radius:2px}
+textarea{min-height:90px;resize:vertical}
+button.go{font-family:Archivo,sans-serif;font-weight:700;font-size:14px;background:var(--brass);color:#fff;border:none;padding:11px 20px;cursor:pointer;border-radius:2px;margin-top:10px}
+button.go:hover{background:var(--brass-d)}
+button.ghost{font-family:Archivo,sans-serif;font-weight:600;font-size:12.5px;background:var(--paper);border:1px solid var(--line);padding:7px 12px;cursor:pointer;border-radius:2px;margin:4px 4px 0 0}
+button.ghost:hover{border-color:var(--ink)}
+.result{border:1px solid var(--line);background:var(--paper);padding:16px 18px;margin-top:14px}
+.result .intent{font-family:Archivo,sans-serif;font-size:20px;font-weight:800}
+.kv{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:9px 2px;font-size:13.5px}
+.kv:first-of-type{border-top:none}
+.kv .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:2px;white-space:nowrap}
+.bar{height:10px;background:#e7e1d3;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass)}
+.note{font-size:12.5px;color:var(--muted)}
+.foot{margin-top:44px;border-top:2px solid var(--ink);padding-top:14px;font-size:12.5px;color:var(--muted)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.check{display:flex;gap:9px;align-items:flex-start;background:#fff;border:1px solid var(--line);padding:11px 12px;font-size:13.5px;cursor:pointer;border-radius:2px}
+.check input{margin-top:3px;accent-color:var(--brass)}
+.check b{display:block;font-size:13.5px}
+.check span{color:var(--ink2);font-size:12.5px}
+.flagbox{border:1px solid var(--red);background:#fdf6f3;padding:14px 16px;margin-top:14px}
+.flagbox .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+@media(max-width:640px){.meta{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}h1{font-size:26px}.checks{grid-template-columns:1fr}}
+@media print{.tabs{display:none}body{background:#fff}.tab{display:block!important}.wrap{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="docctl">
+  <span><span class="k">Document</span><br><span class="v">The Power of Meta-Orchestration</span></span>
+  <span><span class="k">Class</span><br><span class="v">Interactive build / demo</span></span>
+  <span><span class="k">Source</span><br><span class="v">Neuruh Nexus white paper (pasted text)</span></span>
+  <span><span class="k">Built</span><br><span class="v">2026-11-05</span></span>
+  <span><span class="k">State</span><br><span class="v">DESIGNED, not deployed as a product</span></span>
+</div>
+
+<h1>The Neuruh Nexus: Meta-Orchestration</h1>
+<p class="sub">A cross-workflow intelligence fusion engine. It listens to every sub-engine in the Neuruh ecosystem, finds the people who matter in more than one domain at once, and turns isolated signals into Compound Opportunities. Built out from the white paper, with the fusion logic running live in this page.</p>
+
+<div class="meta">
+  <div><div class="k">Source paper</div><div class="v">The Power of Meta-Orchestration</div></div>
+  <div><div class="k">Core claim</div><div class="v">Linear growth becomes exponential when engines share signals</div></div>
+  <div><div class="k">Working widgets</div><div class="v">Compound simulator, sniper builder, graph diagram</div></div>
+  <div><div class="k">Honesty label</div><div class="v">All figures are the paper's claims; targets are targets</div></div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="t1" class="on">1 · Executive Summary</button>
+  <button data-tab="t2">2 · The Challenge</button>
+  <button data-tab="t3">3 · The Solution</button>
+  <button data-tab="t4">4 · Mechanics of Data Fusion</button>
+  <button data-tab="t5">5 · Strategic Applications</button>
+  <button data-tab="t6">6 · Competitive Moat</button>
+  <button data-tab="t7">7 · Document Notes</button>
+</nav>
+
+<!-- ============ TAB 1 : EXECUTIVE SUMMARY ============ -->
+<section class="tab on" id="t1">
+  <h2>Executive Summary</h2>
+  <p class="lede">In the modern B2B enterprise landscape, data is abundant, yet actionable, high-conversion intelligence remains scarce. Organizations build sophisticated, isolated operational engines to capture leads across distinct sectors: Defense Contracting, Commercial Real Estate, Investor Relations, and Content Engagement. Those siloed engines limit growth to a linear trajectory. The enterprise captures only the sum of its individual parts.</p>
+  <p>The Neuruh Nexus is the paper's answer: a Cross-Workflow Intelligence Fusion Engine that acts as a meta-orchestration layer. Its singular purpose is to synthesize disparate data streams in real time, identifying the rare, high-value intersections where a single entity holds influence across multiple domains. By transforming isolated signals into Compound Opportunities, the Nexus redefines account-based strategy, increases conversion lift multipliers, and establishes a competitive moat.</p>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="stat"><div class="n">4</div><div class="l">Operational engines feeding the Nexus: Defense Contracting, Commercial Real Estate, Investor Relations, Content Engagement</div></div>
+    <div class="stat"><div class="n">&gt;2.5x</div><div class="l">Target conversion lift for Compound Leads versus single-domain leads (target, not a measured result)</div></div>
+    <div class="stat"><div class="n">&lt;5 min</div><div class="l">Target insight latency from signal to Nexus (target, not a measured result)</div></div>
+    <div class="stat"><div class="n">5x-10x</div><div class="l">Higher engagement claimed for sniper micro-segments (the paper's claim, no measurement shown)</div></div>
+    <div class="stat"><div class="n">1</div><div class="l">Shared Knowledge Graph underneath it all, enriched by every interaction, deal, and piece of content consumed</div></div>
+    <div class="stat"><div class="n">4</div><div class="l">Strategic applications: Side Door entry, liquidity event prediction, sniper marketing, dynamic risk mitigation</div></div>
+  </div>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 150" role="img" aria-label="Linear versus compound growth diagram">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif">
+        <text x="20" y="28" font-size="13" font-weight="700" fill="#1a1815">LINEAR: FOUR ENGINES, FOUR SEPARATE SUMS</text>
+        <rect x="20" y="40" width="180" height="44" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="110" y="67" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">DEFENSE</text>
+        <rect x="215" y="40" width="180" height="44" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="305" y="67" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">REAL ESTATE</text>
+        <rect x="410" y="40" width="180" height="44" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="500" y="67" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">INVESTOR</text>
+        <rect x="605" y="40" width="180" height="44" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="695" y="67" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">CONTENT</text>
+        <text x="800" y="67" font-size="13" font-weight="700" fill="#4a463e">A + B + C + D</text>
+        <text x="20" y="118" font-size="13" font-weight="700" fill="#1a1815">COMPOUND: ONE GRAPH, INTERSECTIONS MULTIPLY</text>
+        <rect x="20" y="128" width="180" height="20" fill="#a67c2e"/><text x="110" y="142" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">ONE PERSON, FOUR DOMAINS</text>
+        <text x="215" y="143" font-size="13" font-weight="700" fill="#a67c2e">VALUE &gt; A + B + C + D</text>
+      </g>
+    </svg>
+    <div class="figcap"><b>Figure 1</b>: Linear versus compound. Siloed engines capture the sum of their parts. The Nexus captures the intersections, where one entity holds influence across multiple domains at once.</div>
+  </div>
+</section>
+
+<!-- ============ TAB 2 : THE CHALLENGE ============ -->
+<section class="tab" id="t2">
+  <h2>The Challenge: The Trap of Linear Intelligence</h2>
+  <p class="lede">Revenue teams are crippled by vertical tunnel vision. A high-scoring defense lead is treated exclusively as a defense prospect. A commercial real estate owner is marketed to solely as a landlord. The approach ignores the fundamental reality of high-net-worth and C-suite individuals: their professional and financial lives are deeply interconnected.</p>
+
+  <div class="card brass">
+    <span class="k">The paper's example</span>
+    <p style="margin:8px 0 0">When a Defense CEO wins a <b>$50 million government contract</b>, they do not just represent a software automation target. They represent a sudden influx of capital requiring asset allocation, often into private equity or commercial real estate. The defense engine sees a software deal. The real estate engine, if it ever hears about it, sees a landlord. Neither sees the whole person.</p>
+  </div>
+
+  <h3>What goes wrong when engines do not talk</h3>
+  <ul>
+    <li><b>Generic outreach.</b> Without the holistic view of the prospect, every message is written for one domain and misses the rest of the person's life.</li>
+    <li><b>Missed timing on liquidity events.</b> A contract award is a cash event with a clock on it. Capital needs to be deployed, and the window for being the one who helps deploy it closes fast.</li>
+    <li><b>Suppressed conversion rates.</b> A prospect approached on one angle, when three angles are available, converts worse than a prospect approached on the angle that actually matters to them right now.</li>
+  </ul>
+  <p>The paper's diagnosis is that the failure is structural, not a matter of effort. Isolated engines cannot see intersections by construction. Adding more leads to a siloed engine adds linear growth. The only way to get more than the sum of the parts is to fuse the signals.</p>
+</section>
+
+<!-- ============ TAB 3 : THE SOLUTION ============ -->
+<section class="tab" id="t3">
+  <h2>The Solution: Introducing the Neuruh Nexus</h2>
+  <p class="lede">The Neuruh Nexus is not a traditional CRM or a static database. It is a continuous, event-driven organism that perpetually listens to event streams from all sub-engines within the Neuruh ecosystem. Its primary objective is the identification and routing of Compound Opportunities: net-new prospects whose strategic value is multiplied by their intersection across disparate domains.</p>
+
+  <h3>The Conversion Lift Multiplier</h3>
+  <p>Success within the Nexus is not measured by raw lead volume. It is measured by the Conversion Lift Multiplier: the conversion rate of Compound Leads versus single-domain leads. By leveraging multi-angle intelligence, the Nexus aims to deliver a target conversion lift of <b>greater than 2.5x</b>.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 190" role="img" aria-label="Conversion lift comparison chart">
+      <g font-family="Archivo,sans-serif">
+        <text x="20" y="24" font-size="12" font-weight="700" fill="#1a1815">CONVERSION LIFT, COMPOUND LEADS VS SINGLE-DOMAIN LEADS</text>
+        <text x="20" y="70" font-size="12" fill="#4a463e">Single-domain lead</text>
+        <rect x="220" y="48" width="180" height="26" fill="#ddd5c5"/><text x="410" y="67" font-size="13" font-weight="700" fill="#1a1815">1.0x (baseline)</text>
+        <text x="20" y="125" font-size="12" fill="#4a463e">Compound lead</text>
+        <rect x="220" y="103" width="450" height="26" fill="#a67c2e"/><text x="680" y="122" font-size="13" font-weight="700" fill="#1a1815">&gt;2.5x TARGET</text>
+        <text x="20" y="168" font-size="11" fill="#8a8478" font-family="JetBrains Mono,monospace">TARGET, NOT A MEASURED RESULT. THE PAPER GIVES NO MEASURED CONVERSION RATE.</text>
+      </g>
+    </svg>
+    <div class="figcap"><b>Figure 2</b>: The Conversion Lift Multiplier. The paper's target is a conversion lift greater than 2.5x for Compound Leads over single-domain leads. No measured result appears in the paper.</div>
+  </div>
+
+  <h3>Try it: Compound Opportunity Simulator</h3>
+  <p>Toggle the domain signals for one prospect. The simulator builds the structured Compound Strategy the paper describes: primary hook, secondary pivot, recommended communication vector, plus a lift estimate against the paper's target. The lift numbers come from a simple illustrative model in this demo, not from the paper. The paper states the target only.</p>
+  <div class="card">
+    <span class="k">Prospect signals</span>
+    <div class="checks">
+      <label class="check"><input type="checkbox" id="sig-defense"><span><b>Defense Contract Award</b><span>Defense engine: contract win, capital incoming</span></span></label>
+      <label class="check"><input type="checkbox" id="sig-realestate"><span><b>Real Estate Ownership</b><span>Real estate engine: owns commercial property</span></span></label>
+      <label class="check"><input type="checkbox" id="sig-investor"><span><b>Investor Connection</b><span>Investor engine: connected to an investor firm</span></span></label>
+      <label class="check"><input type="checkbox" id="sig-content"><span><b>Content Engagement</b><span>Content engine: engages with AI Governance content</span></span></label>
+    </div>
+    <div>
+      <span class="k">Presets from the paper</span><br>
+      <button class="ghost" onclick="setPreset('p50')">Defense CEO, $50M contract win</button>
+      <button class="ghost" onclick="setPreset('p10')">Defense exec, $10M real estate portfolio</button>
+      <button class="ghost" onclick="setPreset('clear')">Clear all</button>
+    </div>
+    <button class="go" onclick="runSimulator()">Build the Compound Strategy</button>
+    <div class="result" id="simOut" style="display:none"></div>
+  </div>
+  <p class="note">Lift model in this demo: 1.0x baseline for a single-domain lead, plus 0.7x for each additional domain beyond the first, plus a 0.3x bonus when Defense and Real Estate signals combine (the liquidity-event pattern from the paper). The paper's target is greater than 2.5x. This model is illustrative; it is not a measurement.</p>
+</section>
+
+<!-- ============ TAB 4 : MECHANICS ============ -->
+<section class="tab" id="t4">
+  <h2>Mechanics of Data Fusion</h2>
+  <p class="lede">Meta-orchestration needs a technical architecture that can handle high-velocity data streams and complex relationship mapping. The Nexus uses four layers: a graph for memory, an event bus for ingestion, an AI agent for synthesis, and a feedback loop that teaches the engines.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 150" role="img" aria-label="Fusion pipeline diagram">
+      <defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+        <rect x="8" y="45" width="150" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="83" y="70" fill="#1a1815">SUB-ENGINES</text><text x="83" y="90" fill="#4a463e" font-weight="400" font-size="11">4 engines, signals</text>
+        <rect x="198" y="45" width="150" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="273" y="70" fill="#1a1815">EVENT BUS</text><text x="273" y="90" fill="#4a463e" font-weight="400" font-size="11">Kinesis, &lt;5 min</text>
+        <rect x="388" y="45" width="150" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="463" y="70" fill="#1a1815">KNOWLEDGE GRAPH</text><text x="463" y="90" fill="#4a463e" font-weight="400" font-size="11">Neptune / Neo4j</text>
+        <rect x="578" y="45" width="150" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="653" y="70" fill="#1a1815">AI SYNTHESIS</text><text x="653" y="90" fill="#4a463e" font-weight="400" font-size="11">GPT-4, LangChain</text>
+        <rect x="768" y="45" width="184" height="60" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="860" y="70" fill="#fff">COMPOUND STRATEGY</text><text x="860" y="90" fill="#fff" font-weight="400" font-size="11">hook, pivot, vector</text>
+      </g>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar2)">
+        <line x1="158" y1="75" x2="196" y2="75"/><line x1="348" y1="75" x2="386" y2="75"/><line x1="538" y1="75" x2="576" y2="75"/><line x1="728" y1="75" x2="766" y2="75"/>
+      </g>
+      <path d="M 860 105 L 860 135 L 83 135 L 83 107" fill="none" stroke="#a67c2e" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar2)"/>
+      <text x="480" y="150" font-family="JetBrains Mono,monospace" font-size="10" fill="#8a8478" text-anchor="middle">META-FEEDBACK LOOP: OUTCOMES BROADCAST BACK TO THE ENGINES, SCORING IMPROVES COMPANY-WIDE</text>
+    </svg>
+    <div class="figcap"><b>Figure 3</b>: The fusion pipeline. Signals stream from the four sub-engines through the event bus into the Knowledge Graph, the AI Synthesis agent builds a Compound Strategy, and the Meta-Feedback Loop carries outcomes back to the engines. Technologies named in the paper: Amazon Kinesis, Amazon Neptune or Neo4j, GPT-4 via LangChain.</div>
+  </div>
+
+  <h3>1 · The Persistent Memory: The Proprietary Knowledge Graph</h3>
+  <p>Traditional relational databases fail at complex data linkage. The Nexus is built upon a high-performance Graph Database (Amazon Neptune/Neo4j). Every incoming signal maps itself to entities (Nodes) and relationships (Edges). The graph maps not just who a person is, but how they connect to companies, assets, investors, and content.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 360" role="img" aria-label="Knowledge graph diagram">
+      <g font-family="Archivo,sans-serif">
+        <line x1="480" y1="180" x2="480" y2="60" stroke="#a67c2e" stroke-width="2"/>
+        <line x1="480" y1="180" x2="180" y2="180" stroke="#a67c2e" stroke-width="2"/>
+        <line x1="480" y1="180" x2="780" y2="180" stroke="#a67c2e" stroke-width="2"/>
+        <line x1="480" y1="180" x2="480" y2="300" stroke="#a67c2e" stroke-width="2"/>
+        <circle cx="480" cy="180" r="52" fill="#1a1815"/>
+        <text x="480" y="175" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">DEFENSE CEO</text>
+        <text x="480" y="193" font-size="10" fill="#e8e2d4" text-anchor="middle">ONE PERSON</text>
+        <rect x="380" y="18" width="200" height="46" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/>
+        <text x="480" y="38" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">DEFENSE CONTRACTING</text>
+        <text x="480" y="55" font-size="11" fill="#4a463e" text-anchor="middle">$50M contract award</text>
+        <rect x="60" y="158" width="200" height="46" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/>
+        <text x="160" y="178" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">COMMERCIAL REAL ESTATE</text>
+        <text x="160" y="195" font-size="11" fill="#4a463e" text-anchor="middle">$10M portfolio owned</text>
+        <rect x="700" y="158" width="200" height="46" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/>
+        <text x="800" y="178" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">INVESTOR RELATIONS</text>
+        <text x="800" y="195" font-size="11" fill="#4a463e" text-anchor="middle">connected to investor firm</text>
+        <rect x="380" y="296" width="200" height="46" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/>
+        <text x="480" y="316" font-size="12" font-weight="700" fill="#1a1815" text-anchor="middle">CONTENT ENGAGEMENT</text>
+        <text x="480" y="333" font-size="11" fill="#4a463e" text-anchor="middle">reads AI Governance content</text>
+        <text x="540" y="115" font-size="11" fill="#a67c2e" font-family="JetBrains Mono,monospace">AWARDED</text>
+        <text x="280" y="170" font-size="11" fill="#a67c2e" font-family="JetBrains Mono,monospace">OWNS</text>
+        <text x="668" y="170" font-size="11" fill="#a67c2e" font-family="JetBrains Mono,monospace">CONNECTED TO</text>
+        <text x="545" y="250" font-size="11" fill="#a67c2e" font-family="JetBrains Mono,monospace">ENGAGES WITH</text>
+      </g>
+    </svg>
+    <div class="figcap"><b>Figure 4</b>: The Knowledge Graph, one person across four domains. Nodes are entities, edges are relationships. The paper's examples: a Defense CEO awarded a $50M contract, a Defense Executive who personally owns a $10M commercial real estate portfolio.</div>
+  </div>
+
+  <h3>2 · Real-Time Signal Ingestion</h3>
+  <p>The Nexus utilizes an event bus architecture (Amazon Kinesis). As signals occur across the Defense, Real Estate, or Investor engines, they are continuously streamed into the Nexus with a target insight latency of <b>under five minutes</b>. That latency figure is a target stated in the paper, not a measured result.</p>
+
+  <h3>3 · AI-Driven Opportunity Synthesis</h3>
+  <p>When a high-value pattern is detected, for instance a Defense Executive who personally owns a $10M commercial real estate portfolio, the Nexus triggers an AI Synthesis agent. Utilizing advanced language models (GPT-4 via LangChain), the system generates a structured Compound Strategy. It provides the sales team with the precise primary hook, secondary pivot, and recommended communication vector. Try it in the simulator on Tab 3.</p>
+
+  <h3>4 · The Meta-Feedback Loop</h3>
+  <p>The Nexus does not just route opportunities, it learns from them. It continuously analyzes the success and failure patterns of cross-domain intersections. If it detects that engaging with specific AI Governance content strongly correlates with Real Estate ownership, it automatically broadcasts this algorithm update back to the individual engines, optimizing future scoring company-wide.</p>
+</section>
+
+<!-- ============ TAB 5 : STRATEGIC APPLICATIONS ============ -->
+<section class="tab" id="t5">
+  <h2>Strategic Applications: The Nexus in Action</h2>
+  <p class="lede">The intelligence generated by the Nexus unlocks entirely new go-to-market motions that competitors relying on traditional data cannot replicate. Four motions, each built on the same fusion: know the whole person, then choose the angle that fits.</p>
+
+  <div class="grid2">
+    <div class="card brass"><span class="k">Motion 1 · The "Side Door" Entry Strategy</span>
+      <p style="margin:8px 0 0">High-level executives routinely ignore cold outreach regarding enterprise software. The Nexus enables revenue teams to approach from a personal angle. By identifying a Defense CEO's recent real estate acquisition, the initial outreach can focus on asset optimization, building rapport before pivoting to the larger, primary software deal.</p>
+    </div>
+    <div class="card brass"><span class="k">Motion 2 · Capital Capture via Liquidity Event Prediction</span>
+      <p style="margin:8px 0 0">By monitoring Defense Contract awards simultaneously with Investor firm connections, the Nexus predicts when key partners will experience a massive cash infusion. This allows Neuruh to position relevant financial or asset management services at the exact moment capital needs to be deployed.</p>
+    </div>
+    <div class="card brass"><span class="k">Motion 3 · "Sniper" Account-Based Marketing</span>
+      <p style="margin:8px 0 0">The Nexus identifies micro-segments, such as "Defense Execs who own Real Estate and engage with AI-skeptic content." This allows for hyper-targeted, high-value collateral that speaks precisely to the complex duality of the prospect's professional life, resulting in <b>5x-10x higher engagement</b>. That engagement figure is the paper's claim; no measurement is shown.</p>
+    </div>
+    <div class="card brass"><span class="k">Motion 4 · Dynamic Risk Mitigation</span>
+      <p style="margin:8px 0 0">A prospect may appear highly qualified on paper. However, the Nexus can cross-reference vacant commercial properties and engagement with distressed-asset content to flag a <b>"High Risk Compound Profile,"</b> saving the enterprise from investing resources into unviable deals.</p>
+    </div>
+  </div>
+
+  <h3>Try it: Sniper Segment Builder</h3>
+  <p>Pick the traits the Nexus sees for a prospect. The builder names the micro-segment, states the paper's engagement claim where it applies, and flags a High Risk Compound Profile when the distressed traits are present.</p>
+  <div class="card">
+    <span class="k">Prospect traits</span>
+    <div class="checks">
+      <label class="check"><input type="checkbox" id="tr-defexec"><span><b>Defense Executive</b><span>Works in defense contracting, C-suite or senior</span></span></label>
+      <label class="check"><input type="checkbox" id="tr-ownsre"><span><b>Owns Real Estate</b><span>Personally owns commercial real estate</span></span></label>
+      <label class="check"><input type="checkbox" id="tr-skeptic"><span><b>Engages AI-skeptic content</b><span>Reads or shares AI-skeptic material</span></span></label>
+      <label class="check"><input type="checkbox" id="tr-distressed"><span><b>Engages distressed-asset content</b><span>Reads or shares distressed-asset material</span></span></label>
+      <label class="check"><input type="checkbox" id="tr-vacant"><span><b>Owns vacant commercial properties</b><span>Vacant properties in the portfolio</span></span></label>
+    </div>
+    <div>
+      <span class="k">Preset from the paper</span><br>
+      <button class="ghost" onclick="setSniperPreset()">Defense Execs who own Real Estate and engage with AI-skeptic content</button>
+      <button class="ghost" onclick="clearSniper()">Clear all</button>
+    </div>
+    <button class="go" onclick="runSniper()">Build the micro-segment</button>
+    <div class="result" id="sniperOut" style="display:none"></div>
+  </div>
+</section>
+
+<!-- ============ TAB 6 : COMPETITIVE MOAT ============ -->
+<section class="tab" id="t6">
+  <h2>The Ultimate Competitive Moat</h2>
+  <p class="lede">The true value of the Neuruh Nexus extends far beyond immediate revenue generation. It is the foundation of an unassailable strategic advantage, and the moat is the graph itself.</p>
+  <p>Competitors can purchase the same raw data lists. They can hire engineers to build isolated workflows. However, they cannot replicate the Neuruh Knowledge Graph. Every interaction, every closed deal, and every piece of content consumed enriches the graph. The pattern detection becomes smarter, and the outreach becomes more precise with every passing day.</p>
+  <p>The Neuruh Nexus transforms a collection of services into a self-reinforcing, proprietary intelligence platform. It is not just a tool for navigating the market. It is the engine for dominating it.</p>
+
+  <div class="card">
+    <span class="k">Why the graph compounds</span>
+    <table>
+      <tr><th>What competitors can copy</th><th>What they cannot copy</th></tr>
+      <tr><td>Raw data lists</td><td>The Knowledge Graph built from every interaction</td></tr>
+      <tr><td>Isolated workflows</td><td>The cross-domain intersections already mapped</td></tr>
+      <tr><td>Engineers and tooling</td><td>The Meta-Feedback Loop's accumulated scoring updates</td></tr>
+      <tr><td>Outreach playbooks</td><td>The pattern history of which intersections converted</td></tr>
+    </table>
+    <p class="note">The moat claim is the paper's argument. The paper gives no measured result for conversion lift, engagement, or latency. See Tab 7.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 7 : DOCUMENT NOTES ============ -->
+<section class="tab" id="t7">
+  <h2>Document Notes: targets versus measured results</h2>
+  <p class="lede">This build covers every section of the white paper. It does not upgrade the paper's targets into results. What follows is the line between what the paper aims for, what it claims, and what it measures.</p>
+
+  <h3>Target or claim, not a measured result</h3>
+  <table>
+    <tr><th>Figure</th><th>Status in the paper</th><th>Detail</th></tr>
+    <tr><td>Conversion lift greater than 2.5x</td><td><span class="pill">Target</span></td><td>The paper says the Nexus "aims to deliver" a target conversion lift greater than 2.5x for Compound Leads versus single-domain leads. No measured conversion rate appears anywhere in the paper.</td></tr>
+    <tr><td>5x-10x higher engagement</td><td><span class="pill">Paper's claim</span></td><td>Stated for sniper micro-segments such as "Defense Execs who own Real Estate and engage with AI-skeptic content." No measurement, sample, or method is shown.</td></tr>
+    <tr><td>Insight latency under five minutes</td><td><span class="pill">Target</span></td><td>Stated as a target for signal ingestion through the event bus. No measured latency appears in the paper.</td></tr>
+    <tr><td>$50M contract, $10M portfolio</td><td><span class="pill">Examples</span></td><td>Illustrative examples in the paper's text, not case data. The $50M contract illustrates the liquidity-event pattern; the $10M portfolio illustrates the synthesis example.</td></tr>
+  </table>
+
+  <h3>Named technologies, not verified deployments</h3>
+  <p>Amazon Neptune/Neo4j (graph database), Amazon Kinesis (event bus), and GPT-4 via LangChain (synthesis agent) are named in the paper as the architecture's components. The paper contains no deployment evidence: no live endpoint, no run log, no test result. This demo treats them as the paper's stated design, and its widgets simulate the logic in the browser.</p>
+
+  <h3>What the paper does not contain</h3>
+  <ul>
+    <li>No measured results of any kind: no conversion rates, no engagement measurements, no latency measurements, no sample sizes.</li>
+    <li>No date, version number, or author on the paper as supplied.</li>
+    <li>No definition of how the Conversion Lift Multiplier is calculated beyond the comparison it names (Compound Lead conversion rate versus single-domain lead conversion rate).</li>
+    <li>No pricing, no availability, no deployment status.</li>
+  </ul>
+
+  <div class="card brass">
+    <span class="k">Status of this build</span>
+    <p style="margin:8px 0 0">The paper is a strategic white paper: strong on architecture and go-to-market motions, with every number stated as a target or a claim. This demo preserves the content, runs the fusion logic as an interactive simulation, and labels every figure as the paper's claim. Nothing here is a live product, a measured result, or a verified deployment.</p>
+  </div>
+</section>
+
+<div class="foot">
+  <b>The Neuruh Nexus: Meta-Orchestration, interactive build.</b> Source: "The Power of Meta-Orchestration: Unleashing Exponential Growth with the Neuruh Nexus," A Neuruh Strategic White Paper (pasted text, 2026-11-05). Built 2026-11-05. Raw material, not canon. All figures are the paper's claims; targets are labeled as targets. The simulators in Tabs 3 and 5 are illustrative models built for this demo, not measurements. DESIGNED state: the demo is built and verified; no backend, graph database, or event bus exists behind it.
+</div>
+
+</div>
+
+<script>
+// ---------- Tabs ----------
+document.querySelectorAll('#tabs button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#tabs button').forEach(function(b){b.classList.remove('on')});
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on')});
+    btn.classList.add('on');
+    document.getElementById(btn.getAttribute('data-tab')).classList.add('on');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// ---------- Compound Opportunity Simulator ----------
+var SIGNAL_DEFS = {
+  defense: {label:'Defense Contract Award', hook:'Capital allocation after a contract win: fresh capital needs a home, often private equity or commercial real estate.'},
+  realestate: {label:'Real Estate Ownership', hook:'Asset optimization on the portfolio: the prospect already holds property, so the conversation starts with what they own.'},
+  investor: {label:'Investor Connection', hook:'Capital deployment timing: investor firm connections signal when cash is about to move.'},
+  content: {label:'Content Engagement', hook:'Shared view on AI Governance: the prospect is already thinking about the questions the content raises.'}
+};
+var PRIORITY = ['defense','realestate','investor','content'];
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setPreset(which){
+  var map = {defense:false, realestate:false, investor:false, content:false};
+  if (which === 'p50'){ map.defense = true; map.realestate = true; }
+  if (which === 'p10'){ map.defense = true; map.realestate = true; map.content = true; }
+  Object.keys(map).forEach(function(k){ document.getElementById('sig-'+k).checked = map[k]; });
+  runSimulator();
+}
+function runSimulator(){
+  var selected = PRIORITY.filter(function(k){ return document.getElementById('sig-'+k).checked; });
+  var out = document.getElementById('simOut');
+  out.style.display = 'block';
+  if (selected.length === 0){
+    out.innerHTML = '<div><span class="k">Result</span><div class="intent">No signals selected</div></div>'
+      + '<p style="margin:10px 0 0">A prospect with no cross-domain signals is a single-domain lead at best. No intersection, no Compound Opportunity, no lift. Toggle at least one signal.</p>';
+    return;
+  }
+  if (selected.length === 1){
+    out.innerHTML = '<div><span class="k">Result</span><div class="intent">Single-domain lead</div></div>'
+      + '<p style="margin:10px 0 0">Only one signal is present: ' + esc(SIGNAL_DEFS[selected[0]].label) + '. One domain cannot compound. Lift is 1.0x by definition. Add a second domain to build a Compound Opportunity.</p>'
+      + '<div class="kv"><span class="k">Signals</span><span>1 of 4</span></div>'
+      + '<div class="kv"><span class="k">Lift estimate</span><span class="mono">1.0x (baseline)</span></div>'
+      + '<p class="note" style="margin-top:10px">The paper measures success by the Conversion Lift Multiplier, Compound Leads versus single-domain leads. A single-domain lead is the baseline it is measured against.</p>';
+    return;
+  }
+  var lift = 1.0 + 0.7 * (selected.length - 1);
+  var bonus = (selected.indexOf('defense') !== -1 && selected.indexOf('realestate') !== -1) ? 0.3 : 0;
+  lift = lift + bonus;
+  var primary = selected[0], secondary = selected[1];
+  var vector;
+  if (selected.indexOf('realestate') !== -1){
+    vector = 'Personal angle first: open on asset optimization, build rapport, then pivot to the primary deal. This is the paper\u2019s Side Door entry.';
+  } else if (selected.indexOf('content') !== -1){
+    vector = 'Warm collateral matched to the content they engaged with, then pivot to the primary deal.';
+  } else {
+    vector = 'Direct outreach on the primary hook, timed to the liquidity event.';
+  }
+  var meets = lift > 2.5;
+  var html = '<div><span class="k">Result</span><div class="intent">Compound Opportunity</div></div>'
+    + '<div style="margin-top:10px"><span class="k">Signals detected (' + selected.length + ' of 4)</span>'
+    + selected.map(function(k){ return '<div class="kv"><span class="mono">' + esc(SIGNAL_DEFS[k].label) + '</span><span class="match">signal</span></div>'; }).join('')
+    + '</div>'
+    + '<div style="margin-top:12px"><span class="k">Structured Compound Strategy</span>'
+    + '<div class="kv"><span class="k">Primary hook</span><span style="text-align:right;max-width:70%">' + esc(SIGNAL_DEFS[primary].hook) + '</span></div>'
+    + '<div class="kv"><span class="k">Secondary pivot</span><span style="text-align:right;max-width:70%">' + esc(SIGNAL_DEFS[secondary].hook) + '</span></div>'
+    + '<div class="kv"><span class="k">Communication vector</span><span style="text-align:right;max-width:70%">' + esc(vector) + '</span></div></div>'
+    + '<div style="margin-top:12px"><span class="k">Lift estimate (illustrative model)</span><div class="num">' + lift.toFixed(1) + 'x</div>'
+    + '<p style="margin:6px 0 0">' + (meets ? 'This modeled estimate meets the paper\u2019s target of greater than 2.5x.' : 'This modeled estimate is below the paper\u2019s target of greater than 2.5x. Add another domain signal to reach it.') + (bonus ? ' Includes the 0.3x Defense plus Real Estate liquidity-event bonus.' : '') + '</p></div>'
+    + '<p class="note" style="margin-top:10px">Lift model: 1.0x baseline, plus 0.7x per additional domain beyond the first, plus 0.3x when Defense and Real Estate combine. The paper states the target only. No measured result is given.</p>';
+  out.innerHTML = html;
+}
+
+// ---------- Sniper Segment Builder ----------
+var TRAIT_DEFS = {
+  defexec: 'Defense Execs',
+  ownsre: 'who own Real Estate',
+  skeptic: 'and engage with AI-skeptic content',
+  distressed: 'and engage with distressed-asset content',
+  vacant: 'and own vacant commercial properties'
+};
+function setSniperPreset(){
+  document.getElementById('tr-defexec').checked = true;
+  document.getElementById('tr-ownsre').checked = true;
+  document.getElementById('tr-skeptic').checked = true;
+  document.getElementById('tr-distressed').checked = false;
+  document.getElementById('tr-vacant').checked = false;
+  runSniper();
+}
+function clearSniper(){
+  ['defexec','ownsre','skeptic','distressed','vacant'].forEach(function(k){ document.getElementById('tr-'+k).checked = false; });
+  document.getElementById('sniperOut').style.display = 'none';
+}
+function runSniper(){
+  var keys = ['defexec','ownsre','skeptic','distressed','vacant'];
+  var selected = keys.filter(function(k){ return document.getElementById('tr-'+k).checked; });
+  var out = document.getElementById('sniperOut');
+  out.style.display = 'block';
+  if (selected.length === 0){
+    out.innerHTML = '<div><span class="k">Result</span><div class="intent">No traits selected</div></div>'
+      + '<p style="margin:10px 0 0">A micro-segment needs at least one trait. Select traits to name the segment.</p>';
+    return;
+  }
+  var name = selected.map(function(k){ return TRAIT_DEFS[k]; }).join(' ');
+  var risk = selected.indexOf('distressed') !== -1 || selected.indexOf('vacant') !== -1;
+  var exactExample = selected.indexOf('defexec') !== -1 && selected.indexOf('ownsre') !== -1 && selected.indexOf('skeptic') !== -1 && !risk;
+  var html = '<div><span class="k">Micro-segment</span><div class="intent">' + esc(name) + '</div></div>';
+  if (exactExample){
+    html += '<p style="margin:10px 0 0">This is the paper\u2019s example micro-segment. The paper claims hyper-targeted collateral for this segment results in <b>5x-10x higher engagement</b>. That figure is the paper\u2019s claim; no measurement, sample, or method is shown.</p>';
+  } else {
+    html += '<p style="margin:10px 0 0">A micro-segment of ' + selected.length + ' trait' + (selected.length > 1 ? 's' : '') + '. The paper\u2019s 5x-10x engagement claim is stated for its example segment only; no measured result is shown for other combinations.</p>';
+  }
+  if (risk){
+    html += '<div class="flagbox"><span class="k">High Risk Compound Profile</span><p style="margin:8px 0 0">Cross-reference flags this prospect: vacant commercial properties and/or engagement with distressed-asset content. Per the paper, do not invest resources into this deal until the profile clears. The prospect may look highly qualified on paper and still be unviable.</p></div>';
+  }
+  html += '<p class="note" style="margin-top:10px">Built from the paper\u2019s Motion 3 (sniper marketing) and Motion 4 (dynamic risk mitigation).</p>';
+  out.innerHTML = html;
+}
+</script>
+</body>
+</html>
