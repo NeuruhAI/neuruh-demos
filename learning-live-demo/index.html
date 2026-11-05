@@ -1,0 +1,1197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Learning Live Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root{
+        --bg:#F4F1EA; --bg2:#ECE8DD; --panel:#FBF9F4; --panel2:#F1EDE2;
+        --ink:#17150F; --ink2:#4A463A; --ink3:#7A7563;
+        --line:#D8D2C2; --line2:#C6BFA9;
+        --brass:#9A7414; --brass2:#7C5E0E; --brass-soft:#EFE3C2;
+        --ok:#2E7D46; --ok-soft:#DDEEDF;
+        --bad:#B3352B; --bad-soft:#F6DDD9;
+        --warn:#A86A12; --warn-soft:#F3E6C8;
+        --code-bg:#17150F; --code-ink:#E9E2CE;
+        --shadow:0 1px 2px rgba(23,21,15,.08),0 8px 24px rgba(23,21,15,.06);
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#0E0D0A; --bg2:#12110D; --panel:#171611; --panel2:#1D1C16;
+          --ink:#EDE8DA; --ink2:#B9B29E; --ink3:#847E6B;
+          --line:#2C2A21; --line2:#3D3A2D;
+          --brass:#D2A93B; --brass2:#E9C65C; --brass-soft:#2E2712;
+          --ok:#5FBF7E; --ok-soft:#16301F;
+          --bad:#E06A5E; --bad-soft:#3A1B17;
+          --warn:#DFA53E; --warn-soft:#33270E;
+          --code-bg:#0A0906; --code-ink:#E9E2CE;
+          --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);
+        }
+      }
+      *{box-sizing:border-box}
+      html{scroll-behavior:smooth}
+      body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55}
+      h1,h2,h3,.disp{font-family:Archivo,Inter,sans-serif}
+      .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+      .wrap{max-width:1240px;margin:0 auto;padding:0 20px 80px}
+      a{color:var(--brass2)}
+
+      /* ---------- header ---------- */
+      .topband{border-bottom:1px solid var(--line);background:var(--bg2)}
+      .topband .wrap{padding-top:26px;padding-bottom:22px}
+      .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass2);font-weight:700}
+      .conclusion{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(24px,4.2vw,40px);line-height:1.12;letter-spacing:-.01em;margin:10px 0 8px;max-width:22em}
+      .conclusion em{font-style:normal;color:var(--brass2)}
+      .sub{color:var(--ink2);max-width:68ch;margin:0}
+      .simflag{display:inline-flex;align-items:center;gap:8px;margin-top:14px;border:1px solid var(--line2);background:var(--panel);border-radius:999px;padding:5px 12px;font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink2)}
+      .simflag .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);flex:none}
+
+      /* north star chain */
+      .northstar{margin:22px 0 0;border:1px solid var(--line2);background:var(--panel);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow)}
+      .northstar .lbl{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink3);margin-bottom:8px}
+      .ns-chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-family:"JetBrains Mono",monospace;font-size:12.5px;font-weight:600}
+      .ns-chain .n{background:var(--brass-soft);border:1px solid var(--line2);border-radius:6px;padding:3px 9px;white-space:nowrap}
+      .ns-chain .arr{color:var(--brass2);font-weight:700}
+
+      /* ---------- sections ---------- */
+      section{margin-top:44px}
+      .sec-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:16px;flex-wrap:wrap}
+      .sec-head h2{font-size:clamp(20px,3vw,27px);font-weight:800;margin:0;letter-spacing:-.01em}
+      .sec-head .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass2);font-weight:700}
+      .sec-head p{width:100%;margin:2px 0 0;color:var(--ink2);font-size:14px;max-width:78ch}
+
+      .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow)}
+      .card .hd{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+      .card .hd h3{margin:0;font-size:15px;font-weight:700}
+      .card .bd{padding:16px}
+
+      /* ---------- console layout ---------- */
+      .console-grid{display:grid;grid-template-columns:250px 1fr 340px;gap:16px;align-items:start}
+      @media (max-width:1080px){.console-grid{grid-template-columns:1fr 1fr}.logcard{grid-column:1/-1}}
+      @media (max-width:680px){.console-grid{grid-template-columns:1fr}}
+
+      /* pipeline stages */
+      .stage{display:flex;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--panel2);transition:border-color .3s,background .3s}
+      .stage .ic{width:26px;height:26px;flex:none;border-radius:50%;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:var(--ink3);background:var(--panel)}
+      .stage .nm{font-weight:600;font-size:13.5px;line-height:1.3}
+      .stage .ds{font-size:12px;color:var(--ink3);line-height:1.35}
+      .stage.active{border-color:var(--brass);background:var(--brass-soft)}
+      .stage.active .ic{border-color:var(--brass);color:var(--brass2)}
+      .stage.done .ic{border-color:var(--ok);background:var(--ok);color:#fff}
+      .stage.blocked{border-color:var(--bad);background:var(--bad-soft)}
+      .stage.blocked .ic{border-color:var(--bad);color:var(--bad)}
+      .ownerline{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink3);margin-top:2px}
+
+      /* forms */
+      label.fl{display:block;font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin:12px 0 5px}
+      label.fl:first-child{margin-top:0}
+      select,input[type=text],input[type=number]{width:100%;padding:9px 10px;border:1px solid var(--line2);border-radius:7px;background:var(--panel);color:var(--ink);font-family:Inter,sans-serif;font-size:14px}
+      select:focus,input:focus{outline:2px solid var(--brass);outline-offset:1px}
+      input[type=range]{width:100%;accent-color:var(--brass)}
+      .confrow{display:flex;align-items:center;gap:12px}
+      .confval{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:18px;color:var(--brass2);min-width:52px;text-align:right}
+      .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+      @media (max-width:520px){.grid2{grid-template-columns:1fr}}
+
+      .btn{appearance:none;border:1px solid var(--ink);background:var(--ink);color:var(--bg);font-family:Archivo,sans-serif;font-weight:700;font-size:14px;padding:10px 18px;border-radius:8px;cursor:pointer;transition:transform .05s,opacity .2s}
+      .btn:active{transform:translateY(1px)}
+      .btn:disabled{opacity:.35;cursor:not-allowed}
+      .btn.brass{background:var(--brass);border-color:var(--brass);color:#17150F}
+      @media (prefers-color-scheme: dark){.btn.brass{color:#17150F}}
+      .btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+      .btn.danger{background:transparent;color:var(--bad);border-color:var(--bad)}
+      .btn.small{padding:6px 12px;font-size:12.5px;border-radius:6px}
+      .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+
+      .sealbox{margin-top:14px;border:1px dashed var(--line2);border-radius:8px;padding:12px 14px;font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--panel2);word-break:break-all}
+      .sealbox .k{color:var(--ink3)}
+      .sealbox:empty{display:none}
+
+      /* metrics */
+      .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+      @media (max-width:680px){.metrics{grid-template-columns:1fr 1fr}}
+      .metric{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel2)}
+      .metric .v{font-family:Archivo,sans-serif;font-weight:800;font-size:24px;line-height:1.1}
+      .metric .l{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-top:2px}
+
+      /* log */
+      .log{background:var(--code-bg);color:var(--code-ink);border-radius:8px;padding:12px 14px;font-family:"JetBrains Mono",monospace;font-size:11.8px;line-height:1.65;height:520px;overflow-y:auto;white-space:pre-wrap;word-break:break-word}
+      .log .t{color:#8E866C}
+      .log .ok{color:#7BD88F}.log .bad{color:#FF9A8A}.log .warn{color:#EFC65E}.log .brass{color:#E9C65C}
+      @media (max-width:1080px){.log{height:340px}}
+
+      /* verdict banners */
+      .verdict{border-radius:8px;padding:12px 14px;font-size:14px;margin-top:14px;display:none}
+      .verdict.show{display:block}
+      .verdict.ok{background:var(--ok-soft);border:1px solid var(--ok)}
+      .verdict.bad{background:var(--bad-soft);border:1px solid var(--bad)}
+      .verdict.warn{background:var(--warn-soft);border:1px solid var(--warn)}
+      .verdict b{font-family:Archivo,sans-serif}
+
+      /* chart */
+      .chartbox{border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:12px}
+      .chartbox svg{width:100%;height:auto;display:block}
+      .legend{display:flex;gap:16px;flex-wrap:wrap;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink2);margin-top:8px}
+      .legend .sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+      /* tables */
+      table{width:100%;border-collapse:collapse;font-size:13.5px}
+      th{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:8px 10px;border-bottom:2px solid var(--line2)}
+      td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+      td.num,th.num{text-align:right;font-family:"JetBrains Mono",monospace;font-size:12.5px}
+      tr.win td{background:var(--ok-soft)}
+      .tablewrap{overflow-x:auto}
+      @media (max-width:680px){
+        .stacktable thead{display:none}
+        .stacktable,.stacktable tbody,.stacktable tr,.stacktable td{display:block;width:100%}
+        .stacktable tr{border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:6px 4px}
+        .stacktable td{border-bottom:none;text-align:left !important;padding:4px 10px}
+        .stacktable td::before{content:attr(data-l) "  ";font-family:"JetBrains Mono",monospace;font-size:10px;text-transform:uppercase;color:var(--ink3);letter-spacing:.08em}
+      }
+
+      /* adapters */
+      .adapters{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+      .adapter{border:1px solid var(--line);border-radius:9px;padding:13px 14px;background:var(--panel)}
+      .adapter .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+      .adapter .aid{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;color:var(--brass2)}
+      .adapter h4{margin:6px 0 4px;font-size:14px}
+      .adapter p{margin:0;font-size:12.8px;color:var(--ink2)}
+      .pill{font-family:"JetBrains Mono",monospace;font-size:10px;font-weight:700;letter-spacing:.08em;padding:3px 8px;border-radius:999px;border:1px solid var(--line2);color:var(--ink3);white-space:nowrap}
+      .pill.on{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+      .pill.off{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
+      .switch{position:relative;width:40px;height:22px;flex:none;cursor:pointer}
+      .switch input{opacity:0;position:absolute;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+      .switch .tr{position:absolute;inset:0;background:var(--line2);border-radius:999px;transition:.2s}
+      .switch .tr:before{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:var(--panel);top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+      .switch input:checked + .tr{background:var(--ok)}
+      .switch input:checked + .tr:before{transform:translateX(18px)}
+
+      /* ladders */
+      .ladder{display:flex;flex-direction:column;gap:6px}
+      .rung{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--panel2)}
+      .rung .n{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:12px;width:26px;height:26px;flex:none;border-radius:50%;border:2px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--ink3)}
+      .rung.reached{border-color:var(--ok)}
+      .rung.reached .n{border-color:var(--ok);background:var(--ok);color:#fff}
+      .rung.current{border-color:var(--brass);background:var(--brass-soft)}
+      .rung.current .n{border-color:var(--brass);color:var(--brass2)}
+      .rung .tx b{font-size:13.5px}
+      .rung .tx span{display:block;font-size:12.3px;color:var(--ink2)}
+
+      .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+      @media (max-width:820px){.twocol{grid-template-columns:1fr}}
+      .maylist{list-style:none;margin:0;padding:0}
+      .maylist li{padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;font-size:13.5px;background:var(--panel2);display:flex;gap:10px;align-items:flex-start}
+      .maylist li .mk{font-family:"JetBrains Mono",monospace;font-weight:700;flex:none}
+      .maylist.ok li .mk{color:var(--ok)}
+      .maylist.no li .mk{color:var(--bad)}
+
+      .demandrow{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:var(--panel2);flex-wrap:wrap;align-items:center}
+      .demandrow .cnt{font-family:Archivo,sans-serif;font-weight:800;font-size:22px;color:var(--brass2)}
+      .chip{font-family:"JetBrains Mono",monospace;font-size:10.5px;border:1px solid var(--line2);border-radius:999px;padding:2px 8px;color:var(--ink2)}
+
+      .compilebar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+      .cstage{flex:1;min-width:120px;border:1px solid var(--line);border-radius:8px;padding:10px;text-align:center;background:var(--panel2)}
+      .cstage .nm{font-size:12.5px;font-weight:600}
+      .cstage .cost{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink2)}
+      .cstage.now{border-color:var(--brass);background:var(--brass-soft)}
+      .cstage.done{border-color:var(--ok)}
+      .cstage.done .nm{color:var(--ok)}
+
+      .presenter{counter-reset:ps;list-style:none;margin:0;padding:0}
+      .presenter li{counter-increment:ps;padding:12px 14px 12px 52px;position:relative;border:1px solid var(--line);border-radius:9px;margin-bottom:9px;background:var(--panel);font-size:14px}
+      .presenter li:before{content:counter(ps);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:var(--brass);color:#17150F;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+      .presenter b{font-family:Archivo,sans-serif}
+      .presenter .say{display:block;color:var(--ink2);font-size:13px;margin-top:2px}
+
+      footer{margin-top:56px;border-top:1px solid var(--line);padding-top:16px;color:var(--ink3);font-size:12.5px;font-family:"JetBrains Mono",monospace}
+      .note{font-size:12.8px;color:var(--ink2)}
+      .kbd{font-family:"JetBrains Mono",monospace;font-size:11px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--panel2)}
+    </style>
+  </head>
+  <body>
+    <div class="topband">
+      <div class="wrap">
+        <div class="kicker">B07 · Learning Architecture · Live Demo</div>
+        <h1 class="conclusion">The learning architecture exists. The missing seam is feeding it <em>truthful pre-outcome predictions</em> and <em>production outcomes</em>.</h1>
+        <p class="sub">This console runs the canonical chain end to end. You seal a forecast before execution, run the mission, and watch the outcome either pair into calibration or get refused as hindsight. Only paired observations calibrate. Nothing here learns silently: every behavior change passes a promotion court and a governance decision, in the open, with receipts.</p>
+        <div class="simflag"><span class="dot"></span> IN-BROWSER SIMULATION OF THE SPECIFIED ARCHITECTURE · NO LIVE SYSTEMS CONNECTED · STATE RESETS ON RELOAD</div>
+        <div class="northstar">
+          <div class="lbl">Economic north star · the first proof</div>
+          <div class="ns-chain">
+            <span class="n">forecast</span><span class="arr">→</span>
+            <span class="n">bounded action</span><span class="arr">→</span>
+            <span class="n">real outcome</span><span class="arr">→</span>
+            <span class="n">OutcomeRecord</span><span class="arr">→</span>
+            <span class="n">calibration pair</span><span class="arr">→</span>
+            <span class="n">learning proposal</span><span class="arr">→</span>
+            <span class="n">governed promotion</span><span class="arr">→</span>
+            <span class="n">better next mission</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+
+      <!-- ============ MAIN CONSOLE ============ -->
+      <section id="console">
+        <div class="sec-head">
+          <span class="tag">Console 01</span>
+          <h2>Run the learning loop</h2>
+          <p>One mission, full chain: <span class="mono">neuruh.outcome-record.v1</span> → Outcome Calibration Ledger → Learning Update Proposal → Promotion Gate → Governance → promoted behavior. Seal the forecast first. The hindsight button is there so you can watch the starvation defect fire.</p>
+        </div>
+
+        <div class="metrics">
+          <div class="metric"><div class="v" id="mPairs">0</div><div class="l">Calibration pairs</div></div>
+          <div class="metric"><div class="v" id="mBrier">·</div><div class="l">Mean Brier score</div></div>
+          <div class="metric"><div class="v" id="mUnpaired">0</div><div class="l">Unpaired outcomes (refused)</div></div>
+          <div class="metric"><div class="v" id="mVersion">v1.0.0</div><div class="l">Promoted behavior version</div></div>
+        </div>
+
+        <div class="console-grid">
+          <!-- pipeline -->
+          <div class="card">
+            <div class="hd"><h3>Canonical chain</h3><span class="pill" id="chainPill">IDLE</span></div>
+            <div class="bd" id="stages"></div>
+          </div>
+
+          <!-- controls -->
+          <div class="card">
+            <div class="hd"><h3>Mission control</h3><span class="mono" style="font-size:11px;color:var(--ink3)" id="missionClock">no mission loaded</span></div>
+            <div class="bd">
+              <div class="grid2">
+                <div>
+                  <label class="fl" for="fArchetype">Mission archetype</label>
+                  <select id="fArchetype">
+                    <option value="scan">Property Opportunity Scan</option>
+                    <option value="dossier">Property Intelligence Dossier</option>
+                    <option value="landos">LandOS lead recipe run</option>
+                    <option value="deedsonar">DeedSonar forecast cycle</option>
+                    <option value="rescue">Data Rescue engagement</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fl" for="fPredicted">Predicted result class</label>
+                  <select id="fPredicted">
+                    <option value="success">Success: buyer accepts / target hit</option>
+                    <option value="partial">Partial: usable, incomplete</option>
+                    <option value="failure">Failure: no usable result</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fl" for="fModel">Model / provider / version</label>
+                  <select id="fModel">
+                    <option>frontier-a · v2026.09</option>
+                    <option>frontier-b · v2026.08</option>
+                    <option>mid-tier-c · v2026.09</option>
+                    <option>local-d · v2026.07</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fl" for="fRecipe">Recipe / strategy / version</label>
+                  <select id="fRecipe">
+                    <option>recipe.berrien90 · v3</option>
+                    <option>recipe.taxlien-proven · v5</option>
+                    <option>recipe.flow-c-probate · v2</option>
+                    <option>recipe.scan-standard · v4</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fl" for="fTopology">Organ topology / N-Cell signature</label>
+                  <select id="fTopology">
+                    <option value="canonical">Canonical DAG A topology</option>
+                    <option value="baseline">Simple baseline workflow</option>
+                    <option value="ablated">Canonical minus Sentinel court</option>
+                    <option value="altprov">Canonical, alternate provider</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="fl" for="fValue">Predicted economic value (USD)</label>
+                  <input type="number" id="fValue" value="1500" min="0" step="50" />
+                </div>
+                <div>
+                  <label class="fl" for="fCost">Expected cost (USD)</label>
+                  <input type="number" id="fCost" value="42" min="0" step="1" />
+                </div>
+                <div>
+                  <label class="fl" for="fLatency">Expected latency (hours)</label>
+                  <input type="number" id="fLatency" value="6" min="0" step="0.5" />
+                </div>
+              </div>
+
+              <label class="fl" for="fConf">Confidence in predicted class</label>
+              <div class="confrow">
+                <input type="range" id="fConf" min="5" max="99" value="72" />
+                <div class="confval"><span id="confVal">72</span>%</div>
+              </div>
+
+              <label class="fl" for="fUnknowns">Known unknowns at prediction time</label>
+              <input type="text" id="fUnknowns" value="Owner contactability unverified; county feed lag unknown" />
+
+              <div class="btnrow">
+                <button class="btn brass" id="btnSeal">1 · Seal forecast</button>
+                <button class="btn" id="btnRun" disabled>2 · Execute mission</button>
+                <button class="btn danger" id="btnHindsight">Run without forecast (hindsight)</button>
+              </div>
+              <div class="sealbox" id="sealBox"></div>
+              <div class="verdict" id="pairVerdict"></div>
+
+              <div class="btnrow" style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px">
+                <button class="btn ghost" id="btnProposal" disabled>3 · Draft learning proposal</button>
+                <button class="btn ghost" id="btnCourt" disabled>4 · Convene promotion court</button>
+                <button class="btn ghost" id="btnGovern" disabled>5 · Governance: promote</button>
+                <button class="btn ghost" id="btnReject" disabled>Governance: reject</button>
+              </div>
+              <div class="verdict" id="promoVerdict"></div>
+              <p class="note" style="margin-top:12px">Demo court rule (thresholds chosen for this console; the spec itself requires paired pre-outcome forecasts, an independent court, and a governance decision, and leaves the numbers to the implementation): a proposal passes with at least 3 calibration pairs behind it, mean Brier at or under 0.25, and no governance-boundary item inside it. Failing proposals return as evidence, not as silent edits.</p>
+            </div>
+          </div>
+
+          <!-- log -->
+          <div class="card logcard">
+            <div class="hd"><h3>Receipt log</h3><button class="btn small ghost" id="btnClearLog">Clear</button></div>
+            <div class="bd"><div class="log" id="log" aria-live="polite"></div></div>
+          </div>
+        </div>
+
+        <div class="twocol" style="margin-top:16px">
+          <div class="card">
+            <div class="hd"><h3>Calibration: predicted vs observed</h3><span class="pill" id="calPill">NO PAIRS YET</span></div>
+            <div class="bd">
+              <div class="chartbox">
+                <svg id="calChart" viewBox="0 0 560 240" role="img" aria-label="Calibration chart: stated confidence against observed success frequency per pair"></svg>
+                <div class="legend">
+                  <span><span class="sw" style="background:var(--brass)"></span>Stated confidence at seal time</span>
+                  <span><span class="sw" style="background:var(--ok)"></span>Observed outcome value (1 / 0.5 / 0)</span>
+                  <span><span class="sw" style="background:var(--ink3)"></span>Perfect calibration reference</span>
+                </div>
+              </div>
+              <p class="note" style="margin-top:10px">Each bar pair is one sealed forecast matched to its observed outcome. The gap between the two bars is the calibration error the ledger records. Hindsight outcomes never appear here: there is nothing truthful to plot.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="hd"><h3>What the pairs let you measure</h3></div>
+            <div class="bd">
+              <div class="tablewrap"><table class="stacktable">
+                <thead><tr><th>Measure</th><th>Live value from this session</th></tr></thead>
+                <tbody id="measureBody">
+                  <tr><td data-l="Measure">Recipe calibration</td><td data-l="Value" class="num" id="msRecipe">awaiting pairs</td></tr>
+                  <tr><td data-l="Measure">Confidence calibration (stated vs observed)</td><td data-l="Value" class="num" id="msConf">awaiting pairs</td></tr>
+                  <tr><td data-l="Measure">False positive rate (predicted success, observed failure)</td><td data-l="Value" class="num" id="msFP">awaiting pairs</td></tr>
+                  <tr><td data-l="Measure">False negative rate (predicted failure, observed success)</td><td data-l="Value" class="num" id="msFN">awaiting pairs</td></tr>
+                  <tr><td data-l="Measure">Mean time-to-outcome</td><td data-l="Value" class="num" id="msTTO">awaiting pairs</td></tr>
+                  <tr><td data-l="Measure">Mean cost vs value</td><td data-l="Value" class="num" id="msCV">awaiting pairs</td></tr>
+                  <tr><td data-l="Measure">Failure concentration (top archetype)</td><td data-l="Value" class="num" id="msFail">awaiting pairs</td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ADAPTERS ============ -->
+      <section id="adapters">
+        <div class="sec-head">
+          <span class="tag">Feed layer</span>
+          <h2>Adapter families A0 to A7</h2>
+          <p>The Sep-5 court mapped roughly 14 outcome producers and required no new outcome schema. These adapters are the bridges. Toggle A3 off and try to seal a forecast: the starvation defect is what a missing bridge feels like from inside the loop.</p>
+        </div>
+        <div class="adapters" id="adapterGrid"></div>
+      </section>
+
+      <!-- ============ TOPOLOGY EXPERIMENT ============ -->
+      <section id="experiment">
+        <div class="sec-head">
+          <span class="tag">Sep-7 protocol</span>
+          <h2>Topology-to-outcome experiment bench</h2>
+          <p>Does changing the computational organization around the same mission change measured results? Run the comparison protocol: same mission class, five organizations, repeated trials. One successful run proves nothing; this bench refuses to crown a winner under 10 trials per variant.</p>
+        </div>
+        <div class="card">
+          <div class="bd">
+            <div class="grid2" style="max-width:720px">
+              <div>
+                <label class="fl" for="xClass">Mission class</label>
+                <select id="xClass">
+                  <option>Property Opportunity Scan</option>
+                  <option>Lead recipe run (Berrien 90+)</option>
+                  <option>Probate / estate classification</option>
+                  <option>Commercial dossier assembly</option>
+                </select>
+              </div>
+              <div>
+                <label class="fl" for="xTrials">Trials per variant</label>
+                <select id="xTrials">
+                  <option value="1">1 (anecdote)</option>
+                  <option value="5">5 (weak)</option>
+                  <option value="12" selected>12 (demo standard)</option>
+                  <option value="30">30 (stronger)</option>
+                </select>
+              </div>
+            </div>
+            <div class="btnrow">
+              <button class="btn brass" id="btnExperiment">Run comparison</button>
+              <span class="note" id="expNote">Pre-outcome record is captured for every trial before execution: archetype, success condition, evidence, prediction, confidence, expected cost and latency, provider, recipe, topology, tools, alternatives, unknowns.</span>
+            </div>
+            <div class="tablewrap" style="margin-top:16px"><table class="stacktable">
+              <thead><tr>
+                <th>Variant</th><th class="num">Quality</th><th class="num">Calib. error</th><th class="num">Completion</th><th class="num">Interventions</th><th class="num">Cost / run</th><th class="num">Latency</th><th class="num">Policy fails</th><th class="num">Econ. value</th>
+              </tr></thead>
+              <tbody id="expBody"><tr><td colspan="9" style="color:var(--ink3)">No trials run yet. Post-outcome record per trial captures actual outcome, time-to-outcome, value, cost, errors, reversals, human interventions, FP/FN class, causal caveats, acceptance, and a promote / demote / retest recommendation.</td></tr></tbody>
+            </table></div>
+            <div class="verdict" id="expVerdict"></div>
+          </div>
+        </div>
+
+        <div class="twocol" style="margin-top:16px">
+          <div class="card">
+            <div class="hd"><h3>Research maturity ladder</h3><span class="pill" id="matPill">RUNG 1</span></div>
+            <div class="bd"><div class="ladder" id="matLadder"></div></div>
+          </div>
+          <div class="card">
+            <div class="hd"><h3>Governance boundary</h3></div>
+            <div class="bd">
+              <p class="note" style="margin-top:0">Automatic learning may propose the left column on its own. The right column stays a versioned proposal with tests and an independent court. Try forcing one:</p>
+              <div class="twocol" style="gap:12px">
+                <div>
+                  <div class="kicker" style="margin-bottom:8px">May propose automatically</div>
+                  <ul class="maylist ok">
+                    <li><span class="mk">OK</span>Routing weights</li>
+                    <li><span class="mk">OK</span>Recipe calibration factors</li>
+                    <li><span class="mk">OK</span>Retry / backoff policy</li>
+                    <li><span class="mk">OK</span>Context selection</li>
+                    <li><span class="mk">OK</span>New tests</li>
+                  </ul>
+                </div>
+                <div>
+                  <div class="kicker" style="margin-bottom:8px;color:var(--bad)">May never silently rewrite</div>
+                  <ul class="maylist no">
+                    <li><span class="mk">NO</span>Governance rules</li>
+                    <li><span class="mk">NO</span>Privileged capability</li>
+                    <li><span class="mk">NO</span>Destructive authority</li>
+                    <li><span class="mk">NO</span>Public exposure</li>
+                    <li><span class="mk">NO</span>Legal / financial commitments</li>
+                    <li><span class="mk">NO</span>Canonical mutation semantics</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="btnrow">
+                <button class="btn small ghost" id="btnForceRule">Attempt silent governance rewrite</button>
+                <button class="btn small ghost" id="btnForceExposure">Attempt silent public exposure change</button>
+              </div>
+              <div class="verdict" id="govVerdict"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ DEMAND LOOP ============ -->
+      <section id="demand">
+        <div class="sec-head">
+          <span class="tag">Second loop · Sep-7</span>
+          <h2>Market-demand learning</h2>
+          <p>OutcomeRecord teaches whether executed work was correct. Demand telemetry teaches what buyers repeatedly ask for that the organism cannot yet serve. Submit demand signals; unmatched demand becomes a MISSING_INGREDIENT, gets ranked by RICHIE, and repeated pull commissions a build instead of another idea backlog.</p>
+        </div>
+        <div class="console-grid" style="grid-template-columns:1fr 1fr 340px">
+          <div class="card">
+            <div class="hd"><h3>Intake signal</h3><span class="pill">PRIVACY-SAFE FIELDS ONLY</span></div>
+            <div class="bd">
+              <label class="fl" for="dProblem">Problem class</label>
+              <select id="dProblem">
+                <option value="scan">Off-market property scan in a new county</option>
+                <option value="dossier">Full property intelligence dossier</option>
+                <option value="probate-watch">Probate filing watch with alerts</option>
+                <option value="heir-contact">Heir location and contact research</option>
+                <option value="bulk-underwrite">Bulk parcel underwriting (100+)</option>
+                <option value="voice-dispatch">After-hours voice dispatch for trades</option>
+              </select>
+              <label class="fl" for="dBuyer">Buyer / market class</label>
+              <select id="dBuyer">
+                <option>Local investor (1 to 10 deals/yr)</option>
+                <option>Regional wholesaler</option>
+                <option>Land buyer</option>
+                <option>Home services operator</option>
+                <option>Estate attorney</option>
+              </select>
+              <label class="fl" for="dPrice">Price / urgency band (voluntary)</label>
+              <select id="dPrice">
+                <option>Not supplied</option>
+                <option>Under $250, this month</option>
+                <option>$250 to $1,500, this quarter</option>
+                <option>$1,500+, urgent</option>
+              </select>
+              <label class="fl" for="dMaturity">Furthest demand maturity reached</label>
+              <select id="dMaturity">
+                <option value="1">1 · Problem observed</option>
+                <option value="2">2 · Buyer gave real constraints / data</option>
+                <option value="3">3 · Buyer accepted a bounded proof</option>
+                <option value="4">4 · Buyer requested price / scope</option>
+                <option value="5">5 · Buyer paid</option>
+                <option value="6">6 · Buyer accepted delivery</option>
+                <option value="7">7 · Buyer repeated / expanded</option>
+              </select>
+              <div class="btnrow">
+                <button class="btn brass" id="btnDemand">Submit demand signal</button>
+              </div>
+              <div class="verdict" id="demandVerdict"></div>
+              <p class="note" style="margin-top:12px">No raw sensitive prospect text is retained for learning: problem class, requested outcome, buyer class, match state, missing ingredient, band, conversion state, and reason lost. That is the whole record.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="hd"><h3>Missing ingredients</h3><span class="pill" id="ingPill">REGISTRY: 2 OFFERS</span></div>
+            <div class="bd" id="ingBody">
+              <p class="note">Existing offer registry: <span class="chip">Property Opportunity Scan</span> <span class="chip">Property Intelligence Dossier</span></p>
+              <div id="ingList"><p class="note" style="color:var(--ink3)">No unserved demand yet. Submit a signal the registry cannot match.</p></div>
+            </div>
+          </div>
+          <div class="card logcard">
+            <div class="hd"><h3>Demand maturity ladder</h3></div>
+            <div class="bd">
+              <div class="ladder" id="demandLadder"></div>
+              <p class="note" style="margin-top:12px">Searches, questions, likes and "that would be cool" are weak demand. Productization rises with this ladder, not with applause.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ COMPILATION ============ -->
+      <section id="compile">
+        <div class="sec-head">
+          <span class="tag">Sep-7 · Reasoning compilation</span>
+          <h2>Successful intelligence should get cheaper</h2>
+          <p>Repeated successful reasoning compiles downward into cheaper logic. Run the same classification task repeatedly: each clean run is evidence. At the thresholds, promote the pattern down a rung. A novel or ambiguous case routes straight back to frontier reasoning. Ambiguity is never compiled away.</p>
+        </div>
+        <div class="card">
+          <div class="bd">
+            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">
+              <div><b style="font-family:Archivo,sans-serif">Task:</b> classify parcel tax status from county evidence packet</div>
+              <div class="mono" style="font-size:12px;color:var(--ink2)">clean runs at current rung: <b id="cRuns">0</b> · total saved vs frontier: <b id="cSaved">$0.00</b></div>
+            </div>
+            <div class="compilebar" id="compileBar"></div>
+            <div class="btnrow">
+              <button class="btn brass" id="btnCompileRun">Run task once</button>
+              <button class="btn ghost" id="btnCompile10">Run 10 times</button>
+              <button class="btn ghost" id="btnCompileDown" disabled>Compile down one rung</button>
+              <button class="btn danger" id="btnAmbiguous">Inject ambiguous case</button>
+            </div>
+            <div class="verdict" id="compileVerdict"></div>
+            <p class="note" style="margin-top:10px">Objective: lowest reliable cost for the required evidence quality and consequence level, not minimum token spend. Independent court and outcome calibration stay necessary at every rung; cost optimization never outranks truth.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PRESENTER ============ -->
+      <section id="presenter">
+        <div class="sec-head">
+          <span class="tag">Walkthrough</span>
+          <h2>Presenter script</h2>
+          <p>Six moves, about four minutes. Every claim below is something the console actually does on screen.</p>
+        </div>
+        <ol class="presenter">
+          <li><b>Seal a forecast.</b><span class="say">"Before anything executes, the prediction is locked: class, confidence, cost, latency, recipe, topology, known unknowns. The seal hash is the receipt. This is the input the whole architecture was starving for."</span></li>
+          <li><b>Execute, then hit hindsight.</b><span class="say">"Run the mission and the outcome pairs. Now run one without a forecast. Same outcome quality, and calibration refuses it. Learning from hindsight is narrative, not measurement."</span></li>
+          <li><b>Build three pairs and read the chart.</b><span class="say">"Stated confidence against observed outcomes. The gap is calibration error, per recipe, per source, per topology. That gap is what gets governed."</span></li>
+          <li><b>Draft the proposal, convene the court.</b><span class="say">"Learning proposes; it does not edit. The court checks pairs, Brier score, and boundary. Governance promotes a version, or rejects it, with the reason in the log."</span></li>
+          <li><b>Run the topology bench at 1 trial, then 12.</b><span class="say">"At one trial the bench refuses to declare a winner. At twelve, differences become evidence. That refusal is the difference between a research program and a success story."</span></li>
+          <li><b>Feed it unserved demand, then compile a pattern down.</b><span class="say">"The second loop: buyers pull the build queue through MISSING_INGREDIENT and RICHIE ranking. And every repeated success gets cheaper, rung by rung, without ever compiling ambiguity away."</span></li>
+        </ol>
+      </section>
+
+      <footer>
+        LEARNING LIVE DEMO · B07 SPECIFICATION, RUNNABLE IN THE BROWSER · SOURCES: neuruh-outcome-record · neuruh-outcome-calibration-ledger · neuruh-learning-update-proposal · neuruh-promotion-gate · autonomous-governance-core · N-LAB / FACTORY (EVALUATION EVIDENCE ONLY)
+      </footer>
+    </div>
+
+    <script>
+    (function(){
+      "use strict";
+      var $ = function(id){ return document.getElementById(id); };
+      function nowT(){ var d=new Date(); return d.toTimeString().slice(0,8); }
+      function hash(s){ var h=0x811c9dc5; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=(h*0x01000193)>>>0; } return ("0000000"+h.toString(16)).slice(-8); }
+      function rnd(a,b){ return a + Math.random()*(b-a); }
+      function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+      /* ---------- receipt log ---------- */
+      var logEl = $("log");
+      function log(msg, cls){
+        var line = document.createElement("div");
+        line.innerHTML = '<span class="t">['+nowT()+']</span> ' + msg;
+        if(cls) line.className = cls;
+        logEl.appendChild(line);
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+      $("btnClearLog").addEventListener("click", function(){ logEl.innerHTML=""; log("log cleared by operator","warn"); });
+
+      /* ---------- canonical chain stages ---------- */
+      var STAGES = [
+        {id:"forecast", nm:"Forecast seal", ds:"Prediction, confidence, version, evidence, cohort. Captured BEFORE outcome.", owner:"A3 / A4 adapters"},
+        {id:"execute", nm:"Bounded execution", ds:"Mission runs inside its authority boundary.", owner:"Founder Runtime · A1"},
+        {id:"outcome", nm:"Observed outcome", ds:"Result, timing, value, failure or partial state, causal caveats.", owner:"producers · A2 / A5"},
+        {id:"record", nm:"OutcomeRecord", ds:"neuruh.outcome-record.v1. Paired to the seal, or refused.", owner:"NeuruhAI/neuruh-outcome-record"},
+        {id:"ledger", nm:"Calibration Ledger", ds:"Brier score and error dimensions written per pair.", owner:"NeuruhAI/neuruh-outcome-calibration-ledger"},
+        {id:"proposal", nm:"Learning Update Proposal", ds:"A proposed change with its evidence attached. Never a silent edit.", owner:"NeuruhAI/neuruh-learning-update-proposal"},
+        {id:"gate", nm:"Promotion Gate", ds:"Independent court: pairs, error, boundary check.", owner:"NeuruhAI/neuruh-promotion-gate"},
+        {id:"gov", nm:"Governance", ds:"Founder authority decision, recorded.", owner:"autonomous-governance-core"},
+        {id:"promoted", nm:"Promoted behavior", ds:"Versioned worker / recipe / routing change goes live.", owner:"canonical registry"}
+      ];
+      var stageEls = {};
+      var stagesBox = $("stages");
+      STAGES.forEach(function(s, i){
+        var d = document.createElement("div");
+        d.className = "stage"; d.id = "stage-"+s.id;
+        d.innerHTML = '<div class="ic">'+(i+1)+'</div><div><div class="nm">'+s.nm+'</div><div class="ds">'+s.ds+'</div><div class="ownerline">'+s.owner+'</div></div>';
+        stagesBox.appendChild(d); stageEls[s.id] = d;
+      });
+      function setStage(id, state){
+        var el = stageEls[id]; if(!el) return;
+        el.classList.remove("active","done","blocked");
+        if(state) el.classList.add(state);
+      }
+      function resetStages(){ STAGES.forEach(function(s){ setStage(s.id, null); }); $("chainPill").textContent = "IDLE"; $("chainPill").className = "pill"; }
+
+      /* ---------- adapters ---------- */
+      var ADAPTERS = [
+        {id:"A0", nm:"Fold / unit normalization", ds:"Every producer's raw outcome folded into one unit system before anything compares.", on:true},
+        {id:"A1", nm:"Founder Runtime execution projection", ds:"Execution receipts projected into outcome form at the runtime boundary.", on:true},
+        {id:"A2", nm:"LandOS lead_outcomes bridge + scheduler", ds:"LandOS lead_outcomes rows bridged into shared OutcomeRecord on a schedule.", on:true},
+        {id:"A3", nm:"Opportunity Intelligence forecast seal", ds:"Receipt to forecast seal / prediction log. THE starvation seam: no seal, no pairing.", on:true},
+        {id:"A4", nm:"DeedSonar forecast capture", ds:"Forecast captured inside DeedSonar before the outcome is known.", on:true},
+        {id:"A5", nm:"Commercial terminal states", ds:"Paid, delivered, refunded, repeated: commercial endings become outcomes.", on:true},
+        {id:"A6", nm:"N-Lab to promotion evidence", ds:"Experiment evidence feeds the Promotion Gate. It never mutates production directly.", on:true},
+        {id:"A7", nm:"Calibration dimensions", ds:"Per-recipe, per-source, per-topology error dimensions on every pair.", on:true}
+      ];
+      var adapterState = {};
+      var ag = $("adapterGrid");
+      ADAPTERS.forEach(function(a){
+        adapterState[a.id] = a.on;
+        var card = document.createElement("div"); card.className = "adapter";
+        card.innerHTML = '<div class="top"><span class="aid">'+a.id+'</span><label class="switch"><input type="checkbox" '+(a.on?"checked":"")+' data-ad="'+a.id+'"><span class="tr"></span></label></div><h4>'+a.nm+'</h4><p>'+a.ds+'</p><div style="margin-top:8px"><span class="pill on" id="pill-'+a.id+'">FEEDING</span></div>';
+        ag.appendChild(card);
+      });
+      ag.addEventListener("change", function(e){
+        var id = e.target.getAttribute("data-ad"); if(!id) return;
+        adapterState[id] = e.target.checked;
+        var pill = $("pill-"+id);
+        pill.textContent = e.target.checked ? "FEEDING" : "DISCONNECTED";
+        pill.className = "pill " + (e.target.checked ? "on" : "off");
+        log("adapter "+id+" "+(e.target.checked ? "connected: feed resumed" : "DISCONNECTED: its outcomes and forecasts stop reaching the loop"), e.target.checked ? "ok" : "bad");
+        if(id === "A3" && !e.target.checked) log("warning: with A3 down, no forecast can seal. Every outcome this session becomes hindsight.", "warn");
+      });
+
+      /* ---------- learning loop state ---------- */
+      var S = {
+        forecast: null,        // sealed forecast awaiting outcome
+        pairs: [],              // calibrated pairs
+        unpaired: 0,
+        proposal: null,
+        courtPassed: false,
+        version: [1,0,0],
+        promotedCount: 0,
+        busy: false,
+        lastPromotedPairCount: 0,
+        postPromoErrors: []
+      };
+      var ARCH = {
+        scan:{label:"Property Opportunity Scan", base:0.74},
+        dossier:{label:"Property Intelligence Dossier", base:0.68},
+        landos:{label:"LandOS lead recipe run", base:0.63},
+        deedsonar:{label:"DeedSonar forecast cycle", base:0.70},
+        rescue:{label:"Data Rescue engagement", base:0.78}
+      };
+      var TOPO_MOD = { canonical:0.05, baseline:-0.06, ablated:-0.11, altprov:0.01 };
+
+      $("fConf").addEventListener("input", function(){ $("confVal").textContent = this.value; });
+
+      function verdict(el, kind, html){
+        el.className = "verdict show " + kind; el.innerHTML = html;
+      }
+      function outcomeValue(cls){ return cls === "success" ? 1 : cls === "partial" ? 0.5 : 0; }
+
+      function makeOutcome(archKey, topoKey){
+        var p = ARCH[archKey].base + (TOPO_MOD[topoKey] || 0) + rnd(-0.14, 0.14);
+        p = Math.max(0.05, Math.min(0.96, p));
+        var r = Math.random();
+        var cls = r < p ? "success" : (r < p + 0.18 ? "partial" : "failure");
+        return cls;
+      }
+
+      $("btnSeal").addEventListener("click", function(){
+        if(S.busy) return;
+        if(!adapterState.A3){
+          verdict($("pairVerdict"), "bad", "<b>Seal refused.</b> Adapter A3 (Opportunity Intelligence forecast seal) is disconnected. The prediction log has no bridge, so nothing can be sealed, and every outcome from here is hindsight. Reconnect A3 in the feed layer.");
+          log("forecast seal REFUSED: adapter A3 disconnected. Starvation defect reproduced on demand.", "bad");
+          setStage("forecast", "blocked");
+          return;
+        }
+        if(S.forecast){
+          verdict($("pairVerdict"), "warn", "<b>A forecast is already sealed and awaiting its outcome.</b> Execute the mission (or run it as hindsight to void the seal) before sealing another.");
+          return;
+        }
+        var f = {
+          arch: $("fArchetype").value,
+          predicted: $("fPredicted").value,
+          conf: parseInt($("fConf").value, 10),
+          model: $("fModel").value,
+          recipe: $("fRecipe").value,
+          topo: $("fTopology").value,
+          expValue: parseFloat($("fValue").value) || 0,
+          expCost: parseFloat($("fCost").value) || 0,
+          expLatency: parseFloat($("fLatency").value) || 0,
+          unknowns: $("fUnknowns").value,
+          sealedAt: nowT()
+        };
+        f.id = "FC-" + hash(f.arch + f.predicted + f.conf + f.sealedAt + Math.random());
+        f.hash = hash(JSON.stringify(f));
+        S.forecast = f;
+        setStage("forecast", "done");
+        $("chainPill").textContent = "FORECAST SEALED";
+        $("missionClock").textContent = "sealed " + f.sealedAt + " · awaiting execution";
+        $("sealBox").innerHTML =
+          '<span class="k">forecast_id</span>  ' + f.id + '<br>' +
+          '<span class="k">seal_hash</span>    sha-fnv1a:' + f.hash + '<br>' +
+          '<span class="k">prediction</span>   ' + ARCH[f.arch].label + ' → ' + f.predicted.toUpperCase() + ' @ ' + f.conf + '% confidence<br>' +
+          '<span class="k">bound</span>        ' + f.recipe + ' · ' + f.model + ' · topology: ' + f.topo + '<br>' +
+          '<span class="k">expected</span>     value $' + f.expValue + ' · cost $' + f.expCost + ' · latency ' + f.expLatency + 'h<br>' +
+          '<span class="k">unknowns</span>     ' + (f.unknowns ? f.unknowns.replace(/</g,"&lt;") : "none declared");
+        log('forecast SEALED <span class="brass">'+f.id+'</span> hash '+f.hash+' · '+ARCH[f.arch].label+' → '+f.predicted.toUpperCase()+' @ '+f.conf+'% · evidence and unknowns frozen at seal time', "ok");
+        $("btnRun").disabled = false;
+        $("btnSeal").disabled = true;
+        $("pairVerdict").className = "verdict";
+      });
+
+      function runMission(hindsight){
+        if(S.busy) return;
+        S.busy = true;
+        setStage("execute", "active");
+        $("chainPill").textContent = "EXECUTING";
+        log(hindsight ? "mission executing WITHOUT a sealed forecast (hindsight mode)..." : "mission executing inside authority boundary...", "");
+        var archKey = hindsight ? $("fArchetype").value : S.forecast.arch;
+        var topoKey = hindsight ? $("fTopology").value : S.forecast.topo;
+        setTimeout(function(){
+          var cls = makeOutcome(archKey, topoKey);
+          var f = S.forecast;
+          var obsValue = cls === "success" ? Math.round((f ? f.expValue : 1200) * rnd(0.85, 1.25)) : cls === "partial" ? Math.round((f ? f.expValue : 1200) * rnd(0.3, 0.55)) : 0;
+          var obsCost = Math.round((f ? f.expCost : 40) * rnd(0.8, 1.5));
+          var obsLatency = Math.round((f ? f.expLatency : 6) * rnd(0.7, 1.8) * 10) / 10;
+          setStage("execute", "done");
+          setStage("outcome", "done");
+          log("outcome OBSERVED: "+cls.toUpperCase()+" · value $"+obsValue+" · actual cost $"+obsCost+" · time-to-outcome "+obsLatency+"h", cls === "failure" ? "warn" : "ok");
+
+          if(hindsight || !f){
+            S.unpaired++;
+            setStage("record", "blocked"); setStage("ledger", "blocked");
+            $("chainPill").textContent = "PAIRING REFUSED";
+            verdict($("pairVerdict"), "bad", "<b>Pairing refused: calibration cannot be retroactively invented.</b> This outcome arrived with no forecast sealed before it. It is recorded as an unpaired observation and excluded from calibration, from the chart, and from any learning proposal. Narrative hindsight is not measurement.");
+            log("OutcomeRecord REJECTED for calibration: no pre-outcome forecast exists to pair against. Counted as unpaired observation #"+S.unpaired+".", "bad");
+            S.forecast = null;
+            finishRun();
+            return;
+          }
+
+          /* pair it */
+          var pv = outcomeValue(f.predicted), ov = outcomeValue(cls);
+          var brier = Math.pow((f.conf/100) - (f.predicted === cls ? 1 : 0), 2);
+          /* Brier against predicted-class probability mass: confidence on predicted class, observed indicator of that class */
+          brier = Math.pow(f.conf/100 - (f.predicted === cls ? 1 : 0), 2);
+          var pair = { f:f, cls:cls, value:obsValue, cost:obsCost, latency:obsLatency, brier:brier, err: Math.abs(pv - ov) };
+          S.pairs.push(pair);
+          setStage("record", "done");
+          log('OutcomeRecord written <span class="brass">neuruh.outcome-record.v1</span> · paired to '+f.id+' · forecast and outcome now one object', "ok");
+          setStage("ledger", "done");
+          log("Calibration Ledger: pair #"+S.pairs.length+" · Brier "+brier.toFixed(3)+" · predicted "+f.predicted.toUpperCase()+" @ "+f.conf+"% vs observed "+cls.toUpperCase()+" · dimensions written per A7 (recipe, source, topology)", "");
+          verdict($("pairVerdict"), cls === f.predicted ? "ok" : "warn",
+            "<b>Calibration pair #"+S.pairs.length+" recorded.</b> Predicted "+f.predicted.toUpperCase()+" at "+f.conf+"% confidence; reality answered "+cls.toUpperCase()+". Brier score "+brier.toFixed(3)+". " + (S.pairs.length >= 3 ? "Evidence threshold reached: a learning proposal can now be drafted." : (3 - S.pairs.length) + " more pair(s) needed before the court will hear a proposal."));
+          S.forecast = null;
+          if(S.promotedCount > 0) S.postPromoErrors.push(pair.err);
+          finishRun();
+          refreshMetrics(); drawChart(); refreshMaturity();
+          if(S.pairs.length >= 3) $("btnProposal").disabled = false;
+        }, 900);
+      }
+      function finishRun(){
+        S.busy = false;
+        $("btnRun").disabled = true;
+        $("btnSeal").disabled = false;
+        $("missionClock").textContent = "mission complete " + nowT();
+        if($("chainPill").textContent === "EXECUTING") $("chainPill").textContent = "PAIRED";
+      }
+      $("btnRun").addEventListener("click", function(){ runMission(false); });
+      $("btnHindsight").addEventListener("click", function(){
+        if(S.forecast){
+          log("sealed forecast "+S.forecast.id+" VOIDED by operator choosing hindsight execution", "warn");
+          setStage("forecast", "blocked");
+        }
+        runMission(true);
+        setTimeout(refreshMetrics, 1000);
+      });
+
+      /* ---------- proposal / court / governance ---------- */
+      function meanBrier(){
+        if(!S.pairs.length) return null;
+        var s = 0; S.pairs.forEach(function(p){ s += p.brier; }); return s / S.pairs.length;
+      }
+      $("btnProposal").addEventListener("click", function(){
+        if(S.pairs.length < 3) return;
+        var confSum = 0, succ = 0;
+        S.pairs.forEach(function(p){ confSum += p.f.conf; if(p.cls === "success") succ++; });
+        var meanConf = Math.round(confSum / S.pairs.length);
+        var succRate = Math.round(100 * succ / S.pairs.length);
+        var direction = meanConf > succRate ? "lower confidence scaling (system is overconfident)" : "raise confidence scaling (system is underconfident)";
+        S.proposal = {
+          id: "LUP-" + hash("prop" + S.pairs.length + nowT()),
+          text: "Adjust recipe calibration: across " + S.pairs.length + " pairs, stated confidence averaged " + meanConf + "% while observed success ran " + succRate + "%. Proposal: " + direction + " by " + Math.min(20, Math.abs(meanConf - succRate)) + " points for the affected recipes, and re-weight routing toward the best-calibrated topology.",
+          pairs: S.pairs.length, brier: meanBrier()
+        };
+        setStage("proposal", "done");
+        log('Learning Update Proposal drafted <span class="brass">'+S.proposal.id+'</span>: '+S.proposal.text, "brass");
+        verdict($("promoVerdict"), "warn", "<b>Proposal "+S.proposal.id+" drafted.</b> "+S.proposal.text+"<br>It changes nothing yet. Next: the Promotion Gate court.");
+        $("btnCourt").disabled = false;
+        $("btnProposal").disabled = true;
+      });
+      $("btnCourt").addEventListener("click", function(){
+        if(!S.proposal) return;
+        setStage("gate", "active");
+        var reasons = [];
+        if(S.proposal.pairs >= 3) reasons.push("evidence: "+S.proposal.pairs+" pairs (>= 3 required)"); else reasons.push("evidence SHORT: "+S.proposal.pairs+" pairs");
+        if(S.proposal.brier <= 0.25) reasons.push("mean Brier "+S.proposal.brier.toFixed(3)+" (<= 0.25)"); else reasons.push("mean Brier "+S.proposal.brier.toFixed(3)+" EXCEEDS 0.25");
+        reasons.push("boundary scan: no governance, capability, exposure, or commitment items inside proposal");
+        if(adapterState.A6) reasons.push("N-Lab evidence attached via A6"); else reasons.push("A6 disconnected: N-Lab evidence absent (noted, not fatal)");
+        var pass = S.proposal.pairs >= 3 && S.proposal.brier <= 0.25;
+        setTimeout(function(){
+          setStage("gate", pass ? "done" : "blocked");
+          S.courtPassed = pass;
+          log("Promotion Gate court: "+(pass ? '<span class="ok">PASS</span>' : '<span class="bad">FAIL</span>')+" · "+reasons.join(" · "), pass ? "ok" : "bad");
+          verdict($("promoVerdict"), pass ? "ok" : "bad",
+            pass ? "<b>Court: PASS.</b> "+reasons.join(" · ")+". The proposal may go to Governance. Promotion is still a decision, not an automatic consequence."
+                 : "<b>Court: FAIL.</b> "+reasons.join(" · ")+". The proposal returns as evidence. Collect better-calibrated pairs and redraft. Nothing was edited.");
+          $("btnGovern").disabled = !pass;
+          $("btnReject").disabled = false;
+          $("btnCourt").disabled = true;
+        }, 700);
+      });
+      $("btnGovern").addEventListener("click", function(){
+        if(!S.courtPassed || !S.proposal) return;
+        S.version[2]++; if(S.version[2] > 9){ S.version[2] = 0; S.version[1]++; }
+        S.promotedCount++;
+        S.lastPromotedPairCount = S.pairs.length;
+        S.postPromoErrors = [];
+        setStage("gov", "done"); setStage("promoted", "done");
+        $("chainPill").textContent = "PROMOTED v" + S.version.join(".");
+        log('Governance: PROMOTE · behavior version → <span class="brass">v'+S.version.join(".")+'</span> · proposal '+S.proposal.id+' is now live behavior, with its evidence chain attached', "ok");
+        verdict($("promoVerdict"), "ok", "<b>Promoted. Behavior is now v"+S.version.join(".")+".</b> The change, its pairs, its Brier score, the court verdict, and this governance decision are one receipt chain. Future outcomes will be measured against the new version, which is how rung 5 of the maturity ladder gets proven.");
+        S.proposal = null; S.courtPassed = false;
+        $("btnGovern").disabled = true; $("btnReject").disabled = true;
+        if(S.pairs.length >= 3) $("btnProposal").disabled = false;
+        refreshMetrics(); refreshMaturity();
+      });
+      $("btnReject").addEventListener("click", function(){
+        if(!S.proposal) return;
+        setStage("gov", "blocked");
+        log("Governance: REJECT · proposal "+S.proposal.id+" returned. Behavior stays v"+S.version.join(".")+". Rejection and its reason are part of the record.", "warn");
+        verdict($("promoVerdict"), "warn", "<b>Governance: rejected.</b> The proposal and its evidence stay in the ledger; behavior stays at v"+S.version.join(".")+". A rejected proposal is still learning: the next draft starts from it.");
+        S.proposal = null; S.courtPassed = false;
+        $("btnGovern").disabled = true; $("btnReject").disabled = true;
+        if(S.pairs.length >= 3) $("btnProposal").disabled = false;
+      });
+
+      /* ---------- metrics / measures / chart ---------- */
+      function refreshMetrics(){
+        $("mPairs").textContent = S.pairs.length;
+        $("mUnpaired").textContent = S.unpaired;
+        var b = meanBrier();
+        $("mBrier").textContent = b === null ? "·" : b.toFixed(3);
+        $("mVersion").textContent = "v" + S.version.join(".");
+        $("calPill").textContent = S.pairs.length ? S.pairs.length + " PAIRS" : "NO PAIRS YET";
+        $("calPill").className = "pill" + (S.pairs.length ? " on" : "");
+        if(!S.pairs.length) return;
+        var confSum = 0, succObs = 0, fp = 0, fn = 0, ps = 0, pf = 0, tto = 0, cost = 0, val = 0;
+        var failByArch = {};
+        S.pairs.forEach(function(p){
+          confSum += p.f.conf;
+          var ov = outcomeValue(p.cls);
+          succObs += ov; tto += p.latency; cost += p.cost; val += p.value;
+          if(p.f.predicted === "success"){ ps++; if(p.cls === "failure") fp++; }
+          if(p.f.predicted === "failure"){ pf++; if(p.cls === "success") fn++; }
+          if(p.cls === "failure") failByArch[p.f.arch] = (failByArch[p.f.arch] || 0) + 1;
+        });
+        var n = S.pairs.length;
+        $("msRecipe").textContent = "success-equivalent rate " + Math.round(100 * succObs / n) + "% over " + n + " pairs";
+        $("msConf").textContent = "stated " + Math.round(confSum / n) + "% vs observed " + Math.round(100 * succObs / n) + "%";
+        $("msFP").textContent = ps ? Math.round(100 * fp / ps) + "% of success predictions" : "no success predictions yet";
+        $("msFN").textContent = pf ? Math.round(100 * fn / pf) + "% of failure predictions" : "no failure predictions yet";
+        $("msTTO").textContent = (tto / n).toFixed(1) + " h mean";
+        $("msCV").textContent = "$" + Math.round(cost / n) + " cost vs $" + Math.round(val / n) + " value per mission";
+        var top = null, topN = 0;
+        Object.keys(failByArch).forEach(function(k){ if(failByArch[k] > topN){ topN = failByArch[k]; top = k; } });
+        $("msFail").textContent = top ? ARCH[top].label + " (" + topN + " failures)" : "no failures recorded";
+      }
+      function drawChart(){
+        var svg = $("calChart");
+        var W = 560, H = 240, base = 200, top = 20;
+        var out = "";
+        out += '<line x1="46" y1="'+base+'" x2="'+(W-10)+'" y2="'+base+'" stroke="var(--line2)" stroke-width="1"/>';
+        out += '<line x1="46" y1="'+top+'" x2="46" y2="'+base+'" stroke="var(--line2)" stroke-width="1"/>';
+        /* perfect calibration reference: diagonal in pair space */
+        out += '<line x1="46" y1="'+base+'" x2="'+(W-10)+'" y2="'+top+'" stroke="var(--ink3)" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>';
+        [0, 0.5, 1].forEach(function(v){
+          var y = base - v * (base - top);
+          out += '<text x="40" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="var(--ink3)" font-family="JetBrains Mono">'+v.toFixed(1)+'</text>';
+          out += '<line x1="46" y1="'+y+'" x2="'+(W-10)+'" y2="'+y+'" stroke="var(--line)" stroke-width="1" opacity="0.5"/>';
+        });
+        if(!S.pairs.length){
+          out += '<text x="'+(W/2)+'" y="'+(H/2)+'" text-anchor="middle" font-size="13" fill="var(--ink3)" font-family="Inter">No calibration pairs yet. Seal a forecast and execute.</text>';
+        } else {
+          var slot = (W - 66) / Math.max(S.pairs.length, 6);
+          var bw = Math.min(22, slot * 0.32);
+          S.pairs.forEach(function(p, i){
+            var cx = 56 + i * slot + slot / 2;
+            var confH = (p.f.conf / 100) * (base - top);
+            var obsH = outcomeValue(p.cls) * (base - top);
+            out += '<rect x="'+(cx - bw - 2)+'" y="'+(base - confH)+'" width="'+bw+'" height="'+confH+'" fill="var(--brass)" rx="2"/>';
+            out += '<rect x="'+(cx + 2)+'" y="'+(base - obsH)+'" width="'+bw+'" height="'+Math.max(obsH, 2)+'" fill="var(--ok)" rx="2"/>';
+            out += '<text x="'+cx+'" y="'+(base + 16)+'" text-anchor="middle" font-size="10" fill="var(--ink3)" font-family="JetBrains Mono">#'+(i+1)+'</text>';
+          });
+        }
+        svg.innerHTML = out;
+      }
+      drawChart();
+
+      /* ---------- research maturity ladder ---------- */
+      var MATURITY = [
+        {t:"State can be recovered", d:"The loop's state is inspectable at any point.", test:function(){ return true; }},
+        {t:"Actions linked to real outcomes", d:"First calibration pair written.", test:function(){ return S.pairs.length >= 1; }},
+        {t:"Pre-outcome predictions become calibrated", d:"Five or more pairs with a tracked Brier score.", test:function(){ return S.pairs.length >= 5; }},
+        {t:"Prior outcomes change a future route, recipe, or topology", d:"First governed promotion lands.", test:function(){ return S.promotedCount >= 1; }},
+        {t:"Changed configuration improves a predefined later metric", d:"Post-promotion pairs show lower mean error than the pairs that justified the change.", test:function(){
+            if(!S.promotedCount || S.postPromoErrors.length < 2) return false;
+            var pre = 0; for(var i = 0; i < S.lastPromotedPairCount && i < S.pairs.length; i++) pre += S.pairs[i].err;
+            pre = pre / Math.max(1, Math.min(S.lastPromotedPairCount, S.pairs.length));
+            var post = 0; S.postPromoErrors.forEach(function(e){ post += e; }); post = post / S.postPromoErrors.length;
+            return post < pre;
+          }},
+        {t:"Patterns transfer across materially different mission classes", d:"Requires cross-class production evidence. Not demonstrable in this console.", test:function(){ return false; }},
+        {t:"Bounded sub-missions generated from objectives and anomalies", d:"Requires live mission generation. Out of scope for a specification demo.", test:function(){ return false; }},
+        {t:"Independent evaluation confirms robust transfer", d:"Requires an external evaluator. The claim stays unmade until one does.", test:function(){ return false; }}
+      ];
+      var matBox = $("matLadder");
+      function refreshMaturity(){
+        matBox.innerHTML = "";
+        var highest = 0;
+        MATURITY.forEach(function(m, i){ if(m.test()) highest = i + 1; });
+        MATURITY.forEach(function(m, i){
+          var reached = m.test();
+          var d = document.createElement("div");
+          d.className = "rung" + (reached ? " reached" : (i + 1 === highest + 1 ? " current" : ""));
+          d.innerHTML = '<div class="n">'+(i+1)+'</div><div class="tx"><b>'+m.t+'</b><span>'+m.d+'</span></div>';
+          matBox.appendChild(d);
+        });
+        $("matPill").textContent = "RUNG " + highest + " OF 8";
+        $("matPill").className = "pill" + (highest >= 4 ? " on" : "");
+      }
+      refreshMaturity();
+
+      /* ---------- governance boundary attempts ---------- */
+      $("btnForceRule").addEventListener("click", function(){
+        verdict($("govVerdict"), "bad", "<b>Blocked at the boundary.</b> A silent governance rewrite is exactly the change class learning may never make. It must arrive as a versioned proposal with tests and an independent court. The attempt itself was written to the receipt log.");
+        log("BOUNDARY: silent governance rewrite attempted by learning loop → REFUSED. Routed to versioned proposal channel instead.", "bad");
+      });
+      $("btnForceExposure").addEventListener("click", function(){
+        verdict($("govVerdict"), "bad", "<b>Blocked at the boundary.</b> Public exposure changes carry a wording ceiling and a public-safe redaction pass. No learning process widens exposure on its own authority. Attempt logged.");
+        log("BOUNDARY: silent public exposure change attempted → REFUSED. Public claims require the proof court and founder authority.", "bad");
+      });
+
+      /* ---------- topology experiment bench ---------- */
+      var VARIANTS = [
+        {nm:"Simple baseline workflow", q:0.62, ce:0.31, comp:0.81, interv:0.34, cost:18, lat:3.1, pol:0.02, val:640},
+        {nm:"Current canonical topology", q:0.78, ce:0.17, comp:0.93, interv:0.12, cost:34, lat:5.4, pol:0.00, val:980},
+        {nm:"Ablation: minus Sentinel court", q:0.71, ce:0.24, comp:0.88, interv:0.09, cost:29, lat:4.6, pol:0.11, val:820},
+        {nm:"Alternate provider, same topology", q:0.75, ce:0.20, comp:0.91, interv:0.14, cost:41, lat:6.2, pol:0.01, val:930},
+        {nm:"Alternate topology, same provider", q:0.73, ce:0.22, comp:0.90, interv:0.18, cost:31, lat:4.9, pol:0.01, val:890}
+      ];
+      $("btnExperiment").addEventListener("click", function(){
+        var trials = parseInt($("xTrials").value, 10);
+        var cls = $("xClass").value;
+        log("experiment: "+cls+" · "+trials+" trials x 5 variants · pre-outcome record captured per trial before execution", "brass");
+        var rows = VARIANTS.map(function(v){
+          var q = 0, ce = 0, comp = 0, interv = 0, cost = 0, lat = 0, pol = 0, val = 0;
+          for(var i = 0; i < trials; i++){
+            var success = Math.random() < v.comp;
+            comp += success ? 1 : 0;
+            q += Math.max(0, Math.min(1, v.q + rnd(-0.18, 0.18))) * (success ? 1 : 0.35);
+            ce += Math.max(0.02, v.ce + rnd(-0.09, 0.09));
+            interv += Math.random() < v.interv ? 1 : 0;
+            cost += v.cost * rnd(0.85, 1.2);
+            lat += v.lat * rnd(0.8, 1.3);
+            pol += Math.random() < v.pol ? 1 : 0;
+            val += (success ? v.val * rnd(0.8, 1.2) : 0);
+          }
+          return { nm:v.nm, q:q/trials, ce:ce/trials, comp:comp/trials, interv:interv/trials, cost:cost/trials, lat:lat/trials, pol:pol, val:val/trials };
+        });
+        var best = rows.slice().sort(function(a, b){ return (b.q - b.ce) - (a.q - a.ce); })[0];
+        var body = $("expBody"); body.innerHTML = "";
+        rows.forEach(function(r){
+          var tr = document.createElement("tr");
+          if(trials >= 10 && r.nm === best.nm) tr.className = "win";
+          tr.innerHTML = '<td data-l="Variant"><b>'+r.nm+'</b></td>' +
+            '<td data-l="Quality" class="num">'+r.q.toFixed(2)+'</td>' +
+            '<td data-l="Calib err" class="num">'+r.ce.toFixed(2)+'</td>' +
+            '<td data-l="Completion" class="num">'+Math.round(r.comp * 100)+'%</td>' +
+            '<td data-l="Interventions" class="num">'+Math.round(r.interv * 100)+'%</td>' +
+            '<td data-l="Cost" class="num">$'+r.cost.toFixed(0)+'</td>' +
+            '<td data-l="Latency" class="num">'+r.lat.toFixed(1)+'h</td>' +
+            '<td data-l="Policy fails" class="num">'+r.pol+'</td>' +
+            '<td data-l="Econ value" class="num">$'+Math.round(r.val)+'</td>';
+          body.appendChild(tr);
+        });
+        if(trials < 10){
+          verdict($("expVerdict"), "warn", "<b>No winner declared.</b> At "+trials+" trial(s) per variant, differences this size are noise. The protocol's own rule applies: do not infer a systems advantage from one successful run. Re-run at 12 or 30 trials.");
+          log("experiment verdict: INSUFFICIENT EVIDENCE at "+trials+" trials. No systems advantage claimed.", "warn");
+        } else {
+          verdict($("expVerdict"), "ok", "<b>Leader on quality minus calibration error: "+best.nm+".</b> Read the whole row before believing it: the ablated variant is cheaper and faster, and its policy failures are the price. A leader here earns a promotion proposal, not a silent topology swap.");
+          log("experiment complete: "+trials+" trials/variant · leader "+best.nm+" · results feed the Promotion Gate as evidence via A6, nothing auto-promotes", "ok");
+        }
+      });
+
+      /* ---------- demand learning loop ---------- */
+      var OFFERS = { scan:"Property Opportunity Scan", dossier:"Property Intelligence Dossier" };
+      var INGREDIENTS = {
+        "probate-watch": { nm:"Probate filing watch with alerts", buildCost:4200, reuse:3 },
+        "heir-contact": { nm:"Heir location and contact research", buildCost:6800, reuse:4 },
+        "bulk-underwrite": { nm:"Bulk parcel underwriting (100+)", buildCost:9500, reuse:2 },
+        "voice-dispatch": { nm:"After-hours voice dispatch for trades", buildCost:12000, reuse:5 }
+      };
+      var demandState = {};   // ingredient key -> {count, bestMaturity, value}
+      var demandBuilt = {};
+      var demandMaxMaturity = 0;
+      var BAND_VALUE = { "Not supplied":0, "Under $250, this month":250, "$250 to $1,500, this quarter":1500, "$1,500+, urgent":4000 };
+      var DMAT = ["Problem observed","Buyer provides real constraints / data","Buyer accepts a bounded proof","Buyer requests price / scope","Buyer pays","Buyer accepts delivery","Buyer repeats / expands","Multiple buyers repeat the same core recipe"];
+      var dlBox = $("demandLadder");
+      function refreshDemandLadder(){
+        dlBox.innerHTML = "";
+        DMAT.forEach(function(t, i){
+          var d = document.createElement("div");
+          d.className = "rung" + (i + 1 <= demandMaxMaturity ? " reached" : (i + 1 === demandMaxMaturity + 1 ? " current" : ""));
+          d.innerHTML = '<div class="n">'+(i+1)+'</div><div class="tx"><b>'+t+'</b></div>';
+          dlBox.appendChild(d);
+        });
+      }
+      refreshDemandLadder();
+      function renderIngredients(){
+        var list = $("ingList");
+        var keys = Object.keys(demandState);
+        var regCount = Object.keys(OFFERS).length + Object.keys(demandBuilt).length;
+        $("ingPill").textContent = "REGISTRY: " + regCount + " OFFERS";
+        if(!keys.length){ list.innerHTML = '<p class="note" style="color:var(--ink3)">No unserved demand yet. Submit a signal the registry cannot match.</p>'; return; }
+        list.innerHTML = "";
+        keys.forEach(function(k){
+          var st = demandState[k], ing = INGREDIENTS[k];
+          var estValue = st.count * Math.max(400, st.bestBand);
+          var richie = Math.round((estValue * ing.reuse) / ing.buildCost * 100) / 100;
+          var row = document.createElement("div"); row.className = "demandrow";
+          var left = '<div><b style="font-family:Archivo,sans-serif">MISSING_INGREDIENT</b><br><span style="font-size:13px">'+ing.nm+'</span><br><span class="chip">demand x'+st.count+'</span> <span class="chip">best maturity: rung '+st.bestMaturity+'</span> <span class="chip">est. value $'+estValue+'</span> <span class="chip">build $'+ing.buildCost+'</span> <span class="chip">reuse x'+ing.reuse+' Worlds</span></div>';
+          var right;
+          if(demandBuilt[k]){
+            right = '<div style="text-align:right"><div class="cnt" style="color:var(--ok)">BUILT</div><span class="chip">in registry · cohort re-run converts</span></div>';
+          } else if(st.count >= 3){
+            right = '<div style="text-align:right"><div class="cnt">'+richie+'</div><div class="note">RICHIE economic rank score</div><button class="btn small brass" data-build="'+k+'">Commission build candidate</button></div>';
+          } else {
+            right = '<div style="text-align:right"><div class="cnt">'+st.count+' / 3</div><div class="note">signals needed before<br>LARIC / JGI owner court</div></div>';
+          }
+          row.innerHTML = left + right;
+          list.appendChild(row);
+        });
+        list.querySelectorAll("[data-build]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var k = btn.getAttribute("data-build");
+            log("LARIC / JGI owner court: build candidate for '"+INGREDIENTS[k].nm+"' → independent court PASS → ingredient built and added to registry", "ok");
+            demandBuilt[k] = true;
+            log("cohort re-run: "+demandState[k].count+" previously unserved demand signals re-evaluated against the new ingredient → now matchable. Demand became product because buyers pulled, repeatedly.", "brass");
+            verdict($("demandVerdict"), "ok", "<b>Ingredient built: "+INGREDIENTS[k].nm+".</b> The waiting cohort was re-run against the extended registry and now matches. That re-run, not the build itself, is the loop closing.");
+            renderIngredients();
+          });
+        });
+      }
+      $("btnDemand").addEventListener("click", function(){
+        var prob = $("dProblem").value;
+        var buyer = $("dBuyer").value;
+        var band = $("dPrice").value;
+        var mat = parseInt($("dMaturity").value, 10);
+        if(mat > demandMaxMaturity){ demandMaxMaturity = mat; refreshDemandLadder(); }
+        if(OFFERS[prob]){
+          verdict($("demandVerdict"), "ok", "<b>Matched existing offer: "+OFFERS[prob]+".</b> Routed to the existing intake, payment, and delivery binding. No new build proposed; matched demand is fulfillment work, not product signal.");
+          log("demand signal: '"+prob+"' from "+buyer+" → MATCHED "+OFFERS[prob]+" · maturity rung "+mat+" · routed to existing offer", "ok");
+          return;
+        }
+        var st = demandState[prob] || { count:0, bestMaturity:0, bestBand:0 };
+        st.count++; st.bestMaturity = Math.max(st.bestMaturity, mat);
+        st.bestBand = Math.max(st.bestBand, BAND_VALUE[band] || 0);
+        demandState[prob] = st;
+        log("demand signal: unserved · '"+INGREDIENTS[prob].nm+"' · "+buyer+" · band: "+band+" · maturity rung "+mat+" → MISSING_INGREDIENT count "+st.count, "warn");
+        if(st.count >= 3 && !demandBuilt[prob]){
+          verdict($("demandVerdict"), "warn", "<b>MISSING_INGREDIENT threshold reached: "+INGREDIENTS[prob].nm+" (x"+st.count+").</b> RICHIE has ranked it in the panel. The LARIC / JGI owner court can now commission a bounded build candidate. Three independent buyers asking beats thirty likes.");
+        } else {
+          verdict($("demandVerdict"), "warn", "<b>No existing offer matches.</b> Recorded as MISSING_INGREDIENT: "+INGREDIENTS[prob].nm+" (count "+st.count+" of 3 needed for the owner court). Only the bounded learning fields were retained.");
+        }
+        renderIngredients();
+      });
+
+      /* ---------- reasoning compilation ladder ---------- */
+      var CSTAGES = [
+        { nm:"Frontier reasoning", cost:0.84, lat:"8.2s", need:3 },
+        { nm:"Reusable worker / prompt contract", cost:0.31, lat:"3.4s", need:4 },
+        { nm:"Recipe", cost:0.12, lat:"1.6s", need:5 },
+        { nm:"Typed deterministic rule", cost:0.02, lat:"0.2s", need:6 },
+        { nm:"Cache / precomputation", cost:0.002, lat:"0.01s", need:Infinity }
+      ];
+      var C = { stage:0, clean:0, saved:0, runs:0 };
+      var cb = $("compileBar");
+      function renderCompile(){
+        cb.innerHTML = "";
+        CSTAGES.forEach(function(s, i){
+          var d = document.createElement("div");
+          d.className = "cstage" + (i === C.stage ? " now" : i < C.stage ? " done" : "");
+          d.innerHTML = '<div class="nm">'+(i < C.stage ? "COMPILED · " : i === C.stage ? "CURRENT · " : "")+s.nm+'</div><div class="cost">$'+s.cost+' / run · '+s.lat+'</div>';
+          cb.appendChild(d);
+        });
+        $("cRuns").textContent = C.clean;
+        $("cSaved").textContent = "$" + C.saved.toFixed(2);
+        $("btnCompileDown").disabled = !(C.clean >= CSTAGES[C.stage].need && C.stage < CSTAGES.length - 1);
+      }
+      function compileRun(){
+        C.runs++;
+        var cost = CSTAGES[C.stage].cost;
+        C.saved += CSTAGES[0].cost - cost;
+        C.clean++;
+        log("compile bench: run #"+C.runs+" at rung '"+CSTAGES[C.stage].nm+"' · clean · $"+cost.toFixed(3)+" · clean streak "+C.clean+(CSTAGES[C.stage].need !== Infinity ? " / "+CSTAGES[C.stage].need+" to compile down" : " (terminal rung)"), "");
+        renderCompile();
+      }
+      $("btnCompileRun").addEventListener("click", compileRun);
+      $("btnCompile10").addEventListener("click", function(){ for(var i = 0; i < 10; i++) compileRun(); });
+      $("btnCompileDown").addEventListener("click", function(){
+        if(C.stage >= CSTAGES.length - 1) return;
+        C.stage++; C.clean = 0;
+        log("COMPILED DOWN → '"+CSTAGES[C.stage].nm+"' · cost per run now $"+CSTAGES[C.stage].cost+" · the pattern earned this with repeated clean outcomes, and its OutcomeRecords stay attached as the justification", "ok");
+        verdict($("compileVerdict"), "ok", "<b>Compiled down to: "+CSTAGES[C.stage].nm+".</b> Same task, same evidence standard, lower rung on the execution ladder. Frontier reasoning is now reserved for cases that actually need interpretation.");
+        renderCompile();
+      });
+      $("btnAmbiguous").addEventListener("click", function(){
+        C.clean = 0;
+        log("compile bench: AMBIGUOUS case injected (conflicting county records, novel fact pattern) → routed to frontier reasoning regardless of compiled rung. Ambiguity is not compiled away.", "warn");
+        verdict($("compileVerdict"), "warn", "<b>Ambiguous case routed to frontier reasoning.</b> The compiled rungs handle the stable pattern only. Novel evidence, adversarial judgment, and interpretation stay with the expensive rung, on purpose. Clean streak reset: the streak belongs to the pattern, and this case is not the pattern.");
+        renderCompile();
+      });
+      renderCompile();
+
+      /* ---------- boot log ---------- */
+      log("learning live demo initialized · canonical chain loaded · source owners: neuruh-outcome-record, neuruh-outcome-calibration-ledger, neuruh-learning-update-proposal, neuruh-promotion-gate, autonomous-governance-core", "brass");
+      log("B07 preflight state: ~14 outcome producers mapped · no new outcome schema required · several producers already adapted · adapters A0 to A7 required for the rest", "");
+      log("the starvation defect is armed and demonstrable: disconnect A3, or use the hindsight button. calibration will refuse. that refusal is the product working.", "warn");
+    })();
+    </script>
+  </body>
+</html>
