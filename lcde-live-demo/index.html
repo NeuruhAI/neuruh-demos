@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Latent Cross-Domain Emergence and Case Zero | Neuruh</title>
+<style>
+:root{
+  --obsidian:#14120e; --obsidian2:#1d1a14; --bone:#f2ecdd; --bone2:#e9e1cc; --paper:#faf7ee;
+  --brass:#b08d3e; --brass2:#8f712e;
+  --blue:#1d4e79; --blue2:#2a6ea5; --teal:#2a7f8f; --gold:#b8860b; --green:#3d7a54;
+  --slate:#5b6570; --red:#a83c3c; --ink:#23201a; --muted:#6d675a; --line:#d8cfb6;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{background:var(--bone); color:var(--ink); font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5;}
+h1,h2,h3,.disp{font-family:Archivo,Inter,system-ui,sans-serif;}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;}
+header{background:var(--obsidian); color:var(--bone); padding:34px 22px 26px;}
+.wrap{max-width:1180px; margin:0 auto;}
+.kicker{color:var(--brass); letter-spacing:.22em; font-size:11px; text-transform:uppercase; font-weight:700;}
+header h1{font-size:clamp(28px,4.5vw,46px); line-height:1.08; margin:10px 0 8px; font-weight:800;}
+header h1 span{color:var(--brass);}
+header p.sub{color:#cfc7ae; max-width:820px; font-size:15px;}
+.banner{margin-top:18px; border:1px solid var(--brass); color:#efe6cb; padding:10px 14px; font-size:13.5px; background:#211d15;}
+.banner b{color:var(--brass);}
+.meta{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+.meta span{font-size:11.5px; border:1px solid #4a4433; padding:4px 9px; color:#d9d0b4; border-radius:2px;}
+nav{position:sticky; top:0; z-index:50; background:var(--obsidian2); border-top:1px solid #35301f; padding:8px 22px; overflow-x:auto; white-space:nowrap;}
+nav a{color:#d9d0b4; text-decoration:none; font-size:12.5px; margin-right:16px;}
+nav a:hover{color:var(--brass);}
+main{padding:10px 22px 60px;}
+section{background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:24px; margin:22px auto; max-width:1180px;}
+section h2{font-size:23px; margin-bottom:2px;}
+section h2 .no{color:var(--brass2); margin-right:8px;}
+.lede{color:var(--muted); font-size:14px; margin-bottom:14px; max-width:900px;}
+.srcline{font-size:11.5px; color:var(--muted); border-left:3px solid var(--brass); padding-left:9px; margin:10px 0 14px;}
+button{background:var(--obsidian); color:var(--bone); border:1px solid var(--obsidian); padding:8px 15px; font-size:13px; cursor:pointer; border-radius:2px; font-family:inherit; font-weight:600;}
+button:hover{background:var(--brass2); border-color:var(--brass2);}
+button.ghost{background:transparent; color:var(--obsidian); border-color:var(--obsidian);}
+button.ghost:hover{background:var(--bone2); color:var(--obsidian);}
+button:disabled{opacity:.45; cursor:default;}
+input[type=text],select,textarea{background:#fff; border:1px solid var(--line); padding:8px 10px; font-size:13.5px; font-family:inherit; border-radius:2px; color:var(--ink);}
+input[type=range]{width:100%; accent-color:var(--brass2);}
+label.fl{display:block; font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); margin:10px 0 4px;}
+.log{background:var(--obsidian); color:#ddd3b3; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12px; padding:12px 14px; border-radius:3px; min-height:44px; white-space:pre-wrap; word-break:break-word;}
+.log .ok{color:#8fd0a2;} .log .warn{color:#e8c87a;} .log .bad{color:#f0a0a0;}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr;}}
+/* step flows */
+.flow{display:flex; flex-wrap:wrap; gap:0; align-items:stretch; margin:14px 0;}
+.step{flex:1 1 120px; min-width:118px; background:#fff; border:1px solid var(--line); border-top:4px solid var(--slate); padding:10px 11px; position:relative; transition:all .25s;}
+.step + .step{margin-left:14px;}
+.step + .step:before{content:"→"; position:absolute; left:-14px; top:38%; color:var(--brass2); font-weight:800; width:14px; text-align:center;}
+.step b{display:block; font-size:13px; line-height:1.3;}
+.step small{color:var(--muted); font-size:11.5px; display:block; margin-top:3px; line-height:1.35;}
+.step.c-blue{border-top-color:var(--blue);} .step.c-teal{border-top-color:var(--teal);}
+.step.c-gold{border-top-color:var(--gold);} .step.c-green{border-top-color:var(--green);}
+.step.c-red{border-top-color:var(--red);} .step.c-slate{border-top-color:var(--slate);}
+.step.on{background:#fdf6df; border-color:var(--brass); box-shadow:0 0 0 2px rgba(176,141,62,.35);}
+.step.done{border-top-color:var(--green); background:#f2f7f1;}
+.step.clickable{cursor:pointer;} .step.clickable:hover{border-color:var(--brass);}
+.outcome{border:1px solid var(--line); background:#fff; padding:13px 15px; font-size:14px; margin-top:12px;}
+.outcome b.tag{font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border-radius:2px; background:var(--bone2); margin-right:8px;}
+.zone-good{background:#eef5ee; border-color:var(--green);} .zone-bad{background:#f9eeee; border-color:var(--red);} .zone-mid{background:#fdf6df; border-color:var(--brass);}
+/* gauges */
+.gauge{margin:9px 0;}
+.gauge .ghead{display:flex; justify-content:space-between; font-size:13px;}
+.gauge .ghead b{font-weight:700;} .gauge .ghead span{font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--brass2);}
+.gbar{height:10px; background:var(--bone2); border:1px solid var(--line); border-radius:5px; overflow:hidden;}
+.gbar i{display:block; height:100%; background:linear-gradient(90deg,var(--teal),var(--brass)); width:0%; transition:width .4s;}
+.gauge small{color:var(--muted); font-size:11.5px;}
+/* tables */
+table{width:100%; border-collapse:collapse; font-size:13px; background:#fff;}
+th{background:var(--obsidian); color:var(--bone); text-align:left; padding:8px 10px; font-size:12px; letter-spacing:.03em;}
+td{border-top:1px solid var(--line); padding:7px 10px; vertical-align:top;}
+td.heat{color:#fff; text-align:center; font-family:"JetBrains Mono",monospace; font-size:12px;}
+/* cards */
+.card{background:#fff; border:1px solid var(--line); border-top:4px solid var(--slate); padding:14px; cursor:pointer;}
+.card:hover{border-color:var(--brass);}
+.card h3{font-size:15px; margin-bottom:4px;} .card p{font-size:12.5px; color:var(--muted);}
+.card.sel{box-shadow:0 0 0 2px rgba(176,141,62,.4); border-color:var(--brass);}
+.chips{display:flex; flex-wrap:wrap; gap:7px; margin:10px 0;}
+.chip{font-size:12px; border:1px solid var(--line); background:#fff; padding:5px 10px; border-radius:20px; cursor:pointer;}
+.chip.sel{background:var(--obsidian); color:var(--bone); border-color:var(--obsidian);}
+.qa li{margin:7px 0 7px 18px; font-size:14px;}
+footer{background:var(--obsidian); color:#b6ad92; padding:26px 22px; font-size:12.5px;}
+footer .wrap p{margin:5px 0;}
+.kv{font-size:13px;} .kv b{display:inline-block; min-width:130px; color:var(--muted); font-weight:600;}
+.receipt{font-family:"JetBrains Mono",monospace; font-size:12px; background:#fff; border:1px solid var(--line); padding:12px; white-space:pre-wrap; word-break:break-word;}
+
+.eq{background:var(--obsidian); color:#efe6cb; font-family:"JetBrains Mono",monospace; font-size:13px; padding:13px 15px; border-radius:3px; white-space:pre-wrap; line-height:1.65;}
+.eq b{color:var(--brass);}
+.checkline{display:block; font-size:14px; margin:7px 0;}
+.scorebig{font-size:30px; font-weight:800; font-family:Archivo,sans-serif;}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="kicker">Neuruh — Adaptive Intelligence Research Program</div>
+    <h1>Latent Cross-Domain Emergence <span>and Case Zero</span>, Built Runnable</h1>
+    <p class="sub">The hypothesis document as instruments: the nine-stage LCDE mechanism runner, the eight predictions, the six competing hypotheses with the observations that discriminate between them, the ten-dimension scoring worksheet, the domain ablation board, the five research ruling classes, and the pilot checklist.</p>
+    <div class="banner"><b>Simulation notice:</b> Everything below runs as a simulation in your browser. Nothing here touches a live system or any real study data. <b>DESIGNED is not DEPLOYED is not LIVE.</b> Source document: <i>Latent Cross-Domain Emergence and Case Zero</i> v1.0, August 1, 2026 — status: research hypothesis and study implementation guide. Its own limit, stated in the document: the Jeramie/Neuruh case interpretation "is a plausible case formulation, not evidence. Case Zero exists to test temporal precedence and predictive usefulness." The full 36-page protocol that operationalizes this hypothesis is at case-zero-live-demo.pages.dev.</div>
+    <div class="meta">
+      <span>7 pages — read in full</span><span>9-stage mechanism</span>
+      <span>8 predictions</span><span>6 competing hypotheses</span>
+      <span>10 scoring dimensions</span><span>5 ruling classes</span>
+    </div>
+  </div>
+</header>
+<nav>
+  <div class="wrap" style="padding:0;">
+    <a href="#mechanism">Mechanism</a><a href="#predictions">Predictions</a><a href="#alternatives">Alternatives</a><a href="#scoring">Scoring</a><a href="#ablations">Ablations</a><a href="#rulings">Rulings</a><a href="#pilot">Pilot</a>
+  </div>
+</nav>
+<main>
+<div class="wrap">
+
+<section id="mechanism">
+  <h2><span class="no">§1-2</span>The Hypothesis and Its Nine-Stage Mechanism</h2>
+  <div class="eq">LCDE v0.1 — When an adaptive agent develops deep representations across multiple structurally distinct domains before encountering a future target domain, recurring relational invariants may become encoded as latent schemas. When a novel target creates sufficient structural resonance and productive polarity, the schemas can recombine and reorganize into an integrated capability requiring less target-specific learning and producing broader transfer than equivalent target exposure without the prior structure.</div>
+  <p class="lede" style="margin-top:12px;">Run the mechanism. Each stage is necessary in the hypothesis; remove one and the chain is the control condition, not the phenomenon.</p>
+  <div class="flow" id="mechFlow"></div>
+  <div style="margin-top:10px;"><button id="mechRun">Run the mechanism</button></div>
+  <div class="log" id="mechLog" style="margin-top:12px;">Idle. Case interpretation (§3): Jeramie may have approached AI not as a blank-slate software learner but carrying deeply encoded schemas from physical markets, real estate, operations, defense, self-modeling, content, and IP packaging — with AI as the enabling medium in which dormant structures could be externalized and recombined. Plausible formulation. Not evidence.</div>
+</section>
+
+<section id="predictions">
+  <h2><span class="no">§4</span>The Eight Predictions</h2>
+  <p class="lede">If LCDE is real, these eight things should be observable. Click each: what it claims, and the section of the study that tests it.</p>
+  <div class="chips" id="predChips"></div>
+  <div class="outcome" id="predDetail">Select a prediction.</div>
+</section>
+
+<section id="alternatives">
+  <h2><span class="no">§5</span>Competing Hypotheses — The Discriminator</h2>
+  <p class="lede">Six rival explanations, each making its own prediction. The study is only meaningful where LCDE and a rival predict different observations. Click a rival.</p>
+  <div class="grid2" id="altGrid"></div>
+  <div class="outcome" id="altDetail">Select a competing hypothesis.</div>
+</section>
+
+<section id="scoring">
+  <h2><span class="no">§7</span>Scoring Framework Worksheet — Ten Dimensions</h2>
+  <p class="lede">Each dimension asks one question. Score a hypothetical result set and read the profile. This is the hypothesis document's qualitative framework; the quantified version (PP, FR, F1, SAS, gates) lives in the Case Zero protocol demo.</p>
+  <div class="grid2">
+    <div id="scoreSliders"></div>
+    <div><div class="outcome" id="scoreOut" style="margin-top:0;"></div></div>
+  </div>
+</section>
+
+<section id="ablations">
+  <h2><span class="no">§8</span>Domain Ablations — Expected Loss</h2>
+  <p class="lede">Remove a domain and, if the hypothesis is correct, a specific capability family weakens. Toggle domains off.</p>
+  <div class="chips" id="ablChips"></div>
+  <div class="outcome" id="ablOut"></div>
+</section>
+
+<section id="rulings">
+  <h2><span class="no">§9</span>Research Rulings — Five Classes</h2>
+  <p class="lede">This document's ruling vocabulary. Set a result pattern and read which ruling it earns. (The later full protocol uses a stricter four-class vocabulary: Supported, Mixed, Unsupported, Protocol Failure.)</p>
+  <div class="chips" id="ruleChips"></div>
+  <div class="outcome" id="ruleDetail">Select a ruling class.</div>
+</section>
+
+<section id="pilot">
+  <h2><span class="no">§10</span>Pilot Checklist</h2>
+  <p class="lede">Nine steps to a minimum viable test. In the source document these are numbered 19-27, continuing the study-step list; they are renumbered 1-9 here for use. Step 1 has a hard dependency: the collector runs on Jeramie's local drive, and per the Thread Ledger its execution is still required there.</p>
+  <div id="pilotList"></div>
+  <div class="outcome" id="pilotOut">0 of 9 complete (browser checklist only).</div>
+</section>
+
+</div>
+</main>
+<footer>
+  <div class="wrap">
+    <p><b style="color:var(--brass);">NEURUH</b> — Latent Cross-Domain Emergence and Case Zero, Live Demo. Built from <i>03_Latent_Cross_Domain_Emergence_and_Case_Zero_v1.0</i> (7 pages, August 1, 2026), read in full.</p>
+    <p>Series map: the Thread Ledger records how this hypothesis was earned; the Polarity monograph states the theory it extends; the Atlas renders it; the Blueprint builds the research OS around it; the Case Zero protocol is the full test. DESIGNED is not DEPLOYED is not LIVE.</p>
+    <p>Simulation runs entirely in the visitor's browser.</p>
+  </div>
+</footer>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+function makeFlow(el, steps){
+  el.innerHTML = steps.map((s,i)=>'<div class="step c-'+(s.c||"slate")+'" data-i="'+i+'"><b>'+esc(s.t)+'</b>'+(s.d?'<small>'+esc(s.d)+'</small>':"")+'</div>').join("");
+  return Array.from(el.querySelectorAll(".step"));
+}
+async function runSteps(nodes, logEl, lines, delay){
+  nodes.forEach(n=>n.classList.remove("on","done"));
+  for(let i=0;i<nodes.length;i++){
+    nodes[i].classList.add("on");
+    if(lines && lines[i]) logEl.innerHTML = lines[i];
+    await sleep(delay||420);
+    nodes[i].classList.remove("on"); nodes[i].classList.add("done");
+  }
+}
+
+/* ---------- Mechanism ---------- */
+const mech = [
+ ["2.1 Domain immersion","Consequential experience creates causal and relational structure rather than vocabulary alone.","slate"],
+ ["2.2 Latent encoding","Episodes compress into recurring invariants.","blue"],
+ ["2.3 Dormancy","The schema remains available without an immediate target.","slate"],
+ ["2.4 Target encounter","A new medium or problem exposes previously unexpressed compatibility.","teal"],
+ ["2.5 Productive polarity","The old models partially fit and partially fail, creating a workable contradiction.","gold"],
+ ["2.6 Structural resonance","Relational similarity activates schemas despite surface difference.","teal"],
+ ["2.7 Recombination","Multiple source schemas compose into a target-specific architecture.","blue"],
+ ["2.8 Representational reorganization","The target itself is reconceived through a higher-order model.","gold"],
+ ["2.9 Emergent capability","The agent can now produce a class of outputs more quickly and broadly.","green"]
+];
+const mechNodes = makeFlow($("mechFlow"), mech.map(s=>({t:s[0], d:s[1], c:s[2]})));
+$("mechRun").addEventListener("click", async e=>{
+  e.target.disabled=true;
+  await runSteps(mechNodes, $("mechLog"), mech.map(s=>"<b>"+esc(s[0])+"</b> — "+esc(s[1])), 440);
+  $("mechLog").innerHTML='<span class="ok">Mechanism complete (simulation).</span> Stages 2.1-2.3 happen years before the target exists; that temporal order is the entire evidentiary claim. If the encoding cannot be shown to predate the encounter, stages 2.4-2.9 are just learning, and the hypothesis has nothing distinctive left to say.';
+  e.target.disabled=false;
+});
+
+/* ---------- Predictions ---------- */
+const preds = [
+ ["P1","Pre-AI material contains relational structures later expressed in AI architecture.","Tested by blind atomization of the clean pre-target corpus (Case Zero protocol §9)."],
+ ["P2","Independent predictors can forecast later system features without seeing post-AI materials.","Tested by sealed prediction from the neutral schema graph only (§12)."],
+ ["P3","Predictions depend on structural relationships more than shared vocabulary.","Tested by the lexical baseline B5 and the stripped-language rerun (§14, §8.3)."],
+ ["P4","Later architecture maps to combinations of source domains.","Tested by the Cross-Domain Recombination Index (§16.2)."],
+ ["P5","Removing source domains causes selective prediction loss.","Tested by domain ablations with preregistered expected losses (§15)."],
+ ["P6","The development curve contains identifiable nonlinear reorganization.","Tested by exploratory changepoint analysis on dated feature appearances (§17.3)."],
+ ["P7","Some strongest matches surprise Jeramie rather than merely confirm known stories.","Tested by the Novel Prediction Count and the archive-surprise gate (§18)."],
+ ["P8","The match score exceeds generic and shuffled controls.","The primary endpoint itself: SAS vs matched baselines and permutation nulls (§16.4)."]
+];
+$("predChips").innerHTML = preds.map((p,i)=>'<span class="chip" data-i="'+i+'">'+p[0]+'</span>').join("");
+$("predChips").querySelectorAll(".chip").forEach(ch=>ch.addEventListener("click", ()=>{
+  $("predChips").querySelectorAll(".chip").forEach(x=>x.classList.toggle("sel", x===ch));
+  const p=preds[Number(ch.dataset.i)];
+  $("predDetail").innerHTML='<b class="tag">'+p[0]+'</b><b>'+esc(p[1])+'</b><br><span style="font-size:13px;">'+esc(p[2])+'</span>';
+}));
+
+/* ---------- Alternatives ---------- */
+const alts = [
+ ["General intelligence","Broad reasoning alone predicts the architecture; domain history adds little.","Discriminator: a matched reasoner given a generic founder corpus should predict as well as the Case Zero graph. If it does, domain history is decoration."],
+ ["Personality","Persistence, openness, and obsession predict output volume and breadth.","Discriminator: personality predicts volume and breadth, not specific architecture form. LCDE wins only on form-level specificity."],
+ ["AI amplification","Model access and prompting explain architecture growth.","Discriminator: if architectures track model capability releases rather than pre-AI schemas, amplification explains the curve."],
+ ["Ordinary analogy","Known structure-mapping mechanisms explain transfer without a new LCDE construct.","Discriminator: LCDE must add a distinct prediction (temporal precedence plus multi-domain recombination at scale) or be reframed as analogy with better record-keeping."],
+ ["Entrepreneurial iteration","Market and workflow exposure after AI drives the architecture.","Discriminator: features should follow market feedback events in time, not predate them in the schema graph."],
+ ["Retrospective narrative","Mappings disappear under blinding or temporal controls.","Discriminator: the null LCDE most fears. If blinded scoring collapses the matches, narrative was the mechanism all along."]
+];
+$("altGrid").innerHTML = alts.map((a,i)=>'<div class="card" data-i="'+i+'"><h3>'+esc(a[0])+'</h3><p>'+esc(a[1])+'</p></div>').join("");
+$("altGrid").querySelectorAll(".card").forEach(card=>card.addEventListener("click", ()=>{
+  $("altGrid").querySelectorAll(".card").forEach(x=>x.classList.remove("sel"));
+  card.classList.add("sel");
+  const a=alts[Number(card.dataset.i)];
+  $("altDetail").innerHTML='<b class="tag">Rival</b><b>'+esc(a[0])+'.</b> Its prediction: '+esc(a[1])+'<br><span style="font-size:13px;">'+esc(a[2])+'</span>';
+}));
+
+/* ---------- Scoring worksheet ---------- */
+const dims = [
+ ["Temporal lead","How long before the outcome did the schema appear?"],
+ ["Structural match","Does the relationship match beyond vocabulary?"],
+ ["Specificity","Could the prediction distinguish Neuruh from generic entrepreneurship?"],
+ ["Coverage","How many material outcome features were predicted?"],
+ ["False positives","How many predicted features did not appear? (scored inverted: fewer is better)"],
+ ["Surprise","Was the mapping non-obvious before analysis?"],
+ ["Multi-domain dependence","Does the feature require several source domains?"],
+ ["Rater agreement","Do independent coders agree?"],
+ ["Ablation impact","Does removing a domain reduce performance?"],
+ ["Control advantage","Does the real corpus outperform baselines?"]
+];
+const dimState = {};
+$("scoreSliders").innerHTML = dims.map((d,i)=>{
+  dimState[i]=0.5;
+  return '<label class="fl">'+esc(d[0])+': <span id="dv_'+i+'">0.50</span></label><input type="range" min="0" max="100" value="50" data-i="'+i+'"><small style="color:var(--muted); font-size:11.5px;">'+esc(d[1])+'</small>';
+}).join("");
+function scoreUpdate(){
+  const vals = dims.map((d,i)=>dimState[i]);
+  const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const weak = dims.filter((d,i)=>dimState[i]<0.35).map(d=>d[0]);
+  $("scoreOut").className="outcome "+(mean>=0.65?"zone-good":mean>=0.45?"zone-mid":"zone-bad");
+  $("scoreOut").innerHTML='<b class="tag">Profile</b><span class="scorebig">'+mean.toFixed(2)+'</span> mean across ten dimensions.<br><span style="font-size:13px;">'+(weak.length ? "Weak dimensions: <b>"+weak.map(esc).join(", ")+"</b>. Under this framework a single collapsed dimension can cap the ruling regardless of the mean: near-zero rater agreement or control advantage ends the argument on its own." : "No dimension below 0.35. A profile this even is what provisional support would have to look like before the formal protocol's gates are even applied.")+'</span>';
+}
+$("scoreSliders").querySelectorAll("input[type=range]").forEach(inp=>inp.addEventListener("input", ()=>{ dimState[Number(inp.dataset.i)]=inp.value/100; $("dv_"+inp.dataset.i).textContent=(inp.value/100).toFixed(2); scoreUpdate(); }));
+scoreUpdate();
+
+/* ---------- Ablations ---------- */
+const abl = [
+ ["Resale / physical markets","Hidden-value detection, liquidity, rapid testing, defect awareness."],
+ ["Real estate / underwriting","Evidence gates, optionality, risk-ranked decisions."],
+ ["Defense / command","Authority, resilience, threat and fallback logic."],
+ ["Content / IP","Compression, rendering, packaging, licensing."],
+ ["Self-modeling / cognition","Recursive reflection, identity, FounderOS."],
+ ["Operations / business","Workflow replacement, execution boundaries, monetization."]
+];
+const ablOff = abl.map(()=>false);
+$("ablChips").innerHTML = abl.map((d,i)=>'<span class="chip sel" data-i="'+i+'">'+esc(d[0])+' — IN</span>').join("");
+function ablUpdate(){
+  const off = abl.filter((d,i)=>ablOff[i]);
+  $("ablOut").className="outcome "+(off.length?"zone-mid":"");
+  $("ablOut").innerHTML = off.length
+    ? '<b class="tag">Expected loss</b>Removing <b>'+off.map(d=>esc(d[0])).join(", ")+'</b> should cost the predictions: '+off.map(d=>esc(d[1])).join(" ")
+    : '<b class="tag">Full corpus</b>All six source domains in. If removing one changes nothing, that domain was narrative, not structure.';
+}
+$("ablChips").querySelectorAll(".chip").forEach(ch=>ch.addEventListener("click", ()=>{
+  const i=Number(ch.dataset.i); ablOff[i]=!ablOff[i];
+  ch.classList.toggle("sel", !ablOff[i]);
+  ch.textContent = abl[i][0] + (ablOff[i] ? " — REMOVED" : " — IN");
+  ablUpdate();
+}));
+ablUpdate();
+
+/* ---------- Rulings ---------- */
+const rulings = [
+ ["Provisional support","Pre-AI structures predict outcomes above controls with acceptable reliability."],
+ ["Narrowed support","Only certain domains or mechanisms carry predictive value."],
+ ["Inconclusive","Data quality, sample size, or blinding failure prevents judgment."],
+ ["Rejected","Predictions fail, temporal precedence fails, or controls perform equally."],
+ ["Reframed","Ordinary analogy or another theory explains the findings better."]
+];
+$("ruleChips").innerHTML = rulings.map((r,i)=>'<span class="chip" data-i="'+i+'">'+esc(r[0])+'</span>').join("");
+$("ruleChips").querySelectorAll(".chip").forEach(ch=>ch.addEventListener("click", ()=>{
+  $("ruleChips").querySelectorAll(".chip").forEach(x=>x.classList.toggle("sel", x===ch));
+  const r=rulings[Number(ch.dataset.i)];
+  $("ruleDetail").innerHTML='<b class="tag">Ruling</b><b>'+esc(r[0])+'.</b> '+esc(r[1])+'<br><span style="font-size:12.5px; color:var(--muted);">Note "Reframed" is its own class, distinct from Rejected: the data can be real and still belong to an older theory. A reframed result is a contribution, not a defeat.</span>';
+}));
+
+/* ---------- Pilot ---------- */
+const pilot = [
+ "Run collector on the Jeramie Hicks folder.",
+ "Verify hashes, timestamps, and source count.",
+ "Adjudicate earliest AI transition and mature Neuruh epoch.",
+ "Select a representative pilot without cherry-picking.",
+ "Assign blinded extractor, predictor, outcome coder, and matcher roles.",
+ "Freeze schemas and predictions.",
+ "Run one domain ablation and at least two controls.",
+ "Publish misses and deviations.",
+ "Decide whether to scale to full corpus."
+];
+$("pilotList").innerHTML = pilot.map((p,i)=>'<label class="checkline"><input type="checkbox" class="plBox"> '+(i+1)+'. '+esc(p)+'</label>').join("");
+function pilotUpdate(){
+  const n = Array.from(document.querySelectorAll(".plBox")).filter(b=>b.checked).length;
+  $("pilotOut").innerHTML = n+" of 9 complete (browser checklist only). "+(n===9 ? "The pilot decision point: scale to the full corpus, or stop and publish why." : "Nothing downstream of an unchecked step counts. Freezing (step 6) after outcomes are visible converts the pilot into a story.");
+}
+document.querySelectorAll(".plBox").forEach(b=>b.addEventListener("change", pilotUpdate));
+pilotUpdate();
+</script>
+</body>
+</html>
