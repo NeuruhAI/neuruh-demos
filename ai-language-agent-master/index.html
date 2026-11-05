@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Language Agent Master — Interactive Build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbf9f5; --ink:#1a1815; --ink2:#4a463e; --muted:#8a8478;
+  --line:#ddd5c5; --brass:#a67c2e; --brass-d:#8a6524; --green:#2e6b34; --red:#9b2c2c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55}
+a{color:var(--brass-d)}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 22px 80px}
+.docctl{border:1px solid var(--line);background:var(--paper);padding:18px 20px;display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline}
+.docctl .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.docctl .v{font-weight:600;font-size:13px}
+h1{font-family:Archivo,sans-serif;font-size:34px;line-height:1.1;margin:26px 0 6px;letter-spacing:-.01em}
+.sub{font-size:16px;color:var(--ink2);max-width:760px;margin:0 0 20px}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 26px}
+.meta div{background:var(--paper);padding:12px 14px}
+.meta .k{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meta .v{font-weight:600;font-size:13.5px;margin-top:3px}
+.tabs{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;background:var(--bone);padding:10px 0;border-bottom:2px solid var(--ink);margin-bottom:26px}
+.tabs button{font-family:Archivo,sans-serif;font-size:13px;font-weight:600;padding:8px 13px;border:1px solid var(--line);background:var(--paper);color:var(--ink2);cursor:pointer;border-radius:2px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tabs button:hover{border-color:var(--ink)}
+.tab{display:none}
+.tab.on{display:block}
+h2{font-family:Archivo,sans-serif;font-size:24px;margin:4px 0 4px}
+h3{font-family:Archivo,sans-serif;font-size:17px;margin:26px 0 8px}
+h4{font-family:Archivo,sans-serif;font-size:14px;margin:20px 0 6px}
+p{margin:8px 0}
+.lede{font-size:16.5px;color:var(--ink2)}
+.rule{border:none;border-top:1px solid var(--line);margin:22px 0}
+.card{background:var(--paper);border:1px solid var(--line);padding:18px 20px;margin:14px 0}
+.card.brass{border-left:4px solid var(--brass)}
+.card.warn{border-left:4px solid var(--red)}
+.card .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:Archivo,sans-serif;font-size:30px;font-weight:800;line-height:1}
+.num small{font-size:14px;font-weight:600;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.stat{background:var(--paper);border:1px solid var(--line);padding:16px}
+.stat .n{font-family:Archivo,sans-serif;font-size:26px;font-weight:800}
+.stat .l{font-size:12.5px;color:var(--ink2);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:2px solid var(--ink);padding:8px 10px}
+td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+code,.mono{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+pre{background:#211e19;color:#e8e2d4;padding:16px;overflow:auto;font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.5;border-radius:3px}
+pre .cm{color:#8a8478}
+.fig{background:var(--paper);border:1px solid var(--line);padding:16px;margin:16px 0}
+.fig svg{width:100%;height:auto;display:block}
+.figcap{font-size:12.5px;color:var(--ink2);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.figcap b{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.pill{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:11px;padding:2px 8px;border:1px solid var(--brass);color:var(--brass-d);border-radius:20px;margin-right:6px}
+.pill.red{border-color:var(--red);color:var(--red)}
+.pill.green{border-color:var(--green);color:var(--green)}
+input[type=text],textarea{width:100%;font-family:Inter,sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:#fff;border-radius:2px}
+textarea{min-height:90px;resize:vertical}
+button.go{font-family:Archivo,sans-serif;font-weight:700;font-size:14px;background:var(--brass);color:#fff;border:none;padding:11px 20px;cursor:pointer;border-radius:2px;margin-top:10px}
+button.go:hover{background:var(--brass-d)}
+button.ghost{font-family:Archivo,sans-serif;font-weight:600;font-size:12.5px;background:var(--paper);border:1px solid var(--line);padding:7px 12px;cursor:pointer;border-radius:2px;margin:4px 4px 0 0}
+button.ghost:hover{border-color:var(--ink)}
+input[type=range]{width:100%}
+.sliderow{display:grid;grid-template-columns:130px 1fr 44px;gap:10px;align-items:center;margin:8px 0;font-size:13.5px}
+.result{border:1px solid var(--line);background:var(--paper);padding:16px 18px;margin-top:14px}
+.result .intent{font-family:Archivo,sans-serif;font-size:20px;font-weight:800}
+.agentrow{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding:9px 2px;font-size:13.5px}
+.agentrow:first-of-type{border-top:none}
+.match{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--brass-d);white-space:nowrap}
+.bar{height:10px;background:#e7e1d3;border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass)}
+.tonebar{display:grid;grid-template-columns:150px 1fr 40px;gap:10px;align-items:center;margin:7px 0;font-size:13px}
+.note{font-size:12.5px;color:var(--muted)}
+.foot{margin-top:44px;border-top:2px solid var(--ink);padding-top:14px;font-size:12.5px;color:var(--muted)}
+@media(max-width:640px){.meta{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}h1{font-size:26px}}
+@media print{.tabs{display:none}body{background:#fff}.tab{display:block!important}.wrap{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="docctl">
+  <span><span class="k">Document</span><br><span class="v">AI Language Agent Master</span></span>
+  <span><span class="k">Class</span><br><span class="v">Interactive build / demo</span></span>
+  <span><span class="k">Source</span><br><span class="v">AI_Language_Agent_Master.pdf (upload)</span></span>
+  <span><span class="k">Built</span><br><span class="v">2026-11-05</span></span>
+  <span><span class="k">State</span><br><span class="v">DESIGNED, not deployed as a product</span></span>
+</div>
+
+<h1>AI Language Agent Master</h1>
+<p class="sub">A personal language model that fingerprints how someone writes and speaks, then routes every prompt to the AI agent whose tone, domain, and trigger words fit best. Built out from the uploaded document, with the routing engine running live in this page.</p>
+
+<div class="meta">
+  <div><div class="k">Source file</div><div class="v">AI_Language_Agent_Master.pdf</div></div>
+  <div><div class="k">Parts in the document</div><div class="v">Vocabulary study, blueprint, routing spec, phases 1, 2, 6, voice stack, code</div></div>
+  <div><div class="k">Working widgets</div><div class="v">Live router, TTR calculator, route log</div></div>
+  <div><div class="k">Honesty label</div><div class="v">All figures are the document's own claims</div></div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="t1" class="on">1 · Language DNA</button>
+  <button data-tab="t2">2 · System Blueprint</button>
+  <button data-tab="t3">3 · Routing Spec</button>
+  <button data-tab="t4">4 · Live Router</button>
+  <button data-tab="t5">5 · Signature Schema</button>
+  <button data-tab="t6">6 · Voice Stack</button>
+  <button data-tab="t7">7 · Customer Profiles</button>
+  <button data-tab="t8">8 · Product &amp; Pricing</button>
+  <button data-tab="t9">9 · Build &amp; Deploy</button>
+  <button data-tab="t10">10 · Document Notes</button>
+</nav>
+
+<!-- ============ TAB 1 : LANGUAGE DNA ============ -->
+<section class="tab on" id="t1">
+  <h2>Language DNA: how much vocabulary a person actually uses</h2>
+  <p class="lede">The document opens with a vocabulary audit. The headline claim: the average person speaks from a tiny core of words, while a high-level strategist runs a much wider active vocabulary. Every number below is the document's estimate, from five short message samples totalling 100 words.</p>
+
+  <div class="grid3" style="margin-top:18px">
+    <div class="stat"><div class="n">~170,000</div><div class="l">Words in current use, Oxford English Dictionary (plus ~47,000 obsolete)</div></div>
+    <div class="stat"><div class="n">~600,000</div><div class="l">Total English words including science, medicine, law, and obsolete terms</div></div>
+    <div class="stat"><div class="n">3,000–5,000</div><div class="l">Words most people use actively day to day; ~90% of speech comes from a core set of just 1,000</div></div>
+    <div class="stat"><div class="n">20,000–35,000</div><div class="l">Average educated adult active vocabulary; passive vocabulary reaches 60,000+</div></div>
+    <div class="stat"><div class="n">12,000–20,000</div><div class="l">Document estimate for Jeramie's active vocabulary, top 0.1% of expressive vocabularies for non-literary professionals; passive 35,000+</div></div>
+    <div class="stat"><div class="n">0.79</div><div class="l">Type-token ratio on the 100-word sample. Typical conversational writing scores 0.4–0.6. High diversity, low repetition.</div></div>
+  </div>
+
+  <div class="card warn">
+    <span class="k">Limit, stated in the document itself</span>
+    <p style="margin:8px 0 0">The 0.79 TTR and the 12,000–20,000 estimate rest on <b>5 short samples, 100 words combined</b>. Run on a full archive of tens of thousands of words, the TTR would fall (repetition rises with scale) and the unique word count would rise. The document offers a full archive analysis as a next step: export the message history, parse it, and deliver a PDF plus Notion-ready report with word clouds, domain heatmaps, a writing style index, and meta insights.</p>
+  </div>
+
+  <h3>Your recommended vocabulary to store</h3>
+  <p>The document sizes a curated word bank for training and retrieval, 10,000–15,000 words total:</p>
+  <table>
+    <tr><th>Tier</th><th>Words</th><th>Why it matters</th></tr>
+    <tr><td>Core functional vocab</td><td>3,000</td><td>Covers 90% of business and creative communication</td></tr>
+    <tr><td>Specialized domain lexicon</td><td>7,000–10,000</td><td>Real estate, AI, resale, psychology, and other verticals</td></tr>
+    <tr><td>Advanced conceptual terms</td><td>5,000</td><td>High-level thought: autonomy, cognition, arbitrage</td></tr>
+    <tr><td>Aspirational / rare terms</td><td>2,000</td><td>For teaching and expanding conceptual agents</td></tr>
+    <tr><td>Filtered archive index</td><td>15,000–20,000</td><td>Max word bank from full threads, cleaned and deduplicated</td></tr>
+  </table>
+  <p><b>What to do with it:</b> train agents only on the known-good set, score every word by frequency plus function (insight, execution, strategy), and build vocab tiers per agent: Tier 1 business builders, Tier 2 exploratory thinkers, Tier 3 training-only, not production.</p>
+
+  <h3>Try it: type-token ratio calculator</h3>
+  <p>The same metric the document uses. Paste any text and it counts total words, unique words, and the ratio. TTR falls as a sample grows, which is why the document's 0.79 on 100 words is a small-sample number.</p>
+  <div class="card">
+    <textarea id="ttrInput" placeholder="Paste text here. Try a paragraph of your own writing, then try a longer one and watch the ratio fall.">We build systems that turn scattered signals into ranked opportunities. Every lead carries its evidence. Every action leaves a receipt. The machine does not guess, it verifies, and the verification is what makes the intelligence worth buying.</textarea>
+    <button class="go" onclick="calcTTR()">Calculate TTR</button>
+    <div class="result" id="ttrOut" style="display:none"></div>
+  </div>
+</section>
+
+<!-- ============ TAB 2 : SYSTEM BLUEPRINT ============ -->
+<section class="tab" id="t2">
+  <h2>System Blueprint: Personal Language Model + Agent Assignment</h2>
+  <p class="lede">Four parts. Extract a language signature from everything a person writes and says, predict what they mean at speed, match them to agents, and keep the whole thing learning from every message.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 150" role="img" aria-label="Pipeline diagram">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">
+        <rect x="8" y="45" width="160" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="88" y="70" fill="#1a1815">LANGUAGE DNA</text><text x="88" y="90" fill="#4a463e" font-weight="400" font-size="11">extract signature</text>
+        <rect x="208" y="45" width="160" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="288" y="70" fill="#1a1815">SPEED LAYER</text><text x="288" y="90" fill="#4a463e" font-weight="400" font-size="11">predict intent, fast</text>
+        <rect x="408" y="45" width="160" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="488" y="70" fill="#1a1815">AGENT MATCH</text><text x="488" y="90" fill="#4a463e" font-weight="400" font-size="11">tone + domain fit</text>
+        <rect x="608" y="45" width="160" height="60" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="688" y="70" fill="#1a1815">LIVE ROUTING</text><text x="688" y="90" fill="#4a463e" font-weight="400" font-size="11">dispatch 1–3 agents</text>
+        <rect x="808" y="45" width="144" height="60" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="880" y="70" fill="#fff">FEEDBACK</text><text x="880" y="90" fill="#fff" font-weight="400" font-size="11">signature evolves</text>
+      </g>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar)">
+        <line x1="168" y1="75" x2="206" y2="75"/><line x1="368" y1="75" x2="406" y2="75"/><line x1="568" y1="75" x2="606" y2="75"/><line x1="768" y1="75" x2="806" y2="75"/>
+      </g>
+      <path d="M 880 105 L 880 135 L 88 135 L 88 107" fill="none" stroke="#a67c2e" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+      <text x="480" y="150" font-family="JetBrains Mono,monospace" font-size="10" fill="#8a8478" text-anchor="middle">EVERY MESSAGE UPDATES THE SIGNATURE — THE LOOP CLOSES BACK TO DNA EXTRACTION</text>
+    </svg>
+    <div class="figcap"><b>Figure 1</b> — The four-part blueprint plus the feedback loop. Input is chat logs, emails, voice-to-text, and any user-written content. Output is a language signature vector and a routed agent set.</div>
+  </div>
+
+  <h3>1 · Language DNA Extraction</h3>
+  <p><b>Input:</b> chat logs, emails, voice-to-text, any user-written content.<br>
+  <b>Process:</b> NLP parsing and part-of-speech tagging; sentiment and intent analysis with transformers or RNNs; vocabulary fingerprinting by frequency, rarity, and tone.<br>
+  <b>Output:</b> a unique Language Signature vector, a 768-dimension BERT-style embedding in the document's example. Key metrics: top 500 words (core lexicon), formality level on a 0–1 scale, persuasion tone, assertiveness, humor score, domain usage heatmap.</p>
+
+  <h3>2 · Quantum-Speed Usage Prediction (today's tech)</h3>
+  <p>The document is explicit that this simulates quantum-like inference with ordinary tooling:</p>
+  <ul>
+    <li><b>Lightweight tokenizer pre-pass</b> using Trie plus Bloom filters, predicting intent class in sub-milliseconds</li>
+    <li><b>Transformer micro-models per user</b>, distilled and fine-tuned on each language signature</li>
+    <li><b>Caching predictions</b> with vector proximity to cut inference time</li>
+    <li><b>Faiss or Qdrant</b> for vector-based user memory matching; <b>ONNX plus quantization</b> for fast edge inference; <b>LlamaIndex plus RAG</b> for agent retrieval routing</li>
+  </ul>
+
+  <h3>3 · Agent Matching Logic</h3>
+  <table>
+    <tr><th>User profile type</th><th>Agent assignment</th></tr>
+    <tr><td>Tactical, direct communicator</td><td>Execution Agents: deal analyzers, list builders</td></tr>
+    <tr><td>Reflective, visionary thinker</td><td>Thought Agents: strategy planners, future modelers</td></tr>
+    <tr><td>High-volume, patterned talker</td><td>Compression plus summarization agents</td></tr>
+    <tr><td>Emotional, narrative style</td><td>Persuasive messaging plus community agents</td></tr>
+  </table>
+  <p>Matching uses rules plus thresholds on the signature vector, so agents are assigned and re-assigned dynamically as tone or domain focus shifts.</p>
+
+  <h3>4 · "Quantum-Speed" Mode, for yourself</h3>
+  <p>The meta-system the document sketches for Jeramie directly: auto-snapshot every message written; build a live vocabulary usage matrix; create rolling predictions on what concept is about to be mentioned based on trigger words; use language entropy mapping to watch ideas compress over time, where lower entropy means tighter, more effective language.</p>
+</section>
+
+<!-- ============ TAB 3 : ROUTING SPEC ============ -->
+<section class="tab" id="t3">
+  <h2>Agent Assignment &amp; Routing System Specification</h2>
+  <p class="lede">Objective, as written in the document: design, build, and deploy a system that leverages user language signatures to match the right AI agents, classifies incoming prompts in real time and routes them efficiently, and scales as a subscription-ready SaaS or white-label solution.</p>
+
+  <h3>Modules</h3>
+  <div class="grid2">
+    <div class="card brass"><span class="k">A · Signature Extraction Engine</span>
+      <p style="margin:8px 0 0"><b>Purpose:</b> generate a comprehensive language fingerprint for each user.</p>
+      <p>Data ingestion from CRM, email, chat, voice, and forms via low-code (Zapier/Make) or API. NLP pipeline: tokenization, lemmatization, POS tagging, sentiment and intent analysis with transformer APIs. Embedding generation: vectorize cleaned text with Pinecone/Qdrant via HTTP blocks. Profile synthesis: tone markers, domain distributions, top-word lists, embedded into a signature vector.</p>
+    </div>
+    <div class="card brass"><span class="k">B · Agent Assignment Engine</span>
+      <p style="margin:8px 0 0"><b>Purpose:</b> match users to optimal AI agents based on their language signature.</p>
+      <p>Agent profile catalog: archetypes with tone-fit ranges, domain specialties, trigger keyword sets. Matching algorithm: cosine similarity of signature vectors, keyword matches, intent-based fallbacks. Dynamic re-assignment: monitor shifts in user tone or domain focus and re-route accordingly.</p>
+    </div>
+    <div class="card brass"><span class="k">C · Prompt Routing Pipeline</span>
+      <p style="margin:8px 0 0"><b>Purpose:</b> classify each incoming prompt and dispatch to assigned agents.</p>
+      <p>Intent classification: zero-shot or fine-tuned LLM step tagging prompts (Execute, Analyze, Create, and more). Keyword extraction for high-value triggers. Routing logic combining intent, tone-fit, and vector lookup to select 1–3 agents. Dispatch via agent endpoints or workflows in Twilio Studio, Slack, email, and more.</p>
+    </div>
+    <div class="card brass"><span class="k">D · SaaS &amp; White-Label Deployment</span>
+      <p style="margin:8px 0 0"><b>Purpose:</b> package the system as a multi-tenant service with analytics and UI.</p>
+      <p>API backend exposing route_prompt and profile endpoints via FastAPI/Flask. Vector store: Pinecone/Qdrant clusters with role-based access. Dashboard/UI in Retool/Bubble for profile management and routing insights. Subscription management via Stripe or Chargebee for tiered billing.</p>
+    </div>
+  </div>
+
+  <h3>Tools &amp; integrations</h3>
+  <table>
+    <tr><th>Function</th><th>Toolset</th></tr>
+    <tr><td>Ingestion</td><td>Zapier, Make, Pipedream</td></tr>
+    <tr><td>NLP &amp; embeddings</td><td>OpenAI API, Cohere, Pinecone, Qdrant</td></tr>
+    <tr><td>Orchestration</td><td>n8n, Azure Logic Apps, AWS Step Functions</td></tr>
+    <tr><td>Voice / SMS</td><td>Twilio Studio plus Whisper / Deepgram</td></tr>
+    <tr><td>Dashboard / analytics</td><td>Retool, Grafana, Prometheus</td></tr>
+    <tr><td>Billing &amp; CRM</td><td>Stripe, Chargebee, Salesforce, HubSpot</td></tr>
+  </table>
+
+  <h3>Workflow designs</h3>
+  <div class="grid2">
+    <div class="card"><span class="k">Signature extraction flow</span>
+      <p style="margin:8px 0 0">1. Trigger: new record in Airtable/CRM, via HTTP webhook.<br>2. Text clean and NLP call: tone and intent annotations.<br>3. Embedding upsert to the vector database.<br>4. Profile writeback to Airtable, Tableau, or a database table.</p>
+    </div>
+    <div class="card"><span class="k">Prompt routing flow</span>
+      <p style="margin:8px 0 0">1. Trigger: incoming prompt from SMS, voice, or email.<br>2. ASR for voice, then transcript.<br>3. Intent and tone classification, LLM step.<br>4. Vector lookup for agent profiles.<br>5. Dispatch via the appropriate channel.<br>6. Log and analytics write to JSONL / Prometheus.</p>
+    </div>
+  </div>
+
+  <h3>Deliverables &amp; milestones</h3>
+  <table>
+    <tr><th>Milestone</th><th>Deliverable</th><th>Timeline</th></tr>
+    <tr><td>Design signatures</td><td>Data ingestion and signature schema defined</td><td>Week 1</td></tr>
+    <tr><td>Build extraction engine</td><td>Low-code extraction pipeline live; test sets</td><td>Week 2</td></tr>
+    <tr><td>Implement assignment</td><td>Matching algorithm coded; unit tests</td><td>Week 3</td></tr>
+    <tr><td>Deploy routing flow</td><td>Real-time routing in n8n / Twilio; initial SLA</td><td>Week 4</td></tr>
+    <tr><td>Launch SaaS MVP</td><td>API backend, dashboard, billing, and docs</td><td>Week 5</td></tr>
+  </table>
+
+  <h3>Risks &amp; mitigations</h3>
+  <table>
+    <tr><th>Risk</th><th>Mitigation</th></tr>
+    <tr><td>Data quality: noisy inputs</td><td>Fallback parsers and manual review triggers</td></tr>
+    <tr><td>Latency spikes</td><td>Cache vector lookups; auto-scale orchestration workers</td></tr>
+    <tr><td>Misclassification</td><td>Monitor match-type breakdown; iterative prompt and model refinement</td></tr>
+    <tr><td>Scalability</td><td>Sharded vector clusters, horizontal scaling for workflow engines</td></tr>
+  </table>
+  <p class="note">The document states this specification aligns with Phase 1 Blueprint principles: punch-list activities, no-code accelerators, clear timelines, and production-grade safeguards.</p>
+</section>
+
+<!-- ============ TAB 4 : LIVE ROUTER ============ -->
+<section class="tab" id="t4">
+  <h2>Live Router: the document's algorithm, running</h2>
+  <p class="lede">This is the coded routing algorithm from the document, ported verbatim to JavaScript: nine agent profiles with tone-fit ranges and trigger keywords, five intent classes, keyword matching first, intent fallback second, tone matching third. Type a prompt, set the tone, route it.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 120" role="img" aria-label="Router flow diagram">
+      <defs><marker id="ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">
+        <rect x="8" y="30" width="180" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="98" y="54" fill="#1a1815">1 · CLASSIFY</text><text x="98" y="73" fill="#4a463e" font-weight="400" font-size="11">keyword intent mapping</text>
+        <rect x="228" y="30" width="180" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="318" y="54" fill="#1a1815">2 · KEYWORD MATCH</text><text x="318" y="73" fill="#4a463e" font-weight="400" font-size="11">trigger + tone-fit gate</text>
+        <rect x="448" y="30" width="180" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="538" y="54" fill="#1a1815">3 · INTENT FALLBACK</text><text x="538" y="73" fill="#4a463e" font-weight="400" font-size="11">only if no keyword hit</text>
+        <rect x="668" y="30" width="150" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="743" y="54" fill="#1a1815">4 · TONE MATCH</text><text x="743" y="73" fill="#4a463e" font-weight="400" font-size="11">fill remaining agents</text>
+        <rect x="858" y="30" width="94" height="56" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="905" y="54" fill="#fff">ROUTE</text><text x="905" y="73" fill="#fff" font-weight="400" font-size="11">1–3 agents</text>
+      </g>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar2)">
+        <line x1="188" y1="58" x2="226" y2="58"/><line x1="408" y1="58" x2="446" y2="58"/><line x1="628" y1="58" x2="666" y2="58"/><line x1="818" y1="58" x2="856" y2="58"/>
+      </g>
+    </svg>
+    <div class="figcap"><b>Figure 2</b> — match_agents as coded in the document. Keyword matches are checked first and must pass the tone gate; the intent fallback fires only when nothing matched; tone matches then fill in any agent not already assigned.</div>
+  </div>
+
+  <div class="card">
+    <span class="k">Router input</span>
+    <div style="margin-top:10px">
+      <input type="text" id="routePrompt" value="I need a cash offer today" placeholder="Type a prompt to route...">
+    </div>
+    <div style="margin-top:14px">
+      <div class="sliderow"><span>Assertiveness</span><input type="range" id="toneA" min="0" max="1" step="0.01" value="0.87"><span class="mono" id="toneAv">0.87</span></div>
+      <div class="sliderow"><span>Creativity</span><input type="range" id="toneC" min="0" max="1" step="0.01" value="0.92"><span class="mono" id="toneCv">0.92</span></div>
+      <p class="note">Defaults are the document's jeramie_001 tone profile (assertiveness 0.87, creativity 0.92). Move the sliders and re-route: agents drop in and out as their tone-fit ranges open and close.</p>
+    </div>
+    <button class="go" onclick="routeNow()">Route this prompt</button>
+    <div style="margin-top:12px">
+      <span class="k">Sample prompts from the document</span><br>
+      <button class="ghost" onclick="setPrompt('I need a cash offer today')">I need a cash offer today</button>
+      <button class="ghost" onclick="setPrompt('Can you break down the ROI on this deal?')">Can you break down the ROI on this deal?</button>
+      <button class="ghost" onclick="setPrompt('Please launch the email drip campaign')">Please launch the email drip campaign</button>
+      <button class="ghost" onclick="setPrompt('Write a creative ad for my new property listing')">Write a creative ad for my new property listing</button>
+      <button class="ghost" onclick="setPrompt('Our strategy for scaling to 10x next quarter')">Our strategy for scaling to 10x next quarter</button>
+      <button class="ghost" onclick="setPrompt('Help, I have a question about pricing')">Help, I have a question about pricing</button>
+      <button class="ghost" onclick="setPrompt('Explain how this automation works')">Explain how this automation works</button>
+    </div>
+    <div class="result" id="routeOut" style="display:none"></div>
+  </div>
+
+  <h3>Agent manifest (from the document's code)</h3>
+  <table>
+    <tr><th>Agent ID</th><th>Trigger keywords</th><th>Assertiveness fit</th><th>Creativity fit</th><th>Domains</th></tr>
+    <tr><td class="mono">real_estate_dealbot</td><td>cash, offer, buy, sell, deal</td><td>0.70 – 1.00</td><td>0.00 – 1.00</td><td>RealEstate</td></tr>
+    <tr><td class="mono">generic_response_agent</td><td>(none)</td><td>0.00 – 0.60</td><td>0.00 – 0.60</td><td>General</td></tr>
+    <tr><td class="mono">lead_capture_agent</td><td>interested, learn, more, info, curious</td><td>0.00 – 0.50</td><td>0.00 – 1.00</td><td>Business</td></tr>
+    <tr><td class="mono">strategy_alpha</td><td>scale, vision, future, strategy, expand</td><td>0.60 – 1.00</td><td>0.60 – 1.00</td><td>Business, AI</td></tr>
+    <tr><td class="mono">execution_agent</td><td>launch, send, automate, execute, schedule</td><td>0.50 – 1.00</td><td>0.00 – 1.00</td><td>General</td></tr>
+    <tr><td class="mono">reflective_agent</td><td>why, break down, compare, explain</td><td>0.00 – 0.70</td><td>0.00 – 0.80</td><td>General</td></tr>
+    <tr><td class="mono">creative_agent</td><td>write, generate, build, draft</td><td>0.00 – 1.00</td><td>0.70 – 1.00</td><td>General</td></tr>
+    <tr><td class="mono">business_agent</td><td>offer, pitch, revenue, monetize</td><td>0.50 – 1.00</td><td>0.00 – 0.80</td><td>Business</td></tr>
+    <tr><td class="mono">support_agent</td><td>help, question, unsure, need info</td><td>0.00 – 0.50</td><td>0.00 – 0.60</td><td>General</td></tr>
+  </table>
+
+  <h3>Intent classification</h3>
+  <table>
+    <tr><th>Intent</th><th>Example keywords</th><th>Fallback agent</th></tr>
+    <tr><td>Execute</td><td>launch, send, automate, schedule, execute</td><td class="mono">execution_agent</td></tr>
+    <tr><td>Analyze</td><td>why, break down, compare, explain</td><td class="mono">reflective_agent</td></tr>
+    <tr><td>Create</td><td>write, generate, build, draft</td><td class="mono">creative_agent</td></tr>
+    <tr><td>Sell/Monetize</td><td>offer, pitch, revenue, monetize</td><td class="mono">business_agent</td></tr>
+    <tr><td>Vision/Think</td><td>future, strategy, expand, forecast, scale, vision</td><td class="mono">strategy_alpha</td></tr>
+  </table>
+  <p class="note">The later tables in the document add a sixth intent, Support (help, question, unsure, need info, routed to a Support Agent), but the coded intent_mapping has five. That mismatch is flagged in Tab 10.</p>
+
+  <h3>Session route log</h3>
+  <p>Every route you run here is logged in this session, mirroring the document's JSONL logging design (timestamp, prompt, intent, assigned agents, match types). It resets when the page reloads.</p>
+  <table id="logTable">
+    <tr><th>Time</th><th>Prompt</th><th>Intent</th><th>Agents assigned</th><th>Latency</th></tr>
+    <tr id="logEmpty"><td colspan="5" class="note">No routes yet. Run the router above.</td></tr>
+  </table>
+</section>
+
+<!-- ============ TAB 5 : SIGNATURE SCHEMA ============ -->
+<section class="tab" id="t5">
+  <h2>Signature Vector Schema: the user language fingerprint</h2>
+  <p class="lede">The document's example profile, user_id jeramie_001, dated 2025-04-16. Tone scores and domain weights are the document's own estimates, not measured values from this build.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <span class="k">Tone profile</span>
+      <div style="margin-top:12px">
+        <div class="tonebar"><span>Assertiveness</span><div class="bar"><i style="width:87%"></i></div><span class="mono">0.87</span></div>
+        <div class="tonebar"><span>Creativity</span><div class="bar"><i style="width:92%"></i></div><span class="mono">0.92</span></div>
+        <div class="tonebar"><span>Humor</span><div class="bar"><i style="width:31%"></i></div><span class="mono">0.31</span></div>
+        <div class="tonebar"><span>Persuasiveness</span><div class="bar"><i style="width:95%"></i></div><span class="mono">0.95</span></div>
+        <div class="tonebar"><span>Formality</span><div class="bar"><i style="width:48%"></i></div><span class="mono">0.48</span></div>
+      </div>
+      <p class="note">Vocabulary level: advanced. Top words: agent, system, resale, framework, automation.</p>
+    </div>
+    <div class="card">
+      <span class="k">Domain distribution</span>
+      <div style="margin-top:12px">
+        <div class="tonebar"><span>AI</span><div class="bar"><i style="width:32%"></i></div><span class="mono">0.32</span></div>
+        <div class="tonebar"><span>Resale</span><div class="bar"><i style="width:27%"></i></div><span class="mono">0.27</span></div>
+        <div class="tonebar"><span>Real Estate</span><div class="bar"><i style="width:21%"></i></div><span class="mono">0.21</span></div>
+        <div class="tonebar"><span>Psychology</span><div class="bar"><i style="width:10%"></i></div><span class="mono">0.10</span></div>
+        <div class="tonebar"><span>Business</span><div class="bar"><i style="width:10%"></i></div><span class="mono">0.10</span></div>
+      </div>
+      <p class="note">Signature vector: 768–1024 dimensions in the document's design; the example shows the first values [0.302, 0.872, ..., 0.441].</p>
+    </div>
+  </div>
+
+  <h3>Schema, as written in the document</h3>
+  <pre>{
+  "user_id": "jeramie_001",
+  "signature_vector": [0.302, 0.872, ..., 0.441],
+  "top_words": ["agent", "system", "resale", "framework", "automation"],
+  "tone_profile": {
+    "assertiveness": 0.87,
+    "creativity": 0.92,
+    "humor": 0.31,
+    "persuasiveness": 0.95,
+    "formality": 0.48
+  },
+  "domain_distribution": {
+    "AI": 0.32,
+    "Resale": 0.27,
+    "RealEstate": 0.21,
+    "Psychology": 0.10,
+    "Business": 0.10
+  },
+  "vocabulary_level": "advanced",
+  "update_timestamp": "2025-04-16T14:45:00Z"
+}</pre>
+
+  <h3>Matching algorithm, pseudocode from the document</h3>
+  <pre>def match_agents(user_vector, agent_profiles):
+    matches = []
+    for agent in agent_profiles:
+        if tone_scores_match(user_vector['tone_profile'],
+                             agent['tone_fit']) \
+           and domain_overlap(user_vector['domain_distribution'],
+                              agent['domains']):
+            matches.append(agent)
+    return sorted(matches,
+                  key=lambda a: agent_score(a, user_vector),
+                  reverse=True)</pre>
+  <p>The full working version, with keyword matching and the intent fallback, is the Live Router in Tab 4.</p>
+
+  <h3>Real-time memory and speed boosters</h3>
+  <ul>
+    <li><b>Memory caching with Faiss/Qdrant:</b> vector snapshots per user to reduce recompute</li>
+    <li><b>Prompt fingerprinting:</b> hash and store prior response paths</li>
+    <li><b>Latency optimization:</b> ONNX quantization and lightweight models for edge devices or low-latency inference</li>
+  </ul>
+</section>
+
+<!-- ============ TAB 6 : VOICE STACK ============ -->
+<section class="tab" id="t6">
+  <h2>Voice Agent Stack: four layers plus a speed layer</h2>
+  <p class="lede">The voice version of the same system. Speech becomes a command line interface: smart, contextual, conversational. The document's line: "You're not just hearing them. You're understanding what they mean, and what they really want."</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 300" role="img" aria-label="Voice stack layers diagram">
+      <g font-family="Archivo,sans-serif">
+        <rect x="40" y="20" width="880" height="52" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="70" y="42" font-size="14" font-weight="700" fill="#1a1815">LAYER 4 · Voice Personalization + Feedback Loop</text><text x="70" y="62" font-size="12" fill="#4a463e">Stores emotional tone, domain used, response quality score. Adjusts agent ranking and future response tone. The language fingerprint evolves.</text>
+        <rect x="40" y="84" width="880" height="52" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="70" y="106" font-size="14" font-weight="700" fill="#1a1815">LAYER 3 · Contextual Memory &amp; Real-Time Routing</text><text x="70" y="126" font-size="12" fill="#4a463e">Transcribed prompt → vectorized → classified (Create, Analyze, Execute) → action triggered → response optionally returned via voice.</text>
+        <rect x="40" y="148" width="880" height="52" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="70" y="170" font-size="14" font-weight="700" fill="#1a1815">LAYER 2 · Signature-Matched Response Agent</text><text x="70" y="190" font-size="12" fill="#4a463e">Real-time cosine similarity between the voice-inferred vector and the agent manifest. Assertive, visionary tone → Strategy Alpha. Casual, uncertain → Supportive Recommender.</text>
+        <rect x="40" y="212" width="880" height="52" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="70" y="234" font-size="14" font-weight="700" fill="#1a1815">LAYER 1 · Voice-to-Intent Engine</text><text x="70" y="254" font-size="12" fill="#4a463e">Whisper / Deepgram for speech-to-text. Tone detection from speed, pitch, hesitation. Intent classification with GPT-4, Claude, or a fine-tuned model.</text>
+        <rect x="40" y="276" width="880" height="20" fill="#a67c2e"/><text x="480" y="290" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">BONUS · QUANTUM-SPEED PREDICTION ENGINE — PRE-CACHED RESPONSE EMBEDDINGS, HASHED PROMPT TREES, VECTOR MATCH AGAINST PAST 10,000 UTTERANCES, SUB-200MS</text>
+      </g>
+    </svg>
+    <div class="figcap"><b>Figure 3</b> — The voice stack, bottom-up. The bonus layer is the document's "quantum-speed" simulation applied to voice: pre-cache response embeddings for common prompts, use hashed prompt classification trees for fast lookup, and vector-match against past utterances to predict intent with sub-200ms latency.</div>
+  </div>
+
+  <h3>Voice tone agent manifest</h3>
+  <table>
+    <tr><th>Agent ID</th><th>Tone match</th><th>Voice cues</th><th>Example phrase</th><th>Response style</th></tr>
+    <tr><td class="mono">real_estate_dealbot</td><td>Urgent, direct, transactional</td><td>Fast speech, short sentences, command words</td><td>"I need a cash offer today"</td><td>Fast, deal-focused, bullet-point follow-up</td></tr>
+    <tr><td class="mono">generic_response_agent</td><td>Neutral, polite, info-seeking</td><td>Moderate pace, polite phrasing, open-ended</td><td>"Hi, I was wondering about..."</td><td>Helpful, question-based, routing-enabled</td></tr>
+    <tr><td class="mono">lead_capture_agent</td><td>Curious, unsure, form-based tone</td><td>Hesitations, filler words, indirect phrasing</td><td>"I'm interested in learning more"</td><td>Supportive, nurturing, info-request looping</td></tr>
+    <tr><td class="mono">strategy_alpha</td><td>Confident, visionary, future-driven</td><td>Clear articulation, long-form responses</td><td>"We're looking to scale into..."</td><td>Structured insight, next-move questions</td></tr>
+  </table>
+  <p class="note">The document's line for this layer: "The AI doesn't just respond. It responds like you would, if you were an expert in 10 verticals." And for the feedback loop: "The more you talk, the smarter it gets, not just about language, but about who you are."</p>
+</section>
+
+<!-- ============ TAB 7 : CUSTOMER PROFILES ============ -->
+<section class="tab" id="t7">
+  <h2>How customer profiles build themselves</h2>
+  <p class="lede">The document's pitch line: "You don't need to tell us who they are. We learn who they are based on how they speak, write, and interact." No forms. The tone, text, or number does the profiling.</p>
+
+  <h3>Step 1 · Ingest customer data</h3>
+  <p>Upload, scrape, or API-integrate: email and CRM logs (HubSpot, Salesforce, Gmail, Outlook); call transcriptions (Zoom, Twilio, RingCentral, Google Voice); SMS and chat (Slack, Discord, FB Messenger, Intercom, WhatsApp); forms, surveys, and website input; contracts, proposals, intake sheets; billing and order history. Connect APIs or upload raw files (CSV, JSON, TXT, PDF). The NLP engine parses messages, tokenizes, vectorizes, extracts tone, intent, vocabulary level, sentiment trends, and domain focus. Output: Language Signature plus Interaction Style Profile.</p>
+
+  <h3>Step 2 · Build the internal profile automatically</h3>
+  <p>For each customer, a structured persona profile, no manual entry:</p>
+  <pre>{
+  "user_id": "sam_1132",
+  "interaction_channels": ["email", "sms", "phone"],
+  "dominant_tone": "direct &amp; results-focused",
+  "preferred topics": ["real estate", "automation", "tax questions"],
+  "vocab style": "formal business / low-emotion",
+  "agent_match": ["ExecutionAgent_Beta", "TaxBot", "CRM_FollowupAgent"]
+}</pre>
+  <p>Scores update over time, so agent assignment adapts automatically.</p>
+
+  <h3>Step 3 · Real-time agent matching on an incoming call or text</h3>
+  <ol>
+    <li>Inbound number is checked against the existing profile in vector memory (Qdrant, Weaviate, Pinecone).</li>
+    <li>Profile exists: match to the optimal agent immediately.</li>
+    <li>No profile: auto-create one from caller ID name lookup, the language of the incoming message or call, the first response, and instant tone plus vocabulary analysis.</li>
+    <li>Assign an agent or cluster: execution (automated tasks), advisory (suggestions, insights), creative (scripts, drafts).</li>
+  </ol>
+
+  <h3>Scenario-based assignment</h3>
+  <table>
+    <tr><th>Scenario</th><th>What happens</th><th>Agent assigned</th></tr>
+    <tr><td>Incoming SMS: "Need a cash offer"</td><td>Number matches CRM and reads tone as urgent</td><td>Real Estate DealBot</td></tr>
+    <tr><td>Voice call from new number</td><td>Voice profile auto-created in under 2 seconds</td><td>Generic Response Agent, then personalized after 2 questions</td></tr>
+    <tr><td>Web form submission</td><td>Language and topic scraped</td><td>Lead Capture Agent with nurturing logic</td></tr>
+    <tr><td>Call from returning customer</td><td>Matches vector memory plus recent tone shift to strategic</td><td>Strategy Alpha</td></tr>
+    <tr><td>Late-night website visit</td><td>Trigger-word match with "sell fast", no profile found</td><td>Quick Pitchbot</td></tr>
+    <tr><td>Email with detailed objection</td><td>Intent = Analyze, emotional tone detected</td><td>Reflective Negotiator Agent</td></tr>
+  </table>
+  <p class="note">Quick Pitchbot and Reflective Negotiator Agent appear in this table but have no entry in the agent manifest. Flagged in Tab 10.</p>
+
+  <h3>Integration flow, SaaS-ready</h3>
+  <p><b>Stack:</b> Whisper or Deepgram for voice-to-text; LangChain or custom Python for parsing plus vector creation; Qdrant or Pinecone for fast profile lookup; custom agent manifest for intelligent assignment. Bundle into a white-label portal where users upload CRM exports, the system auto-assigns agents per contact, and conversations are routed or auto-started.</p>
+</section>
+
+<!-- ============ TAB 8 : PRODUCT & PRICING ============ -->
+<section class="tab" id="t8">
+  <h2>Product &amp; pricing: two tier sets, both document-proposed</h2>
+  <p class="lede">The document prices this twice, in two different places, with two different tier sets. Both are proposals inside the document. Neither is a live offer, and the two sets do not agree with each other. Shown side by side so the mismatch is visible.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <span class="k">SaaS model (from the enhanced specification)</span>
+      <table>
+        <tr><th>Tier</th><th>Features</th><th>Price</th></tr>
+        <tr><td>Basic</td><td>1 agent, basic tone matching</td><td>$19/mo</td></tr>
+        <tr><td>Pro</td><td>3+ agents, analytics dashboard</td><td>$49/mo</td></tr>
+        <tr><td>Enterprise</td><td>White-label, advanced routing, API access</td><td>Custom</td></tr>
+      </table>
+      <p class="note">Revenue model: recurring SaaS subscription, usage-based API per prompt routed, agent customization add-ons per user type.</p>
+    </div>
+    <div class="card">
+      <span class="k">Voice Agent as a Service (from the sellable-advantage section)</span>
+      <table>
+        <tr><th>Tier</th><th>Features</th><th>Price</th></tr>
+        <tr><td>Starter</td><td>1 voice agent, basic response matching</td><td>$29/mo</td></tr>
+        <tr><td>Pro</td><td>3 agents, tone routing, memory, feedback loop</td><td>$79/mo</td></tr>
+        <tr><td>White-label</td><td>Full customization, API access, vector memory, full-stack routing</td><td>Custom</td></tr>
+      </table>
+      <p class="note">Positioning: plug into CRM, sales, support, coaching, real estate. Bundle with the agent stack and license to teams, call centers, or independent pros.</p>
+    </div>
+  </div>
+
+  <div class="card warn">
+    <span class="k">Reconciliation needed before any of this is quoted</span>
+    <p style="margin:8px 0 0">The SaaS Pro tier is $49/mo and the VAaaS Pro tier is $79/mo for overlapping features. The document never reconciles them. Per the standing rule, no dollar valuation or price goes into a live offer until it is decided and recorded. Treat both sets as draft pricing inside a working document.</p>
+  </div>
+
+  <h3>What the product is</h3>
+  <p>Multi-tenant API backend, vector store (Pinecone, Qdrant, Weaviate), user dashboard with visualization of tone, usage, and assigned agents, subscription tiers, and a white-label option for agencies or corporate teams. The sellable advantage the document names is Voice Agent as a Service: a voice agent that knows who is calling before the caller explains themselves.</p>
+</section>
+
+<!-- ============ TAB 9 : BUILD & DEPLOY ============ -->
+<section class="tab" id="t9">
+  <h2>Build &amp; deploy: phases, workspace, and operational examples</h2>
+  <p class="lede">Phase 1 onboards data, Phase 2 wires real-time orchestration, Phase 6 ships a demo workspace with infrastructure as code. Phases 3, 4, and 5 do not appear in the document. That gap is flagged in Tab 10.</p>
+
+  <h3>Phase 1 Blueprint: Data Onboarding</h3>
+  <p><b>Objective:</b> capture and normalize all customer interaction data to build initial language signatures without manual effort, establishing a gold-standard ingestion layer for downstream profiling and routing.</p>
+  <p><b>Key activities:</b> source integration via Zapier/Make to CRM, email, forms, and chat; data extraction with built-in formatters or OCR (Docparser); vectorization via Pipedream HTTP blocks calling Pinecone/Qdrant; tone and intent tagging with OpenAI Actions or Make LLM modules; storage in Airtable or a low-code database with fields user_id, source, raw_text, embedding_vector, tone, intent, timestamp.</p>
+  <p><b>Milestones:</b> end of week 1, source connectors live with sample data flowing; end of week 2, vector upsert automation validated, tone/intent tagging at 90% accuracy; end of week 3, full-scale ingestion of historical records with dashboards capturing ingestion metrics.</p>
+  <p><b>Risks:</b> data quality (fallback parsers, manual review alerts); API rate limits (batch requests, exponential backoff); schema drift (validation rules in Airtable, auto-alerts on schema changes).</p>
+
+  <h3>Phase 2 Blueprint: Workflow Orchestration</h3>
+  <p><b>Objective:</b> implement the real-time routing engine using low-code/no-code workflows that classify, match, and dispatch prompts, targeting sub-200ms end-to-end.</p>
+  <p><b>Flow:</b> Twilio inbound call/SMS triggers a webhook to n8n; Whisper or Deepgram transcribes voice via serverless functions; an LLM connector classifies intent and tone; Pinecone/Qdrant returns the top-3 matching agent profiles by cosine similarity; Twilio Studio forwards to the assigned agent's endpoint or queue; feedback (response time, user satisfaction) writes back to Airtable.</p>
+  <p><b>Milestones:</b> end of week 4, basic n8n pipeline live with happy-path SMS routing tested; end of week 5, voice routing with ASR integration under 500ms median latency; end of week 6, full feedback loop in place with dashboards showing routing accuracy and performance.</p>
+
+  <h3>Phase 6: Demo Workspace &amp; Infrastructure as Code</h3>
+  <p>Docker Compose scaffolding (api on port 8000, Qdrant on 6333, UI on 3000), Terraform for an AWS Lambda Whisper function plus an API Gateway router API, and a Twilio Studio flow definition (Trigger, RecordCall, WebhookTranscribe, RedirectCall). Verify with <span class="mono">docker ps</span>, a curl to the Twilio webhook, the demo dashboard at port 3000, and the API logs.</p>
+  <pre><span class="cm"># Demo workspace launch</span>
+export OPENAI_API_KEY=…
+export PINECONE_URL=http://localhost:6333
+export TWILIO_AUTH_TOKEN=…
+docker-compose up -d
+
+<span class="cm"># Terraform</span>
+terraform init &amp;&amp; terraform apply -auto-approve</pre>
+
+  <h3>Low-code / no-code integration layers</h3>
+  <table>
+    <tr><th>Layer</th><th>Tool and purpose</th></tr>
+    <tr><td>Data ingestion</td><td>Zapier / Make: drag-and-drop triggers for every source, output JSON</td></tr>
+    <tr><td>Vector storage</td><td>Pipedream plus Pinecone API: no-code HTTP blocks to push embeddings</td></tr>
+    <tr><td>Workflow orchestration</td><td>n8n / Azure Logic Apps / AWS Step Functions: visual branches, loops, retries</td></tr>
+    <tr><td>Dashboard &amp; UI</td><td>Retool / Bubble / AppSheet: monitoring profiles, tweaking vectors</td></tr>
+    <tr><td>Automation scripts</td><td>Airtable plus Scripts / Coda plus Packs: spreadsheet data plus JavaScript</td></tr>
+    <tr><td>Messaging &amp; voice</td><td>Twilio Studio plus Whisper: flows call TTS/ASR pipelines</td></tr>
+  </table>
+
+  <h3>Implementation roadmap (from the document)</h3>
+  <table>
+    <tr><th>Phase</th><th>Work</th></tr>
+    <tr><td>1 · Data Onboarding</td><td>Configure Zapier plus Airtable, ingest all existing channels; build the Vector Upsert Pipedream flow</td></tr>
+    <tr><td>2 · Workflow Orchestration</td><td>Prototype real-time routing in n8n (Twilio trigger, Pinecone, Twilio response); test across SMS, voice, email</td></tr>
+    <tr><td>3 · Monitoring &amp; Feedback</td><td>Spin up Prometheus metrics via Pipedream exporter blocks; build Grafana/Retool dashboards</td></tr>
+    <tr><td>4 · Refinement &amp; Scale</td><td>Add advanced branches such as sentiment-driven fallbacks; expose a white-label portal via Bubble/Retool</td></tr>
+  </table>
+
+  <h3>Operational examples</h3>
+  <div class="grid2">
+    <div class="card"><span class="k">Example 1 · Upset caller routing</span>
+      <p style="margin:8px 0 0">A frustrated customer calls. Whisper transcribes: "Why have I been on hold for 20 minutes? This is ridiculous!" OpenAI sentiment returns polarity -0.78. Sentiment below -0.5 routes to <span class="mono">escalation_agent_upset</span>. Twilio redirects the call. Log entry records latency 240ms.</p>
+    </div>
+    <div class="card"><span class="k">Example 2 · SMS lead routing</span>
+      <p style="margin:8px 0 0">A prospect texts "I need a cash offer today". Intent: Sell/Monetize by keyword match. Tone assertiveness 0.8 fits <span class="mono">real_estate_dealbot</span>. Agents assigned: real_estate_dealbot (keyword_match) plus execution_agent (tone_match). Twilio replies: "Great, sending you a cash-offer link now." Average latency 120ms.</p>
+    </div>
+  </div>
+  <div class="card"><span class="k">Example 3 · Web form submission</span>
+    <p style="margin:8px 0 0">A lead submits "I'm curious about short-term rentals in Chicago." LLM classification: intent Analyze, tone curious. Vector lookup finds no existing profile, so one is created. Agent match: reflective_agent (intent fallback) and lead_capture_agent (tone match). Zapier triggers an email, and Airtable updates the lead row with the signature vector, intent, and assigned agents.</p>
+  </div>
+
+  <h3>Logging &amp; analytics</h3>
+  <p>Every routed prompt writes a JSONL log entry (timestamp, user_id, prompt, intent, assigned_agents, latency_ms). Analytics computed from the log: intent distribution, agent assignment counts, match-type breakdown, latency stats by user, user-level summaries, top agents and match types per user. Prometheus counters and a latency histogram are defined for the same events, with alerts in PagerDuty or Opsgenie when latency passes 500ms. The session log in Tab 4 mirrors this design at small scale.</p>
+</section>
+
+<!-- ============ TAB 10 : DOCUMENT NOTES ============ -->
+<section class="tab" id="t10">
+  <h2>Document notes: duplication, gaps, and contradictions</h2>
+  <p class="lede">This build covers every section of the uploaded PDF. It does not silently collapse the repeats or fill the holes. What follows is what I found while reading the file in full.</p>
+
+  <h3>Duplication map</h3>
+  <table>
+    <tr><th>What repeats</th><th>Where</th><th>How this build handles it</th></tr>
+    <tr><td>Agent Assignment &amp; Routing System Specification</td><td>Appears twice, full text both times; the second copy has degraded table extraction (columns collapsed into running text)</td><td>Rendered once, from the clean copy (Tab 3)</td></tr>
+    <tr><td>Signature vector schema, agent matching, prompt classification</td><td>Phase 2 section appears twice, second copy restates the same JSON, pseudocode, and tables</td><td>Rendered once (Tab 5); the router in Tab 4 is the single working implementation</td></tr>
+    <tr><td>Agent Manifest voice tone profiles, prompt classification, scenario routing (pandas code)</td><td>The full code block appears twice verbatim</td><td>Rendered once as tables (Tabs 4, 6, 7)</td></tr>
+    <tr><td>Logging &amp; analytics code</td><td>Two versions: a basic JSONL version, then an extended version adding Prometheus, latency stats, and user-level summaries</td><td>Combined into one description (Tab 9); the session log in Tab 4 implements the shared core</td></tr>
+  </table>
+
+  <h3>Gaps</h3>
+  <table>
+    <tr><th>Gap</th><th>Detail</th></tr>
+    <tr><td>Phases 3, 4, 5 missing</td><td>The document jumps from Phase 2 (Build-out &amp; Intelligence Layers) to Phase 6 (Demo Workspace &amp; IaC). No Phase 3, 4, or 5 content exists in the file. The implementation roadmap in Tab 9 uses its own Phase 1–4 numbering, which is a different sequence and is not the same as the missing phases.</td></tr>
+    <tr><td>No source data for the vocabulary audit</td><td>The five message blocks the TTR analysis rests on are described but not included. The 0.79 TTR and the 12,000–20,000 estimate cannot be re-derived from this file.</td></tr>
+    <tr><td>No deployment proof</td><td>Docker, Terraform, and Twilio assets are given as code and snippets, but the document contains no evidence any of it was run: no logs, no live endpoint, no test results.</td></tr>
+  </table>
+
+  <h3>Contradictions and mismatches</h3>
+  <table>
+    <tr><th>Issue</th><th>Detail</th></tr>
+    <tr><td>Random mock router vs deterministic router</td><td>The logging/analytics code imports a mock route_prompt that picks intents and agents with random.choice. That contradicts the deterministic keyword-plus-tone router defined earlier in the same document. The analytics in that section therefore describe random data, not the real algorithm. This build implements the deterministic version.</td></tr>
+    <tr><td>Agents named but undefined</td><td>Quick Pitchbot, Reflective Negotiator Agent, and escalation_agent_upset appear in scenario and operational examples but have no tone_fit ranges, domains, or trigger keywords anywhere in the manifest, so the coded router cannot match them.</td></tr>
+    <tr><td>Five intents vs six</td><td>The coded intent_mapping has five intents. Later tables add Support (help, question, unsure, need info) as a sixth, with a Support Agent. The code has a support_agent profile but no Support intent class, so "Help, I have a question about pricing" classifies as General and falls back on tone matching.</td></tr>
+    <tr><td>Two pricing sets</td><td>SaaS tiers $19/$49/custom vs VAaaS tiers $29/$79/custom, overlapping features, never reconciled. See Tab 8.</td></tr>
+    <tr><td>Broad trigger keywords</td><td>lead_capture_agent triggers on "more" and "info", words that appear in most prompts. Under the coded matching order, it can claim prompts that have nothing to do with lead capture whenever the tone gate passes. Try it in the Live Router.</td></tr>
+    <tr><td>Latency targets differ</td><td>Phase 2 targets sub-200ms end-to-end; the same blueprint later accepts under 500ms median for voice routing; the operational examples report 120ms and 240ms. Three numbers, no single SLA stated.</td></tr>
+  </table>
+
+  <div class="card brass">
+    <span class="k">Status of this build</span>
+    <p style="margin:8px 0 0">The document is a working compilation, not a finished spec: strong on architecture and code, thin on proof, with repeated sections from being assembled out of several drafts. This demo preserves the content, runs the one piece of code that is fully specified (the router), and labels every number as the document's claim. Nothing here is a live product, a measured result, or a quoted price.</p>
+  </div>
+</section>
+
+<div class="foot">
+  <b>AI Language Agent Master — interactive build.</b> Source: AI_Language_Agent_Master.pdf (uploaded 2026-11-05). Built 2026-11-05. Raw material, not canon. All figures are the document's own claims. The router in Tab 4 is a verbatim port of the document's Python to JavaScript. DESIGNED state: the demo is built and verified; no backend, vector store, or Twilio integration exists behind it.
+</div>
+
+</div>
+
+<script>
+// ---------- Tabs ----------
+document.querySelectorAll('#tabs button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('#tabs button').forEach(function(b){b.classList.remove('on')});
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on')});
+    btn.classList.add('on');
+    document.getElementById(btn.getAttribute('data-tab')).classList.add('on');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+// ---------- TTR calculator ----------
+function calcTTR(){
+  var text = document.getElementById('ttrInput').value;
+  var words = text.toLowerCase().match(/[a-z0-9']+/g) || [];
+  var unique = new Set(words).size;
+  var ttr = words.length ? unique / words.length : 0;
+  var band = ttr >= 0.7 ? 'Exceptionally diverse for conversational text (the document\u2019s 100-word sample scored 0.79).'
+    : ttr >= 0.6 ? 'High diversity, above the typical 0.4\u20130.6 conversational band.'
+    : ttr >= 0.4 ? 'Inside the typical conversational band of 0.4\u20130.6.'
+    : 'Low diversity, heavy repetition.';
+  var out = document.getElementById('ttrOut');
+  out.style.display = 'block';
+  out.innerHTML = '<div class="grid3">'
+    + '<div><div class="num">' + words.length + '</div><div class="note">total words</div></div>'
+    + '<div><div class="num">' + unique + '</div><div class="note">unique words</div></div>'
+    + '<div><div class="num">' + ttr.toFixed(2) + '</div><div class="note">type-token ratio</div></div></div>'
+    + '<p style="margin:12px 0 0">' + band + ' TTR falls as samples grow, because repetition rises with scale. A 100-word sample and a 10,000-word archive are not comparable numbers.</p>';
+}
+
+// ---------- Live router: verbatim port of the document's Python ----------
+var AGENT_PROFILES = [
+  {id:'real_estate_dealbot', triggers:['cash','offer','buy','sell','deal'], a:[0.7,1.0], c:[0.0,1.0], domains:['RealEstate']},
+  {id:'generic_response_agent', triggers:[], a:[0.0,0.6], c:[0.0,0.6], domains:['General']},
+  {id:'lead_capture_agent', triggers:['interested','learn','more','info','curious'], a:[0.0,0.5], c:[0.0,1.0], domains:['Business']},
+  {id:'strategy_alpha', triggers:['scale','vision','future','strategy','expand'], a:[0.6,1.0], c:[0.6,1.0], domains:['Business','AI']},
+  {id:'execution_agent', triggers:['launch','send','automate','execute','schedule'], a:[0.5,1.0], c:[0.0,1.0], domains:['General']},
+  {id:'reflective_agent', triggers:['why','break down','compare','explain'], a:[0.0,0.7], c:[0.0,0.8], domains:['General']},
+  {id:'creative_agent', triggers:['write','generate','build','draft'], a:[0.0,1.0], c:[0.7,1.0], domains:['General']},
+  {id:'business_agent', triggers:['offer','pitch','revenue','monetize'], a:[0.5,1.0], c:[0.0,0.8], domains:['Business']},
+  {id:'support_agent', triggers:['help','question','unsure','need info'], a:[0.0,0.5], c:[0.0,0.6], domains:['General']}
+];
+var INTENT_MAPPING = {
+  'Execute':['launch','send','automate','schedule','execute'],
+  'Analyze':['why','break down','compare','explain'],
+  'Create':['write','generate','build','draft'],
+  'Sell/Monetize':['offer','pitch','revenue','monetize'],
+  'Vision/Think':['future','strategy','expand','forecast','scale','vision']
+};
+var INTENT_FALLBACK = {
+  'Execute':'execution_agent','Analyze':'reflective_agent','Create':'creative_agent',
+  'Sell/Monetize':'business_agent','Vision/Think':'strategy_alpha'
+};
+function classifyIntent(prompt){
+  var p = prompt.toLowerCase();
+  for (var intent in INTENT_MAPPING){
+    for (var i=0;i<INTENT_MAPPING[intent].length;i++){
+      if (p.indexOf(INTENT_MAPPING[intent][i]) !== -1) return intent;
+    }
+  }
+  return 'General';
+}
+function toneMatches(tone, fit){
+  return fit.a[0] <= tone.a && tone.a <= fit.a[1] && fit.c[0] <= tone.c && tone.c <= fit.c[1];
+}
+function matchAgents(tone, prompt){
+  var p = prompt.toLowerCase();
+  var matches = [];
+  AGENT_PROFILES.forEach(function(agent){
+    var hit = agent.triggers.some(function(kw){ return p.indexOf(kw) !== -1; });
+    if (hit && toneMatches(tone, agent)) matches.push({agent_id:agent.id, match_type:'keyword_match'});
+  });
+  var intent = classifyIntent(prompt);
+  if (!matches.length && INTENT_FALLBACK[intent]){
+    matches.push({agent_id:INTENT_FALLBACK[intent], match_type:'intent_fallback'});
+  }
+  AGENT_PROFILES.forEach(function(agent){
+    var seen = matches.some(function(m){ return m.agent_id === agent.id; });
+    if (!seen && toneMatches(tone, agent)) matches.push({agent_id:agent.id, match_type:'tone_match'});
+  });
+  return {intent:intent, assigned:matches};
+}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setPrompt(t){ document.getElementById('routePrompt').value = t; routeNow(); }
+function routeNow(){
+  var t0 = performance.now();
+  var prompt = document.getElementById('routePrompt').value;
+  var tone = {a:parseFloat(document.getElementById('toneA').value), c:parseFloat(document.getElementById('toneC').value)};
+  var result = matchAgents(tone, prompt);
+  var latency = Math.max(1, Math.round(performance.now() - t0));
+  var out = document.getElementById('routeOut');
+  out.style.display = 'block';
+  var html = '<div><span class="k">Intent</span><div class="intent">' + esc(result.intent) + '</div></div>'
+    + '<div style="margin-top:10px"><span class="k">Agents assigned (' + result.assigned.length + ')</span>';
+  if (!result.assigned.length){
+    html += '<p style="margin:8px 0 0">No agent matched. Raise or lower the tone sliders: every agent has a tone-fit range, and a tone outside all ranges matches nothing.</p>';
+  } else {
+    result.assigned.forEach(function(m){
+      html += '<div class="agentrow"><span class="mono">' + esc(m.agent_id) + '</span><span class="match">' + esc(m.match_type) + '</span></div>';
+    });
+  }
+  html += '</div><p class="note" style="margin-top:12px">Tone used: assertiveness ' + tone.a.toFixed(2) + ', creativity ' + tone.c.toFixed(2) + '. Routed in ' + latency + ' ms in this browser. The document targets sub-200ms end-to-end in production.</p>';
+  out.innerHTML = html;
+  logRoute(prompt, result, latency);
+}
+function logRoute(prompt, result, latency){
+  var table = document.getElementById('logTable');
+  var empty = document.getElementById('logEmpty');
+  if (empty) empty.remove();
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2,'0'), mm = String(now.getMinutes()).padStart(2,'0'), ss = String(now.getSeconds()).padStart(2,'0');
+  var agents = result.assigned.map(function(m){ return m.agent_id + ' (' + m.match_type + ')'; }).join(', ') || 'none';
+  var row = table.insertRow(1);
+  row.innerHTML = '<td class="mono">' + hh + ':' + mm + ':' + ss + '</td><td>' + esc(prompt) + '</td><td>' + esc(result.intent) + '</td><td class="mono" style="font-size:12px">' + esc(agents) + '</td><td class="mono">' + latency + ' ms</td>';
+}
+document.getElementById('toneA').addEventListener('input', function(){ document.getElementById('toneAv').textContent = parseFloat(this.value).toFixed(2); });
+document.getElementById('toneC').addEventListener('input', function(){ document.getElementById('toneCv').textContent = parseFloat(this.value).toFixed(2); });
+document.getElementById('routePrompt').addEventListener('keydown', function(e){ if (e.key === 'Enter') routeNow(); });
+</script>
+</body>
+</html>
