@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Architecture for Programmatic Design Compositing - Interactive Build</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbf9f5; --ink:#1a1815; --ink2:#4a463e; --muted:#8a8478;
+  --line:#ddd5c5; --brass:#a67c2e; --brass-d:#8a6524; --green:#2e6b34; --red:#9b2c2c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.55}
+a{color:var(--brass-d)}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 22px 80px}
+.docctl{border:1px solid var(--line);background:var(--paper);padding:18px 20px;display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline}
+.docctl .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.docctl .v{font-weight:600;font-size:13px}
+h1{font-family:Archivo,sans-serif;font-size:34px;line-height:1.1;margin:26px 0 6px;letter-spacing:-.01em}
+.sub{font-size:16px;color:var(--ink2);max-width:760px;margin:0 0 20px}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:0 0 26px}
+.meta div{background:var(--paper);padding:12px 14px}
+.meta .k{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meta .v{font-weight:600;font-size:13.5px;margin-top:3px}
+.tabs{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;background:var(--bone);padding:10px 0;border-bottom:2px solid var(--ink);margin-bottom:26px}
+.tabs button{font-family:Archivo,sans-serif;font-size:13px;font-weight:600;padding:8px 13px;border:1px solid var(--line);background:var(--paper);color:var(--ink2);cursor:pointer;border-radius:2px}
+.tabs button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tabs button:hover{border-color:var(--ink)}
+.tab{display:none}
+.tab.on{display:block}
+h2{font-family:Archivo,sans-serif;font-size:24px;margin:4px 0 4px}
+h3{font-family:Archivo,sans-serif;font-size:17px;margin:26px 0 8px}
+h4{font-family:Archivo,sans-serif;font-size:14px;margin:20px 0 6px}
+p{margin:8px 0}
+.lede{font-size:16.5px;color:var(--ink2)}
+.rule{border:none;border-top:1px solid var(--line);margin:22px 0}
+.card{background:var(--paper);border:1px solid var(--line);padding:18px 20px;margin:14px 0}
+.card.brass{border-left:4px solid var(--brass)}
+.card.warn{border-left:4px solid var(--red)}
+.card .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.stat{background:var(--paper);border:1px solid var(--line);padding:16px}
+.stat .n{font-family:Archivo,sans-serif;font-size:26px;font-weight:800}
+.stat .l{font-size:12.5px;color:var(--ink2);margin-top:2px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:2px solid var(--ink);padding:8px 10px}
+td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+code,.mono{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+pre{background:#211e19;color:#e8e2d4;padding:16px;overflow:auto;font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.5;border-radius:3px}
+.fig{background:var(--paper);border:1px solid var(--line);padding:16px;margin:16px 0}
+.fig svg{width:100%;height:auto;display:block}
+.figcap{font-size:12.5px;color:var(--ink2);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+.figcap b{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.pill{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:11px;padding:2px 8px;border:1px solid var(--brass);color:var(--brass-d);border-radius:20px;margin-right:6px}
+.pill.red{border-color:var(--red);color:var(--red)}
+.pill.green{border-color:var(--green);color:var(--green)}
+input[type=text],select,textarea{width:100%;font-family:Inter,sans-serif;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:#fff;border-radius:2px}
+input[type=color]{width:52px;height:38px;padding:2px;border:1px solid var(--line);background:#fff;cursor:pointer}
+button.go{font-family:Archivo,sans-serif;font-weight:700;font-size:14px;background:var(--brass);color:#fff;border:none;padding:11px 20px;cursor:pointer;border-radius:2px;margin-top:10px}
+button.go:hover{background:var(--brass-d)}
+button.ghost{font-family:Archivo,sans-serif;font-weight:600;font-size:12.5px;background:var(--paper);border:1px solid var(--line);padding:7px 12px;cursor:pointer;border-radius:2px;margin:4px 4px 0 0}
+button.ghost:hover{border-color:var(--ink)}
+button.ghost.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+label.flab{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:block;margin:12px 0 4px}
+.result{border:1px solid var(--line);background:var(--paper);padding:16px 18px;margin-top:14px}
+.note{font-size:12.5px;color:var(--muted)}
+.foot{margin-top:44px;border-top:2px solid var(--ink);padding-top:14px;font-size:12.5px;color:var(--muted)}
+/* Live compositor */
+.compwrap{display:grid;grid-template-columns:430px 1fr;gap:16px;align-items:start}
+.stage{position:relative;width:420px;height:420px;margin:0 auto;overflow:hidden;border:1px solid var(--ink);background:linear-gradient(160deg,#3a2a1c 0%,#8a5a2e 38%,#c98a3f 62%,#e8b06a 78%,#f4d9a0 100%)}
+.stage .standin{position:absolute;left:0;right:0;bottom:0;background:rgba(26,24,21,.85);color:#f4f1ea;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.05em;padding:5px 8px;text-align:center}
+.pv-hero{position:absolute;left:110px;top:120px;width:200px;height:170px;border:2px dashed #fff;background:rgba(255,255,255,.18);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px;font-size:12px;line-height:1.4}
+.pv-hero b{font-family:Archivo,sans-serif;font-size:13px}
+.pv-headline{position:absolute;left:0;right:0;top:26px;text-align:center;font-family:Archivo,sans-serif;font-weight:800;font-size:44px;letter-spacing:.02em;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.45)}
+.pv-subtext{position:absolute;left:0;right:0;bottom:64px;text-align:center;font-family:Inter,sans-serif;font-size:19px;color:#f0f0f0;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.pv-brand{position:absolute;right:16px;bottom:36px;display:flex;align-items:center;gap:8px}
+.pv-headshot{width:44px;height:44px;border-radius:50%;border:2px solid #fff;background:#8a8478;color:#fff;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:"JetBrains Mono",monospace;text-align:center}
+.pv-logo{border:1.5px solid #fff;color:#fff;font-family:"JetBrains Mono",monospace;font-size:9px;padding:6px 8px;background:rgba(0,0,0,.25)}
+.layerlist{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;margin:10px 0 0}
+.layerlist label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.colorrow{display:grid;grid-template-columns:1fr 52px 90px;gap:8px;align-items:center}
+.swatches{display:flex;gap:8px;margin-top:8px}
+.sw{flex:1;border:1px solid var(--line);padding:8px 6px;text-align:center;font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--paper)}
+.sw i{display:block;height:22px;margin-bottom:5px;border:1px solid var(--line)}
+@media(max-width:760px){.meta{grid-template-columns:1fr 1fr}.grid2,.grid3{grid-template-columns:1fr}.compwrap{grid-template-columns:1fr}h1{font-size:26px}.stage{width:100%;height:auto;aspect-ratio:1/1}.pv-headline{font-size:9vw}.pv-subtext{font-size:4.4vw}.pv-hero{left:26%;width:48%;height:40%;top:28%}}
+@media print{.tabs{display:none}body{background:#fff}.tab{display:block!important}.wrap{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="docctl">
+  <span><span class="k">Document</span><br><span class="v">Agentic Architecture for Programmatic Design Compositing</span></span>
+  <span><span class="k">Class</span><br><span class="v">Interactive build / demo</span></span>
+  <span><span class="k">Source</span><br><span class="v">Technical spec, summaries, and technical blueprint (pasted text)</span></span>
+  <span><span class="k">Built</span><br><span class="v">2026-11-05</span></span>
+  <span><span class="k">State</span><br><span class="v">DESIGNED, not deployed as a product</span></span>
+</div>
+
+<h1>Agentic Architecture for Programmatic Design Compositing</h1>
+<p class="sub">Stop asking a text-to-image model to lay out a finished design. Generate the assets, then assemble them as editable layers under a structured JSON protocol. This build turns the specification into a working compositor: edit the text and watch the preview and the Davinci payload change together.</p>
+
+<div class="meta">
+  <div><div class="k">Core idea</div><div class="v">Separation of Concerns: AI makes assets, code makes layout</div></div>
+  <div><div class="k">Exchange layer</div><div class="v">Davinci protocol, tokenized JSON payloads</div></div>
+  <div><div class="k">Working widgets</div><div class="v">Live Compositor, Style Mapper, Export Specs, Pipeline Diagram</div></div>
+  <div><div class="k">Honesty label</div><div class="v">Design spec, no measured results in the source</div></div>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="t1" class="on">1 · Paradigm Shift</button>
+  <button data-tab="t2">2 · Tech Stack</button>
+  <button data-tab="t3">3 · Davinci Protocol</button>
+  <button data-tab="t4">4 · Agent Pipeline</button>
+  <button data-tab="t5">5 · Layout &amp; Architect Logic</button>
+  <button data-tab="t6">6 · Canvas &amp; Export</button>
+  <button data-tab="t7">7 · Document Notes</button>
+</nav>
+
+<!-- ============ TAB 1 : PARADIGM SHIFT ============ -->
+<section class="tab on" id="t1">
+  <h2>The Paradigm Shift: from flat generation to programmatic compositing</h2>
+  <p class="lede">Flat generation is a monolithic black box. It produces an uneditable, baked-in JPEG. The specification moves to a programmatic compositing architecture built on Separation of Concerns: Generative AI is relegated to a modular asset creator rather than a final layout engine. Decoupling background imagery from typography and layout logic eliminates the structural failures of traditional GenAI, such as garbled text and the inability to manipulate individual design elements post-generation.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 190" role="img" aria-label="Flat generation versus programmatic compositing diagram">
+      <g font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">
+        <rect x="8" y="20" width="440" height="130" fill="#fbf9f5" stroke="#9b2c2c" stroke-width="2"/><text x="228" y="48" fill="#9b2c2c">FLAT GENERATION</text>
+        <text x="228" y="76" fill="#4a463e" font-weight="400" font-size="12">One prompt in, one baked JPEG out</text>
+        <text x="228" y="98" fill="#4a463e" font-weight="400" font-size="12">Text, image, and layout fused into pixels</text>
+        <text x="228" y="120" fill="#4a463e" font-weight="400" font-size="12">Fix a typo: re-roll the whole image</text>
+        <rect x="512" y="20" width="440" height="130" fill="#fbf9f5" stroke="#a67c2e" stroke-width="2"/><text x="732" y="48" fill="#8a6524">PROGRAMMATIC COMPOSITING</text>
+        <text x="732" y="76" fill="#4a463e" font-weight="400" font-size="12">AI generates assets only</text>
+        <text x="732" y="98" fill="#4a463e" font-weight="400" font-size="12">Davinci JSON defines layers, text, positions</text>
+        <text x="732" y="120" fill="#4a463e" font-weight="400" font-size="12">Fix a typo: edit one text layer, done</text>
+      </g>
+      <text x="480" y="180" font-family="JetBrains Mono,monospace" font-size="10" fill="#8a8478" text-anchor="middle">THE SHIFT IS FROM CREATIVE HALLUCINATOR TO STRUCTURED COMPOSITION ENGINE</text>
+    </svg>
+    <div class="figcap"><b>Figure 1</b> - Flat generation fuses everything into one raster. Compositing keeps every element as an independent, stateful layer, so each one stays editable after generation.</div>
+  </div>
+
+  <h3>Four advantages the spec claims for the composited approach</h3>
+  <div class="grid2">
+    <div class="card brass"><span class="k">Granular Editability</span>
+      <p style="margin:8px 0 0">A layered state lets users programmatically modify text strings, swap logos, or adjust asset positioning inside an HTML5/CSS environment without re-generating the entire image.</p>
+    </div>
+    <div class="card brass"><span class="k">Structural Integrity</span>
+      <p style="margin:8px 0 0">A parameterized approach makes the layout follow rigid design patterns, neutralizing the "AI drift" that characterizes standard text-to-image prompts.</p>
+    </div>
+    <div class="card brass"><span class="k">Typography Precision</span>
+      <p style="margin:8px 0 0">Rendering text as a distinct vector or HTML layer solves the "text problem" entirely: crisp, correctly spelled headers and subtext.</p>
+    </div>
+    <div class="card brass"><span class="k">Professional Normalization</span>
+      <p style="margin:8px 0 0">A composited approach injects technical print and digital standards, specific DPI settings and color profiles, that are inaccessible in flat image generation.</p>
+    </div>
+  </div>
+
+  <h3>Traditional Generative AI vs Agentic Programmatic Compositing</h3>
+  <p>The comparison table from the technical blueprint, reproduced verbatim in substance.</p>
+  <table>
+    <tr><th>Dimension</th><th>Traditional Generative AI</th><th>Agentic Programmatic Compositing</th></tr>
+    <tr><td>Text Accuracy</td><td>Stochastic, often garbled or misspelled</td><td>Deterministic, professional typography via HTML/CSS layers</td></tr>
+    <tr><td>Editability</td><td>Static, "baked" raster outputs</td><td>Fully interactive, individual objects remain stateful and modular</td></tr>
+    <tr><td>Layout Precision</td><td>Unpredictable, based on semantic prompt weight</td><td>Strict enforcement via programmatic grids and spatial constraints</td></tr>
+    <tr><td>Technical Export</td><td>Limited, unpredictable DPI and color profiles</td><td>Industry-standard (300 DPI, CMYK, bleed margins)</td></tr>
+    <tr><td>Human Intervention</td><td>Low, requires "re-rolling" the entire image</td><td>High, allows granular DOM-like manipulation of final assets</td></tr>
+  </table>
+  <p class="note">This table is the blueprint's own comparison. No benchmark, measurement, or side-by-side test appears in the source to back the "deterministic" or "strict enforcement" claims. See Tab 7.</p>
+</section>
+
+<!-- ============ TAB 2 : TECH STACK ============ -->
+<section class="tab" id="t2">
+  <h2>The Core Open-Source Technology Stack</h2>
+  <p class="lede">Five modular components, unified by the Davinci protocol as the standardized data exchange layer. A modular, open-source architecture prevents vendor lock-in and provides schema validation, per the blueprint.</p>
+
+  <table>
+    <tr><th>Component</th><th>Tool</th><th>Role in the pipeline</th></tr>
+    <tr><td>Agentic Orchestration</td><td>CrewAI / LangChain</td><td>Manages state and facilitates multi-agent handoffs via structured JSON payloads. Stateless coordination layer, managing task sequences and transfer of validated JSON payloads between agents.</td></tr>
+    <tr><td>Image Generation</td><td>ComfyUI</td><td>Node-based interface for granular control over Stable Diffusion assets. The node-based inference engine; the system's "secret weapon" in the source's words.</td></tr>
+    <tr><td>Layout Enforcement</td><td>ControlNet</td><td>Spatial conditioning to enforce strict boundaries within the generation engine. Uses Depth or Canny maps derived from black-and-white grids.</td></tr>
+    <tr><td>Canvas Engine</td><td>Fabric.js / Polotno</td><td>Executes programmatic rendering of layers, text boxes, and image placeholders. HTML5 canvas libraries enabling DOM-like manipulation, a "Canva-like" state where elements remain interactive and programmatically accessible.</td></tr>
+    <tr><td>Post-Processing / Export</td><td>Python Pillow Library (PIL)</td><td>Technical normalization, including DPI scaling and CMYK color conversion, plus bleed margins.</td></tr>
+  </table>
+
+  <h3>How ComfyUI and ControlNet work together</h3>
+  <p>ComfyUI is the primary engine for deterministic asset generation. Its node-based architecture lets the pipeline integrate ControlNet directly. By feeding the engine a black-and-white grid mask, the system enforces strict spatial boundaries: the AI generates textures and imagery only where intended, while specifically leaving designated negative space (empty areas) where the typography and hero assets will be programmatically injected by the downstream assembly layers.</p>
+
+  <div class="card">
+    <span class="k">Design rule, from the spec</span>
+    <p style="margin:8px 0 0">The background is never asked to carry text. The background prompt in the Davinci payload ("high-end residential neighborhood, blurred background, warm sunset lighting, hyper-realistic") is paired with a negative prompt ("text, watermarks, ugly architecture, cartoonish") that explicitly forbids text in the generated asset. Text lives in its own layer, above the background, rendered by the canvas engine.</p>
+  </div>
+
+  <h3>Why open-source, per the blueprint</h3>
+  <ul>
+    <li><b>No vendor lock-in:</b> each layer is a replaceable open component, not a proprietary endpoint.</li>
+    <li><b>Schema validation:</b> JSON payloads between agents are validated before handoff, so a bad payload fails before it reaches the canvas.</li>
+    <li><b>Deterministic assembly:</b> the same payload renders the same layout every time, because layout is code, not sampling.</li>
+  </ul>
+  <p class="note">Note the tension the spec does not resolve: ComfyUI plus Stable Diffusion generation is stochastic by nature, while the assembly layer is deterministic. The spec's answer is to confine the stochastic part to the background texture and keep everything structural in code. That boundary is the whole architecture.</p>
+</section>
+
+<!-- ============ TAB 3 : DAVINCI PROTOCOL + LIVE COMPOSITOR ============ -->
+<section class="tab" id="t3">
+  <h2>The "Davinci" Tokenization Protocol: Structured JSON Layering</h2>
+  <p class="lede">The Davinci protocol is the architectural backbone. It translates high-level human intent into a machine-executable, tokenized instruction set. Instead of "messy" natural language prompts, a parameterized JSON payload treats every design element, from aspect ratio to font weight, as a discrete data point. Text is a non-AI-generated layer, which is what makes professional-grade legibility and brand compliance possible.</p>
+
+  <h3>Live Compositor: the protocol, running</h3>
+  <p>Edit any control below. The layered preview and the JSON payload update together, in the same step. That is the point of the architecture: the text you see is an HTML layer driven by the payload, not pixels baked into an image. Change the headline to JUST LISTED and nothing re-generates. The background is a CSS gradient stand-in, clearly labeled; it is not a ComfyUI or AI-generated asset. The hero area is a labeled placeholder for a user upload.</p>
+
+  <div class="compwrap">
+    <div>
+      <div class="stage" id="compStage">
+        <div class="pv-headline" id="pv-headline">JUST SOLD</div>
+        <div class="pv-hero" id="pv-hero"><b>HERO IMAGE</b><span>Placeholder for user_upload_1.jpg</span><span>Background removal + color correction by the Asset Generation Agent</span></div>
+        <div class="pv-subtext" id="pv-subtext">$1.2M - 3 Days on Market</div>
+        <div class="pv-brand" id="pv-branding"><div class="pv-headshot">AGENT PHOTO</div><div class="pv-logo">AGENCY LOGO</div></div>
+        <div class="standin">STAND-IN BACKGROUND: CSS GRADIENT, NOT A GENERATED ASSET</div>
+      </div>
+      <div class="layerlist" id="layerList">
+        <label><input type="checkbox" id="layer-bg" checked> background</label>
+        <label><input type="checkbox" id="layer-hero" checked> hero_image</label>
+        <label><input type="checkbox" id="layer-headline" checked> typography.headline</label>
+        <label><input type="checkbox" id="layer-subtext" checked> typography.subtext</label>
+        <label><input type="checkbox" id="layer-branding" checked> branding</label>
+      </div>
+      <p class="note">Uncheck a layer to hide it from the preview. The JSON payload keeps the layer defined; visibility is a canvas state, not a deletion.</p>
+    </div>
+
+    <div>
+      <label class="flab" for="compHeadline">Headline text</label>
+      <input type="text" id="compHeadline" value="JUST SOLD">
+      <label class="flab" for="compSubtext">Subtext</label>
+      <input type="text" id="compSubtext" value="$1.2M - 3 Days on Market">
+      <label class="flab" for="compHeadFont">Headline font</label>
+      <select id="compHeadFont">
+        <option>Montserrat-Bold</option>
+        <option>Montserrat-Regular</option>
+        <option>OpenSans-Bold</option>
+        <option>OpenSans-Regular</option>
+        <option>Archivo</option>
+      </select>
+      <label class="flab" for="compPreset">Style preset (Architect Agent mapping)</label>
+      <select id="compPreset">
+        <option value="sleek">Sleek/Modern: dark palette, sans-serif (Montserrat)</option>
+        <option value="professional">Professional: high-contrast hex codes, conservative ratios</option>
+        <option value="edgy">Edgy: dark palette, sleek sans-serif</option>
+        <option value="highend">High-End: warm sunset background, Montserrat-Bold</option>
+      </select>
+      <label class="flab">Headline color</label>
+      <div class="colorrow"><span class="mono" id="compHeadColorLabel">Headline #FFFFFF</span><input type="color" id="compHeadColor" value="#ffffff"><input type="text" id="compHeadColorText" value="#FFFFFF"></div>
+      <label class="flab">Subtext color</label>
+      <div class="colorrow"><span class="mono" id="compSubColorLabel">Subtext #F0F0F0</span><input type="color" id="compSubColor" value="#f0f0f0"><input type="text" id="compSubColorText" value="#F0F0F0"></div>
+      <button class="go" onclick="setListed()">JUST SOLD to JUST LISTED: one click, no re-generation</button>
+      <button class="ghost" onclick="resetComp()">Reset to the spec payload</button>
+      <p class="note" id="compPresetNote">Preset Sleek/Modern: dark color palette and sans-serif font family (Montserrat), per the spec.</p>
+    </div>
+  </div>
+
+  <h3>The Davinci payload, live</h3>
+  <p>This JSON is generated from the controls above. Edit a control and this payload changes with it. This is the same payload the spec defines for a "Just Sold" Instagram post, 1080x1080, aspect ratio 1:1.</p>
+  <pre id="davinciJson"></pre>
+  <p class="note">The $1.2M figure is an example payload value from the spec, not a real sale. The hero image source user_upload_1.jpg and branding files user_profile_img.png and company_logo.svg are example filenames from the payload, not real uploads.</p>
+
+  <h3>Anatomy of the payload</h3>
+  <table>
+    <tr><th>Layer</th><th>What the payload defines</th><th>Who consumes it</th></tr>
+    <tr><td>background</td><td>Prompt plus negative prompt; the generated texture only, never text</td><td>Asset Generation Agent, ComfyUI</td></tr>
+    <tr><td>hero_image</td><td>Source file plus agent action: remove_background_and_color_correct</td><td>Asset Generation Agent, background removal API</td></tr>
+    <tr><td>typography.headline</td><td>Text, font (Montserrat-Bold), color (#FFFFFF), position (top_center)</td><td>Assembly Agent, Fabric.js / Polotno text layer</td></tr>
+    <tr><td>typography.subtext</td><td>Text, font (OpenSans-Regular), color (#F0F0F0), position (bottom_center)</td><td>Assembly Agent, Fabric.js / Polotno text layer</td></tr>
+    <tr><td>branding</td><td>Agent headshot (user_profile_img.png), agency logo (company_logo.svg), position (bottom_right)</td><td>Assembly Agent, Fabric.js / Polotno image layers</td></tr>
+  </table>
+  <p><b>Multi-format exports:</b> spatial parameters (width, height, position) enable automated multi-format exports. By referencing a hardcoded dictionary of standard sizes, a single design intent is instantly re-mapped for diverse outputs like a 1080x1080 Instagram post or a professional print flyer.</p>
+</section>
+
+<!-- ============ TAB 4 : AGENT PIPELINE ============ -->
+<section class="tab" id="t4">
+  <h2>Functional Agent Roles and the Execution Pipeline</h2>
+  <p class="lede">Four specialized agents, one sequential pipeline. The Davinci JSON payload is the handoff between them: each agent reads the payload, does its job, and passes a validated payload forward. Precision Compositing logic turns the workflow from a creative hallucinator into a precision engine.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 200" role="img" aria-label="Four agent pipeline diagram">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">
+        <rect x="8" y="40" width="200" height="80" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="108" y="66" fill="#1a1815">1 · INTAKE AGENT</text><text x="108" y="86" fill="#4a463e" font-weight="400" font-size="11">captures raw requirements</text><text x="108" y="104" fill="#4a463e" font-weight="400" font-size="11">intent classification</text>
+        <rect x="258" y="40" width="200" height="80" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="358" y="66" fill="#1a1815">2 · ARCHITECT AGENT</text><text x="358" y="86" fill="#4a463e" font-weight="400" font-size="11">adjectives to hex codes</text><text x="358" y="104" fill="#4a463e" font-weight="400" font-size="11">and font pairings</text>
+        <rect x="508" y="40" width="200" height="80" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="608" y="66" fill="#1a1815">3 · ASSET GENERATION</text><text x="608" y="86" fill="#4a463e" font-weight="400" font-size="11">ComfyUI backgrounds</text><text x="608" y="104" fill="#4a463e" font-weight="400" font-size="11">background removal, color correct</text>
+        <rect x="758" y="40" width="194" height="80" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="855" y="66" fill="#fff">4 · ASSEMBLY AGENT</text><text x="855" y="86" fill="#fff" font-weight="400" font-size="11">ingests all assets</text><text x="855" y="104" fill="#fff" font-weight="400" font-size="11">pushes layers to canvas</text>
+      </g>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar)">
+        <line x1="208" y1="80" x2="256" y2="80"/><line x1="458" y1="80" x2="506" y2="80"/><line x1="708" y1="80" x2="756" y2="80"/>
+      </g>
+      <text x="480" y="150" font-family="JetBrains Mono,monospace" font-size="11" fill="#8a8478" text-anchor="middle">DAVINCI JSON FLOWS BETWEEN EVERY AGENT - VALIDATED PAYLOAD IN, VALIDATED PAYLOAD OUT</text>
+      <text x="480" y="172" font-family="JetBrains Mono,monospace" font-size="11" fill="#8a8478" text-anchor="middle">OUTPUT: A FULLY RENDERED, MULTI-LAYERED, INTERACTIVE DESIGN STATE</text>
+    </svg>
+    <div class="figcap"><b>Figure 2</b> - The four-agent pipeline. Intake classifies intent, Architect translates style into technical parameters, Asset Generation produces the visual components, Assembly integrates them as independent canvas layers.</div>
+  </div>
+
+  <table>
+    <tr><th>Agent</th><th>Job</th><th>Outcome</th></tr>
+    <tr><td><b>Intake Agent</b></td><td>Captures and interprets raw user requirements, performing initial intent classification.</td><td>Refined design instructions based on user descriptors (for example "edgy," "modern," "high-end"). Neutralizes the "messy prompt" problem.</td></tr>
+    <tr><td><b>Architect Agent</b></td><td>Primary translator: maps descriptive adjectives into technical design patterns, including CSS-compatible hex codes and specific font pairings like Montserrat-Bold.</td><td>A structured JSON "Davinci" payload (Montserrat-Bold for headlines, #F0F0F0 for secondary elements). Eliminates aesthetic hallucinations.</td></tr>
+    <tr><td><b>Asset Generation Agent</b></td><td>Triggers technical production of visual components: initiates background removal for user-uploaded assets and executes ComfyUI nodes for background textures.</td><td>Optimized, high-resolution assets ready for programmatic injection, via ComfyUI plus third-party background removal and color correction APIs.</td></tr>
+    <tr><td><b>Assembly Agent</b></td><td>Final integration point: ingests all processed assets and pushes them into the HTML5 canvas engine as independent layers.</td><td>A fully rendered, multi-layered, interactive design state. Transitions from static generation to a dynamic environment where final human-in-the-loop tweaks are possible.</td></tr>
+  </table>
+
+  <h3>Precision Compositing: the user-uploaded asset pipeline</h3>
+  <p>User-uploaded assets are prioritized as high-priority data points. The Architect Agent assigns an upload to a layer in the JSON payload (hero_image or branding), defining the source file and agent actions such as remove_background or color_correct. The Asset Generation Agent prepares the image, triggering background removal APIs for headshots and ensuring the AI-generated background (via ComfyUI) leaves specific empty space for the uploaded property photo. The Assembly Agent pushes the processed photo into an HTML5 canvas engine as an independent layer, so the user can click, resize, or swap the photo in the browser. The background reserves empty space for the property photo because the elements are placed as independent layers rather than baked into the background, so the design remains fully interactive and structurally sound.</p>
+
+  <div class="card brass">
+    <span class="k">Run it in Tab 3</span>
+    <p style="margin:8px 0 0">The Live Compositor in Tab 3 is this pipeline in miniature: the payload on the right is what the Architect Agent would emit, the preview is what the Assembly Agent would render, and the hero placeholder is the slot the Asset Generation Agent would fill with a processed upload. Toggle a layer off and on to see that the layer state is independent of the payload.</p>
+  </div>
+</section>
+
+<!-- ============ TAB 5 : LAYOUT ENFORCEMENT + ARCHITECT LOGIC ============ -->
+<section class="tab" id="t5">
+  <h2>Layout Enforcement and Aesthetic Precision</h2>
+  <p class="lede">Rigid structural boundaries are enforced by architectural constraints inside the generation workflow, not by prompt engineering. ControlNet inside the ComfyUI pipeline feeds a black-and-white spatial grid to the model, and the grid instructs the AI to generate negative space in designated regions, so complex background patterns never interfere with the areas reserved for typography or branding.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 260" role="img" aria-label="ControlNet grid mask diagram">
+      <g font-family="Archivo,sans-serif">
+        <text x="130" y="24" font-size="13" font-weight="700" fill="#1a1815" text-anchor="middle">CONTROLNET GRID MASK (INPUT)</text>
+        <rect x="10" y="36" width="240" height="180" fill="#fff" stroke="#1a1815" stroke-width="1.5"/>
+        <rect x="10" y="36" width="240" height="52" fill="#1a1815"/><text x="130" y="66" font-size="11" fill="#fff" text-anchor="middle">NEGATIVE SPACE: HEADLINE</text>
+        <rect x="70" y="100" width="120" height="60" fill="#ddd5c5" stroke="#1a1815"/><text x="130" y="134" font-size="11" fill="#1a1815" text-anchor="middle">HERO ZONE</text>
+        <rect x="10" y="172" width="240" height="44" fill="#1a1815"/><text x="130" y="198" font-size="11" fill="#fff" text-anchor="middle">NEGATIVE SPACE: SUBTEXT + BRANDING</text>
+        <text x="480" y="24" font-size="13" font-weight="700" fill="#1a1815" text-anchor="middle">GENERATED BACKGROUND (OUTPUT)</text>
+        <rect x="360" y="36" width="240" height="180" fill="#e8b06a" stroke="#1a1815" stroke-width="1.5"/>
+        <rect x="360" y="36" width="240" height="52" fill="#f4f1ea"/><text x="480" y="66" font-size="11" fill="#1a1815" text-anchor="middle">LEFT EMPTY FOR TEXT</text>
+        <rect x="420" y="100" width="120" height="60" fill="#c98a3f" stroke="#fff" stroke-dasharray="4 3"/><text x="480" y="134" font-size="11" fill="#fff" text-anchor="middle">TEXTURE ONLY</text>
+        <rect x="360" y="172" width="240" height="44" fill="#f4f1ea"/><text x="480" y="198" font-size="11" fill="#1a1815" text-anchor="middle">LEFT EMPTY FOR TEXT</text>
+        <text x="800" y="24" font-size="13" font-weight="700" fill="#1a1815" text-anchor="middle">FINAL COMPOSITE</text>
+        <rect x="680" y="36" width="240" height="180" fill="#e8b06a" stroke="#1a1815" stroke-width="1.5"/>
+        <text x="800" y="62" font-size="15" font-weight="800" fill="#fff" text-anchor="middle">JUST SOLD</text>
+        <rect x="740" y="100" width="120" height="60" fill="#fbf9f5" stroke="#fff" stroke-dasharray="4 3"/><text x="800" y="134" font-size="11" fill="#1a1815" text-anchor="middle">HERO PHOTO</text>
+        <text x="800" y="196" font-size="12" fill="#fff" text-anchor="middle">$1.2M - 3 Days on Market</text>
+      </g>
+      <defs><marker id="ar3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar3)"><line x1="252" y1="126" x2="358" y2="126"/><line x1="602" y1="126" x2="678" y2="126"/></g>
+      <text x="480" y="246" font-family="JetBrains Mono,monospace" font-size="10" fill="#8a8478" text-anchor="middle">DEPTH OR CANNY MAPS DERIVED FROM THE GRID DICTATE WHERE IMAGERY IS RENDERED</text>
+    </svg>
+    <div class="figcap"><b>Figure 3</b> - The ControlNet enforcement loop. The black-and-white grid reserves negative space; the background texture is generated only where allowed; the Assembly Agent then injects typography, hero, and branding into the reserved zones. The diagram is a schematic of the spec's description, not a screenshot of a real ComfyUI run.</div>
+  </div>
+
+  <h3>Style Mapper: the Architect Agent's design logic</h3>
+  <p>Pick a descriptor. The mapper shows the palette hex codes and font pairings the Architect Agent selects, per the source. Sleek/Modern and Professional are mapped explicitly in the spec. Edgy follows the spec's "edgy, modern" mapping to a dark palette and sleek sans-serif; the source gives no hex codes for it, and the mapper says so. High-End is derived from the example payload's warm sunset background prompt and its #FFFFFF / #F0F0F0 typography.</p>
+  <div>
+    <button class="ghost on" id="map-sleek" onclick="runMapper('sleek')">Sleek/Modern</button>
+    <button class="ghost" id="map-professional" onclick="runMapper('professional')">Professional</button>
+    <button class="ghost" id="map-edgy" onclick="runMapper('edgy')">Edgy</button>
+    <button class="ghost" id="map-highend" onclick="runMapper('highend')">High-End</button>
+  </div>
+  <div class="result" id="mapOut"></div>
+
+  <h3>Mapping rules stated in the source</h3>
+  <table>
+    <tr><th>Descriptor</th><th>Maps to</th><th>Source status</th></tr>
+    <tr><td>"Sleek/Modern"</td><td>Dark color palette and sans-serif font families (for example Montserrat)</td><td>Explicit in the spec</td></tr>
+    <tr><td>"Professional"</td><td>High-contrast hex codes (for example #FFFFFF, #F0F0F0) and conservative layout ratios</td><td>Explicit in the spec</td></tr>
+    <tr><td>"Edgy" (as in "edgy, modern flyer")</td><td>Modern aesthetic requiring a dark color palette and sleek sans-serif font</td><td>Explicit in the Architect Agent summary; no hex codes given</td></tr>
+    <tr><td>"High-End"</td><td>Warm sunset lighting, hyper-realistic background; Montserrat-Bold headline #FFFFFF, OpenSans-Regular subtext #F0F0F0</td><td>Derived from the example payload, not a separate mapping table</td></tr>
+  </table>
+  <p>By programmatically selecting these values before asset generation begins, the system ensures aesthetic principles are enforced up front, instead of being hoped for in a prompt.</p>
+</section>
+
+<!-- ============ TAB 6 : CANVAS + EXPORT ============ -->
+<section class="tab" id="t6">
+  <h2>The Interactive Canvas and Professional Export Standards</h2>
+  <p class="lede">The final output is an editable HTML5/CSS environment rather than a static raster file. Through Fabric.js or Polotno, the design renders as a series of programmatically accessible layers. Users modify text strings, swap hero images, and adjust branding assets directly in the browser.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 960 170" role="img" aria-label="Canvas layers and export diagram">
+      <g font-family="Archivo,sans-serif" font-size="13" font-weight="700" text-anchor="middle">
+        <rect x="8" y="30" width="180" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="98" y="56" fill="#1a1815">LAYERED CANVAS</text><text x="98" y="75" fill="#4a463e" font-weight="400" font-size="11">Fabric.js / Polotno</text>
+        <rect x="228" y="30" width="180" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="318" y="56" fill="#1a1815">EDIT IN BROWSER</text><text x="318" y="75" fill="#4a463e" font-weight="400" font-size="11">click text, swap image</text>
+        <rect x="448" y="30" width="200" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="548" y="56" fill="#1a1815">PILLOW NORMALIZE</text><text x="548" y="75" fill="#4a463e" font-weight="400" font-size="11">DPI, color, bleed</text>
+        <rect x="688" y="30" width="120" height="56" fill="#fbf9f5" stroke="#1a1815" stroke-width="1.5"/><text x="748" y="56" fill="#1a1815">PRINT</text><text x="748" y="75" fill="#4a463e" font-weight="400" font-size="11">300 DPI, CMYK</text>
+        <rect x="848" y="30" width="104" height="56" fill="#a67c2e" stroke="#a67c2e" stroke-width="1.5"/><text x="900" y="56" fill="#fff">DIGITAL</text><text x="900" y="75" fill="#fff" font-weight="400" font-size="11">72/96 DPI, RGB</text>
+      </g>
+      <defs><marker id="ar4" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a67c2e"/></marker></defs>
+      <g stroke="#a67c2e" stroke-width="2" marker-end="url(#ar4)"><line x1="188" y1="58" x2="226" y2="58"/><line x1="408" y1="58" x2="446" y2="58"/><line x1="648" y1="58" x2="686" y2="58"/><line x1="808" y1="58" x2="846" y2="58"/></g>
+      <text x="480" y="120" font-family="JetBrains Mono,monospace" font-size="11" fill="#8a8478" text-anchor="middle">ONE CANVAS STATE, TWO EXPORT PATHS - THE LAYERED STATE IS THE SOURCE OF TRUTH</text>
+      <text x="480" y="142" font-family="JetBrains Mono,monospace" font-size="11" fill="#8a8478" text-anchor="middle">DIRECT TEXT MANIPULATION: CLICK "JUST SOLD", TYPE "JUST LISTED", NO RE-GENERATION</text>
+    </svg>
+    <div class="figcap"><b>Figure 4</b> - From layered canvas to export. Pillow performs the technical normalization at the end of the pipeline, after all human edits are done.</div>
+  </div>
+
+  <h3>What stays editable after assembly</h3>
+  <ul>
+    <li><b>Direct Text Manipulation:</b> clicking and editing "JUST SOLD" to "JUST LISTED" without re-generating. Try the one-click button in Tab 3.</li>
+    <li><b>Dynamic Scaling:</b> manual resizing or swapping of image assets in the browser.</li>
+    <li><b>Fine-Tuned Alignment:</b> final layout adjustments on the layered canvas.</li>
+  </ul>
+
+  <h3>Export Specs: pick an output</h3>
+  <p>The Python Pillow library does the export heavy lifting. Pick a path to see the exact requirements from the spec.</p>
+  <div>
+    <button class="ghost on" id="exp-print-btn" onclick="showExport('print')">Print Assets</button>
+    <button class="ghost" id="exp-digital-btn" onclick="showExport('digital')">Digital Assets</button>
+  </div>
+  <div class="result" id="expOut"></div>
+</section>
+
+<!-- ============ TAB 7 : DOCUMENT NOTES ============ -->
+<section class="tab" id="t7">
+  <h2>Document Notes: duplication, gaps, and what is not proven</h2>
+  <p class="lede">This tab records what the source material actually is, so the demo is not mistaken for a measured system. Everything in Tabs 1-6 is the spec's own content; this tab is the audit of that content.</p>
+
+  <div class="card warn">
+    <span class="k">No measured results</span>
+    <p style="margin:8px 0 0">No benchmarks, no measurements, no deployment evidence, and no side-by-side test appears anywhere in the source. The architecture is a design, not a measured system. Claims like "deterministic" text rendering, "strict" layout enforcement, and "neutralizing AI drift" are design claims, not results. Nothing on this page proves ComfyUI plus ControlNet plus Fabric.js produces better designs than flat generation in practice.</p>
+  </div>
+
+  <h3>Duplication in the source</h3>
+  <p>The same material arrives in several forms, and this demo builds from the fullest versions:</p>
+  <table>
+    <tr><th>Material</th><th>How many times it appears</th></tr>
+    <tr><td>The full six-section technical specification</td><td>Once, as the primary spec</td></tr>
+    <tr><td>The stack (CrewAI/LangChain, ComfyUI, ControlNet, Fabric.js/Polotno, Pillow)</td><td>Three times: the spec, the stack summary, and the full technical blueprint</td></tr>
+    <tr><td>The "Just Sold" Davinci JSON payload</td><td>Twice verbatim: spec section 3 and blueprint section 4, plus a prose summary of it in the protocol summary</td></tr>
+    <tr><td>The four agent roles and the pipeline</td><td>Three times: the spec, the pipeline summary, and the blueprint's orchestration layer</td></tr>
+    <tr><td>Precision Compositing and the user-uploaded asset pipeline</td><td>Twice: spec section 4 and a dedicated summary</td></tr>
+    <tr><td>Architect Agent design logic (descriptors to hex codes and fonts)</td><td>Twice: spec section 5 and a dedicated summary</td></tr>
+    <tr><td>Export standards (300 DPI, CMYK, 0.125-inch bleed, 72/96 DPI RGB)</td><td>Three times: spec section 6, the pipeline summary, and the blueprint</td></tr>
+  </table>
+  <p>Nothing in the repeated versions contradicts the others. The summaries add no new facts; the blueprint adds the comparison table, the Depth/Canny detail, and the multi-format export note. Where a summary and the full spec differ in wording, this demo follows the full spec.</p>
+
+  <h3>Other flags</h3>
+  <ul>
+    <li><b>Citation markers [1]-[7]:</b> the summary sections carry citation markers. They are source references, not part of the architecture, and they point to no bibliography in the material received. This demo does not reproduce them as claims.</li>
+    <li><b>"Would you like me to create..." closers:</b> each follow-up section in the source ends by offering a tailored report, infographic, implementation guide, slide deck, or quiz. Those are assistant prompts, not spec content. They are not built here.</li>
+    <li><b>$1.2M is an example:</b> the "$1.2M - 3 Days on Market" subtext is an example payload value in the spec's own JSON. It is not a real sale, a real listing, or a performance claim.</li>
+    <li><b>Stand-in background:</b> the Live Compositor background is a CSS gradient labeled as a stand-in. No ComfyUI run, no Stable Diffusion output, and no real generated asset appears in this demo.</li>
+    <li><b>Example filenames:</b> user_upload_1.jpg, user_profile_img.png, and company_logo.svg are example filenames from the payload, not real files.</li>
+    <li><b>Unresolved tension:</b> the spec calls ComfyUI generation "deterministic" in one place while relying on Stable Diffusion sampling in another. The spec's own resolution is the boundary: stochastic generation is confined to the background texture, deterministic code owns the layout. Whether that boundary holds in practice is untested in the source.</li>
+    <li><b>Tool naming:</b> the stack lists alternatives with slashes (CrewAI / LangChain, Fabric.js / Polotno). The source never picks one of each pair. This demo does not pick either.</li>
+  </ul>
+
+  <h3>What would close the gaps</h3>
+  <p>A real ComfyUI run with a ControlNet grid mask, showing the reserved negative space in the output; a before/after test of the same design as a flat generation versus a composited build; and a measured export check (DPI, color profile, bleed) on a Pillow output. None of those exist in the source material.</p>
+</section>
+
+<div class="foot">Agentic Architecture for Programmatic Design Compositing, interactive build. Built 2026-11-05 from the pasted technical specification, summaries, and technical blueprint. All figures are the spec's claims or example values. The background in the Live Compositor is a CSS gradient stand-in, not a generated asset. DESIGNED is not DEPLOYED is not LIVE.</div>
+</div>
+
+<script>
+var tabs = document.querySelectorAll('#tabs button');
+tabs.forEach(function(btn){
+  btn.addEventListener('click', function(){
+    tabs.forEach(function(b){ b.classList.remove('on'); });
+    btn.classList.add('on');
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('on'); });
+    document.getElementById(btn.getAttribute('data-tab')).classList.add('on');
+  });
+});
+
+var DEFAULTS = {
+  headline: 'JUST SOLD',
+  subtext: '$1.2M - 3 Days on Market',
+  headFont: 'Montserrat-Bold',
+  headColor: '#FFFFFF',
+  subColor: '#F0F0F0',
+  preset: 'sleek'
+};
+
+var PRESET_NOTES = {
+  sleek: 'Preset Sleek/Modern: dark color palette and sans-serif font family (Montserrat), per the spec.',
+  professional: 'Preset Professional: high-contrast hex codes (#FFFFFF, #F0F0F0) and conservative layout ratios, per the spec.',
+  edgy: 'Preset Edgy: dark color palette and sleek sans-serif font, per the spec mapping for "edgy, modern". No hex codes given in the source.',
+  highend: 'Preset High-End: warm sunset background prompt with Montserrat-Bold headline #FFFFFF and OpenSans-Regular subtext #F0F0F0, from the example payload.'
+};
+
+function fontCss(font){
+  if (font.indexOf('Montserrat') === 0) return 'Archivo, sans-serif';
+  if (font.indexOf('OpenSans') === 0) return 'Inter, sans-serif';
+  return 'Archivo, sans-serif';
+}
+function fontWeight(font){
+  return font.indexOf('Bold') !== -1 ? '800' : '400';
+}
+
+function renderComp(){
+  var headline = document.getElementById('compHeadline').value;
+  var subtext = document.getElementById('compSubtext').value;
+  var headFont = document.getElementById('compHeadFont').value;
+  var headColor = document.getElementById('compHeadColorText').value;
+  var subColor = document.getElementById('compSubColorText').value;
+  var preset = document.getElementById('compPreset').value;
+
+  var pvH = document.getElementById('pv-headline');
+  pvH.textContent = headline;
+  pvH.style.fontFamily = fontCss(headFont);
+  pvH.style.fontWeight = fontWeight(headFont);
+  pvH.style.color = headColor;
+  var pvS = document.getElementById('pv-subtext');
+  pvS.textContent = subtext;
+  pvS.style.color = subColor;
+
+  document.getElementById('compPresetNote').textContent = PRESET_NOTES[preset] || '';
+  document.getElementById('compHeadColorLabel').textContent = 'Headline ' + headColor.toUpperCase();
+  document.getElementById('compSubColorLabel').textContent = 'Subtext ' + subColor.toUpperCase();
+
+  var payload = {
+    project_type: 'social_media_post',
+    vertical: 'real_estate',
+    dimensions: { width: 1080, height: 1080, aspect_ratio: '1:1' },
+    layers: {
+      background: { prompt: 'high-end residential neighborhood, blurred background, warm sunset lighting, hyper-realistic', negative_prompt: 'text, watermarks, ugly architecture, cartoonish' },
+      hero_image: { source: 'user_upload_1.jpg', agent_action: 'remove_background_and_color_correct' },
+      typography: {
+        headline: { text: headline, font: headFont, color: headColor.toUpperCase(), position: 'top_center' },
+        subtext: { text: subtext, font: 'OpenSans-Regular', color: subColor.toUpperCase(), position: 'bottom_center' }
+      },
+      branding: { agent_headshot: 'user_profile_img.png', agency_logo: 'company_logo.svg', position: 'bottom_right' }
+    }
+  };
+  document.getElementById('davinciJson').textContent = JSON.stringify(payload, null, 2);
+}
+
+function applyPreset(){
+  var preset = document.getElementById('compPreset').value;
+  if (preset === 'sleek' || preset === 'edgy') {
+    document.getElementById('compHeadFont').value = 'Montserrat-Bold';
+    document.getElementById('compHeadColor').value = '#ffffff';
+    document.getElementById('compHeadColorText').value = '#FFFFFF';
+    document.getElementById('compSubColor').value = '#f0f0f0';
+    document.getElementById('compSubColorText').value = '#F0F0F0';
+  } else if (preset === 'professional') {
+    document.getElementById('compHeadFont').value = 'Montserrat-Bold';
+    document.getElementById('compHeadColor').value = '#ffffff';
+    document.getElementById('compHeadColorText').value = '#FFFFFF';
+    document.getElementById('compSubColor').value = '#f0f0f0';
+    document.getElementById('compSubColorText').value = '#F0F0F0';
+  } else if (preset === 'highend') {
+    document.getElementById('compHeadFont').value = 'Montserrat-Bold';
+    document.getElementById('compHeadColor').value = '#ffffff';
+    document.getElementById('compHeadColorText').value = '#FFFFFF';
+    document.getElementById('compSubColor').value = '#f0f0f0';
+    document.getElementById('compSubColorText').value = '#F0F0F0';
+  }
+  renderComp();
+}
+
+function setListed(){
+  document.getElementById('compHeadline').value = 'JUST LISTED';
+  renderComp();
+}
+
+function resetComp(){
+  document.getElementById('compHeadline').value = DEFAULTS.headline;
+  document.getElementById('compSubtext').value = DEFAULTS.subtext;
+  document.getElementById('compHeadFont').value = DEFAULTS.headFont;
+  document.getElementById('compHeadColor').value = '#ffffff';
+  document.getElementById('compHeadColorText').value = DEFAULTS.headColor;
+  document.getElementById('compSubColor').value = '#f0f0f0';
+  document.getElementById('compSubColorText').value = DEFAULTS.subColor;
+  document.getElementById('compPreset').value = DEFAULTS.preset;
+  ['bg','hero','headline','subtext','branding'].forEach(function(k){
+    document.getElementById('layer-' + k).checked = true;
+  });
+  applyLayers();
+  renderComp();
+}
+
+function applyLayers(){
+  var map = {
+    'layer-bg': 'compStage',
+    'layer-hero': 'pv-hero',
+    'layer-headline': 'pv-headline',
+    'layer-subtext': 'pv-subtext',
+    'layer-branding': 'pv-branding'
+  };
+  Object.keys(map).forEach(function(id){
+    var el = document.getElementById(map[id]);
+    var on = document.getElementById(id).checked;
+    if (id === 'layer-bg') {
+      el.style.background = on ? '' : '#8a8478';
+    } else {
+      el.style.display = on ? '' : 'none';
+    }
+  });
+}
+
+['compHeadline','compSubtext','compHeadFont','compHeadColorText','compSubColorText'].forEach(function(id){
+  document.getElementById(id).addEventListener('input', renderComp);
+});
+document.getElementById('compHeadColor').addEventListener('input', function(){
+  document.getElementById('compHeadColorText').value = this.value.toUpperCase();
+  renderComp();
+});
+document.getElementById('compSubColor').addEventListener('input', function(){
+  document.getElementById('compSubColorText').value = this.value.toUpperCase();
+  renderComp();
+});
+document.getElementById('compPreset').addEventListener('change', applyPreset);
+['layer-bg','layer-hero','layer-headline','layer-subtext','layer-branding'].forEach(function(id){
+  document.getElementById(id).addEventListener('change', applyLayers);
+});
+
+var MAPS = {
+  sleek: { title: 'Sleek/Modern', status: 'Explicit in the spec', palette: [['#1A1815','Ink / dark ground'],['#2B2721','Dark secondary'],['#FFFFFF','Headline'],['#F0F0F0','Subtext']], fonts: 'Headline: Montserrat-Bold. Subtext: OpenSans-Regular. Sans-serif throughout.', note: 'The spec maps "Sleek/Modern" to a dark color palette and sans-serif font families (for example Montserrat). Palette swatches use the spec\'s own headline and subtext hex codes plus dark grounds named in the mapping.' },
+  professional: { title: 'Professional', status: 'Explicit in the spec', palette: [['#FFFFFF','Headline'],['#F0F0F0','Subtext'],['#1A1815','Ink / body'],['#8A8478','Muted / labels']], fonts: 'Headline: Montserrat-Bold. Subtext: OpenSans-Regular. Conservative layout ratios.', note: 'The spec maps "Professional" to high-contrast hex codes (#FFFFFF, #F0F0F0) and conservative layout ratios.' },
+  edgy: { title: 'Edgy', status: 'Mapped, no hex codes in the source', palette: [['#111111','Dark palette (no hex given)'],['#FFFFFF','Headline (assumed, not specified)'],['#F0F0F0','Subtext (assumed, not specified)']], fonts: 'Headline: Montserrat-Bold. Subtext: OpenSans-Regular. Sleek sans-serif.', note: 'The source maps "edgy, modern" to a modern aesthetic requiring a dark color palette and sleek sans-serif font. It gives no hex codes for Edgy; the white and light gray shown here are carried from the spec\'s headline and subtext codes and are labeled as assumed, not specified.' },
+  highend: { title: 'High-End', status: 'Derived from the example payload', palette: [['#C98A3F','Warm sunset (background prompt)'],['#F4D9A0','Warm highlight'],['#FFFFFF','Headline'],['#F0F0F0','Subtext']], fonts: 'Headline: Montserrat-Bold. Subtext: OpenSans-Regular.', note: 'Derived from the "Just Sold" example payload: background prompt "high-end residential neighborhood, blurred background, warm sunset lighting, hyper-realistic", headline Montserrat-Bold #FFFFFF, subtext OpenSans-Regular #F0F0F0. No separate High-End mapping table exists in the source.' }
+};
+
+function runMapper(key){
+  ['sleek','professional','edgy','highend'].forEach(function(k){
+    document.getElementById('map-' + k).classList.toggle('on', k === key);
+  });
+  var m = MAPS[key];
+  var sw = m.palette.map(function(p){
+    return '<div class="sw"><i style="background:' + p[0] + '"></i>' + p[0] + '<br><span class="note">' + p[1] + '</span></div>';
+  }).join('');
+  document.getElementById('mapOut').innerHTML =
+    '<div class="k">Descriptor: ' + m.title + ' - ' + m.status + '</div>' +
+    '<div class="swatches">' + sw + '</div>' +
+    '<p style="margin:12px 0 0"><b>Fonts:</b> ' + m.fonts + '</p>' +
+    '<p class="note" style="margin:8px 0 0">' + m.note + '</p>';
+}
+
+function showExport(kind){
+  document.getElementById('exp-print-btn').classList.toggle('on', kind === 'print');
+  document.getElementById('exp-digital-btn').classList.toggle('on', kind === 'digital');
+  var out = document.getElementById('expOut');
+  if (kind === 'print') {
+    out.innerHTML = '<div class="k">Print assets - Pillow normalization</div>' +
+      '<table><tr><th>Requirement</th><th>Value</th></tr>' +
+      '<tr><td>Resolution</td><td><b>300 DPI</b>, forced by Pillow</td></tr>' +
+      '<tr><td>Color profile</td><td>Converted from <b>RGB to CMYK</b></td></tr>' +
+      '<tr><td>Bleed margin</td><td><b>0.125-inch</b> standard bleed added</td></tr>' +
+      '<tr><td>Source</td><td>The layered canvas state, including uploaded photos</td></tr></table>' +
+      '<p class="note">Per the spec, section 6 and the blueprint. Print is the only path that converts color space.</p>';
+  } else {
+    out.innerHTML = '<div class="k">Digital assets - Pillow normalization</div>' +
+      '<table><tr><th>Requirement</th><th>Value</th></tr>' +
+      '<tr><td>Resolution</td><td><b>72 / 96 DPI</b></td></tr>' +
+      '<tr><td>Color profile</td><td><b>RGB</b>, no CMYK conversion</td></tr>' +
+      '<tr><td>Bleed margin</td><td>None: bleed is a print requirement only</td></tr>' +
+      '<tr><td>Use</td><td>Web and social media, including the 1080x1080 Instagram post in the example payload</td></tr></table>' +
+      '<p class="note">Per the spec, section 6. Digital requirements are normalized to 72/96 DPI in RGB format for optimal web and social media performance.</p>';
+  }
+}
+
+renderComp();
+runMapper('sleek');
+showExport('print');
+</script>
+</body>
+</html>
