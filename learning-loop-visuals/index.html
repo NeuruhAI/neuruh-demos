@@ -1,0 +1,799 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Learning Loop Visuals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f4f0e6;
+        --surface: #fbf8f0;
+        --surface-2: #eee7d6;
+        --surface-3: #e6ddc7;
+        --ink: #171410;
+        --ink-soft: #4c463a;
+        --ink-faint: #7d7563;
+        --line: #d5cbb2;
+        --line-strong: #b3a67f;
+        --brass: #8f6a10;
+        --brass-bright: #b8891c;
+        --brass-soft: rgba(184, 137, 28, 0.12);
+        --rust: #9c3a24;
+        --rust-soft: rgba(156, 58, 36, 0.09);
+        --moss: #4d6636;
+        --moss-soft: rgba(77, 102, 54, 0.1);
+        --shadow: 0 1px 2px rgba(23, 20, 16, 0.06), 0 8px 24px rgba(23, 20, 16, 0.05);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f0d09;
+          --surface: #171410;
+          --surface-2: #1f1b13;
+          --surface-3: #292219;
+          --ink: #ede5d2;
+          --ink-soft: #bcb29c;
+          --ink-faint: #8b8271;
+          --line: #332c1f;
+          --line-strong: #57492c;
+          --brass: #cfa52e;
+          --brass-bright: #e3ba45;
+          --brass-soft: rgba(207, 165, 46, 0.13);
+          --rust: #d07a5f;
+          --rust-soft: rgba(208, 122, 95, 0.12);
+          --moss: #9db87e;
+          --moss-soft: rgba(157, 184, 126, 0.12);
+          --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.35);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        * { transition: none !important; animation: none !important; }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Inter", system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px 72px; }
+      h1, h2, h3 { font-family: "Archivo", "Inter", sans-serif; line-height: 1.12; margin: 0; }
+      .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+      /* ---------- Lead ---------- */
+      .lead { padding: 44px 0 8px; }
+      .lead .kicker {
+        font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: 0.14em;
+        text-transform: uppercase; color: var(--brass); margin: 0 0 14px;
+      }
+      .lead h1 { font-size: clamp(34px, 6vw, 56px); font-weight: 800; letter-spacing: -0.01em; max-width: 16ch; }
+      .lead .sub { margin: 18px 0 0; font-size: 18px; color: var(--ink-soft); max-width: 68ch; }
+      .verdict {
+        margin-top: 30px; background: var(--surface); border: 1px solid var(--line);
+        border-top: 3px solid var(--brass); padding: 22px 24px; box-shadow: var(--shadow);
+      }
+      .verdict .tag { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brass); }
+      .verdict p { margin: 8px 0 0; font-size: 19px; font-weight: 500; line-height: 1.45; }
+      .verdict p strong { color: var(--brass); font-weight: 700; }
+      .frame-note { margin-top: 14px; font-size: 13px; color: var(--ink-faint); }
+      .frame-note .mono { font-size: 12px; }
+
+      /* ---------- Sections ---------- */
+      section { margin-top: 64px; }
+      .sec-head { display: flex; align-items: baseline; gap: 14px; border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 22px; }
+      .sec-num { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; color: var(--brass); }
+      .sec-head h2 { font-size: clamp(24px, 3.6vw, 32px); font-weight: 700; }
+      .sec-head .sec-note { margin-left: auto; font-size: 13px; color: var(--ink-faint); text-align: right; max-width: 34ch; }
+      .lede { color: var(--ink-soft); max-width: 74ch; margin: 0 0 20px; }
+      .lede strong { color: var(--ink); }
+
+      /* ---------- Chain stepper ---------- */
+      .chain { display: flex; align-items: stretch; gap: 0; }
+      .chain-node {
+        flex: 1 1 0; text-align: left; background: var(--surface); border: 1px solid var(--line);
+        padding: 14px 13px 12px; cursor: pointer; color: var(--ink); font-family: inherit;
+        transition: border-color 0.15s, background 0.15s; min-width: 0;
+      }
+      .chain-node:hover { border-color: var(--line-strong); }
+      .chain-node .n-num { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--ink-faint); display: block; margin-bottom: 6px; }
+      .chain-node .n-name { font-family: "Archivo", sans-serif; font-weight: 700; font-size: 14.5px; line-height: 1.25; display: block; }
+      .chain-node .n-owner { font-family: "JetBrains Mono", monospace; font-size: 10.5px; color: var(--ink-faint); display: block; margin-top: 7px; overflow-wrap: anywhere; }
+      .chain-node.active { border-color: var(--brass); background: var(--brass-soft); box-shadow: inset 0 0 0 1px var(--brass); }
+      .chain-node.active .n-num { color: var(--brass); }
+      .chain-node.done { border-color: var(--line-strong); }
+      .chain-node.done .n-num { color: var(--brass); }
+      .chain-arrow { align-self: center; padding: 0 3px; color: var(--brass); font-weight: 700; flex: 0 0 auto; }
+      .chain-detail {
+        margin-top: 14px; background: var(--surface); border: 1px solid var(--line);
+        padding: 20px 22px; box-shadow: var(--shadow); min-height: 128px;
+      }
+      .chain-detail h3 { font-size: 20px; margin-bottom: 6px; }
+      .chain-detail p { margin: 0; color: var(--ink-soft); max-width: 76ch; }
+      .chain-detail .owner-line { margin-top: 12px; font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-faint); }
+      .chain-detail .owner-line b { color: var(--brass); font-weight: 700; }
+      .stepper-controls { display: flex; gap: 10px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+      .btn {
+        font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700;
+        background: var(--ink); color: var(--bg); border: 1px solid var(--ink);
+        padding: 9px 18px; cursor: pointer; transition: opacity 0.15s, background 0.15s;
+      }
+      .btn:hover { opacity: 0.85; }
+      .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
+      .btn.ghost:hover { border-color: var(--brass); color: var(--brass); opacity: 1; }
+      .btn:disabled { opacity: 0.35; cursor: default; }
+      .step-count { font-family: "JetBrains Mono", monospace; font-size: 12.5px; color: var(--ink-faint); margin-left: auto; }
+
+      /* ---------- Preflight findings ---------- */
+      .findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+      .finding { background: var(--surface); border: 1px solid var(--line); padding: 16px 18px; }
+      .finding .f-num { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--brass); font-weight: 700; }
+      .finding p { margin: 6px 0 0; font-size: 14.5px; color: var(--ink-soft); }
+      .finding p strong { color: var(--ink); }
+
+      /* ---------- Pairing demo ---------- */
+      .pair-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch; }
+      .record-card { background: var(--surface); border: 1px solid var(--line); padding: 18px 20px; box-shadow: var(--shadow); }
+      .record-card.sealed { border-top: 3px solid var(--brass); }
+      .record-card.observed { border-top: 3px solid var(--ink); }
+      .record-card h3 { font-size: 17px; margin-bottom: 4px; }
+      .record-card .rc-sub { font-size: 12.5px; color: var(--ink-faint); font-family: "JetBrains Mono", monospace; margin-bottom: 12px; }
+      .field-list { list-style: none; margin: 0; padding: 0; }
+      .field-list li { padding: 7px 0; border-top: 1px dashed var(--line); font-size: 14px; color: var(--ink-soft); display: flex; gap: 10px; }
+      .field-list li:first-child { border-top: none; }
+      .field-list .fl-key { font-family: "JetBrains Mono", monospace; font-size: 11.5px; color: var(--brass); flex: 0 0 108px; padding-top: 2px; overflow-wrap: anywhere; }
+      .pair-join { display: flex; align-items: center; justify-content: center; font-family: "Archivo", sans-serif; font-weight: 800; font-size: 26px; color: var(--brass); }
+      .pair-controls { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+      .seg { display: inline-flex; border: 1px solid var(--line-strong); }
+      .seg button {
+        font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 700; padding: 9px 14px;
+        background: transparent; color: var(--ink-soft); border: none; cursor: pointer;
+      }
+      .seg button + button { border-left: 1px solid var(--line-strong); }
+      .seg button.on { background: var(--brass); color: #171410; }
+      @media (prefers-color-scheme: dark) { .seg button.on { color: #171410; } }
+      .pair-result { margin-top: 14px; padding: 18px 20px; border: 1px solid var(--line); background: var(--surface-2); display: none; }
+      .pair-result.show { display: block; }
+      .pair-result.ok { border-color: var(--moss); background: var(--moss-soft); }
+      .pair-result.blocked { border-color: var(--rust); background: var(--rust-soft); }
+      .pair-result h3 { font-size: 17px; margin-bottom: 6px; }
+      .pair-result p { margin: 0; color: var(--ink-soft); max-width: 76ch; }
+      .measure-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 18px; }
+      .measure { background: var(--surface); border: 1px solid var(--line); padding: 12px 14px; font-size: 14px; font-weight: 500; display: flex; gap: 10px; align-items: baseline; }
+      .measure .m-dot { width: 8px; height: 8px; background: var(--brass); flex: 0 0 auto; position: relative; top: -1px; }
+
+      /* ---------- Adapters ---------- */
+      .adapters { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+      .adapter { background: var(--surface); border: 1px solid var(--line); padding: 16px 18px; }
+      .adapter .a-id { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 15px; color: var(--brass); }
+      .adapter p { margin: 6px 0 0; font-size: 14.5px; color: var(--ink-soft); }
+      .adapter p strong { color: var(--ink); }
+
+      /* ---------- Governance boundary ---------- */
+      .boundary { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .bound-col { border: 1px solid var(--line); padding: 20px 22px; background: var(--surface); }
+      .bound-col.may { border-top: 3px solid var(--moss); }
+      .bound-col.maynot { border-top: 3px solid var(--rust); }
+      .bound-col h3 { font-size: 18px; margin-bottom: 4px; }
+      .bound-col .bc-sub { font-size: 13px; color: var(--ink-faint); margin-bottom: 12px; }
+      .bound-col ul { list-style: none; margin: 0; padding: 0; }
+      .bound-col li { padding: 8px 0 8px 22px; border-top: 1px dashed var(--line); font-size: 14.5px; color: var(--ink-soft); position: relative; }
+      .bound-col li:first-child { border-top: none; }
+      .bound-col li::before { position: absolute; left: 0; top: 8px; font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; }
+      .bound-col.may li::before { content: "+"; color: var(--moss); }
+      .bound-col.maynot li::before { content: "\00D7"; color: var(--rust); }
+      .bound-note { margin-top: 14px; font-size: 14px; color: var(--ink-soft); }
+      .bound-note strong { color: var(--ink); }
+
+      /* ---------- Protocol ---------- */
+      .proto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .proto-card { background: var(--surface); border: 1px solid var(--line); padding: 20px 22px; }
+      .proto-card h3 { font-size: 17px; margin-bottom: 10px; }
+      .proto-card ul { margin: 0; padding-left: 18px; color: var(--ink-soft); font-size: 14.5px; }
+      .proto-card li { padding: 3px 0; }
+      .variants { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+      .variant { border: 1px solid var(--line-strong); padding: 8px 13px; font-size: 13.5px; font-weight: 500; background: var(--surface); }
+      .variant .v-num { font-family: "JetBrains Mono", monospace; color: var(--brass); font-weight: 700; margin-right: 7px; font-size: 12px; }
+      .warn-strip { margin-top: 14px; border: 1px solid var(--rust); background: var(--rust-soft); padding: 14px 18px; font-size: 14.5px; }
+      .warn-strip strong { color: var(--rust); }
+
+      /* ---------- Ladders ---------- */
+      .ladder-layout { display: grid; grid-template-columns: minmax(280px, 420px) 1fr; gap: 14px; align-items: start; }
+      .ladder { display: flex; flex-direction: column-reverse; gap: 6px; }
+      .rung {
+        text-align: left; background: var(--surface); border: 1px solid var(--line); padding: 11px 14px;
+        cursor: pointer; font-family: inherit; color: var(--ink); display: flex; gap: 12px; align-items: baseline;
+        transition: border-color 0.15s, background 0.15s;
+      }
+      .rung:hover { border-color: var(--line-strong); }
+      .rung .r-num { font-family: "JetBrains Mono", monospace; font-weight: 700; font-size: 13px; color: var(--ink-faint); flex: 0 0 22px; }
+      .rung .r-name { font-size: 14.5px; font-weight: 500; line-height: 1.35; }
+      .rung.active { border-color: var(--brass); background: var(--brass-soft); box-shadow: inset 0 0 0 1px var(--brass); }
+      .rung.active .r-num { color: var(--brass); }
+      .ladder-detail { background: var(--surface); border: 1px solid var(--line); padding: 20px 22px; box-shadow: var(--shadow); position: sticky; top: 16px; }
+      .ladder-detail .ld-tag { font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brass); }
+      .ladder-detail h3 { font-size: 19px; margin: 6px 0 8px; }
+      .ladder-detail p { margin: 0; color: var(--ink-soft); }
+
+      /* ---------- Demand loop ---------- */
+      .mini-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+      .mini-node { background: var(--surface); border: 1px solid var(--line-strong); padding: 8px 12px; font-size: 13.5px; font-weight: 500; }
+      .mini-node.hot { border-color: var(--brass); background: var(--brass-soft); font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-weight: 700; color: var(--brass); }
+      .mini-arrow { color: var(--brass); font-weight: 700; font-size: 13px; }
+      .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .chip { border: 1px solid var(--line); background: var(--surface); padding: 7px 12px; font-size: 13px; color: var(--ink-soft); }
+      .chip .mono { font-size: 11px; color: var(--brass); margin-right: 6px; font-weight: 700; }
+      .sub-h { font-family: "Archivo", sans-serif; font-size: 18px; font-weight: 700; margin: 26px 0 12px; }
+      .sub-h:first-of-type { margin-top: 0; }
+
+      /* ---------- Compilation ---------- */
+      .exec-ladder { display: grid; gap: 8px; }
+      .exec-step { display: flex; gap: 14px; align-items: baseline; background: var(--surface); border: 1px solid var(--line); padding: 13px 16px; }
+      .exec-step .e-num { font-family: "JetBrains Mono", monospace; font-weight: 700; color: var(--brass); font-size: 14px; flex: 0 0 24px; }
+      .exec-step .e-body strong { display: block; font-size: 15px; }
+      .exec-step .e-body span { font-size: 13.5px; color: var(--ink-soft); }
+      .exec-step.frontier { border-color: var(--line-strong); background: var(--surface-2); }
+      .compile-path { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+      .compile-node { background: var(--surface-2); border: 1px solid var(--line-strong); padding: 9px 13px; font-size: 13.5px; font-weight: 600; }
+      .compile-node:first-child { background: var(--brass-soft); border-color: var(--brass); }
+
+      /* ---------- First proof ---------- */
+      .proof-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+      .proof-node { background: var(--ink); color: var(--bg); padding: 10px 14px; font-size: 13.5px; font-weight: 600; font-family: "Archivo", sans-serif; }
+      .proof-node.brass { background: var(--brass); color: #171410; }
+      .proof-arrow { color: var(--brass); font-weight: 700; }
+
+      footer { margin-top: 72px; border-top: 2px solid var(--ink); padding-top: 18px; font-size: 13px; color: var(--ink-faint); }
+      footer .mono { font-size: 12px; }
+
+      /* ---------- Responsive ---------- */
+      @media (max-width: 900px) {
+        .chain { flex-direction: column; }
+        .chain-arrow { transform: rotate(90deg); padding: 2px 0; align-self: flex-start; margin-left: 14px; }
+        .pair-grid { grid-template-columns: 1fr; }
+        .pair-join { padding: 2px 0; }
+        .boundary, .proto-grid, .ladder-layout { grid-template-columns: 1fr; }
+        .ladder-detail { position: static; }
+        .sec-head { flex-wrap: wrap; }
+        .sec-head .sec-note { margin-left: 0; text-align: left; }
+        .step-count { margin-left: 0; width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <!-- ============ LEAD ============ -->
+      <header class="lead">
+        <p class="kicker">B07 · Outcome learning architecture</p>
+        <h1>The Learning Loop</h1>
+        <p class="sub">How the organism turns real outcomes into governed behavior change: a forecast sealed before the outcome, a calibration pair, a versioned proposal, an independent gate, and a promotion that can be rolled back. No silent self-modification anywhere in the chain.</p>
+        <div class="verdict">
+          <span class="tag">B07 conclusion</span>
+          <p>The learning architecture exists. The real missing seam is feeding it <strong>truthful pre-outcome predictions</strong> and <strong>production outcomes</strong>.</p>
+        </div>
+        <p class="frame-note">Design specification board. Chain links, adapters, and protocols below are the documented architecture and its current source owners, not live telemetry from a running system.</p>
+      </header>
+
+      <!-- ============ 01 CANONICAL CHAIN ============ -->
+      <section id="chain">
+        <div class="sec-head">
+          <span class="sec-num">01</span>
+          <h2>The canonical chain</h2>
+          <span class="sec-note">One shared outcome schema in. Promoted behavior out. Every link owned.</span>
+        </div>
+        <p class="lede">Every producer in the organism writes outcomes in one shape, <strong class="mono" style="font-size:14px">neuruh.outcome-record.v1</strong>. From there the record moves through calibration, proposal, gate, and governance before any worker, recipe, or routing behavior is allowed to change. Step through the chain.</p>
+        <div class="chain" id="chainRow" role="tablist" aria-label="Canonical learning chain"></div>
+        <div class="chain-detail" id="chainDetail"></div>
+        <div class="stepper-controls">
+          <button class="btn ghost" id="chainPrev" type="button">Back</button>
+          <button class="btn" id="chainNext" type="button">Next link</button>
+          <span class="step-count" id="chainCount"></span>
+        </div>
+      </section>
+
+      <!-- ============ 02 PREFLIGHT ============ -->
+      <section id="preflight">
+        <div class="sec-head">
+          <span class="sec-num">02</span>
+          <h2>B07 preflight</h2>
+          <span class="sec-note">Sep-5 court. Approximately 14 outcome producers mapped.</span>
+        </div>
+        <div class="findings">
+          <div class="finding"><span class="f-num">F1</span><p><strong>No new outcome schema required.</strong> The existing v1 record is sufficient.</p></div>
+          <div class="finding"><span class="f-num">F2</span><p><strong>Several producers already adapted.</strong> Part of the estate already writes the shared shape.</p></div>
+          <div class="finding"><span class="f-num">F3</span><p><strong>Additional adapters required.</strong> The remaining producers need bridges, listed in section 04.</p></div>
+          <div class="finding"><span class="f-num">F4</span><p><strong>DeedSonar, LandOS, and commercial outcomes must bridge</strong> into the shared OutcomeRecord.</p></div>
+          <div class="finding"><span class="f-num">F5</span><p><strong>N-Lab evidence feeds promotion evidence.</strong> It never silently mutates production.</p></div>
+        </div>
+      </section>
+
+      <!-- ============ 03 STARVATION DEFECT ============ -->
+      <section id="pairing">
+        <div class="sec-head">
+          <span class="sec-num">03</span>
+          <h2>The starvation defect</h2>
+          <span class="sec-note">Calibration cannot be retroactively invented.</span>
+        </div>
+        <p class="lede">A real learning loop needs a <strong>forecast recorded before the outcome</strong>: the prediction, its confidence, the model and recipe versions that made it, the evidence available at that moment, and the predicted result class. When reality arrives, the observed outcome is captured against it. <strong>Only paired observations calibrate.</strong> Try both paths below.</p>
+        <div class="pair-grid">
+          <div class="record-card sealed">
+            <h3>Forecast</h3>
+            <div class="rc-sub">SEALED BEFORE OUTCOME</div>
+            <ul class="field-list">
+              <li><span class="fl-key">prediction</span><span>What is expected to happen</span></li>
+              <li><span class="fl-key">confidence</span><span>Stated probability, fixed at seal time</span></li>
+              <li><span class="fl-key">version</span><span>Model / recipe / version that predicted</span></li>
+              <li><span class="fl-key">evidence</span><span>Evidence available at prediction time</span></li>
+              <li><span class="fl-key">cohort</span><span>Cohort and context of the prediction</span></li>
+              <li><span class="fl-key">class</span><span>Predicted economic / result class</span></li>
+            </ul>
+          </div>
+          <div class="pair-join" aria-hidden="true">+</div>
+          <div class="record-card observed">
+            <h3>Observed outcome</h3>
+            <div class="rc-sub">CAPTURED WHEN REALITY LANDS</div>
+            <ul class="field-list">
+              <li><span class="fl-key">outcome</span><span>What actually happened</span></li>
+              <li><span class="fl-key">timing</span><span>When it landed, time-to-outcome</span></li>
+              <li><span class="fl-key">value</span><span>Economic value where observable</span></li>
+              <li><span class="fl-key">state</span><span>Success, failure, or partial state</span></li>
+              <li><span class="fl-key">evidence</span><span>Evidence for the observed result</span></li>
+              <li><span class="fl-key">caveats</span><span>Causal caveats on the pairing</span></li>
+            </ul>
+          </div>
+        </div>
+        <div class="pair-controls">
+          <div class="seg" role="group" aria-label="Forecast state">
+            <button type="button" id="segSealed" class="on">Forecast sealed first</button>
+            <button type="button" id="segMissing">No forecast recorded</button>
+          </div>
+          <button class="btn" id="runPair" type="button">Observe outcome, attempt calibration</button>
+        </div>
+        <div class="pair-result" id="pairResult" aria-live="polite"></div>
+        <h3 class="sub-h" style="margin-top:30px">What paired observations make measurable</h3>
+        <p class="lede" style="margin-bottom:14px">Without the pair, learning is narrative hindsight. With it, the organism can measure:</p>
+        <div class="measure-grid">
+          <div class="measure"><span class="m-dot"></span>Recipe calibration</div>
+          <div class="measure"><span class="m-dot"></span>Source quality</div>
+          <div class="measure"><span class="m-dot"></span>Confidence calibration</div>
+          <div class="measure"><span class="m-dot"></span>Routing quality</div>
+          <div class="measure"><span class="m-dot"></span>False positives / negatives</div>
+          <div class="measure"><span class="m-dot"></span>Time-to-outcome</div>
+          <div class="measure"><span class="m-dot"></span>Economic value</div>
+          <div class="measure"><span class="m-dot"></span>Cost vs value</div>
+          <div class="measure"><span class="m-dot"></span>Failure concentration</div>
+        </div>
+      </section>
+
+      <!-- ============ 04 ADAPTERS ============ -->
+      <section id="adapters">
+        <div class="sec-head">
+          <span class="sec-num">04</span>
+          <h2>Required adapter families</h2>
+          <span class="sec-note">The bridges between producers and the shared record.</span>
+        </div>
+        <div class="adapters">
+          <div class="adapter"><span class="a-id">A0</span><p><strong>Fold / unit normalization.</strong> Bring every producer's units and shapes into the shared record.</p></div>
+          <div class="adapter"><span class="a-id">A1</span><p><strong>Founder Runtime execution projection.</strong> Project runtime executions into outcome records.</p></div>
+          <div class="adapter"><span class="a-id">A2</span><p><strong>LandOS bridge.</strong> <span class="mono" style="font-size:13px">lead_outcomes</span> bridge plus scheduler into the shared record.</p></div>
+          <div class="adapter"><span class="a-id">A3</span><p><strong>Opportunity Intelligence receipt.</strong> Receipt to forecast seal and prediction log.</p></div>
+          <div class="adapter"><span class="a-id">A4</span><p><strong>DeedSonar forecast capture.</strong> Seal the forecast at decision time, inside the product.</p></div>
+          <div class="adapter"><span class="a-id">A5</span><p><strong>Commercial terminal states.</strong> Paid, delivered, refunded, repeated: the states that end a commercial arc.</p></div>
+          <div class="adapter"><span class="a-id">A6</span><p><strong>N-Lab to promotion evidence.</strong> Experimental evidence packaged for the gate, never a silent production change.</p></div>
+          <div class="adapter"><span class="a-id">A7</span><p><strong>Calibration dimensions.</strong> The axes along which pairs are scored and sliced.</p></div>
+        </div>
+      </section>
+
+      <!-- ============ 05 GOVERNANCE BOUNDARY ============ -->
+      <section id="governance">
+        <div class="sec-head">
+          <span class="sec-num">05</span>
+          <h2>The governance boundary</h2>
+          <span class="sec-note">What automatic learning may touch, and what it may never rewrite.</span>
+        </div>
+        <div class="boundary">
+          <div class="bound-col may">
+            <h3>Automatic learning may propose</h3>
+            <div class="bc-sub">Adjustments that stay inside versioned, reversible scope.</div>
+            <ul>
+              <li>Routing weights</li>
+              <li>Recipe calibration</li>
+              <li>Retry / backoff behavior</li>
+              <li>Context selection</li>
+              <li>Tests</li>
+            </ul>
+          </div>
+          <div class="bound-col maynot">
+            <h3>It may not silently rewrite</h3>
+            <div class="bc-sub">These stay behind proposal, tests, and independent court.</div>
+            <ul>
+              <li>Governance rules</li>
+              <li>Privileged capability</li>
+              <li>Destructive authority</li>
+              <li>Public exposure</li>
+              <li>Legal / financial commitments</li>
+              <li>Canonical mutation semantics</li>
+            </ul>
+          </div>
+        </div>
+        <p class="bound-note">Changes on the right-hand side remain <strong>versioned proposals with tests and an independent court</strong>. The loop proposes. Governance disposes.</p>
+      </section>
+
+      <!-- ============ 06 PROTOCOL ============ -->
+      <section id="protocol">
+        <div class="sec-head">
+          <span class="sec-num">06</span>
+          <h2>Topology-to-outcome protocol</h2>
+          <span class="sec-note">Sep-7 experimental protocol. Does changing the organization around the same mission change measured results?</span>
+        </div>
+        <div class="proto-grid">
+          <div class="proto-card">
+            <h3>Pre-outcome record</h3>
+            <ul>
+              <li>Mission archetype and measurable success condition</li>
+              <li>Evidence available at decision time</li>
+              <li>Predicted outcome and confidence</li>
+              <li>Expected cost and latency</li>
+              <li>Model / provider / version</li>
+              <li>Recipe / strategy / version</li>
+              <li>Active organ / team topology or N-Cell signature</li>
+              <li>Tools and capabilities available</li>
+              <li>Important alternatives and known unknowns</li>
+            </ul>
+          </div>
+          <div class="proto-card">
+            <h3>Post-outcome record</h3>
+            <ul>
+              <li>Actual outcome and time-to-outcome</li>
+              <li>Economic value where observable</li>
+              <li>Actual cost and latency</li>
+              <li>Errors, reversals, and human interventions</li>
+              <li>False-positive / false-negative class</li>
+              <li>Causal caveats</li>
+              <li>Customer / operator acceptance</li>
+              <li>Promotion, demotion, or retest recommendation</li>
+            </ul>
+          </div>
+        </div>
+        <h3 class="sub-h">Comparison protocol</h3>
+        <p class="lede" style="margin-bottom:12px">For repeatable mission classes, N-Lab compares five configurations and measures outcome quality, calibration error, completion rate, intervention rate, cost, latency, policy failures, and economic contribution.</p>
+        <div class="variants">
+          <span class="variant"><span class="v-num">V1</span>Simple baseline workflow</span>
+          <span class="variant"><span class="v-num">V2</span>Current canonical topology</span>
+          <span class="variant"><span class="v-num">V3</span>One-organ ablations</span>
+          <span class="variant"><span class="v-num">V4</span>Alternate provider, same topology</span>
+          <span class="variant"><span class="v-num">V5</span>Alternate topology, same provider</span>
+        </div>
+        <div class="warn-strip"><strong>Hard rule:</strong> do not infer a systems advantage from one successful run. The comparison only counts across repeatable mission classes with paired records.</div>
+      </section>
+
+      <!-- ============ 07 RESEARCH MATURITY ============ -->
+      <section id="maturity">
+        <div class="sec-head">
+          <span class="sec-num">07</span>
+          <h2>Research maturity ladder</h2>
+          <span class="sec-note">Eight rungs. The commercial objective arrives before any broad research claim.</span>
+        </div>
+        <p class="lede">The ladder runs from recoverable state to independently confirmed transfer. Climb it in order; each rung is a claim the system has to earn with paired evidence. Select a rung.</p>
+        <div class="ladder-layout">
+          <div class="ladder" id="researchLadder"></div>
+          <div class="ladder-detail" id="researchDetail"></div>
+        </div>
+      </section>
+
+      <!-- ============ 08 DEMAND LOOP ============ -->
+      <section id="demand">
+        <div class="sec-head">
+          <span class="sec-num">08</span>
+          <h2>The second loop: demand learning</h2>
+          <span class="sec-note">OutcomeRecord teaches whether executed work was correct. Demand telemetry teaches what to build next.</span>
+        </div>
+        <p class="lede">Buyers repeatedly asking for something the organism cannot yet serve is a learning signal of its own. It is captured <strong>privacy-safe</strong>: only the bounded fields needed for commercial learning, never unnecessary raw prospect text.</p>
+        <h3 class="sub-h">Privacy-safe demand signal</h3>
+        <div class="chip-row">
+          <span class="chip"><span class="mono">F1</span>Problem class</span>
+          <span class="chip"><span class="mono">F2</span>Requested outcome</span>
+          <span class="chip"><span class="mono">F3</span>Buyer / market class</span>
+          <span class="chip"><span class="mono">F4</span>Existing offer / recipe match</span>
+          <span class="chip"><span class="mono">F5</span>Missing ingredient or blocked capability</span>
+          <span class="chip"><span class="mono">F6</span>Price / urgency band, when voluntarily supplied</span>
+          <span class="chip"><span class="mono">F7</span>Conversion state</span>
+          <span class="chip"><span class="mono">F8</span>Reason lost / rejected, when known</span>
+        </div>
+        <h3 class="sub-h">The missing-ingredient loop</h3>
+        <p class="lede" style="margin-bottom:12px">Repeated unserved demand becomes a ranked build candidate instead of another idea backlog. Product development turns into an evidence-backed response to market pull.</p>
+        <div class="mini-chain" id="demandChain"></div>
+        <h3 class="sub-h">Demand maturity</h3>
+        <p class="lede" style="margin-bottom:14px">Demand is not proof of willingness to pay. Searches, questions, likes, and comments are weak demand. Productization should rise with this ladder. Select a rung.</p>
+        <div class="ladder-layout">
+          <div class="ladder" id="demandLadder"></div>
+          <div class="ladder-detail" id="demandDetail"></div>
+        </div>
+      </section>
+
+      <!-- ============ 09 COMPILATION ============ -->
+      <section id="compilation">
+        <div class="sec-head">
+          <span class="sec-num">09</span>
+          <h2>Reasoning compilation</h2>
+          <span class="sec-note">Successful intelligence should get cheaper. An Offer Foundry law, promoted.</span>
+        </div>
+        <p class="lede"><strong>Repeated successful reasoning should be compiled downward into cheaper logic.</strong> The preferred execution ladder tries the cheapest reliable rung first and escalates only when ambiguity, consequence, or economic value justifies it.</p>
+        <div class="exec-ladder">
+          <div class="exec-step"><span class="e-num">1</span><div class="e-body"><strong>Deterministic software / cached known result</strong><span>No model call at all when the answer is already proven.</span></div></div>
+          <div class="exec-step"><span class="e-num">2</span><div class="e-body"><strong>Deterministic Neuruh rules / schema / query</strong><span>Typed logic over the organism's own structures.</span></div></div>
+          <div class="exec-step"><span class="e-num">3</span><div class="e-body"><strong>Local or low-cost model</strong><span>Cheap reasoning for bounded interpretation.</span></div></div>
+          <div class="exec-step"><span class="e-num">4</span><div class="e-body"><strong>Inexpensive remote reasoning</strong><span>Hosted models for work that outgrows the local rung.</span></div></div>
+          <div class="exec-step frontier"><span class="e-num">5</span><div class="e-body"><strong>Frontier reasoning</strong><span>Only when ambiguity, consequence, or economic value justifies the cost.</span></div></div>
+        </div>
+        <h3 class="sub-h">How a pattern compiles down</h3>
+        <div class="compile-path">
+          <span class="compile-node">Frontier reasoning</span><span class="mini-arrow">&#8594;</span>
+          <span class="compile-node">Reusable prompt / worker contract</span><span class="mini-arrow">&#8594;</span>
+          <span class="compile-node">Recipe</span><span class="mini-arrow">&#8594;</span>
+          <span class="compile-node">Typed decision rule / deterministic transform</span><span class="mini-arrow">&#8594;</span>
+          <span class="compile-node">Cache / precomputation, where valid</span>
+        </div>
+        <div class="warn-strip" style="border-color:var(--line-strong);background:var(--surface-2)"><strong style="color:var(--brass)">Do not compile ambiguity away.</strong> <span style="color:var(--ink-soft)">Keep model reasoning where the task still requires interpretation, novel evidence, or adversarial judgment. The objective is not minimum token spend. It is the lowest reliable cost for the required evidence quality and consequence level.</span></div>
+        <h3 class="sub-h">Economic learning fields</h3>
+        <p class="lede" style="margin-bottom:12px">Every outcome record carries the economics, so compilation decisions are made on cost against value, not on token counts.</p>
+        <div class="chip-row">
+          <span class="chip">Model / provider</span>
+          <span class="chip">Topology</span>
+          <span class="chip">Recipe / ingredient versions</span>
+          <span class="chip">Quoted vs actual price</span>
+          <span class="chip">Estimated vs actual time</span>
+          <span class="chip">Model / tool cost</span>
+          <span class="chip">Founder / operator effort</span>
+          <span class="chip">Support burden</span>
+          <span class="chip">Success / refund / rework</span>
+          <span class="chip">Customer outcome</span>
+          <span class="chip">Repeat / expansion</span>
+        </div>
+      </section>
+
+      <!-- ============ 10 FIRST PROOF ============ -->
+      <section id="proof">
+        <div class="sec-head">
+          <span class="sec-num">10</span>
+          <h2>The economic north star</h2>
+          <span class="sec-note">The first real paid tape is the proof.</span>
+        </div>
+        <p class="lede">The first real paid, customer, or transaction tape should create one complete pass through the loop. That pass is the proof the organism can learn from reality rather than merely remember conversations: learn which evidence, worker, model, tool, and topology should handle a real objective, then prove the choice improves outcomes.</p>
+        <div class="proof-chain">
+          <span class="proof-node brass">Forecast</span><span class="proof-arrow">&#8594;</span>
+          <span class="proof-node">Bounded action</span><span class="proof-arrow">&#8594;</span>
+          <span class="proof-node">Real customer / transaction outcome</span><span class="proof-arrow">&#8594;</span>
+          <span class="proof-node">OutcomeRecord</span><span class="proof-arrow">&#8594;</span>
+          <span class="proof-node">Calibration</span><span class="proof-arrow">&#8594;</span>
+          <span class="proof-node">Learning proposal</span><span class="proof-arrow">&#8594;</span>
+          <span class="proof-node">Governed promotion</span><span class="proof-arrow">&#8594;</span>
+          <span class="proof-node brass">Better next mission</span>
+        </div>
+      </section>
+
+      <footer>
+        <p><span class="mono">SOURCE</span> · B07 learning-loop specification, with the Sep-7 topology-to-outcome protocol, market-demand learning loop, and reasoning-compilation law. Repository owners shown are the document's named source owners. This board renders the specification; it is not a live view of any running system, and no rung, adapter, or promotion state shown here is telemetry.</p>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* ---------- 01 Canonical chain ---------- */
+        var chainData = [
+          {
+            name: "OutcomeRecord",
+            short: "neuruh.outcome-record.v1",
+            owner: "NeuruhAI/neuruh-outcome-record",
+            detail: "The shared outcome schema. Every producer in the organism, DeedSonar, LandOS, commercial, Founder Runtime, writes outcomes in this one shape. The Sep-5 court mapped approximately 14 producers and concluded no new schema is required; the work is adapters, not a redesign."
+          },
+          {
+            name: "Outcome Calibration Ledger",
+            short: "calibration ledger",
+            owner: "NeuruhAI/neuruh-outcome-calibration-ledger",
+            detail: "Pairs each sealed forecast with its observed outcome and scores the pair: confidence calibration, recipe calibration, routing quality, time-to-outcome, cost against value. Only paired observations enter the ledger. An outcome with no prior forecast cannot be scored and does not calibrate anything."
+          },
+          {
+            name: "Learning Update Proposal",
+            short: "proposal",
+            owner: "NeuruhAI/neuruh-learning-update-proposal",
+            detail: "Calibration evidence is converted into a versioned proposal: a routing weight change, a recipe calibration adjustment, a retry or backoff change, a context-selection change. A proposal is a document with evidence attached, not a mutation. Nothing in production changes at this step."
+          },
+          {
+            name: "Promotion Gate",
+            short: "promotion gate",
+            owner: "NeuruhAI/neuruh-promotion-gate",
+            detail: "The proposal faces independent evaluation before anything is promoted. N-Lab and Factory evidence feed this gate as promotion evidence; experimental results support or weaken the case, they never bypass it. Weak evidence, thin samples, or a single lucky run do not pass."
+          },
+          {
+            name: "Governance",
+            short: "governance",
+            owner: "autonomous-governance-core / canonical authority",
+            detail: "Canonical authority approves or rejects. Governance rules, privileged capability, destructive authority, public exposure, legal or financial commitments, and canonical mutation semantics can only change here, as versioned proposals with tests and an independent court. The learning loop itself has no write access to this layer."
+          },
+          {
+            name: "Promoted behavior",
+            short: "worker / recipe / routing",
+            owner: "production, versioned",
+            detail: "Approved changes land as promoted worker, recipe, or routing behavior, versioned so the next round of outcomes can be attributed to the change and the change can be demoted or rolled back if calibration degrades. The loop closes: the next mission runs under the promoted behavior and generates the next forecast."
+          }
+        ];
+
+        var chainRow = document.getElementById("chainRow");
+        var chainDetail = document.getElementById("chainDetail");
+        var chainCount = document.getElementById("chainCount");
+        var prevBtn = document.getElementById("chainPrev");
+        var nextBtn = document.getElementById("chainNext");
+        var chainIdx = 0;
+
+        chainData.forEach(function (step, i) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "chain-node";
+          btn.setAttribute("role", "tab");
+          btn.innerHTML =
+            '<span class="n-num">LINK ' + (i + 1) + " / " + chainData.length + '</span>' +
+            '<span class="n-name"></span>' +
+            '<span class="n-owner"></span>';
+          btn.querySelector(".n-name").textContent = step.name;
+          btn.querySelector(".n-owner").textContent = step.short;
+          btn.addEventListener("click", function () { setChain(i); });
+          chainRow.appendChild(btn);
+          if (i < chainData.length - 1) {
+            var arrow = document.createElement("span");
+            arrow.className = "chain-arrow";
+            arrow.setAttribute("aria-hidden", "true");
+            arrow.textContent = "\u2192";
+            chainRow.appendChild(arrow);
+          }
+        });
+
+        function setChain(i) {
+          chainIdx = Math.max(0, Math.min(chainData.length - 1, i));
+          var nodes = chainRow.querySelectorAll(".chain-node");
+          nodes.forEach(function (n, j) {
+            n.classList.toggle("active", j === chainIdx);
+            n.classList.toggle("done", j < chainIdx);
+            n.setAttribute("aria-selected", j === chainIdx ? "true" : "false");
+          });
+          var step = chainData[chainIdx];
+          chainDetail.innerHTML = "<h3></h3><p></p>" +
+            '<div class="owner-line">SOURCE OWNER&nbsp;&nbsp;<b></b></div>' +
+            (chainIdx === 3 ? '<div class="owner-line" style="margin-top:4px">EVIDENCE SOURCE&nbsp;&nbsp;<b>N-Lab / Factory feeds promotion evidence here</b></div>' : "");
+          chainDetail.querySelector("h3").textContent = (chainIdx + 1) + ". " + step.name;
+          chainDetail.querySelector("p").textContent = step.detail;
+          chainDetail.querySelectorAll(".owner-line b")[0].textContent = step.owner;
+          chainCount.textContent = "Link " + (chainIdx + 1) + " of " + chainData.length;
+          prevBtn.disabled = chainIdx === 0;
+          nextBtn.disabled = chainIdx === chainData.length - 1;
+          nextBtn.textContent = chainIdx === chainData.length - 1 ? "End of chain" : "Next link";
+        }
+        prevBtn.addEventListener("click", function () { setChain(chainIdx - 1); });
+        nextBtn.addEventListener("click", function () { setChain(chainIdx + 1); });
+        setChain(0);
+
+        /* ---------- 03 Pairing demo ---------- */
+        var forecastSealed = true;
+        var segSealed = document.getElementById("segSealed");
+        var segMissing = document.getElementById("segMissing");
+        var pairResult = document.getElementById("pairResult");
+
+        function setSeg(sealed) {
+          forecastSealed = sealed;
+          segSealed.classList.toggle("on", sealed);
+          segMissing.classList.toggle("on", !sealed);
+          pairResult.className = "pair-result";
+          pairResult.innerHTML = "";
+        }
+        segSealed.addEventListener("click", function () { setSeg(true); });
+        segMissing.addEventListener("click", function () { setSeg(false); });
+
+        document.getElementById("runPair").addEventListener("click", function () {
+          if (forecastSealed) {
+            pairResult.className = "pair-result show ok";
+            pairResult.innerHTML =
+              "<h3>Calibration pair created</h3>" +
+              "<p>The forecast was sealed before the outcome, so the pair is admissible. Confidence can be scored against reality, the recipe and routing versions are known, and the pair enters the Calibration Ledger as evidence a Learning Update Proposal can cite. This is the unit the whole loop runs on.</p>";
+          } else {
+            pairResult.className = "pair-result show blocked";
+            pairResult.innerHTML =
+              "<h3>Calibration blocked</h3>" +
+              "<p>No forecast was recorded before the outcome, so there is nothing to score the outcome against. Calibration cannot be retroactively invented: a forecast written after the fact is narrative hindsight, not evidence. The outcome can be stored, but it cannot calibrate a recipe, a route, or a confidence claim. This is the starvation defect: the architecture exists, the pairs do not, until forecasts are sealed at decision time.</p>";
+          }
+        });
+
+        /* ---------- Ladders ---------- */
+        function buildLadder(listEl, detailEl, rungs, tagPrefix) {
+          var current = 0;
+          rungs.forEach(function (rung, i) {
+            var btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "rung";
+            btn.innerHTML = '<span class="r-num"></span><span class="r-name"></span>';
+            btn.querySelector(".r-num").textContent = String(i + 1).padStart(2, "0");
+            btn.querySelector(".r-name").textContent = rung.name;
+            btn.addEventListener("click", function () { select(i); });
+            listEl.appendChild(btn);
+          });
+          function select(i) {
+            current = i;
+            var nodes = listEl.querySelectorAll(".rung");
+            nodes.forEach(function (n, j) { n.classList.toggle("active", j === current); });
+            detailEl.innerHTML =
+              '<span class="ld-tag"></span><h3></h3><p></p>';
+            detailEl.querySelector(".ld-tag").textContent = tagPrefix + " " + (current + 1) + " of " + rungs.length;
+            detailEl.querySelector("h3").textContent = rungs[current].name;
+            detailEl.querySelector("p").textContent = rungs[current].detail;
+          }
+          select(0);
+        }
+
+        var researchRungs = [
+          { name: "State can be recovered", detail: "The floor of the ladder. After any run, interruption, or failure, the organism can reconstruct what state it was in and what it had committed. Without recoverable state, nothing above this rung can be trusted." },
+          { name: "Actions are linked to real outcomes", detail: "Every action carries a trace to the outcome it produced in the world, recorded as an OutcomeRecord. This is where the adapter families A0 to A7 do their work: producers bridged into the shared record." },
+          { name: "Pre-outcome predictions become calibrated", detail: "Forecasts sealed before outcomes start scoring well against reality. Confidence means something measurable: stated 70 percent predictions land near 70 percent. This rung is impossible without the pairing discipline in section 03." },
+          { name: "Prior outcomes change a future route, recipe, or topology", detail: "The loop actually closes. Calibration evidence produces a proposal, the proposal passes the gate and governance, and a later mission runs differently because of what an earlier outcome taught." },
+          { name: "The changed configuration improves a predefined later metric", detail: "The change was not just made, it was measured against a metric defined before the change. Improvement is demonstrated on paired records, not asserted from a successful run." },
+          { name: "Useful configuration patterns transfer across materially different mission classes", detail: "A topology or recipe pattern that earned its calibration in one mission class proves out in a different one. Transfer is the first claim that something general was learned, and it requires the comparison protocol, not anecdotes." },
+          { name: "Bounded sub-missions can be generated from objectives, anomalies, uncertainty, or opportunity", detail: "The organism can decompose an objective into bounded sub-missions on its own, each still forecast-sealed, gated, and outcome-linked. Generation stays inside the same governance boundary; autonomy does not widen authority." },
+          { name: "Independent evaluation confirms robust transfer, recovery, tool use, and outcome improvement", detail: "The top rung, and the only one that supports a broad research claim: an evaluator outside the loop confirms the transfer, the recovery, the tool use, and the improvement. Until this rung, claims stay at the level the evidence supports." }
+        ];
+
+        var demandRungs = [
+          { name: "Problem observed", detail: "The weakest rung. A problem was seen in the market, in search, in conversation. It is a signal to watch, not a reason to build. Likes, comments, and 'that would be cool' live at this level." },
+          { name: "Buyer provides real constraints or data", detail: "A buyer spends something real: their constraints, their records, their situation. The demand signal is now specific enough to match against existing offers and recipes." },
+          { name: "Buyer accepts a bounded proof", detail: "The buyer agrees to a scoped test with a defined result. This is where a missing ingredient, if one blocks the proof, becomes a concrete demand record instead of a guess." },
+          { name: "Buyer requests price or scope", detail: "The conversation turns commercial. Price and scope requests separate curiosity from intent and start filling the price and urgency band of the demand record." },
+          { name: "Buyer pays", detail: "The first rung that is proof of willingness to pay. Payment converts the demand signal into a commercial terminal state that also feeds the outcome loop through adapter A5." },
+          { name: "Buyer accepts delivery", detail: "The delivered result was accepted as the thing that was bought. Acceptance, not shipment, is the outcome that calibrates the recipe that served this demand." },
+          { name: "Buyer repeats or expands", detail: "One buyer, second purchase. The recipe served real demand more than once, and the repeat is evidence the value was not a one-off courtesy." },
+          { name: "Multiple buyers repeat the same core recipe", detail: "The productization rung. The same core recipe, repeated across buyers, is what justifies climbing the commercial compounding path toward a standardized, repeatable offer." }
+        ];
+
+        buildLadder(document.getElementById("researchLadder"), document.getElementById("researchDetail"), researchRungs, "Research rung");
+        buildLadder(document.getElementById("demandLadder"), document.getElementById("demandDetail"), demandRungs, "Demand rung");
+
+        /* ---------- 08 Demand mini-chain ---------- */
+        var demandSteps = [
+          { label: "MISSING_INGREDIENT", hot: true },
+          { label: "Demand count / recency / buyer value" },
+          { label: "Estimated revenue or strategic value" },
+          { label: "Expected build / operating cost" },
+          { label: "Proof adjacency / reuse across Worlds" },
+          { label: "RICHIE economic ranking" },
+          { label: "LARIC / JGI owner court" },
+          { label: "Bounded build candidate" },
+          { label: "Independent court" },
+          { label: "New or extended ingredient" },
+          { label: "Re-run the previously unserved demand cohort", hot: true }
+        ];
+        var demandChain = document.getElementById("demandChain");
+        demandSteps.forEach(function (step, i) {
+          var node = document.createElement("span");
+          node.className = "mini-node" + (step.hot ? " hot" : "");
+          node.textContent = step.label;
+          demandChain.appendChild(node);
+          if (i < demandSteps.length - 1) {
+            var a = document.createElement("span");
+            a.className = "mini-arrow";
+            a.setAttribute("aria-hidden", "true");
+            a.textContent = "\u2192";
+            demandChain.appendChild(a);
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
