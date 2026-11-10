@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>I Built a Gate for My AI. It Refuses to Publish What It Cannot Prove. | Neuruh</title>
+<meta name="description" content="CRUCIBLE: a verifiable AI pipeline. A local-first stack, a citation gate, and a hash-chained receipt for every output. The honest test results, stated plainly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bone:#F6F2EA; --paper:#FFFDF7; --ink:#1B1813; --ink-2:#4A4438; --ink-3:#8A8171;
+    --brass:#A67C2E; --brass-soft:#C9A86A; --hair:#E3DCCB; --hair-2:#D5CDB6;
+    --green:#2E6B34; --red:#9E2B25; --amber:#8A5A12;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased}
+  a{color:var(--brass);text-decoration:none;border-bottom:1px solid var(--brass-soft)}
+  a:hover{color:#8A651F}
+  .wrap{max-width:780px;margin:0 auto;padding:0 28px}
+  /* Document control header */
+  .docctl{border-top:4px solid var(--brass);background:var(--paper);border-bottom:1px solid var(--hair)}
+  .docctl .wrap{padding-top:22px;padding-bottom:18px}
+  .docctl .kicker{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .docctl h1{font-family:Archivo,Inter,sans-serif;font-size:40px;line-height:1.12;font-weight:800;letter-spacing:-.01em;margin:14px 0 10px}
+  .docctl .dek{font-size:19px;line-height:1.5;color:var(--ink-2);margin:0 0 18px}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hair-2);border:1px solid var(--hair-2);margin:0}
+  .meta div{background:var(--paper);padding:10px 12px}
+  .meta dt{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 3px}
+  .meta dd{margin:0;font-size:13px;font-weight:600;color:var(--ink)}
+  /* Article */
+  main{background:var(--paper);border-bottom:1px solid var(--hair)}
+  main .wrap{padding-top:34px;padding-bottom:40px}
+  h2{font-family:Archivo,Inter,sans-serif;font-size:26px;line-height:1.25;font-weight:700;letter-spacing:-.01em;margin:44px 0 12px;padding-top:26px;border-top:1px solid var(--hair)}
+  h2 .num{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;color:var(--brass);letter-spacing:.08em;margin-right:10px;vertical-align:2px}
+  p{margin:0 0 16px}
+  strong{font-weight:600}
+  ul{margin:0 0 16px;padding-left:22px}
+  li{margin-bottom:8px}
+  li::marker{color:var(--brass)}
+  .lede{font-size:20px;line-height:1.6;color:var(--ink-2)}
+  .lede::first-letter{font-family:Archivo,Inter,sans-serif;font-weight:800;font-size:1.9em;line-height:1;float:left;margin:4px 8px 0 0;color:var(--brass)}
+  /* Figures */
+  figure{margin:30px 0;border:1px solid var(--hair-2);background:var(--bone);padding:0}
+  figure svg{display:block;width:100%;height:auto}
+  figcaption{padding:12px 16px;border-top:1px solid var(--hair);font-size:13px;line-height:1.55;color:var(--ink-2);background:var(--paper)}
+  figcaption b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);margin-right:8px}
+  /* Results table */
+  table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--hair)}
+  th{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);background:var(--paper)}
+  td.num{font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:700}
+  tr:last-child td{border-bottom:0}
+  .flag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 7px;border-radius:2px}
+  .flag.pass{background:#E4EFE2;color:var(--green)}
+  .flag.warn{background:#F6E8CF;color:var(--amber)}
+  /* Honesty box */
+  .honesty{border:2px solid var(--brass);background:var(--paper);padding:20px 22px;margin:34px 0}
+  .honesty h3{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);margin:0 0 12px}
+  .honesty ul{margin:0}
+  .honesty li{font-size:15px}
+  /* Pull quote */
+  blockquote{margin:28px 0;padding:4px 0 4px 20px;border-left:3px solid var(--brass);font-family:Archivo,Inter,sans-serif;font-size:22px;line-height:1.45;font-weight:600;color:var(--ink)}
+  blockquote p{margin:0}
+  /* Footer */
+  footer{background:var(--bone)}
+  footer .wrap{padding:30px 28px 44px}
+  .sig{font-size:15px;color:var(--ink-2);line-height:1.7}
+  .sig strong{color:var(--ink)}
+  .fine{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;line-height:1.7;color:var(--ink-3);margin-top:22px;border-top:1px solid var(--hair);padding-top:16px}
+  .fine a{border-bottom-color:var(--hair-2)}
+  @media (max-width:640px){
+    .docctl h1{font-size:29px}
+    .meta{grid-template-columns:repeat(2,1fr)}
+    body{font-size:16px}
+    h2{font-size:22px}
+    blockquote{font-size:19px}
+  }
+  @media print{
+    body{background:#fff;font-size:12pt}
+    .docctl,.meta div,main,figure,figcaption{background:#fff}
+    a{color:var(--ink);border-bottom:1px solid var(--ink)}
+    .wrap{max-width:100%}
+    h2{break-after:avoid}
+    figure{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header class="docctl">
+  <div class="wrap">
+    <div class="kicker">Neuruh &middot; CRUCIBLE &middot; Public Article</div>
+    <h1>I Built a Gate for My AI. It Refuses to Publish What It Cannot Prove.</h1>
+    <p class="dek">A local-first stack, a citation gate, and a hash-chained receipt for every output. The test results, stated honestly, including the ones that did not flatter the model.</p>
+    <dl class="meta">
+      <div><dt>Author</dt><dd>Jeramie Hicks</dd></div>
+      <div><dt>Published</dt><dd>2026-11-10</dd></div>
+      <div><dt>Length</dt><dd>2,103 words</dd></div>
+      <div><dt>Reading time</dt><dd>About 9 min</dd></div>
+    </dl>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+
+    <p class="lede">The problem is not that AI writes badly. The problem is that AI writes confidently, at volume, with no way to check it. A model can produce a hundred pages before lunch. None of those pages carry proof. A human has to read every line and decide what is true, which defeats the point of generating them in the first place.</p>
+
+    <h2><span class="num">01</span>The problem is not that AI writes badly</h2>
+    <p>The industry answered this by generating more. More volume, more speed, more output. The bottleneck was never volume. The bottleneck was trust.</p>
+    <p>I spent two years building AI systems for real businesses. Real estate, home services, defense work. Every one of those customers asks the same question in different words. Can I defend this output. Can I show my work. Can I prove the machine did not invent the number. Most AI tooling has no answer for that question. It has a dashboard. It has a confidence score the model assigned to itself. It has nothing a skeptical third party would accept.</p>
+    <p>So I built the answer. It is called CRUCIBLE. It is a gate. Nothing my AI writes ships until it passes.</p>
+
+    <h2><span class="num">02</span>What I actually built</h2>
+    <p>The stack has four layers, and each one does exactly one job.</p>
+    <p>The first layer is local inference. I run small models on my own hardware. Bonsai, my IAR router, AXON, AnythingLLM. Retrieval runs over my own corpus. The router decides locally whether a job stays on the machine or escalates. My data does not leave my hardware unless I decide it does. That is the sovereignty part, and it is not a slogan. It is an architecture choice with a cost I accepted on purpose.</p>
+    <p>The second layer generates content. A note swarm drafts, scores, and revises. It can produce volume. Volume is easy now. Volume was never the hard part.</p>
+    <p>The third layer is the gate. This is the part that matters. Every piece of output is scored, citation checked, and judged before it reaches a publish queue. The score is called eta. The citation check counts unsupported claims. The verdict is PASS or FLAG. A FLAG does not ship. It waits for a human.</p>
+    <p>The fourth layer is proof. Every verdict is sealed into a hash chained receipt in a ledger. The output, the sources, the score, the verdict, the timestamp, the hash of the one before it. Then a read only map shows the state of all of it. The map writes nothing. Every glyph on it maps to a receipt line on disk. If you doubt a claim, you follow the chain. That is the whole point.</p>
+    <p>None of these pieces is new. Local serving exists. Retrieval exists. Guardrails exist. Git backed provenance exists. I did not invent a component. I welded them into one loop that refuses to ship unverified work, and I kept the loop honest for two years. The rigor is the product. The components are just parts.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 340" role="img" aria-label="The four layers of the CRUCIBLE stack">
+        <rect x="0" y="0" width="720" height="340" fill="#F6F2EA"/>
+        <g font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2">
+          <rect x="60" y="18" width="600" height="58" fill="#FFFDF7" stroke="#D5CDB6"/>
+          <text x="80" y="42" fill="#A67C2E" font-weight="700">LAYER 1</text>
+          <text x="80" y="64" fill="#1B1813" font-size="13" font-weight="700" letter-spacing="0">Local inference</text>
+          <text x="420" y="64" fill="#4A4438" font-size="12" letter-spacing="0">Bonsai &middot; IAR &middot; AXON &middot; AnythingLLM &middot; RAG over own corpus</text>
+          <rect x="60" y="96" width="600" height="58" fill="#FFFDF7" stroke="#D5CDB6"/>
+          <text x="80" y="120" fill="#A67C2E" font-weight="700">LAYER 2</text>
+          <text x="80" y="142" fill="#1B1813" font-size="13" font-weight="700" letter-spacing="0">Content generation</text>
+          <text x="420" y="142" fill="#4A4438" font-size="12" letter-spacing="0">Note swarm drafts, scores, revises</text>
+          <rect x="60" y="174" width="600" height="58" fill="#FFFDF7" stroke="#A67C2E" stroke-width="2"/>
+          <text x="80" y="198" fill="#A67C2E" font-weight="700">LAYER 3</text>
+          <text x="80" y="220" fill="#1B1813" font-size="13" font-weight="700" letter-spacing="0">The gate &middot; CRUCIBLE</text>
+          <text x="420" y="220" fill="#4A4438" font-size="12" letter-spacing="0">Eta score &middot; citation check &middot; PASS / FLAG</text>
+          <rect x="60" y="252" width="600" height="58" fill="#FFFDF7" stroke="#D5CDB6"/>
+          <text x="80" y="276" fill="#A67C2E" font-weight="700">LAYER 4</text>
+          <text x="80" y="298" fill="#1B1813" font-size="13" font-weight="700" letter-spacing="0">Proof</text>
+          <text x="420" y="298" fill="#4A4438" font-size="12" letter-spacing="0">Hash chained receipts &middot; read only map</text>
+        </g>
+        <g stroke="#A67C2E" stroke-width="1.5" fill="none">
+          <line x1="360" y1="76" x2="360" y2="96"/><line x1="360" y1="154" x2="360" y2="174"/><line x1="360" y1="232" x2="360" y2="252"/>
+        </g>
+      </svg>
+      <figcaption><b>Figure 1</b> The four layers. Local inference, content generation, the gate, and proof. Only Layer 3 can stop a publish. Only Layer 4 can prove what happened.</figcaption>
+    </figure>
+
+    <h2><span class="num">03</span>How the gate works</h2>
+    <p>The gate runs three moves on every output.</p>
+    <p>First, it splits the output into factual claims. Opinions, questions, and filler are ignored. Only statements of fact get judged. A sentence with a number, a date, a name, or a verb like reported or found is a claim. Everything else passes through.</p>
+    <p>Second, it checks each claim against the sources. The rule is simple and it is deliberately biased in one direction. The default is supported. A claim is only flagged when no source backs it. A restatement in different words still counts. A matching number, name, date, or event counts. The model has to quote the exact supporting words before a claim passes. If it cannot find the words, the claim is flagged.</p>
+    <p>Third, it seals the receipt. The verdict, the score, the count of unsupported claims, the content hash, the source fingerprints, the timestamp. Sources are stored as hashes only, never as raw text. The ledger is append only. Each receipt links to the one before it. Tamper with one line and the chain breaks.</p>
+    <p>The publish rule is strict. PASS requires the score at or above threshold and zero unsupported claims. Anything else is FLAG. FLAG does not mean the output is wrong. It means a human has to look at it before it goes anywhere. That distinction matters. The gate does not decide truth. It decides whether the evidence is on file. It is a notary, not a judge.</p>
+
+    <figure>
+      <svg viewBox="0 0 720 300" role="img" aria-label="The gate decision flow">
+        <rect x="0" y="0" width="720" height="300" fill="#F6F2EA"/>
+        <g font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="1">
+          <rect x="30" y="110" width="110" height="80" fill="#FFFDF7" stroke="#D5CDB6"/>
+          <text x="48" y="142" fill="#1B1813" font-weight="700">OUTPUT</text>
+          <text x="48" y="162" fill="#4A4438" font-size="10">AI draft in</text>
+          <rect x="180" y="110" width="130" height="80" fill="#FFFDF7" stroke="#D5CDB6"/>
+          <text x="196" y="142" fill="#1B1813" font-weight="700">SPLIT CLAIMS</text>
+          <text x="196" y="162" fill="#4A4438" font-size="10">Facts only</text>
+          <rect x="350" y="110" width="150" height="80" fill="#FFFDF7" stroke="#A67C2E" stroke-width="2"/>
+          <text x="366" y="142" fill="#1B1813" font-weight="700">CHECK SOURCES</text>
+          <text x="366" y="162" fill="#4A4438" font-size="10">Default: supported</text>
+          <text x="366" y="176" fill="#4A4438" font-size="10">Quote the span</text>
+          <rect x="540" y="60" width="150" height="56" fill="#E4EFE2" stroke="#2E6B34"/>
+          <text x="556" y="84" fill="#2E6B34" font-weight="700">PASS</text>
+          <text x="556" y="102" fill="#4A4438" font-size="10">Eta at threshold</text>
+          <rect x="540" y="184" width="150" height="56" fill="#F6E8CF" stroke="#8A5A12"/>
+          <text x="556" y="208" fill="#8A5A12" font-weight="700">FLAG</text>
+          <text x="556" y="226" fill="#4A4438" font-size="10">Human review</text>
+          <rect x="180" y="262" width="330" height="26" fill="#FFFDF7" stroke="#D5CDB6"/>
+          <text x="196" y="279" fill="#4A4438" font-size="10">SEAL RECEIPT &middot; hash chained &middot; append only ledger</text>
+        </g>
+        <g stroke="#A67C2E" stroke-width="1.5" fill="none">
+          <line x1="140" y1="150" x2="180" y2="150"/><line x1="310" y1="150" x2="350" y2="150"/>
+          <line x1="500" y1="130" x2="540" y2="95"/><line x1="500" y1="170" x2="540" y2="205"/>
+          <line x1="615" y1="116" x2="615" y2="262"/>
+        </g>
+      </svg>
+      <figcaption><b>Figure 2</b> The gate decision flow. Every output is split, checked, and sealed. PASS ships. FLAG waits for a human. Nothing ships without a receipt.</figcaption>
+    </figure>
+
+    <h2><span class="num">04</span>The honest test, and what it found</h2>
+    <p>I do not trust a gate I have not tested. So I tested it, and the test found something I did not expect.</p>
+    <p>I ran a small seed of 14 rows. Fourteen rows is a demo. It is not a benchmark. I am saying that plainly because the number that came out of it is not a claim. It is a finding from a small test, and I will label it that way every time I mention it.</p>
+    <p>On that seed, my deterministic heuristic scored F1 0.923. My local 8B model scored F1 0.700. The model caught every fabrication, including the one the heuristic missed. Perfect recall. It also flagged six clean, well sourced outputs as hallucinations. Six false positives.</p>
+    <p>The clearest case was a property sale. The output said the property at 214 Elm sold for 187000 dollars. The source said exactly that. The model flagged it anyway. That is not a hard case. The model got a trivially correct claim wrong.</p>
+    <blockquote><p>The model caught every fabrication and also flagged six clean outputs. That is over-flagging, not a broken pipeline.</p></blockquote>
+    <p>This is a known failure mode. A small model asked to return strict JSON while also judging faithfulness tends to over flag, to seem cautious. It looks at a claim that is supported and calls it unsupported anyway. Precision 0.538 with recall 1.000 is the signature of over flagging, not of a broken pipeline. The wiring worked. The judgment was too eager.</p>
+    <p>That finding is worth more than the score. It tells me exactly where the weak point is. It also tells me something about how to test honestly. My ledger had polluted lines mixed in from failed attempts before the wiring worked. Fifteen fallback lines, then forty four mixed lines. A benchmark measured against that ledger would have been a blend. I archive and reset the ledger before any measured run, because a dirty ledger lies quietly.</p>
+    <p>So I hardened the prompt. Three changes. The default flipped to supported, so the model has to earn a flag instead of hunting for one. The model must quote the supporting source span before a claim passes, which forces it to actually look at the source. And the worked example in the prompt is now the exact case it failed, the 214 Elm sale, shown being passed correctly. The score is computed from the supported ratio now, not asked from a model that cannot calibrate itself. The JSON parser takes the last balanced block that parses, so the model can reason before answering without breaking the parse.</p>
+    <p>There are three possible outcomes from the re-run, and I will report whichever one lands. If false positives drop to zero or one, the hardening worked and a local 8B can do this job. If they drop to two or three, the prompt helped and the model is close but not clean, and that becomes a real judgment call. If they stay high, the prompt was not the problem and the model size is. That last outcome is not a failure. It is a finding that earns the right to a bigger judge. Running the cheap test first is what makes the expensive move defensible instead of premature.</p>
+    <p>I also know the cost. Each verify call round trips the model in about 2.3 seconds. A full benchmark of fifteen thousand rows would take about ten hours on my machine. The first real run gets a 500 row cap. Twenty minutes for a directional number beats a wasted overnight.</p>
+
+    <figure>
+      <table>
+        <thead><tr><th>Checker</th><th>F1</th><th>Precision</th><th>Recall</th><th>False positives</th><th>False negatives</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Deterministic heuristic</td><td class="num">0.923</td><td class="num">n/a</td><td class="num">n/a</td><td class="num">0</td><td class="num">1</td><td><span class="flag pass">DEMO</span></td></tr>
+          <tr><td>Local Bonsai 8B (IAR)</td><td class="num">0.700</td><td class="num">0.538</td><td class="num">1.000</td><td class="num">6</td><td class="num">0</td><td><span class="flag warn">DEMO</span></td></tr>
+        </tbody>
+      </table>
+      <figcaption><b>Figure 3</b> The 14-row seed results. Both numbers are findings from a demo seed, not benchmarks. The heuristic missed one fabrication. The model caught every fabrication and flagged six clean outputs. The re-run after prompt hardening has not returned yet.</figcaption>
+    </figure>
+
+    <h2><span class="num">05</span>What this solves</h2>
+    <p>Five things, stated plainly.</p>
+    <ul>
+      <li><strong>Provenance.</strong> Every output traces to a receipt. You can defend the claim because the evidence is attached to it. Most AI operators cannot do this.</li>
+      <li><strong>Cost and sovereignty.</strong> Local first, with an escalation toggle. Cloud spend stays low and data stays home unless you choose otherwise. That matters for defense work and for any customer with data that cannot leave.</li>
+      <li><strong>Hallucination gating.</strong> The citation check runs before publish. It attacks the single biggest reason AI content is not trusted, which is that nobody checks it.</li>
+      <li><strong>Context.</strong> I run twelve worlds at once across roughly 130 repositories. The read only map shows all of them. A one person shop usually loses the thread across that many fronts. The map is how I do not.</li>
+      <li><strong>Volume with a floor.</strong> The swarm can generate at scale. The gate holds the line so scale does not mean degradation. Output goes up. The standard does not go down.</li>
+    </ul>
+
+    <h2><span class="num">06</span>What it does not solve yet</h2>
+    <p>Revenue. I will say it the same way I say it in every honest accounting of this work. My monthly recurring revenue is zero. One product earns money, TaxShield. Everything else is infrastructure waiting for a customer.</p>
+    <p>That is the gap, and I know what it is. I built a moat around a product that mostly does not exist yet. The gate is the closest thing in the estate to a sellable product, and I had it filed under internal tooling. That was a misfiling. The extraction is the work now: the gate as a standalone pipeline, white label ready, licensed to teams who need AI output they can defend.</p>
+    <p>There is also a cost I will not hide. The system is complex. A dozen daemons, thirty one frameworks, an 8GB machine. Complexity is a liability, not just an asset. What demos beautifully is what breaks at 3 a.m. when a daemon dies and one person has to fix it. Cutting dead surface is part of the same work as selling the gate. Both are discipline. Both are overdue.</p>
+    <p>And the test itself is unfinished. Fourteen rows is a demo. The full benchmark has not run. The re-run after hardening has not returned. I will not claim accuracy I have not measured. That is the rule I apply to dollars, and I apply it to metrics the same way.</p>
+
+    <h2><span class="num">07</span>The three moves from here</h2>
+    <p>I am not stacking them. I am picking one at a time.</p>
+    <p>First, extract the gate. Package the score, the citation check, and the receipt chain as a standalone pipeline other teams can run. That is the product. Everything else I built serves it or gets cut.</p>
+    <p>Second, cut the dead surface. I will rank my twelve worlds by real event activity and archive the bottom six. A smaller system I can keep alive beats a bigger one that dies quietly at 3 a.m.</p>
+    <p>Third, prove one loop converts. Point the full gate at a single paying vertical end to end, a real estate lead in, a gated brief out, a client handoff with the receipt attached, and show it closes once. One proven loop beats twelve half lit worlds.</p>
+
+    <h2><span class="num">08</span>Why provenance is the product</h2>
+    <p>The AI industry is optimizing for volume. I optimized against slop. Those are opposite directions, and they produce opposite systems.</p>
+    <p>Volume systems ask how much the model can produce. Mine asks what the model can prove. That question changes everything downstream. It changes the architecture, because proof has to be built into the pipeline rather than bolted on. It changes the testing, because a gate you do not test is decoration. It changes the business, because the customer is not buying words. The customer is buying words they can stand behind.</p>
+    <p>That is the thesis. AI output you can defend, with the receipts attached. If you need that, for compliance, for legal, for audit, for defense, or for any work where an invented number costs real money, that is what CRUCIBLE is for.</p>
+    <p>I built it because I needed it myself. I am offering it because I suspect I am not the only one.</p>
+
+    <div class="honesty">
+      <h3>Numbers in this article, with their status</h3>
+      <ul>
+        <li>The 14-row seed is a demo, not a benchmark.</li>
+        <li>F1 0.700 for the local 8B and F1 0.923 for the heuristic are findings from that demo seed.</li>
+        <li>Monthly recurring revenue is $0. One product, TaxShield, earns money.</li>
+        <li>Verify latency is about 2.3 seconds per call on the current machine.</li>
+        <li>No dollar valuation is claimed anywhere in this article.</li>
+      </ul>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="sig"><strong>Jeramie Hicks</strong> is the founder of Neuruh, a sovereign AI execution company. He builds systems that leave receipts. Reach him at <a href="https://cal.com/neuruh">cal.com/neuruh</a> or <a href="mailto:jeramie@neuruh.com">jeramie@neuruh.com</a>.</p>
+    <p class="fine">CRUCIBLE &middot; Neuruh &middot; Published 2026-11-10 &middot; The gate as described runs on local hardware with a hash-chained receipt ledger. Benchmark figures in this article are findings from a 14-row demo seed unless labeled otherwise. No dollar valuation is claimed.</p>
+  </div>
+</footer>
+
+</body>
+</html>
