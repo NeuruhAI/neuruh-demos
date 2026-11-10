@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NRH Registry — Neuruh Registry Visual</title>
+<style>
+  :root{
+    --obsidian:#141210; --obsidian2:#1d1a17; --bone:#f2ede3; --bone2:#e6ddcc;
+    --ink:#221f1c; --brass:#b87333; --brass2:#8c6d1f; --line:#c9bfa9; --mut:#6d6455;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bone);color:var(--ink);
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+  h1,h2,h3,.display{font-family:Archivo,"Arial Narrow",Inter,sans-serif;letter-spacing:.01em}
+  code,.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  header.doc{background:var(--obsidian);color:var(--bone);padding:26px 28px 22px}
+  header.doc .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--brass)}
+  header.doc h1{margin:8px 0 4px;font-size:34px;line-height:1.1}
+  header.doc p.sub{margin:0;color:#cfc6b4;max-width:860px}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#3a352e;
+    border:1px solid #3a352e;margin-top:18px}
+  .meta-grid div{background:var(--obsidian2);padding:10px 12px;font-size:12px}
+  .meta-grid b{display:block;font-family:"JetBrains Mono",monospace;font-size:11px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:2px}
+  main{max-width:1180px;margin:0 auto;padding:28px 22px 60px}
+  section{margin-top:44px}
+  h2{font-size:22px;border-bottom:2px solid var(--brass);padding-bottom:6px;margin:0 0 14px}
+  h3{font-size:16px;margin:22px 0 8px}
+  .note{border-left:3px solid var(--brass);background:#efe8d6;padding:12px 16px;margin:14px 0}
+  .warn{border-left:3px solid var(--brass2);background:#f4ecd8;padding:12px 16px;margin:14px 0}
+  .banner{background:#2a2118;color:var(--bone);border:1px solid var(--brass);
+    padding:12px 16px;margin:0 0 18px;font-size:14px}
+  .banner b{color:var(--brass)}
+  /* viewer */
+  .viewer-wrap{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+  #stage{position:relative;background:var(--obsidian);border:1px solid #3a352e;min-height:520px}
+  #gl{display:block;width:100%;height:520px}
+  #stage .overlay{position:absolute;left:12px;top:10px;color:#cfc6b4;font-size:12px;
+    font-family:"JetBrains Mono",monospace;background:rgba(20,18,16,.75);padding:6px 9px}
+  #webgl-fallback{display:none;position:absolute;inset:0;background:var(--obsidian);color:var(--bone);
+    padding:40px 28px;font-size:15px}
+  #webgl-fallback h3{color:var(--brass)}
+  .controls{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .controls button{font-family:"JetBrains Mono",monospace;font-size:11px;padding:6px 10px;
+    background:var(--bone2);border:1px solid var(--line);cursor:pointer;color:var(--ink)}
+  .controls button.active{background:var(--brass);color:#fff;border-color:var(--brass)}
+  .controls button:hover{border-color:var(--brass)}
+  #panel{background:#fff;border:1px solid var(--line);padding:18px;min-height:520px}
+  #panel h3{margin-top:0;font-size:17px}
+  #panel .face{font-size:13px}
+  #panel .face dt{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--brass2);margin-top:10px}
+  #panel .face dd{margin:2px 0 0}
+  #panel .unknown{color:var(--mut);font-style:italic}
+  /* legend + tables */
+  .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .legend .item{background:#fff;border:1px solid var(--line);padding:10px 12px;font-size:13px}
+  .legend .sw{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:8px}
+  .legend .glyph{font-size:16px;margin-right:6px}
+  table{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--obsidian);color:var(--bone);font-family:"JetBrains Mono",monospace;
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  .typegrid{display:flex;flex-wrap:wrap;gap:6px}
+  .typegrid span{background:#fff;border:1px solid var(--line);padding:5px 9px;font-size:12px}
+  .statusgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .statusgrid div{background:#fff;border:1px solid var(--line);padding:10px 12px;font-size:13px}
+  .statusgrid .g{font-size:18px;margin-right:8px}
+  figure{margin:18px 0}
+  figcaption{font-size:12px;color:var(--mut);margin-top:6px}
+  footer{border-top:2px solid var(--brass);margin-top:48px;padding-top:14px;font-size:12px;color:var(--mut)}
+  @media(max-width:900px){.viewer-wrap{grid-template-columns:1fr}.legend{grid-template-columns:1fr 1fr}
+    .meta-grid{grid-template-columns:1fr 1fr}.statusgrid{grid-template-columns:1fr}}
+  @media print{ #stage{break-inside:avoid} body{background:#fff} }
+</style>
+</head>
+<body>
+<header class="doc">
+  <div class="kicker">Neuruh &middot; Registry &middot; Document NRH-VIZ-001</div>
+  <h1>NRH Registry</h1>
+  <p class="sub">The Neuruh Registry: one universal addressing scheme for everything Jeramie owns.
+  Every record gets one Registry ID. The ID is internal and is never shown to a customer.
+  This page renders the scheme, the seeded domains and entities, the alias migration,
+  and the open items exactly as recorded from the July 24, 2026 workday transcript.</p>
+  <div class="meta-grid">
+    <div><b>Scheme</b>NRH-[DD]-[ENT]-[TTT]-[NNN]-[hash8]</div>
+    <div><b>Source</b>July 24, 2026 merged workday transcript</div>
+    <div><b>Records</b>12 of ~36 known entities have records; 24 seeded, no records yet</div>
+    <div><b>State</b>Seeded from transcript; not a live system</div>
+  </div>
+</header>
+
+<main>
+  <div class="banner"><b>Reading rule.</b> This is a seeded visual of a registry scheme, not a live
+  registry. Fields the transcript does not give are marked UNKNOWN, never filled in. The DeedSonar
+  record below is a July 24, 2026 historical record; anything about ownership on it is history,
+  not current state.</div>
+
+  <section id="viewer">
+    <h2>Figure 1 &mdash; The registry as a map: 9 domains, 35 seeded entities</h2>
+    <p>Each domain is a cluster in its domain color. Each sphere is one seeded entity.
+    Click a sphere to load its FACE record in the panel. Drag to orbit, scroll to zoom.
+    The DeedSonar node loads in full; every other entity shows only what the transcript seeds,
+    with the rest marked UNKNOWN.</p>
+    <div class="viewer-wrap">
+      <div>
+        <div id="stage">
+          <canvas id="gl"></canvas>
+          <div class="overlay">NRH REGISTRY &middot; 9 DOMAINS &middot; 35 ENTITIES &middot; CLICK A NODE</div>
+          <div id="webgl-fallback">
+            <h3>3D view unavailable</h3>
+            <p>The interactive 3D registry map could not load here: either WebGL is unavailable in
+            this browser, or the pinned Three.js CDN (cdnjs three.js 0.158.0) could not be reached.</p>
+            <p>Everything on this page below the viewer &mdash; the scheme, the domain and entity
+            lists, the alias migration table, the SKU split, the hash rule, and the open items &mdash;
+            is plain text and remains fully readable without the 3D view.</p>
+          </div>
+        </div>
+        <div class="controls" id="domain-controls" aria-label="Domain filter"></div>
+        <div class="controls">
+          <button id="reset-view" type="button">Reset view</button>
+          <button id="autorotate" type="button" aria-pressed="true">Auto-rotate: on</button>
+        </div>
+        <p id="readout" class="mono" style="font-size:12px;color:var(--mut)">Selected: NRH-RE-DSNR-DEP-001-4674604a &mdash; DeedSonar production merge.</p>
+      </div>
+      <aside id="panel" aria-live="polite"></aside>
+    </div>
+    <figure>
+      <figcaption>Figure 1. Domain clusters are placed on a ring; entity nodes orbit their domain
+      hub. Color is identity (domain), shape is not: status is carried by the glyph in the panel,
+      never by node color. Layout is derived for readability, not recorded telemetry.</figcaption>
+    </figure>
+  </section>
+
+  <section id="legend">
+    <h2>Legend</h2>
+    <h3>Domains (9)</h3>
+    <div class="legend" id="domain-legend"></div>
+    <h3>Status glyphs &mdash; state, not identity</h3>
+    <div class="statusgrid">
+      <div><span class="g">&#9679;</span><b>live / producing</b> &mdash; in production use</div>
+      <div><span class="g">&#9684;</span><b>built, not deployed</b> &mdash; exists, not live</div>
+      <div><span class="g">&#9675;</span><b>specced, not built</b> &mdash; design only</div>
+      <div><span class="g">&#9670;</span><b>canon</b> &mdash; others depend on it</div>
+      <div><span class="g">&#9650;</span><b>blocked / gated</b> &mdash; waiting on a decision or fix</div>
+      <div><span class="g">&#8856;</span><b>dark</b> &mdash; was live, now down</div>
+      <div><span class="g">&#10005;</span><b>superseded</b> &mdash; replaced by a newer record</div>
+    </div>
+    <h3>Type codes (14 named)</h3>
+    <div class="typegrid">
+      <span><code>THR</code> thread</span><span><code>ART</code> artifact</span>
+      <span><code>DOC</code> document</span><span><code>LDG</code> ledger</span>
+      <span><code>DEC</code> decision</span><span><code>CDE</code> codebase</span>
+      <span><code>DEP</code> deployment</span><span><code>SVC</code> service</span>
+      <span><code>MTG</code> transcript</span><span><code>ASS</code> asset</span>
+      <span><code>RCP</code> CRUCIBLE receipt</span><span><code>INC</code> incident</span>
+      <span><code>CON</code> contract</span><span><code>PKG</code> sellable SKU</span>
+    </div>
+    <p class="note">The scheme lists 15 type slots; the transcript names 14. The 14 named are rendered
+    above. No 15th type is invented here.</p>
+  </section>
+
+  <section id="scheme">
+    <h2>The scheme</h2>
+    <p>One ID format for everything:</p>
+    <p class="mono" style="font-size:17px;background:#fff;border:1px solid var(--line);padding:14px 16px">
+      NRH-[DD]-[ENT]-[TTT]-[NNN]-[hash8]</p>
+    <table>
+      <tr><th>Segment</th><th>Meaning</th><th>Example</th></tr>
+      <tr><td><code>NRH</code></td><td>Fixed prefix: Neuruh Registry</td><td>NRH</td></tr>
+      <tr><td><code>DD</code></td><td>Domain, 2 letters</td><td>RE &mdash; Real Estate Intelligence</td></tr>
+      <tr><td><code>ENT</code></td><td>Entity, 3&ndash;4 characters</td><td>DSNR &mdash; DeedSonar</td></tr>
+      <tr><td><code>TTT</code></td><td>Type, 3 letters</td><td>DEP &mdash; deployment</td></tr>
+      <tr><td><code>NNN</code></td><td>Sequence, 3 digits</td><td>001</td></tr>
+      <tr><td><code>hash8</code></td><td>First 8 hex chars of SHA-256 of the canonical content, NRH tokens stripped</td><td>4674604a</td></tr>
+    </table>
+    <p>Regex: <code>NRH-[A-Z]{2}-[A-Z0-9]{3,4}-[A-Z]{3}-[0-9]{3}-[0-9a-f]{8}</code></p>
+    <p>Worked example: <code>NRH-RE-DSNR-DEP-001-4674604a</code> &mdash; Real Estate, DeedSonar,
+    Deployment, 001, content hash 4674604a.</p>
+
+    <h3>The hash self-reference fix (SPEC R2)</h3>
+    <p>The hash is SHA-256 of the canonical content <b>with all NRH tokens stripped</b>.
+    Hashing a record that contains its own ID never converges: change the hash and the content
+    changes, change the content and the hash changes. Stripping the NRH tokens before hashing
+    breaks the loop. The hash therefore verifies the content, not the identifier.</p>
+    <p>Example: <code>4674604a = SHA-256(merge commit tree)</code> for the DeedSonar production merge.</p>
+  </section>
+
+  <section id="record">
+    <h2>Seeded example record in full &mdash; DeedSonar production merge</h2>
+    <p class="warn"><b>July 24, 2026 historical record.</b> The SERVES line below is how the record
+    read on July 24, 2026. It is history, not current state. The July 24 transcript framing of a
+    50/50 split was superseded by the 2026-10-22 correction: DeedSonar is solely Jeramie&rsquo;s;
+    Bryan Franklin never signed. No 50/50 framing is current anywhere on this page.</p>
+    <table>
+      <tr><th colspan="2">FACE &mdash; scannable, top</th></tr>
+      <tr><td><b>NRH id</b></td><td><code>NRH-RE-DSNR-DEP-001-4674604a</code></td></tr>
+      <tr><td><b>Status</b></td><td>&#9679; live/producing (as of the July 24 record)</td></tr>
+      <tr><td><b>Tier</b></td><td class="unknown">UNKNOWN &mdash; tier not stated in the transcript</td></tr>
+      <tr><td><b>WHAT</b></td><td>Land acquisition CRM, formerly APG Land CRM</td></tr>
+      <tr><td><b>SERVES</b></td><td>July 24, 2026 historical record: DeedSonar as recorded on that date, including the July 24 ownership framing that was later superseded on 2026-10-22. Not current state.</td></tr>
+      <tr><td><b>LINKS</b></td><td class="unknown">UNKNOWN &mdash; no links stated in the transcript</td></tr>
+      <tr><td><b>DEPENDS</b></td><td><code>NRH-RE-LOSE-SVC-001</code>, <code>NRH-IN-CRU-SVC-001</code></td></tr>
+      <tr><td><b>OPEN</b></td><td>migration 086 apply; app.deedsonar.com CNAME; prod URL unconfirmed</td></tr>
+      <tr><td><b>MONEY</b></td><td>revenue-path, pre-MRR</td></tr>
+      <tr><th colspan="2">SPINE &mdash; below the fold</th></tr>
+      <tr><td><b>ORIGIN</b></td><td>thread a34bf0ab, 2026-07-24</td></tr>
+      <tr><td><b>SUMMARY</b></td><td>DeedSonar production merge: the APG Land CRM codebase merged into DeedSonar as the production land acquisition CRM.</td></tr>
+      <tr><td><b>PARENT</b></td><td class="unknown">UNKNOWN &mdash; no parent stated in the transcript</td></tr>
+      <tr><td><b>HASH</b></td><td><code>4674604a</code> = SHA-256(merge commit tree)</td></tr>
+      <tr><td><b>SUPERSEDES</b></td><td><code>NRH-RE-APGC-*</code> (all APG Land CRM records)</td></tr>
+      <tr><td><b>EVIDENCE</b></td><td>merge commit tree (hash 4674604a); thread a34bf0ab, 2026-07-24</td></tr>
+    </table>
+
+    <h3>Merged workday record</h3>
+    <p><code>NRH-OP-0724-SES-001-5da3074c</code> &mdash; the merged July 24 workday, 8 workstreams:</p>
+    <p>VPS plan; M1 crisis; credential incident; N-Cell Wave 1; DeedSonar merge; ratifications;
+    Workshop; OpenRouter.</p>
+  </section>
+
+  <section id="aliases">
+    <h2>Alias migration table &mdash; legacy IDs stay valid as aliases</h2>
+    <p>Legacy IDs are not deleted. They map to NRH IDs in offset blocks and remain valid as aliases.</p>
+    <table>
+      <tr><th>Legacy range</th><th>Maps to NRH range</th><th>Scope</th></tr>
+      <tr><td><code>P-01..P-37</code></td><td><code>NRH-RE-DSNR-DEC-001..037</code></td><td>DeedSonar decisions, 37 records</td></tr>
+      <tr><td><code>C-01..C-19</code></td><td><code>NRH-RE-DSNR-DEC-101..119</code></td><td>DeedSonar decisions, offset block 101&ndash;119</td></tr>
+      <tr><td><code>DS-01..DS-25</code></td><td><code>NRH-RE-DSNR-DEC-201..225</code></td><td>DeedSonar decisions, offset block 201&ndash;225</td></tr>
+      <tr><td><code>D-01..D-06</code></td><td><code>NRH-IN-NCEL-DEC-001..006</code></td><td>N-Cell decisions, 6 records</td></tr>
+      <tr><td><code>B-01..B-07</code></td><td><code>NRH-IN-NCEL-INC-001..007</code></td><td>N-Cell incidents, 7 records</td></tr>
+    </table>
+    <p>Offset blocks keep the three DeedSonar decision series distinct inside one DEC sequence:
+    P-series at 001, C-series at 101, DS-series at 201.</p>
+  </section>
+
+  <section id="sku">
+    <h2>SKU is not a Registry ID</h2>
+    <table>
+      <tr><th></th><th>Registry ID</th><th>SKU</th></tr>
+      <tr><td><b>Scope</b></td><td>Internal. Everything gets one.</td><td>External. Only sellable things get one.</td></tr>
+      <tr><td><b>Shown to a customer?</b></td><td>Never.</td><td>Yes &mdash; it is the sellable label.</td></tr>
+      <tr><td><b>Format</b></td><td><code>NRH-[DD]-[ENT]-[TTT]-[NNN]-[hash8]</code></td><td><code>[BRAND]-[LINE]-[TIER]</code> &mdash; white-label-swappable</td></tr>
+      <tr><td><b>Examples</b></td><td><code>NRH-RE-DSNR-DEP-001-4674604a</code></td><td><code>LANDOS-SCORE-PRO</code>, <code>BIRDDOG-CAPTURE-TEAM</code>, <code>CRUCIBLE-GATE-ENT</code></td></tr>
+    </table>
+    <p>A sellable thing carries both: a Registry ID for internal addressing and a SKU for the market.
+    The SKU brand segment swaps under white label; the Registry ID never changes.</p>
+  </section>
+
+  <section id="open">
+    <h2>Open items</h2>
+    <ul>
+      <li><b>Credential incident &mdash; OPEN.</b> 6 repos with .env pushed, plus a Supabase string on an
+      iCloud-synced Desktop. Open per the transcript. No closure recorded.</li>
+      <li><b>Coverage: 12 of ~36 known entities have records.</b> The other 24 are seeded in
+      codes/entities.csv with status and tier but no records yet.</li>
+      <li><b>Unresolved discrepancy: test count.</b> Recorded as 19&rarr;36 vs 47. Never reconciled.
+      Shown as open; no value is picked here.</li>
+      <li><b>Unresolved discrepancy: truncated credential.</b> Recorded as starting
+      <code>GITHUB_</code>, rest cut off. Do not guess the remainder.</li>
+      <li><b>DeedSonar record, OPEN:</b> migration 086 apply; app.deedsonar.com CNAME; prod URL unconfirmed.</li>
+      <li><b>Reconciliation, standing:</b> the July 24 transcript framing of a 50/50 split was superseded
+      2026-10-22. DeedSonar is solely Jeramie&rsquo;s; Bryan Franklin never signed. Any July 24
+      ownership line on this page is a historical record only.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>NRH Registry visual &middot; Seeded from the July 24, 2026 merged workday transcript.
+    Record structure FACE / SPINE per the registry spec. Hash rule SPEC R2.
+    Three.js 0.158.0 via cdnjs. No live data: this page renders seeded transcript values only.
+    Verified via jsdom checks on 2026-11-10; live check pending at publish time.</p>
+  </footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  var DOMAINS = [
+    {code:"RE", name:"Real Estate Intelligence", color:"#1F6F4A", glyph:"\u25A3"},
+    {code:"IN", name:"Infrastructure / Core", color:"#2B2B2B", glyph:"\u2B22"},
+    {code:"CO", name:"Commerce / Resale", color:"#B87333", glyph:"\u25C8"},
+    {code:"SV", name:"Client Services", color:"#4A6FA5", glyph:"\u2524"},
+    {code:"CR", name:"Creator / Publication", color:"#7A3B69", glyph:"\u270E"},
+    {code:"RS", name:"Research", color:"#6B5B3A", glyph:"\u2630"},
+    {code:"FN", name:"Finance / Capital", color:"#8C6D1F", glyph:"\u25C7"},
+    {code:"OP", name:"Ops", color:"#5C5C5C", glyph:"\u2699"},
+    {code:"FM", name:"Family / Personal", color:"#A85751", glyph:"\u2641"}
+  ];
+  var ENTITIES = [
+    {d:"RE", code:"DSNR", name:"DeedSonar"},
+    {d:"RE", code:"LOSE", name:"landos-engine"},
+    {d:"RE", code:"LOSI", name:"landos-ingest"},
+    {d:"RE", code:"BDOG", name:"BirdDog.land"},
+    {d:"RE", code:"LGRF", name:"LandGraph"},
+    {d:"IN", code:"AXON", name:"AXON stack"},
+    {d:"IN", code:"BOS", name:"BuildOS"},
+    {d:"IN", code:"CRU", name:"CRUCIBLE"},
+    {d:"IN", code:"RAMC", name:"RAMCache"},
+    {d:"IN", code:"NCEL", name:"N-Cell"},
+    {d:"IN", code:"NFAC", name:"neuruh-factory"},
+    {d:"IN", code:"HELM", name:"HelmAI"},
+    {d:"IN", code:"L4E", name:"L4 Engine"},
+    {d:"IN", code:"MCP", name:"Neuruh MCP"},
+    {d:"IN", code:"GLXY", name:"GALAXY-LIVE"},
+    {d:"IN", code:"PRSM", name:"PRISM"},
+    {d:"CO", code:"FSP", name:"FindSellProfit/ResellOS"},
+    {d:"CO", code:"BKIT", name:"Bookeit"},
+    {d:"CO", code:"TAXS", name:"TaxShield"},
+    {d:"SV", code:"BAKR", name:"Baker HVAC"},
+    {d:"SV", code:"IRR", name:"Indy Roof"},
+    {d:"SV", code:"POAG", name:"Poag Civil"},
+    {d:"CR", code:"CROA", name:"CROATOAN/Ananias"},
+    {d:"CR", code:"SVCP", name:"sovereign-compute article"},
+    {d:"RS", code:"HICK", name:"Hicks genealogy"},
+    {d:"RS", code:"NESH", name:"NES-HANDOFF"},
+    {d:"RS", code:"GRAL", name:"Holy Grail v2.0"},
+    {d:"FN", code:"MTP", name:"Master Trading Playbook"},
+    {d:"FN", code:"ALPH", name:"Neuruh Alpha Engine"},
+    {d:"OP", code:"VLRM", name:"Valermus"},
+    {d:"OP", code:"A16Z", name:"Speedrun"},
+    {d:"OP", code:"M1MM", name:"M1 Mac Mini"},
+    {d:"OP", code:"VPS", name:"Contabo"},
+    {d:"OP", code:"TCM9", name:"ThinkCentre M92p"},
+    {d:"FM", code:"WKSP", name:"Workshop"}
+  ];
+
+  /* ---- legend + domain filter buttons (work with or without WebGL) ---- */
+  var legend = document.getElementById("domain-legend");
+  var controls = document.getElementById("domain-controls");
+  var allBtn = document.createElement("button");
+  allBtn.type = "button"; allBtn.textContent = "All domains"; allBtn.className = "active";
+  allBtn.setAttribute("data-domain", "ALL");
+  controls.appendChild(allBtn);
+  DOMAINS.forEach(function(dm){
+    var item = document.createElement("div");
+    item.className = "item";
+    item.innerHTML = '<span class="sw" style="background:' + dm.color + '"></span>' +
+      '<span class="glyph">' + dm.glyph + '</span><b>' + dm.code + '</b> &mdash; ' + dm.name;
+    legend.appendChild(item);
+    var b = document.createElement("button");
+    b.type = "button"; b.textContent = dm.code + " " + dm.name;
+    b.setAttribute("data-domain", dm.code);
+    controls.appendChild(b);
+  });
+
+  /* ---- side panel ---- */
+  var panel = document.getElementById("panel");
+  var readout = document.getElementById("readout");
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+  function faceRow(k, v, unknown){
+    return "<dt>" + k + "</dt><dd" + (unknown ? ' class="unknown"' : "") + ">" + v + "</dd>";
+  }
+  function showDeedSonar(){
+    panel.innerHTML =
+      "<h3>\u25A3 DeedSonar</h3>" +
+      '<div class="face"><dl>' +
+      faceRow("NRH id", "<code>NRH-RE-DSNR-DEP-001-4674604a</code>") +
+      faceRow("Status", "&#9679; live/producing (as of the July 24 record)") +
+      faceRow("Tier", "UNKNOWN &mdash; tier not stated in the transcript", true) +
+      faceRow("WHAT", "Land acquisition CRM, formerly APG Land CRM") +
+      faceRow("SERVES", "July 24, 2026 historical record: DeedSonar as recorded on that date, including the July 24 ownership framing later superseded on 2026-10-22. Not current state.") +
+      faceRow("LINKS", "UNKNOWN &mdash; no links stated in the transcript", true) +
+      faceRow("DEPENDS", "<code>NRH-RE-LOSE-SVC-001</code>, <code>NRH-IN-CRU-SVC-001</code>") +
+      faceRow("OPEN", "migration 086 apply; app.deedsonar.com CNAME; prod URL unconfirmed") +
+      faceRow("MONEY", "revenue-path, pre-MRR") +
+      faceRow("ORIGIN", "thread a34bf0ab, 2026-07-24") +
+      faceRow("SUMMARY", "DeedSonar production merge: the APG Land CRM codebase merged into DeedSonar as the production land acquisition CRM.") +
+      faceRow("PARENT", "UNKNOWN &mdash; no parent stated in the transcript", true) +
+      faceRow("HASH", "<code>4674604a</code> = SHA-256(merge commit tree)") +
+      faceRow("SUPERSEDES", "<code>NRH-RE-APGC-*</code> (all APG Land CRM records)") +
+      faceRow("EVIDENCE", "merge commit tree (hash 4674604a); thread a34bf0ab, 2026-07-24") +
+      "</dl></div>" +
+      '<p class="note" style="font-size:12px">July 24, 2026 historical record. The July 24 transcript framing of a 50/50 split was superseded 2026-10-22: DeedSonar is solely Jeramie&rsquo;s; Bryan Franklin never signed.</p>';
+    readout.textContent = "Selected: NRH-RE-DSNR-DEP-001-4674604a \u2014 DeedSonar production merge.";
+  }
+  function showEntity(ent){
+    var dm = DOMAINS.filter(function(x){ return x.code === ent.d; })[0];
+    panel.innerHTML =
+      "<h3>" + dm.glyph + " " + esc(ent.name) + "</h3>" +
+      '<div class="face"><dl>' +
+      faceRow("NRH id", "UNKNOWN &mdash; no record yet; prefix <code>NRH-" + ent.d + "-" + ent.code + "-</code>", true) +
+      faceRow("Domain", dm.code + " &mdash; " + dm.name) +
+      faceRow("Entity code", "<code>" + ent.code + "</code>") +
+      faceRow("Status", "UNKNOWN &mdash; seeded in codes/entities.csv with status and tier, no record yet", true) +
+      faceRow("Tier", "UNKNOWN &mdash; not stated in the transcript", true) +
+      faceRow("WHAT", "UNKNOWN &mdash; no record yet", true) +
+      faceRow("SERVES", "UNKNOWN &mdash; no record yet", true) +
+      faceRow("LINKS", "UNKNOWN &mdash; no record yet", true) +
+      faceRow("DEPENDS", "UNKNOWN &mdash; no record yet", true) +
+      faceRow("OPEN", "UNKNOWN &mdash; no record yet", true) +
+      faceRow("MONEY", "UNKNOWN &mdash; no record yet", true) +
+      "</dl></div>" +
+      '<p class="note" style="font-size:12px">Seeded entity, no FACE/SPINE record yet. The registry holds records for 12 of ~36 known entities; this is one of the 24 seeded without a record.</p>';
+    readout.textContent = "Selected: NRH-" + ent.d + "-" + ent.code + " \u2014 " + ent.name + " (seeded, no record yet).";
+  }
+  function selectEntity(ent){
+    if (ent.code === "DSNR" && ent.d === "RE") showDeedSonar(); else showEntity(ent);
+  }
+  showDeedSonar();
+
+  /* ---- Three.js scene ---- */
+  var fallback = document.getElementById("webgl-fallback");
+  function showFallback(){
+    fallback.style.display = "block";
+    document.getElementById("gl").style.visibility = "hidden";
+  }
+  if (typeof THREE === "undefined") { showFallback(); return; }
+  var canvas = document.getElementById("gl");
+  var renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
+  } catch (e) { showFallback(); return; }
+  if (!renderer.getContext()) { showFallback(); return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x141210);
+  var camera = new THREE.PerspectiveCamera(50, 2, 0.1, 200);
+  camera.position.set(0, 14, 30);
+  camera.lookAt(0, 0, 0);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+  var dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(8, 16, 10);
+  scene.add(dir);
+
+  var nodeMeshes = [];
+  var group = new THREE.Group();
+  scene.add(group);
+  var RING_R = 11;
+  DOMAINS.forEach(function(dm, di){
+    var ang = (di / DOMAINS.length) * Math.PI * 2;
+    var cx = Math.cos(ang) * RING_R, cz = Math.sin(ang) * RING_R;
+    var hub = new THREE.Mesh(
+      new THREE.SphereGeometry(0.85, 20, 20),
+      new THREE.MeshStandardMaterial({color: new THREE.Color(dm.color), emissive: new THREE.Color(dm.color), emissiveIntensity: 0.35}));
+    hub.position.set(cx, 0, cz);
+    hub.userData = {domain: dm};
+    group.add(hub);
+    var ring = new THREE.Mesh(
+      new THREE.TorusGeometry(2.6, 0.05, 8, 48),
+      new THREE.MeshBasicMaterial({color: new THREE.Color(dm.color)}));
+    ring.rotation.x = Math.PI / 2;
+    ring.position.set(cx, 0, cz);
+    group.add(ring);
+    var members = ENTITIES.filter(function(e){ return e.d === dm.code; });
+    members.forEach(function(ent, i){
+      var a = (i / members.length) * Math.PI * 2;
+      var px = cx + Math.cos(a) * 2.6, pz = cz + Math.sin(a) * 2.6;
+      var py = Math.sin(i * 2.3) * 0.7;
+      var mat = new THREE.MeshStandardMaterial({color: new THREE.Color(dm.color),
+        emissive: new THREE.Color(dm.color), emissiveIntensity: 0.25});
+      if (ent.code === "DSNR") { mat.emissiveIntensity = 0.7; }
+      var m = new THREE.Mesh(new THREE.SphereGeometry(ent.code === "DSNR" ? 0.55 : 0.42, 18, 18), mat);
+      m.position.set(px, py, pz);
+      m.userData = {entity: ent, domain: dm};
+      group.add(m);
+      nodeMeshes.push(m);
+    });
+  });
+
+  var raycaster = new THREE.Raycaster();
+  var pointer = new THREE.Vector2();
+  var downAt = null;
+  canvas.addEventListener("pointerdown", function(e){ downAt = [e.clientX, e.clientY]; });
+  canvas.addEventListener("pointerup", function(e){
+    if (!downAt) return;
+    var moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]);
+    downAt = null;
+    if (moved > 6) return;
+    var rect = canvas.getBoundingClientRect();
+    pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(pointer, camera);
+    var hits = raycaster.intersectObjects(nodeMeshes);
+    if (hits.length) selectEntity(hits[0].object.userData.entity);
+  });
+
+  /* orbit: drag to rotate, wheel to zoom */
+  var theta = 0, phi = 1.05, radius = 32, dragging = false, lx = 0, ly = 0;
+  var autoRotate = true;
+  canvas.addEventListener("pointerdown", function(e){ dragging = true; lx = e.clientX; ly = e.clientY; });
+  window.addEventListener("pointerup", function(){ dragging = false; });
+  window.addEventListener("pointermove", function(e){
+    if (!dragging) return;
+    theta -= (e.clientX - lx) * 0.005;
+    phi = Math.max(0.3, Math.min(1.4, phi - (e.clientY - ly) * 0.004));
+    lx = e.clientX; ly = e.clientY;
+  });
+  canvas.addEventListener("wheel", function(e){
+    e.preventDefault();
+    radius = Math.max(16, Math.min(55, radius + e.deltaY * 0.03));
+  }, {passive: false});
+
+  function sizeRenderer(){
+    var w = canvas.clientWidth || canvas.parentElement.clientWidth;
+    var h = 520;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  sizeRenderer();
+  window.addEventListener("resize", sizeRenderer);
+
+  var activeDomain = "ALL";
+  function applyFilter(){
+    nodeMeshes.forEach(function(m){
+      m.visible = (activeDomain === "ALL" || m.userData.entity.d === activeDomain);
+    });
+  }
+  controls.addEventListener("click", function(e){
+    var b = e.target.closest("button[data-domain]");
+    if (!b) return;
+    activeDomain = b.getAttribute("data-domain");
+    Array.prototype.forEach.call(controls.querySelectorAll("button"), function(x){
+      x.classList.toggle("active", x === b);
+    });
+    applyFilter();
+  });
+  document.getElementById("reset-view").addEventListener("click", function(){
+    theta = 0; phi = 1.05; radius = 32;
+  });
+  var rotBtn = document.getElementById("autorotate");
+  rotBtn.addEventListener("click", function(){
+    autoRotate = !autoRotate;
+    rotBtn.textContent = "Auto-rotate: " + (autoRotate ? "on" : "off");
+    rotBtn.setAttribute("aria-pressed", String(autoRotate));
+  });
+
+  (function animate(){
+    requestAnimationFrame(animate);
+    if (autoRotate && !dragging) theta += 0.0016;
+    camera.position.set(
+      radius * Math.sin(phi) * Math.sin(theta),
+      radius * Math.cos(phi),
+      radius * Math.sin(phi) * Math.cos(theta));
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+  })();
+})();
+</script>
+</body>
+</html>
