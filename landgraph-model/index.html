@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LandGraph — Maltego for Real Estate · Entity Model (June 2026)</title>
+<style>
+  :root{
+    --obsidian:#141210; --obsidian-2:#1d1a16; --bone:#e8e2d5; --bone-dim:#b8b0a0;
+    --ink:#2a2620; --brass:#c9a227; --brass-dim:#8a6d1f; --line:#3a352c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--obsidian);color:var(--bone);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+  header{border-bottom:1px solid var(--line);padding:22px 28px 18px}
+  .docctl{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;color:var(--brass);text-transform:uppercase}
+  h1{font-family:Archivo,Inter,sans-serif;font-size:30px;margin:8px 0 4px;letter-spacing:-.01em}
+  h1 em{color:var(--brass);font-style:normal}
+  .sub{color:var(--bone-dim);max-width:820px;margin:0}
+  .banner{margin:16px 28px 0;border:1px solid var(--brass-dim);background:#221d10;color:var(--bone);padding:10px 14px;font-size:13px}
+  .banner b{color:var(--brass)}
+  main{padding:0 28px 40px;max-width:1180px}
+  h2{font-family:Archivo,Inter,sans-serif;font-size:19px;margin:34px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2 .fig{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:13px;margin-right:8px}
+  p{color:var(--bone-dim);max-width:860px}
+  p b, li b{color:var(--bone)}
+  #scene-wrap{position:relative;margin-top:14px;border:1px solid var(--line);background:var(--obsidian-2)}
+  #scene{width:100%;height:520px;display:block}
+  #fallback{padding:18px;font-size:14px;color:var(--bone-dim)}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;padding:12px;border-top:1px solid var(--line);background:var(--obsidian)}
+  .controls button{background:var(--obsidian-2);color:var(--bone);border:1px solid var(--brass-dim);padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+  .controls button:hover{border-color:var(--brass);color:#fff}
+  .controls button.active{background:var(--brass);color:#141210;border-color:var(--brass);font-weight:600}
+  #detail{padding:12px 14px;border-top:1px solid var(--line);min-height:64px;font-size:14px}
+  #detail b{color:var(--brass)}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--bone-dim);padding:10px 2px}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+  table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+  td{color:var(--bone-dim)}
+  td:first-child{color:var(--bone);font-weight:600;white-space:nowrap}
+  .packs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+  .pack{border:1px solid var(--line);padding:14px;background:var(--obsidian-2)}
+  .pack h3{margin:0 0 6px;font-size:15px}
+  .pack h3 .tag{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em}
+  .pack p{font-size:13px;margin:0}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .split div{border:1px solid var(--line);padding:14px;background:var(--obsidian-2)}
+  .split h3{margin:0 0 6px;font-size:15px;color:var(--brass)}
+  .split p{font-size:13px;margin:0}
+  .caption{font-size:12px;color:var(--bone-dim);margin-top:8px}
+  ol.pivot{color:var(--bone-dim);max-width:860px}
+  ol.pivot li{margin-bottom:6px}
+  ol.pivot b{color:var(--bone)}
+  footer{border-top:1px solid var(--line);padding:18px 28px;font-size:12px;color:var(--bone-dim)}
+  footer a{color:var(--brass)}
+  @media (max-width:720px){.split{grid-template-columns:1fr}h1{font-size:24px}#scene{height:420px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="docctl">Neuruh · RE-037 · LandGraph · Build state June 2026</div>
+  <h1>LandGraph — <em>Maltego for Real Estate</em></h1>
+  <p class="sub">The entity-resolution graph brain beside the LandOS scoring engine. Score tells you which parcels. The graph tells you who is actually behind them and what else they own.</p>
+</header>
+
+<div class="banner"><b>Build state, June 2026:</b> Phase 0 code-complete (3/3 tests green) · runtime pending — <b>/v1/health green was never confirmed</b> (brew install lock blocked the Colima runtime at the end of the June 30 session). Phase 1 next: auth / RBAC / audit / ledger. Nothing on this page claims a later state.</div>
+
+<main>
+  <h2><span class="fig">FIG. 1</span>The entity model — 12 typed entities</h2>
+  <p>Click any node for what it is and what it connects to. <b>Run the P0 pivot</b> animates the chain that matters: one LLC in, the whole portfolio out. Drag to orbit, scroll to zoom.</p>
+
+  <div id="scene-wrap">
+    <canvas id="scene"></canvas>
+    <div id="fallback" style="display:none">3D view unavailable (WebGL or the Three.js CDN did not load). The full entity inventory, pivot chain, and pack map are listed below — nothing on this page depends on the 3D view.</div>
+    <div class="controls">
+      <button id="btn-pivot">Run the P0 pivot</button>
+      <button id="btn-reset">Reset view</button>
+      <button id="btn-rotate" class="active">Auto-rotate: on</button>
+    </div>
+    <div id="detail"><b>LandGraph</b> — click a node. The pivot chain runs brass; the rest of the model is bone and grey.</div>
+    <div class="legend">
+      <span><i class="dot" style="background:#c9a227"></i> P0 pivot chain</span>
+      <span><i class="dot" style="background:#e8e2d5"></i> Parcel / property</span>
+      <span><i class="dot" style="background:#8a8578"></i> Document / record</span>
+      <span><i class="dot" style="background:#6f6a5e"></i> Contact / identity</span>
+      <span><i class="dot" style="background:#a03d2a"></i> Distress event</span>
+    </div>
+  </div>
+  <p class="caption">Figure 1 — The LandGraph entity model as built in the June 2026 one-shot package (schema.cypher, 74 lines). Node positions are a derived layout for reading, not a live graph. No live data is shown: no parcels, owners, or addresses from any real county are plotted here.</p>
+
+  <h2><span class="fig">FIG. 2</span>The P0 pivot chain — one LLC in, the whole portfolio out</h2>
+  <ol class="pivot">
+    <li><b>1 · Owner-LLC</b> — the starting entity. A parcel's owner of record is usually an LLC, not a person.</li>
+    <li><b>2 · Registered Agent + Officers</b> — the LLC-piercing step. Michigan MiBusiness Registry Portal (replaced legacy COFS 2025-06-23) and Indiana INBiz public search; the portal's individual-name search (Begins With / Exact / Keyword / Soundex) is the reverse pivot. No official REST API — automated portal querying.</li>
+    <li><b>3 · The human</b> — the natural person behind the agent / officer roles.</li>
+    <li><b>4 · Their other LLCs</b> — every other entity the same human is tied to, resolved in-graph.</li>
+    <li><b>5 · Every parcel in their portfolio</b> — all parcels those LLCs own, via <span style="font-family:monospace">:OWNS</span> edges. Regrid owner-name search is still a work in progress, so this step resolves in-graph plus ATTOM, not through Regrid.</li>
+    <li><b>6 · Distress events on each parcel</b> — probate, lien, tax delinquency, code violation, eviction — attached as entities, so the score and the story meet on the same node.</li>
+  </ol>
+  <p class="caption">Figure 2 — The priority pivot set confirmed June 2026. The resolver is built and tested before any connector, because a bad entity merge corrupts every investigation downstream.</p>
+
+  <h2><span class="fig">TAB. 1</span>Entity inventory</h2>
+  <table>
+    <tr><th>Entity</th><th>Role in the model</th><th>Key edges</th></tr>
+    <tr><td>Parcel</td><td>The land unit. Regrid supplies parcels, geometry, and situs.</td><td>OWNS (from Owner-LLC / Owner-Individual), HAS_EVENT, HAS_DEED, HAS_LIEN, HAS_MORTGAGE</td></tr>
+    <tr><td>Property</td><td>The improved / addressed property sitting on a parcel.</td><td>LOCATED_AT (Address), ON_PARCEL</td></tr>
+    <tr><td>Owner-Individual</td><td>A natural person who owns, or stands behind an owner.</td><td>OWNS, OFFICER_OF, AGENT_FOR, CONTACTABLE_VIA (Phone / Email)</td></tr>
+    <tr><td>Owner-LLC</td><td>The entity that usually holds title. The pivot starts here.</td><td>OWNS, REGISTERED_AGENT, HAS_OFFICER</td></tr>
+    <tr><td>Registered Agent</td><td>The LLC's agent of record at the state registry. The LLC-piercing step.</td><td>AGENT_FOR (Owner-LLC), IS_PERSON (Owner-Individual)</td></tr>
+    <tr><td>Deed</td><td>Transfer record. ATTOM /allevents is the enrichment layer.</td><td>RECORDED_AGAINST (Parcel), GRANTOR / GRANTEE</td></tr>
+    <tr><td>Lien</td><td>Claim against the parcel; a distress signal and a pivot target.</td><td>RECORDED_AGAINST (Parcel), HELD_BY</td></tr>
+    <tr><td>Mortgage</td><td>Debt record; ownership depth ATTOM carries that Regrid does not.</td><td>SECURED_BY (Parcel), LENDER</td></tr>
+    <tr><td>Address</td><td>Situs and mailing addresses; the join key across sources.</td><td>LOCATED_AT, MAILING_FOR</td></tr>
+    <tr><td>Phone</td><td>Contact channel resolved by skip-trace (Tracerfy).</td><td>CONTACTABLE_VIA (Owner-Individual)</td></tr>
+    <tr><td>Email</td><td>Contact channel resolved by skip-trace (Tracerfy).</td><td>CONTACTABLE_VIA (Owner-Individual)</td></tr>
+    <tr><td>Agent</td><td>Listing / transaction agent tied to a property or deal.</td><td>REPRESENTS (Property / Owner-Individual)</td></tr>
+  </table>
+  <p class="caption">Table 1 — All 12 typed entities from the June 2026 three-layer model. Single-property uid keys everywhere in schema.cypher: Community Edition cannot do composite/key constraints, so this is what keeps the free tier runnable.</p>
+
+  <h2><span class="fig">FIG. 3</span>One engine, three packs — the dual-use argument</h2>
+  <div class="packs">
+    <div class="pack"><h3>Pack 001 · Real Estate <span class="tag">LIVE SCOPE</span></h3><p>Seller-hunting: LLC → human → full portfolio → distress. The pack this build ships first.</p></div>
+    <div class="pack"><h3>Pack 002 · Threat Intel <span class="tag">SAME ENGINE</span></h3><p>Threat-actor mapping on the same substrate: swap the entity pack and the transform pack, keep the resolver, the cache, and the canvas.</p></div>
+    <div class="pack"><h3>Pack 003 · KYB / AML <span class="tag">SAME ENGINE</span></h3><p>Fraud-ring tracing and Customer Due Diligence. Federal CTA beneficial-ownership reporting suspended for 2026, so state-registry resolution is the operational CDD baseline — a second product surface for the same code.</p></div>
+  </div>
+  <p class="caption">Figure 3 — The pack-agnostic core. Real estate is pack 001; the engine does not change when the pack does.</p>
+
+  <h2><span class="fig">FIG. 4</span>One backend, two canvases — the Bloom / NVL split</h2>
+  <div class="split">
+    <div><h3>Bloom — internal cockpit</h3><p>Ships only with Neo4j Enterprise Edition. It is the internal investigation cockpit, free via Neo4j Desktop for a single user. It cannot ship inside a white-label product without per-seat Enterprise licensing, which would gut the resale margin.</p></div>
+    <div><h3>NVL — white-label canvas</h3><p>The Neo4j Visualization Library is the exact engine that powers Bloom, free on npm, usable in any app that connects to a Neo4j database without additional Neo4j licenses. Bloom-grade rendering, fully brandable, resale-ready. This is the canvas that ships to tenants.</p></div>
+  </div>
+  <p class="caption">Figure 4 — Verified June 2026 against Neo4j's bundle notes and the NVL docs. The split resolves the internal-and-white-label answer: one Neo4j 5.26 LTS backend, two licensing lanes.</p>
+
+  <h2>Build record (June 2026)</h2>
+  <p><b>Path C chosen</b> — backend now, light viz later. Path A (custom transforms on real Maltego) rejected: rented frontend, not white-label, cannot resell. Path B (full bespoke engine) is the end state, deferred. <b>Stack:</b> Neo4j 5.26 LTS, Cypher 5, ARM64 Docker, Redis (not /dev/shm — the RAM-disk is Linux-only and fights Apple-Silicon unified memory), FastAPI transform engine, REST surface. <b>Runtime:</b> Colima over Docker Desktop — Colima fences the VM (<span style="font-family:monospace">--memory 4</span>) so Neo4j + Redis cannot starve local MLX inference (Bonsai :8100, Gemma :8200, AXON :7331) on the same unified-memory box. Bare <span style="font-family:monospace">colima start</span> defaults to 2GB and would OOM Neo4j. <b>One-shot package:</b> BUILD_SPEC.md, CLAUDE.md, schema.cypher (74 lines), .env.example (66 lines). <b>Data:</b> Regrid for parcels/geometry/situs (~200 req/min); ATTOM for ownership depth, deeds, mortgages, liens (30-day free trial); MI MiBusiness Portal and IN INBiz free public search for the LLC-piercing pivot (IN bulk download is $9,500, so the free portal is scraped instead). <b>Open on Jeramie:</b> the Tracerfy connector shape lives in the APG-CRM repo (Claude Code needs to see it for Phase 3); the repo name <span style="font-family:monospace">landgraph</span> is a placeholder; CLAUDE.md still says Docker Desktop and needs the Colima patch. Full record: vault dossier <span style="font-family:monospace">_research/landgraph-build/landgraph-build.md</span> (RE-037).</p>
+</main>
+
+<footer>
+  LandGraph (RE-037) · "Maltego for Real Estate" · Build state June 2026 · Phase 0 code-complete, runtime pending · Dossier: <a href="https://neuruhai.github.io/neuruh-demos/landgraph-model/">vault _research/landgraph-build/landgraph-build.md</a> · Three.js 0.158.0 via cdnjs · Derived layout, no live data plotted.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+(function(){
+  var detail = document.getElementById('detail');
+  var fallback = document.getElementById('fallback');
+  var canvas = document.getElementById('scene');
+  if (!window.THREE) { fallback.style.display = 'block'; canvas.style.display = 'none'; return; }
+
+  var BRASS = 0xc9a227, BONE = 0xe8e2d5, GREY = 0x8a8578, DARK = 0x6f6a5e, RED = 0xa03d2a;
+  var NODES = [
+    {id:'llc',   label:'Owner-LLC',        x:-8, y:0,   z:0, c:BRASS, r:0.62, d:'The starting entity. A parcel\u2019s owner of record is usually an LLC, not a person. Pivot: REGISTERED_AGENT + HAS_OFFICER.'},
+    {id:'ra',    label:'Registered Agent', x:-5, y:2.2, z:0, c:BRASS, r:0.5,  d:'The LLC\u2019s agent of record at the state registry. The LLC-piercing step: MI MiBusiness Portal / IN INBiz individual-name search.'},
+    {id:'officer',label:'Officers',        x:-5, y:-2.2,z:0, c:BRASS, r:0.5,  d:'Officers of the LLC, from the state registry filing. Each officer resolves to a human.'},
+    {id:'human', label:'Owner-Individual', x:-2, y:0,   z:0, c:BRASS, r:0.58, d:'The natural person behind the agent / officer roles. The bridge from one LLC to every LLC they touch.'},
+    {id:'llc2',  label:'Other LLCs',       x:1,  y:2.2, z:0, c:BRASS, r:0.5,  d:'Every other LLC the same human is tied to, resolved in-graph. The portfolio widens here.'},
+    {id:'llc3',  label:'Other LLCs',       x:1,  y:-2.2,z:0, c:BRASS, r:0.5,  d:'A second LLC in the same human\u2019s portfolio. Each one fans out to its own parcels.'},
+    {id:'p1',    label:'Parcel',           x:4,  y:2.6, z:0, c:BONE,  r:0.5,  d:'A parcel owned by one of the human\u2019s LLCs, via :OWNS. Regrid supplies parcels, geometry, and situs.'},
+    {id:'p2',    label:'Parcel',           x:4,  y:0,   z:0, c:BONE,  r:0.55, d:'A parcel owned by one of the human\u2019s LLCs. Distress events hang off it as attached entities.'},
+    {id:'p3',    label:'Parcel',           x:4,  y:-2.6,z:0, c:BONE,  r:0.5,  d:'A parcel owned by one of the human\u2019s LLCs. Score and story meet on this node.'},
+    {id:'prop',  label:'Property',         x:6.5,y:0,   z:-2.5, c:BONE, r:0.42, d:'The improved / addressed property sitting on a parcel. LOCATED_AT an Address, ON_PARCEL.'},
+    {id:'d1',    label:'Probate',          x:7,  y:2.6, z:0, c:RED,   r:0.38, d:'Distress event: probate. Attached to a parcel as an entity, not a flag.'},
+    {id:'d2',    label:'Lien',             x:7,  y:0,   z:0, c:RED,   r:0.38, d:'Distress event: lien. A claim against the parcel and a pivot target.'},
+    {id:'d3',    label:'Tax Delinquency',  x:7,  y:-2.6,z:0, c:RED,   r:0.38, d:'Distress event: tax delinquency. One of the six distress types hanging off parcels.'},
+    {id:'deed',  label:'Deed',             x:-2, y:3.6, z:-2.5, c:GREY, r:0.4, d:'Transfer record. ATTOM /allevents is the enrichment layer for deeds, mortgages, and sales.'},
+    {id:'mort',  label:'Mortgage',         x:1,  y:3.6, z:-2.5, c:GREY, r:0.4, d:'Debt record. Ownership depth ATTOM carries that Regrid does not.'},
+    {id:'addr',  label:'Address',          x:-5, y:0,   z:-3.5, c:DARK, r:0.4, d:'Situs and mailing addresses; the join key across sources.'},
+    {id:'phone', label:'Phone',            x:-2, y:-3.6,z:-2.5, c:DARK, r:0.4, d:'Contact channel resolved by skip-trace (Tracerfy). CONTACTABLE_VIA the human.'},
+    {id:'email', label:'Email',            x:1,  y:-3.6,z:-2.5, c:DARK, r:0.4, d:'Contact channel resolved by skip-trace (Tracerfy). CONTACTABLE_VIA the human.'},
+    {id:'agent', label:'Agent',            x:6.5,y:-2.6,z:-2.5, c:DARK, r:0.4, d:'Listing / transaction agent tied to a property or a deal.'}
+  ];
+  var EDGES = [
+    ['llc','ra'],['llc','officer'],['ra','human'],['officer','human'],
+    ['human','llc2'],['human','llc3'],
+    ['llc2','p1'],['llc2','p2'],['llc3','p2'],['llc3','p3'],
+    ['p2','prop'],['p1','d1'],['p2','d2'],['p3','d3'],
+    ['p2','deed'],['p2','mort'],['p2','addr'],['human','phone'],['human','email'],
+    ['prop','agent'],['llc','addr']
+  ];
+  var PIVOT = ['llc','ra','officer','human','llc2','llc3','p1','p2','p3','d1','d2','d3'];
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1d1a16);
+  var camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  camera.position.set(0, 3.5, 15);
+  var renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
+  } catch(e) {
+    fallback.style.display = 'block'; canvas.style.display = 'none'; return;
+  }
+  function size(){
+    var w = canvas.clientWidth || canvas.parentNode.clientWidth;
+    renderer.setSize(w, 520, false);
+    camera.aspect = w / 520; camera.updateProjectionMatrix();
+  }
+  size(); window.addEventListener('resize', size);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+  var dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(5, 8, 6); scene.add(dl);
+
+  var byId = {};
+  var meshes = [];
+  function makeLabel(text){
+    var c = document.createElement('canvas'); c.width = 256; c.height = 56;
+    var g = c.getContext('2d');
+    g.fillStyle = 'rgba(20,18,16,0.82)'; g.fillRect(0, 6, 256, 44);
+    g.strokeStyle = '#c9a227'; g.lineWidth = 1; g.strokeRect(0.5, 6.5, 255, 43);
+    g.fillStyle = '#e8e2d5'; g.font = '600 21px Inter, sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(text.length > 20 ? text.slice(0, 19) + '\u2026' : text, 128, 29);
+    var tex = new THREE.CanvasTexture(c);
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, depthWrite: false}));
+    sp.scale.set(2.6, 0.57, 1);
+    return sp;
+  }
+  NODES.forEach(function(n){
+    var geo = (n.c === BRASS) ? new THREE.OctahedronGeometry(n.r) : new THREE.SphereGeometry(n.r, 24, 18);
+    var mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color: n.c, roughness: 0.55, metalness: 0.25}));
+    mesh.position.set(n.x, n.y, n.z);
+    mesh.userData = n;
+    scene.add(mesh); meshes.push(mesh); byId[n.id] = mesh;
+    var lab = makeLabel(n.label); lab.position.set(n.x, n.y + n.r + 0.55, n.z);
+    scene.add(lab);
+  });
+  var edgeMat = new THREE.LineBasicMaterial({color: 0x8a8578, transparent: true, opacity: 0.55});
+  var edgeLines = {};
+  EDGES.forEach(function(e){
+    var a = byId[e[0]].position, b = byId[e[1]].position;
+    var g = new THREE.BufferGeometry().setFromPoints([a, b]);
+    var line = new THREE.Line(g, edgeMat.clone());
+    scene.add(line); edgeLines[e[0] + '>' + e[1]] = line;
+  });
+
+  // Orbit: minimal drag-to-rotate + wheel zoom (no OrbitControls dependency)
+  var theta = 0, phi = 0.35, radius = 15, auto = true, dragging = false, px = 0, py = 0;
+  function applyCam(){
+    camera.position.set(radius * Math.sin(theta) * Math.cos(phi), radius * Math.sin(phi) + 1.5, radius * Math.cos(theta) * Math.cos(phi));
+    camera.lookAt(0, 0, 0);
+  }
+  canvas.addEventListener('pointerdown', function(e){ dragging = true; px = e.clientX; py = e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove', function(e){
+    if (!dragging) return;
+    theta -= (e.clientX - px) * 0.005; phi = Math.max(-0.6, Math.min(1.2, phi + (e.clientY - py) * 0.003));
+    px = e.clientX; py = e.clientY; applyCam();
+  });
+  canvas.addEventListener('pointerup', function(){ dragging = false; });
+  canvas.addEventListener('wheel', function(e){ e.preventDefault(); radius = Math.max(8, Math.min(26, radius + e.deltaY * 0.01)); applyCam(); }, {passive: false});
+  applyCam();
+
+  // Click a node -> detail panel
+  var ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+  var downAt = null;
+  canvas.addEventListener('pointerdown', function(e){ downAt = [e.clientX, e.clientY]; });
+  canvas.addEventListener('pointerup', function(e){
+    if (!downAt) return;
+    var moved = Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]);
+    downAt = null; if (moved > 5) return;
+    var rect = canvas.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    ray.setFromCamera(mouse, camera);
+    var hit = ray.intersectObjects(meshes)[0];
+    if (hit) {
+      var n = hit.object.userData;
+      detail.innerHTML = '<b>' + n.label + '</b> — ' + n.d;
+      hit.object.scale.setScalar(1.25);
+      setTimeout(function(){ hit.object.scale.setScalar(1); }, 350);
+    }
+  });
+
+  // Pivot animation: light the chain step by step
+  var pivotTimer = null;
+  document.getElementById('btn-pivot').addEventListener('click', function(){
+    var btn = this; btn.classList.add('active');
+    var i = 0;
+    meshes.forEach(function(m){ m.material.emissive = new THREE.Color(0x000000); });
+    Object.keys(edgeLines).forEach(function(k){ edgeLines[k].material.color.set(0x8a8578); edgeLines[k].material.opacity = 0.55; });
+    detail.innerHTML = '<b>P0 pivot running…</b> Owner-LLC → Registered Agent + Officers → human → other LLCs → every parcel → distress events.';
+    clearInterval(pivotTimer);
+    pivotTimer = setInterval(function(){
+      if (i >= PIVOT.length) {
+        clearInterval(pivotTimer);
+        detail.innerHTML = '<b>P0 pivot complete.</b> One LLC in, the whole portfolio out: the human behind the agent resolves to every LLC they touch, and every parcel those LLCs own — with probate, lien, and tax delinquency hanging off the parcels.';
+        return;
+      }
+      var id = PIVOT[i];
+      byId[id].material.emissive = new THREE.Color(0x8a6d1f);
+      byId[id].material.emissiveIntensity = 0.9;
+      var n = byId[id].userData;
+      detail.innerHTML = '<b>Step ' + (i + 1) + ' / ' + PIVOT.length + ' · ' + n.label + '</b> — ' + n.d;
+      i++;
+    }, 650);
+  });
+  document.getElementById('btn-reset').addEventListener('click', function(){
+    theta = 0; phi = 0.35; radius = 15; applyCam();
+    meshes.forEach(function(m){ m.material.emissive = new THREE.Color(0x000000); });
+    Object.keys(edgeLines).forEach(function(k){ edgeLines[k].material.color.set(0x8a8578); edgeLines[k].material.opacity = 0.55; });
+    detail.innerHTML = '<b>LandGraph</b> — click a node. The pivot chain runs brass; the rest of the model is bone and grey.';
+  });
+  var rotBtn = document.getElementById('btn-rotate');
+  rotBtn.addEventListener('click', function(){
+    auto = !auto;
+    rotBtn.classList.toggle('active', auto);
+    rotBtn.textContent = 'Auto-rotate: ' + (auto ? 'on' : 'off');
+  });
+
+  var t = 0;
+  (function loop(){
+    requestAnimationFrame(loop);
+    t += 0.008;
+    if (auto && !dragging) { theta += 0.0016; applyCam(); }
+    meshes.forEach(function(m, idx){ m.rotation.y = t * (0.4 + (idx % 3) * 0.15); });
+    renderer.render(scene, camera);
+  })();
+})();
+</script>
+</body>
+</html>
