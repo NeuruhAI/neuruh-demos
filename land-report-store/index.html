@@ -215,33 +215,49 @@
 </section>
 
 <section id="tiers">
-  <h2>Two tiers, one free qualifier</h2>
-  <p class="lede">Prices are the recorded ladder (2026-10-01). No new price was invented for this product. The flyer report maps to the Dossier tier. The Scan is the entry tier.</p>
+  <h2>Three ways in, one free qualifier</h2>
+  <p class="lede">Repriced 2026-11-10 for impulse buying. Single report $29, self-serve. Three parcels $69. Verified Dossier $295, human-reviewed. The old Scan tier is folded into the $29 Report and no longer exists as a separate tier.</p>
   <div class="tiers">
-    <div class="tier" id="tier-scan">
-      <h3>Property Opportunity Scan</h3>
-      <div class="price">$100 <span>one parcel, one time</span></div>
+    <div class="tier" id="tier-report">
+      <h3>Land Intelligence Report</h3>
+      <div class="price">$29 <span>one parcel, self-serve, modeled</span></div>
       <ul>
+        <li>Full one-page report, as shown in the sample above</li>
         <li>Target parcel block: ID, acres, land use, location</li>
-        <li>Distress flags: delinquency, foreclosure, auction record</li>
+        <li>Ownership chain (sample, flagged UNVERIFIED)</li>
+        <li>Yield stack, modeled, with conflict rules and limiting notes</li>
         <li>Mineral overlay: halo signal or no signal</li>
-        <li>Short-form provenance receipt (hash + timestamp)</li>
+        <li>Distress flags: delinquency, foreclosure, auction record</li>
+        <li>Hash-chained provenance receipt, re-verifiable by the buyer</li>
         <li>Delivered as PDF + JSON receipt</li>
       </ul>
-      <div class="pick"><button class="btn btn-ghost" data-tier="scan">Order the Scan - $100</button></div>
+      <div class="pick"><button class="btn btn-brass" data-tier="report">Order the Report - $29</button></div>
+    </div>
+    <div class="tier" id="tier-pack">
+      <h3>3-Parcel Pack</h3>
+      <div class="price">$69 <span>three parcels, self-serve</span></div>
+      <ul>
+        <li>Three self-serve reports, one order</li>
+        <li>First report delivered now; 2 credits remain for later parcels</li>
+        <li>Same full report per parcel: chain, yield, overlay, flags, receipt</li>
+        <li>Save $18 vs three singles ($87)</li>
+        <li>Delivered as PDF + JSON receipt per report</li>
+      </ul>
+      <div class="pick"><button class="btn btn-ghost" data-tier="pack">Order the 3-Pack - $69</button></div>
     </div>
     <div class="tier hot" id="tier-dossier">
-      <h3>Property Intelligence Dossier</h3>
-      <div class="price">$1,500 <span>one parcel, 2-3 hrs</span></div>
+      <h3>Verified Dossier</h3>
+      <div class="price">$295 <span>one parcel, human-reviewed</span></div>
       <ul>
-        <li>Everything in the Scan, plus:</li>
-        <li>Full ownership chain (LLC to person to full portfolio)</li>
-        <li>Yield stack with conflict rules enforced and limiting notes</li>
+        <li>Everything in the Report, plus:</li>
+        <li>Human review of the ownership chain</li>
+        <li>Live ownership lookup against county / SOS data when available</li>
+        <li>Reviewer sign-off on the receipt</li>
         <li>Full one-page report, as shown in the sample above</li>
         <li>Hash-chained provenance receipt, re-verifiable by the buyer</li>
         <li>Delivered as PDF + JSON receipt + ledger entry</li>
       </ul>
-      <div class="pick"><button class="btn btn-brass" data-tier="dossier">Order the Dossier - $1,500</button></div>
+      <div class="pick"><button class="btn btn-brass" data-tier="dossier">Order the Verified Dossier - $295</button></div>
     </div>
   </div>
   <div class="cta-row">
@@ -270,12 +286,16 @@
       <p>Choose the tier. You can change it later, before checkout.</p>
       <div class="frow">
         <div>
-          <label><input type="radio" name="tierPick" value="scan" style="width:auto"> Property Opportunity Scan - $100</label>
-          <p class="hint">Parcel + distress flags + mineral overlay + short receipt.</p>
+          <label><input type="radio" name="tierPick" value="report" style="width:auto" checked> Land Intelligence Report - $29</label>
+          <p class="hint">The full one-page report, self-serve, modeled.</p>
         </div>
         <div>
-          <label><input type="radio" name="tierPick" value="dossier" style="width:auto" checked> Property Intelligence Dossier - $1,500</label>
-          <p class="hint">The full one-page report: ownership chain, yield stack, receipt.</p>
+          <label><input type="radio" name="tierPick" value="pack" style="width:auto"> 3-Parcel Pack - $69</label>
+          <p class="hint">Three self-serve reports. First delivered now; 2 credits remain.</p>
+        </div>
+        <div>
+          <label><input type="radio" name="tierPick" value="dossier" style="width:auto"> Verified Dossier - $295</label>
+          <p class="hint">The full one-page report, human-reviewed, live ownership lookup when available.</p>
         </div>
       </div>
       <div class="navrow">
@@ -355,12 +375,13 @@
         <ol>
           <li><b>Reauthorize Stripe (Jeramie, one tap).</b> Open <code>https://agent.meta.ai/connectors/connect/stripe</code> and complete Stripe OAuth. This reconnects both test and live modes.</li>
           <li><b>Confirm the connection.</b> Run <code>/opt/hatch/bin/stripe status</code>. It must report connected. Then run <code>/opt/hatch/bin/stripe list-tools</code> and read the reviewed write operations (the exact <code>stripe_api_operation_id</code> values for creating products, prices, and payment links; they are only visible after reconnect, so they are not invented here).</li>
-          <li><b>Create the test-mode products.</b> Two products, test mode only:
-            <pre>Product 1: name "Property Opportunity Scan", unit_amount 10000, currency usd
-Product 2: name "Property Intelligence Dossier", unit_amount 150000, currency usd</pre>
-            Create one Price per product, then one Payment Link per price. Record the two test-mode Payment Link URLs.</li>
+          <li><b>Create the test-mode products.</b> Three products, test mode only:
+            <pre>Product 1: name "Land Intelligence Report", unit_amount 2900, currency usd
+Product 2: name "Land Intelligence Report - 3-Parcel Pack", unit_amount 6900, currency usd
+Product 3: name "Verified Dossier", unit_amount 29500, currency usd</pre>
+            Create one Price per product, then one Payment Link per price. Record the three test-mode Payment Link URLs.</li>
           <li><b>Test the full loop.</b> Pay with test card <code>4242 4242 4242 4242</code>, any future expiry, any 3-digit CVC. Confirm the success redirect lands back on this storefront and the order moves to PAID-TEST.</li>
-          <li><b>Go live (separate step, Jeramie's tap).</b> Duplicate the two products in live mode, create live Payment Links, swap the two URLs in this page's checkout config, and flip the banner from SIMULATION to LIVE. Never reuse a test-mode link for a real charge.</li>
+          <li><b>Go live (separate step, Jeramie's tap).</b> Duplicate the three products in live mode, create live Payment Links, swap the three URLs in this page's checkout config, and flip the banner from SIMULATION to LIVE. Never reuse a test-mode link for a real charge.</li>
         </ol>
         <p><b>Until then:</b> the button below walks the rest of the flow in simulation only. It moves no money, charges no card, and the order is labeled PAID-TEST, never PAID.</p>
       </div>
@@ -413,8 +434,8 @@ Product 2: name "Property Intelligence Dossier", unit_amount 150000, currency us
 <footer>
   <p><b>Honesty footer.</b> No fake sales. No fake testimonials. No sold counters. No revenue is claimed anywhere on this page. Delivery states are explicit: ORDERED, PAID-TEST, DELIVERED-SAMPLE. The sample report is the flyer content, labeled where it is unverified or modeled. The flyer brand "Veridian Intelligence Group" is fictional and is not used here; this storefront is Neuruh / DeedSonar land intelligence.</p>
   <p><b>What is live:</b> nothing. This is a browser simulation of the order flow. Stripe is disconnected (reauthorization required, checked 2026-11-10). No report is generated against live county data. The receipt ledger lives only in this browser.</p>
-  <p><b>What is real:</b> the price ladder (Scan $100 / Dossier $1,500, recorded 2026-10-01), the free 10-min qualifier (cal.com/neuruh), the reference-parcel yield figures (FALLOW modeled, $32,714/yr stacked), and the SHA-256 hashes computed in this page over canonical receipt content.</p>
-  <p class="docctl">DOC CONTROL: Land Report Store v1.0 &middot; 2026-11-10 &middot; Concept RE-040 &middot; Selling-side dossier: _research/land-intelligence-report/selling-side.md (vault) &middot; Report generator: land-intelligence-report (parallel build) &middot; Receipt format v1.0 shared with the generator.</p>
+  <p><b>What is real:</b> the prices (Land Intelligence Report $29 / 3-Parcel Pack $69 / Verified Dossier $295, repriced 2026-11-10; the old Scan tier is folded into the $29 Report), the free 10-min qualifier (cal.com/neuruh), the reference-parcel yield figures (FALLOW modeled, $32,714/yr stacked), and the SHA-256 hashes computed in this page over canonical receipt content.</p>
+  <p class="docctl">DOC CONTROL: Land Report Store v1.1 &middot; 2026-11-10 &middot; Repriced: Report $29 / Pack $69 / Dossier $295 &middot; Concept RE-040 &middot; Selling-side dossier: _research/land-intelligence-report/selling-side.md (vault) &middot; Report generator: land-intelligence-report (parallel build) &middot; Receipt format v1.0 shared with the generator.</p>
 </footer>
 </div>
 
@@ -489,11 +510,12 @@ function canonical(v){
 
 /* ---------- state ---------- */
 var TIERS={
-  scan:{key:'scan',name:'Property Opportunity Scan',amount:100,blurb:'Parcel + distress flags + mineral overlay + short receipt.'},
-  dossier:{key:'dossier',name:'Property Intelligence Dossier',amount:1500,blurb:'Full one-page report: ownership chain, yield stack, receipt.'}
+  report:{key:'report',name:'Land Intelligence Report',amount:29,blurb:'Full one-page report, self-serve, modeled.'},
+  pack:{key:'pack',name:'3-Parcel Pack',amount:69,blurb:'Three self-serve reports. First delivered now; 2 credits remain.'},
+  dossier:{key:'dossier',name:'Verified Dossier',amount:295,blurb:'Full report, human-reviewed, live ownership lookup when available.'}
 };
 var REF_PARCEL_ID='71-06-17-000-001.000-026';
-var order={tier:'dossier',parcelId:REF_PARCEL_ID,acres:'42.00',county:'LaPorte',state:'IN',
+var order={tier:'report',parcelId:REF_PARCEL_ID,acres:'42.00',county:'LaPorte',state:'IN',
   landUse:'Agricultural / Vacant',str:'Section 17, Township 38N, Range 4W',loc:'Approx. 0.6 mi NE of LaPorte',
   name:'',email:'',phone:'',use:'',orderId:null,reportId:null,state:'BROWSE',receipt:null,ledgerLogged:false};
 var LEDGER_KEY='lir_ledger_v1';
@@ -680,6 +702,10 @@ function buildReceipt(){
     amount_usd:TIERS[order.tier].amount,
     payment_status:'PAID-TEST',
     payment_note:'Simulated test payment in this demo. No money moved. No Stripe session.',
+    verification_status: order.tier==='dossier' ? 'PENDING HUMAN REVIEW' : 'SELF-SERVE - MODELED, NOT HUMAN-REVIEWED',
+    reports_total: order.tier==='pack' ? 3 : 1,
+    reports_delivered: 1,
+    reports_remaining: order.tier==='pack' ? 2 : 0,
     buyer:{name:order.name,email:order.email,phone:order.phone||null,use:order.use||null},
     parcel:{parcel_id:order.parcelId,county:order.county,state:order.state,acres:parseFloat(order.acres)||null,
       land_use:order.landUse,section_township_range:order.str,location_note:order.loc},
@@ -724,14 +750,13 @@ function renderDelivery(){
   var t=TIERS[order.tier];
   var html='<p><span class="pill paid">PAID-TEST</span> <span class="pill delivered">'+r.status+'</span></p>';
   html+='<p>Order <b>'+order.orderId+'</b> - '+t.name+' ($'+t.amount.toLocaleString('en-US')+') - paid in simulation only. Report <b>'+order.reportId+'</b> delivered below. In the live flow this report and its JSON receipt go to '+order.email+'.</p>';
-  if(order.tier==='scan'){
-    html+='<div class="sample"><div class="sample-head"><h3>Property Opportunity Scan - Short Form</h3><span class="rid">'+order.reportId+'</span></div>'+
-    '<div class="watermark">'+(isRef?'SAMPLE - OWNER NAMES UNVERIFIED - YIELD MODELED':'SHELL - SCORED BLOCKS PENDING LIVE SCORING')+'</div>'+
-    '<div class="sample-body"><div class="sblock"><h4>Target Parcel</h4><p>'+r.parcel.parcel_id+'<br>'+r.parcel.acres+' ac, '+r.parcel.county+', '+r.parcel.state+'<br>'+r.parcel.land_use+'<br>'+r.parcel.section_township_range+'<br>'+r.parcel.location_note+'</p></div>'+
-    '<div class="sblock"><h4>Distress Flags</h4><p>'+r.distress_flags.map(function(f){return f.flag+': '+f.detail;}).join('<br>')+'</p>'+
-    '<h4 style="margin-top:10px">Mineral Overlay</h4><p>'+r.mineral_overlay.halo_signal+': '+r.mineral_overlay.detail+'</p></div></div></div>';
-  }else{
-    html+='<div class="sample"><div class="sample-head"><h3>Provenance-Backed Land Intelligence Report</h3><span class="rid">'+order.reportId+'</span></div>'+
+  if(order.tier==='pack'){
+    html+='<p><b>Pack:</b> report 1 of 3 delivered. 2 credits remain for additional parcels. Each credit redeems one self-serve report.</p>';
+  }
+  if(order.tier==='dossier'){
+    html+='<p><b>Verified Dossier - Human review queued:</b> a reviewer verifies the ownership chain against live county and SOS data before final delivery. The report below is the draft the reviewer starts from. Owner names remain UNVERIFIED until the reviewer confirms them.</p>';
+  }
+  html+='<div class="sample"><div class="sample-head"><h3>Provenance-Backed Land Intelligence Report</h3><span class="rid">'+order.reportId+'</span></div>'+
     '<div class="watermark">'+(isRef?'SAMPLE - OWNER NAMES UNVERIFIED - YIELD MODELED':'SHELL - SCORED BLOCKS PENDING LIVE SCORING')+'</div>'+
     '<div class="sample-body">'+
     '<div class="sblock"><h4>Target Parcel</h4><p><b style="font-size:20px">'+r.parcel.acres+' ACRES</b><br>'+r.parcel.county+' County, '+r.parcel.state+'</p><p>Parcel ID <span class="mono">'+r.parcel.parcel_id+'</span><br>Acres (deeded) '+r.parcel.acres+' &middot; '+r.parcel.land_use+'<br>'+r.parcel.section_township_range+'<br>'+r.parcel.location_note+'</p></div>'+
@@ -740,7 +765,6 @@ function renderDelivery(){
     '<div class="sblock"><h4>Mineral Overlay</h4><p><b>'+r.mineral_overlay.halo_signal+'</b><br>'+r.mineral_overlay.detail+'</p><h4 style="margin-top:10px">Distress Flags</h4><p>'+r.distress_flags.map(function(f){return f.flag+': '+f.detail;}).join('<br>')+'</p></div>'+
     '<div class="sblock" style="grid-column:1/-1"><h4>Provenance Receipt</h4><p>Report hash (SHA-256): <span class="mono">'+r.provenance.report_hash_sha256+'</span></p><p>Verdict: '+r.provenance.verdict+' &middot; Timestamp '+r.provenance.timestamp_utc+' &middot; Previous receipt hash: <span class="mono">'+r.provenance.prev_receipt_hash+'</span></p><p>'+r.provenance.verdict_note+' Recompute the hash over the canonical JSON below (hash field stripped) to confirm.</p></div>'+
     '</div></div>';
-  }
   html+='<div class="navrow"><button class="btn btn-primary btn-small" id="dlReport">Download report JSON receipt</button>'+
   '<button class="btn btn-ghost btn-small" id="copyHash">Copy report hash</button></div>'+
   '<p class="hint">Report hash: <span class="mono" id="hashEcho">'+r.provenance.report_hash_sha256+'</span></p>';
@@ -784,7 +808,9 @@ $('toLedger').addEventListener('click',function(){
 /* ---------- schema pre + init ---------- */
 $('schemaPre').textContent=JSON.stringify({
   receipt_version:'1.0',report_id:'VLND-26-1110-01',order_id:'ORD-20261110-01',
-  tier:'dossier',amount_usd:1500,payment_status:'PAID-TEST',
+  tier:'report',amount_usd:29,payment_status:'PAID-TEST',
+  verification_status:'SELF-SERVE - MODELED, NOT HUMAN-REVIEWED',
+  reports_total:1,reports_delivered:1,reports_remaining:0,
   buyer:{name:'...',email:'...',phone:null,use:null},
   parcel:{parcel_id:'71-06-17-000-001.000-026',county:'LaPorte',state:'IN',acres:42.0,land_use:'Agricultural / Vacant',section_township_range:'Section 17, Township 38N, Range 4W',location_note:'Approx. 0.6 mi NE of LaPorte'},
   ownership_chain:[{role:'HOLDING LLC',name:'...',note:'...',verified:false}],
