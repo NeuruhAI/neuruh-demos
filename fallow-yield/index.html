@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FALLOW — Land Yield Stack, Visualized</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --obsidian:#0e0e0c; --obsidian-2:#171713; --obsidian-3:#201f1a;
+  --bone:#ece7db; --bone-2:#d8d2c2; --bone-dim:#a9a294;
+  --ink:#141310; --paper:#f4f1e8; --paper-2:#ebe7da;
+  --brass:#b08d3c; --brass-bright:#c9a227; --brass-dim:#8a6d2b;
+  --warn:#a33327; --ok:#5c6e46;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',system-ui,sans-serif;
+  --display:'Archivo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+a{color:var(--brass-dim)}
+/* ---- document control header ---- */
+.docbar{background:var(--obsidian);color:var(--bone);padding:14px 28px 12px;border-bottom:3px solid var(--brass)}
+.docbar .row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.docbar .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass-bright)}
+.docbar h1{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.01em;line-height:1.05;margin-top:4px}
+.docbar h1 span{color:var(--brass-bright)}
+.docbar .sub{font-size:13px;color:var(--bone-2);max-width:640px;margin-top:6px}
+.docbar .meta{font-family:var(--mono);font-size:11px;color:var(--bone-dim);text-align:right;line-height:1.7}
+.docbar .meta b{color:var(--bone)}
+/* ---- tabs ---- */
+.tabs{background:var(--obsidian-2);display:flex;flex-wrap:wrap;gap:2px;padding:0 20px;border-bottom:1px solid var(--obsidian-3)}
+.tabs button{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.04em;background:transparent;border:0;color:var(--bone-dim);padding:13px 16px 11px;cursor:pointer;border-bottom:3px solid transparent}
+.tabs button:hover{color:var(--bone)}
+.tabs button.active{color:var(--brass-bright);border-bottom-color:var(--brass-bright)}
+main{max-width:1180px;margin:0 auto;padding:26px 28px 60px}
+.tabpane{display:none}
+.tabpane.active{display:block}
+h2{font-family:var(--display);font-weight:800;font-size:22px;margin:4px 0 6px}
+h3{font-family:var(--display);font-weight:700;font-size:15px;margin:22px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.lede{font-size:15px;color:#3d3a30;max-width:860px}
+.lede b{color:var(--ink)}
+.rule{height:1px;background:#c9c2ae;margin:18px 0}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:#c9c2ae;border:1px solid #c9c2ae;margin:16px 0}
+.meta-grid>div{background:#fff;padding:10px 12px}
+.meta-grid .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#7a7466}
+.meta-grid .v{font-family:var(--display);font-weight:700;font-size:17px;margin-top:2px}
+.meta-grid .v small{font-family:var(--mono);font-size:11px;font-weight:400;color:#7a7466}
+.tag{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border:1px solid var(--brass-dim);color:var(--brass-dim);border-radius:2px}
+.tag.modeled{border-color:#8a6d2b;color:#8a6d2b;background:#f7efdb}
+.tag.unverified{border-color:var(--warn);color:var(--warn);background:#f7e9e6}
+.tag.verified{border-color:var(--ok);color:var(--ok);background:#eef1e6}
+.tag.blocking{border-color:var(--warn);color:#fff;background:var(--warn)}
+.callout{border:1px solid #c9c2ae;border-left:4px solid var(--brass);background:#fff;padding:14px 16px;margin:16px 0}
+.callout.blocking{border-left-color:var(--warn)}
+.callout h4{font-family:var(--display);font-size:13px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.callout p{font-size:14px}
+.callout code{font-family:var(--mono);font-size:12.5px;background:var(--paper-2);padding:1px 5px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:#fff}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:#6d675a;border-bottom:2px solid var(--ink);padding:8px 10px}
+td{border-bottom:1px solid #ddd6c4;padding:7px 10px;vertical-align:top}
+td.num,th.num{text-align:right;font-family:var(--mono);font-size:12.5px}
+tr.total td{font-weight:700;border-top:2px solid var(--ink)}
+.mono{font-family:var(--mono);font-size:12.5px}
+.small{font-size:12.5px;color:#5c564a}
+figure{margin:18px 0}
+figcaption{font-family:var(--mono);font-size:11px;color:#6d675a;margin-top:8px}
+figcaption b{color:var(--ink)}
+/* ---- 3D panel ---- */
+.stack-wrap{display:grid;grid-template-columns:1fr 320px;gap:18px;margin-top:16px}
+@media(max-width:900px){.stack-wrap{grid-template-columns:1fr}}
+.viewport{position:relative;background:var(--obsidian);border:1px solid var(--obsidian);min-height:520px}
+.viewport canvas{display:block;width:100%;height:520px}
+.viewport .fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--bone-dim);font-family:var(--mono);font-size:12px;text-align:center;padding:20px}
+.viewport .hud{position:absolute;left:12px;top:12px;font-family:var(--mono);font-size:11px;color:var(--bone);background:rgba(14,14,12,.78);padding:8px 10px;line-height:1.6;border:1px solid #3a382e}
+.viewport .hud b{color:var(--brass-bright)}
+.side{background:#fff;border:1px solid #c9c2ae;padding:14px 16px}
+.side h4{font-family:var(--display);font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.layer{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid #e8e2d2}
+.layer:last-child{border-bottom:0}
+.layer input{margin-top:3px;accent-color:var(--brass)}
+.layer .ln{font-weight:600;font-size:13.5px}
+.layer .ld{font-size:12px;color:#5c564a}
+.layer .lv{font-family:var(--mono);font-size:12px;margin-left:auto;white-space:nowrap}
+.swatch{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.stack-read{font-family:var(--mono);font-size:12px;line-height:1.8;background:var(--obsidian);color:var(--bone);padding:12px 14px;margin-top:12px}
+.stack-read b{color:var(--brass-bright)}
+.stack-read .conflict{color:#e8a49b}
+.stack-read .ok{color:#b7c79b}
+.cond-list{margin:8px 0 0 16px;font-size:12.5px}
+.cond-list li{margin-bottom:4px}
+/* ---- matrix ---- */
+.matrix-wrap{overflow-x:auto;background:#fff;border:1px solid #c9c2ae;padding:14px}
+table.matrix{width:auto;margin:0 auto}
+table.matrix th,table.matrix td{border:1px solid #ddd6c4;text-align:center;padding:0;width:64px;height:44px}
+table.matrix th{font-size:10px;background:var(--paper-2);padding:6px 4px}
+table.matrix td{cursor:pointer;font-family:var(--mono);font-weight:700;font-size:14px}
+table.matrix td.diag{background:var(--obsidian);color:var(--bone-dim);cursor:default}
+table.matrix td.c{background:#f3ead2;color:#6d5518}
+table.matrix td.s{background:#faf6ea;color:#6d5518;border:2px dashed var(--brass)}
+table.matrix td.t{background:#faf6ea;color:#6d5518;border:2px dotted var(--brass)}
+table.matrix td.x{background:#f3e2df;color:var(--warn)}
+table.matrix td.sel{outline:3px solid var(--brass-bright);outline-offset:-3px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;margin:10px 0}
+.legend span b{font-family:var(--mono)}
+#pairDetail{background:#fff;border:1px solid #c9c2ae;padding:14px 16px;margin-top:14px;min-height:110px}
+/* ---- pilot ---- */
+.pilot-week{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid #ddd6c4}
+.pilot-week .wk{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--brass-dim)}
+.pilot-week .wt{font-size:13.5px}
+.pilot-week .wt b{font-family:var(--display)}
+.kills{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:12px}
+.kill{background:#fff;border:1px solid #c9c2ae;border-top:4px solid var(--warn);padding:14px 16px}
+.kill h5{font-family:var(--display);font-size:13px;margin-bottom:6px}
+.kill p{font-size:13px}
+/* ---- revenue ---- */
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:14px}
+.rev{background:#fff;border:1px solid #c9c2ae;padding:16px 18px}
+.rev h4{font-family:var(--display);font-size:16px}
+.rev .code{font-family:var(--mono);font-size:11px;color:var(--brass-dim);letter-spacing:.1em}
+.rev p{font-size:13.5px;margin-top:8px}
+.rev .ex{font-family:var(--mono);font-size:12px;background:var(--paper-2);padding:8px 10px;margin-top:10px;line-height:1.7}
+footer{border-top:2px solid var(--ink);margin-top:40px;padding-top:16px;font-size:12.5px;color:#5c564a}
+footer .mono{font-size:11.5px}
+@media print{
+  .tabs,.viewport{display:none}
+  body{background:#fff}
+  .tabpane{display:block!important;page-break-before:always}
+}
+</style>
+</head>
+<body>
+<header class="docbar">
+  <div class="row">
+    <div>
+      <div class="kicker">Neuruh &middot; Real Estate / Land &middot; Concept RE-033</div>
+      <h1>FALLOW <span>&mdash; the land yield stack</span></h1>
+      <div class="sub">A yield operating system for idle land. Score parcels for what they can <b>earn</b>, not what they can sell for, then stack non-conflicting use-rights on one parcel. Engine A operates. Engine B sells the intelligence Engine A manufactures.</div>
+    </div>
+    <div class="meta">
+      <b>DOC</b> fallow-yield v1.0<br>
+      <b>DATE</b> 2026-11-10<br>
+      <b>SOURCE</b> FALLOW v0.1.0 code, verified<br>
+      <b>SCORE</b> lys-0.1.0 &middot; laporte-in<br>
+      <b>STATUS</b> MODELED &middot; MRR $0
+    </div>
+  </div>
+</header>
+<nav class="tabs" role="tablist">
+  <button class="active" data-tab="stack" role="tab">1 &middot; Parcel Stack</button>
+  <button data-tab="matrix" role="tab">2 &middot; Conflict Matrix</button>
+  <button data-tab="score" role="tab">3 &middot; Yield Score</button>
+  <button data-tab="revenue" role="tab">4 &middot; Revenue Lines</button>
+  <button data-tab="pilot" role="tab">5 &middot; Pilot</button>
+</nav>
+<main>
+
+<!-- ================= TAB 1 : PARCEL STACK ================= -->
+<section class="tabpane active" id="tab-stack">
+  <h2>Figure 1 &mdash; One parcel, four tenants, zero conflicts</h2>
+  <p class="lede">The reference parcel is the test suite&rsquo;s good parcel, scored by the real engine: <b>42 acres, LaPorte County, Indiana</b>, composite <b>85.2</b>, activation <b>63.0</b>, confidence <b>high</b>. The optimizer&rsquo;s conflict-free stack is <b>hunting + laydown + apiary at $32,714.42/yr modeled</b> &mdash; not the $46,644.40 gross, because the highest-value uses (laydown $30,429 + camping $9,656) cannot share the same acreage. Toggle layers to test your own stack; the checker runs the real conflict matrix.</p>
+  <div class="meta-grid">
+    <div><div class="k">Parcel</div><div class="v">18091-TEST-0001</div></div>
+    <div><div class="k">Acreage</div><div class="v">42 <small>acres</small></div></div>
+    <div><div class="k">Modeled gross</div><div class="v">$46,644 <small>/ yr</small></div></div>
+    <div><div class="k">Stacked (conflict-free)</div><div class="v">$32,714 <small>/ yr</small></div></div>
+    <div><div class="k">Composite</div><div class="v">85.2 <small>/ 100</small></div></div>
+    <div><div class="k">Activation</div><div class="v">63.0 <small>/ 100</small></div></div>
+  </div>
+  <div class="stack-wrap">
+    <div class="viewport" id="viewport">
+      <div class="hud" id="hud">DRAG to orbit &middot; SCROLL to zoom<br><b>Parcel:</b> 42 ac &middot; road frontage S<br><b>Zones:</b> laydown pad, 2 hunting stands,<br>camp sites, apiary yard, solar overlay</div>
+      <div class="fallback" id="glFallback">3D view needs the Three.js CDN and WebGL.<br>The stack table and zone list on the right carry the same data.</div>
+    </div>
+    <div class="side">
+      <h4>Use layers &mdash; click to toggle</h4>
+      <div id="layerList"></div>
+      <div class="stack-read" id="stackRead"></div>
+      <h4 style="margin-top:16px">Lease conditions required</h4>
+      <ul class="cond-list" id="condList"></ul>
+    </div>
+  </div>
+  <figure>
+    <figcaption><b>Fig. 1.</b> 3D plan of the 42-acre reference parcel. Zone placements are illustrative (MODELED), not surveyed boundaries. Separation distances are the real lease-drafting requirements from the conflict matrix: 300 ft between the laydown perimeter and any hunting stand; hive yard 150 ft from equipment lanes and 200 ft from camp sites; camping confined to non-tillable acreage. Hunting Oct 1 &ndash; Jan 15; camping Apr 15 &ndash; Sep 30; the two never overlap.</figcaption>
+  </figure>
+  <div class="callout">
+    <h4>Why the stack is smaller than the gross</h4>
+    <p>Every use on this parcel has a modeled value, but two pairs are hard conflicts: <b>agriculture &times; laydown</b> and <b>laydown &times; camping</b> cannot share the same acreage. The optimizer picks the highest-value conflict-free subset (max 4 uses). Taking camping ($9,656) would force dropping laydown ($30,429). The stack is the answer to &ldquo;what can this parcel actually earn at once,&rdquo; not &ldquo;what is every use worth in isolation.&rdquo;</p>
+  </div>
+</section>
+
+<!-- ================= TAB 2 : CONFLICT MATRIX ================= -->
+<section class="tabpane" id="tab-matrix">
+  <h2>Figure 2 &mdash; The use-right conflict matrix</h2>
+  <p class="lede">Eight use verticals, 28 pairs, one rule each. This is the piece with no competitor: every land marketplace sells <b>one</b> use. None of them model whether two uses can share a parcel. Click any cell to read the lease-drafting conditions that pair requires. <span class="tag verified">Verified in code</span> &mdash; matrix is symmetric, 56 directed entries, optimizer never returns a conflicting pair.</p>
+  <div class="legend">
+    <span><b>C</b> &mdash; compatible, no condition</span>
+    <span><b>S</b> &mdash; compatible only if spatially separated</span>
+    <span><b>T</b> &mdash; compatible only via temporal separation</span>
+    <span><b>X</b> &mdash; conflict, cannot coexist on the same acreage</span>
+  </div>
+  <div class="matrix-wrap"><table class="matrix" id="matrixTable"></table></div>
+  <div id="pairDetail"><p class="small">Select a pair above. Conditions shown here are the lease-drafting requirements from <span class="mono">engine/stack/conflicts.py</span> &mdash; they must appear in the executed instruments, not as suggestions.</p></div>
+  <figure><figcaption><b>Fig. 2.</b> Counts (directed cells, 56 total): C 40 &middot; S 10 &middot; T 2 &middot; X 4. The two T pairs are hunting &times; camping only. The four X cells are the two hard conflicts in both directions (ag &times; laydown, laydown &times; camping). Solar option is an option, not occupancy: compatible with everything until exercised, then every surface lease must subordinate.</figcaption></figure>
+  <div class="callout">
+    <h4>Solar subordination &mdash; getting this wrong sells the same acre twice</h4>
+    <p>All surface leases expressly subordinate to the solar option upon exercise. Minimum 120 days written notice of exercise to every surface tenant. Termination or relocation remedy defined per surface lease, with a stated cure period. Option holder acknowledges existing surface leases in a recorded memorandum.</p>
+  </div>
+</section>
+
+<!-- ================= TAB 3 : YIELD SCORE ================= -->
+<section class="tabpane" id="tab-score">
+  <h2>Figure 3 &mdash; The Land Yield Score</h2>
+  <p class="lede">Version <b>lys-0.1.0</b>, expert-weighted, not fitted. There are <b>zero realized-yield observations</b> in the system on day one, so every coefficient is judgment encoded as arithmetic &mdash; and every score carries its version stamp, so v0.2 can be measured against v0.1 once real yields exist. <span class="tag modeled">All dollars modeled</span> <span class="tag unverified">Anchors unverified</span></p>
+  <h3>Reference parcel &mdash; per-use yield (real engine output)</h3>
+  <table>
+    <thead><tr><th>Use</th><th class="num">Modeled $/yr</th><th>Confidence</th><th>Season</th><th>Drivers</th></tr></thead>
+    <tbody id="useTable"></tbody>
+    <tr class="total"><td>Modeled gross (all uses, conflicts ignored)</td><td class="num">$46,644.40</td><td></td><td></td><td></td></tr>
+    <tr class="total"><td>Conflict-free stack (optimizer)</td><td class="num">$32,714.42</td><td></td><td></td><td>hunting + laydown + apiary</td></tr>
+  </table>
+  <p class="small" style="margin-top:8px">Composite 85.2 = 60% yield magnitude (saturating at $12,000/yr) + 40% activation (63.0). Activation weights: estate indicator 22, tax delinquent 18, absentee 14, out-of-state 10, failed listing 10, inherited deed 9, no homestead 7, high tax burden 6, long hold 4.</p>
+
+  <h3>The $845,231 bug &mdash; and the fix, in the code</h3>
+  <div class="callout">
+    <h4>Regression: v0.1.0-rc priced rural laydown at metro per-square-foot rates</h4>
+    <p>The first run produced <b>$845,231/yr on an 11-acre parcel</b>. The laydown model was built on the metro IOS anchor ($0.50&ndash;$2.00/SF/mo). Fixed to <b>per-acre-month</b>: usable pad capped at 3 acres or existing hardstand, whichever is larger; anchor <span class="mono">ios_per_acre_month</span> mid <b>$350/acre/mo</b> <span class="tag unverified">Derived, unverified</span>; sanity ceiling $2,500/acre/mo with a visible CAPPED driver. Same 11-acre parcel now models laydown at <b>$30,429.00/yr</b>. A regression test caps it at $60,000 and passes. The anchor is still the highest-priority verification in the venture: three real rural yard comps before any master lease is signed.</p>
+  </div>
+
+  <h3>Dollar anchors &mdash; LaPorte County, Indiana</h3>
+  <table>
+    <thead><tr><th>Anchor</th><th class="num">Low</th><th class="num">Mid</th><th class="num">High</th><th>Source</th></tr></thead>
+    <tbody id="anchorTable"></tbody>
+  </table>
+  <p class="small" style="margin-top:8px">Anchor status: MODELED &mdash; zero realized-yield observations in this market. No valuation is claimable pre-MRR.</p>
+
+  <h3>Seven gates &mdash; suppress, never discount</h3>
+  <table>
+    <thead><tr><th>Gate</th><th>Reason</th><th>Suppresses</th></tr></thead>
+    <tbody id="gateTable"></tbody>
+  </table>
+
+  <h3>Signal registry &mdash; 43 signals</h3>
+  <p class="small">The transcript&rsquo;s table lists 42; the shipped registry holds 43 (the extra entry is <span class="mono">owner_age_proxy</span>). The test suite asserts &ge; 42. Signals feed use models; the last twelve are owner-activation signals that score whether the owner will say yes.</p>
+  <table>
+    <thead><tr><th>Signal</th><th>Source</th><th>Feeds</th><th>Kind</th></tr></thead>
+    <tbody id="signalTable"></tbody>
+  </table>
+</section>
+
+<!-- ================= TAB 4 : REVENUE ================= -->
+<section class="tabpane" id="tab-revenue">
+  <h2>Figure 4 &mdash; Three legal revenue lines</h2>
+  <p class="lede">The 15&ndash;25% take rate on managed leases is dead as specced. In Michigan, leasing or renting real property of others for a fee or commission is real estate brokerage, and brokerage without a license is the exposure. The venture therefore earns in three structures that do not touch it. <span class="tag unverified">Statute claims transcript-sourced, not verified by us</span></p>
+  <div class="callout blocking">
+    <h4>Licensing correction &mdash; read first</h4>
+    <p>Transcript cites MCL 339.2501: &ldquo;property management&rdquo; means leasing or renting, or offering to lease or rent, real property of others for a fee, commission, or compensation pursuant to a property management employment contract. LARA&rsquo;s position (per transcript): anyone engaging in property management must hold a broker&rsquo;s license unless a salesperson employed by a broker. Broker gate (per transcript): 90 clock hours of broker-level education plus a minimum of three years full-time real estate experience. A salesperson license is faster (40 hours, exam, background check, MiPLUS, $88, per transcript) but must operate under a sponsoring broker. <b>Not legal advice, not a lawyer.</b> The Indiana analysis (IC 25-34.1) is still open &mdash; Gate 0.1 &mdash; and the pilot county is in Indiana.</p>
+  </div>
+  <div class="rev-grid">
+    <div class="rev">
+      <div class="code">LINE A1 &middot; NO LICENSE</div>
+      <h4>Master lease &mdash; principal position</h4>
+      <p>Fallow leases the parcel from the owner at a fixed rent, becomes the leasehold principal, then sublets use-rights. It is not leasing for others; it is leasing its own leasehold interest. The owner gets a fixed annual check, zero effort, zero vacancy risk. Fallow gets the entire spread and eats the rent obligation whether the parcel fills or not. Reserved for parcels where the Yield Score clears a confidence threshold, so fill risk is underwritten.</p>
+      <div class="ex">Worked example (MODELED, transcript):<br>40 ac stacking $4,500 gross<br>20% take would be $900, no risk<br>Master lease at $1,500 fixed<br>= $3,000 spread minus ops</div>
+    </div>
+    <div class="rev">
+      <div class="code">LINE A2 &middot; NO LICENSE</div>
+      <h4>Flat-fee platform / SaaS</h4>
+      <p>The owner subscribes to tooling: yield report, use-right matching, generated lease documents, calendar, insurance referral, payment rails. The owner executes and signs every lease themselves. Fallow never negotiates, never offers to lease, never takes a cut of rent. Flat monthly or annual fee, decoupled from lease value. This is also the Engine B on-ramp for the long tail.</p>
+      <div class="ex">Hipcamp / Neighbor / Sniffspot posture:<br>tooling only, owner is the lessor,<br>fee is flat, never a % of rent</div>
+    </div>
+    <div class="rev">
+      <div class="code">LINE A3 &middot; LICENSED, PARTNERED</div>
+      <h4>Broker-of-record affiliation</h4>
+      <p>Affiliate one licensed Michigan broker (and one Indiana broker) as broker-of-record. Commission-based managed leasing runs through them; Fallow provides technology and origination and the revenue splits. Fastest path to a salesperson license under a sponsoring broker later. Sequencing: A1 + A2 launch Week 1; A3 is a Week 4&ndash;8 conversation, not a launch blocker.</p>
+      <div class="ex">Schema enforces it:<br>a `brokered` agreement without<br>`broker_of_record` fails a CHECK<br>constraint in 001_init.sql</div>
+    </div>
+  </div>
+  <h3>What the numbers are not</h3>
+  <p class="lede">MRR is <b>$0</b>. No valuation is claimable pre-MRR. The pilot hypothesis &mdash; a decent 40-acre Midwest parcel stacks $3,000&ndash;$6,000/yr gross &mdash; is testable, not proven. The code&rsquo;s own regression test bounds a 40-acre stack at $500&ndash;$60,000; the real 40-acre reference stack produced by this engine is <b>$32,605.58/yr modeled</b>. At a 20% take (the dead model) that would be $600&ndash;$1,200/parcel/yr, implying roughly 1,000 managed parcels for ~$1M ARR on Engine A long-tail alone &mdash; which is why Engine B and the farm-management-firm lane carry the leverage.</p>
+</section>
+
+<!-- ================= TAB 5 : PILOT ================= -->
+<section class="tabpane" id="tab-pilot">
+  <h2>Figure 5 &mdash; Lane A: LaPorte County, 90 days</h2>
+  <p class="lede">Why LaPorte: parcel data already exists in the scored inventory (zero acquisition cost); rural/agricultural rather than urban St. Joseph; adjacent to Berrien County, Michigan (45-minute drive-verification); the Lake Michigan shoreline assemblage recipe already covers part of it. Runner-up Berrien County has no ingested parcel data (about 3 weeks to ingest). <span class="tag modeled">Plan, not run</span></p>
+  <div id="pilotWeeks"></div>
+  <h3>Kill criteria &mdash; read at week 13</h3>
+  <p class="small">Any two of three failing &rarr; drop long-tail A1/A2, go pure Engine B + Lane B.</p>
+  <div class="kills">
+    <div class="kill"><h5>1 &middot; Conversion below 2%</h5><p>Fewer than 10 signed agreements from 500 contacts. 500 mailers at ~$0.90 all-in &asymp; $450. At 2% conversion, 200 contacts would give 4 signings &mdash; statistical noise, which is why the sample was revised up from 200.</p></div>
+    <div class="kill"><h5>2 &middot; Model overpredicts &gt; 40%</h5><p>Median modeled-to-realized gross yield ratio below 0.6. The model must be within 40% of reality on the median parcel, or the Yield Score is not a product.</p></div>
+    <div class="kill"><h5>3 &middot; Demand-match below 50%</h5><p>Signed parcels failing to produce a paying lessee within 60 days. Supply without demand is inventory, not yield.</p></div>
+  </div>
+  <h3>Lane B &mdash; who the intelligence is sold to</h3>
+  <p class="lede">Land banks and builders were killed by the thesis&rsquo;s own correction. Land banks hold urban residential lots and are mandated to dispose of them, not hold and yield them. Builders often do not own the land (option and off-balance-sheet structures) and will not accept a tenant with possessory rights mid-entitlement. <b>Replacement target: farm management firms and farmland funds</b> (Peoples Company, Farmers National, Hertz Farm Management, regional equivalents; farmland funds and TIMOs above them). They own fee title, they already lease land for others under license, and they lack exactly one thing: a yield model. Fallow sells the intelligence layer; they execute every lease. The two-page Interim Yield Program brief for a farm management principal is the Lane B deliverable. <span class="tag modeled">Not built yet</span></p>
+  <div class="callout blocking">
+    <h4>Blocking &mdash; entity defect</h4>
+    <p>The thesis names a Neuruh limited liability company as the contracting entity (Gate 0.2) and IP licensor (Gate 0.4). <b>Neuruh is unregistered; the LLC filing is unfiled.</b> Both gates are unusable as written, and the same false entity name is baked into the shipped v0.1.0 code (README.md:6, config/brand.json:4, schema/001_init.sql:129, scripts/bootstrap.sh:205,208). Correct language: <b>Neuruh (unregistered; LLC filing pending)</b>. No pilot contract and no IP license can be executed until this is corrected. The fix belongs in the repo on the Mac.</p>
+  </div>
+  <h3>Open gates</h3>
+  <table>
+    <thead><tr><th>Gate</th><th>What</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">0.1</td><td>Indiana brokerage analysis (IC 25-34.1); whether Indiana exempts ag/recreational leases; master-lease principal position</td><td>OPEN</td></tr>
+      <tr><td class="mono">0.2</td><td>Entity of record on every pilot contract; assignment clause to a successor entity</td><td><span class="tag blocking">Blocked</span> &mdash; no entity exists to name</td></tr>
+      <tr><td class="mono">0.3</td><td>Current-use tax program recapture mechanics per state (MI QFP / PA 116; IN classified forest / ag assessment)</td><td>OPEN &mdash; suppression is coded; the law is not verified</td></tr>
+      <tr><td class="mono">0.4</td><td>IP license, Neuruh &rarr; FALLOW, one page, dated, signed</td><td><span class="tag blocking">Blocked</span> &mdash; licensor name is wrong</td></tr>
+      <tr><td class="mono">0.5</td><td>USPTO clearance search, Class 36 and Class 42, before trademark filing or client-facing contracts at scale</td><td>OPEN</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <p><b>Sources.</b> All engine outputs are from FALLOW v0.1.0 (<span class="mono">lys-0.1.0</span>), run in this workspace 2026-11-10: 1,418 Python lines, 39/39 tests passing, 60-parcel synthetic demo run, portfolio $822,464/yr modeled, bundled <span class="mono">data/scored.json</span> result-identical to a fresh run. Market config <span class="mono">laporte-in</span>. Full absorption record: vault <span class="mono">_research/fallow-venture/fallow-venture-2026-11-10.md</span>, concept RE-033.</p>
+  <p style="margin-top:8px"><b>Honesty rule.</b> Every dollar figure on this page is MODELED or labeled UNVERIFIED. Zero realized-yield observations exist. MRR is $0. No valuation is claimable pre-MRR. Neuruh is unregistered; the LLC filing is pending. DeedSonar is solely Jeramie Hicks&rsquo;s (Bryan Franklin never signed). The name FALLOW is a working name; no trademark filed, no domain purchased, no entity filed.</p>
+  <p style="margin-top:8px" class="mono">FALLOW-YIELD v1.0 &middot; 2026-11-10 &middot; fallow-yield &middot; neuruh-demos</p>
+</footer>
+</main>
+
+<script>
+const FALLOW = {"score_version": "lys-0.1.0", "market_id": "laporte-in", "reference_parcel": {"parcel_apn": "18091-TEST-0001", "market_id": "laporte-in", "score_version": "lys-0.1.0", "acreage": 42.0, "composite_score": 85.2, "activation_score": 63.0, "modeled_gross_annual_usd": 46644.4, "confidence": "high", "gates_fired": [], "candidates": [{"use_type": "hunting", "modeled_annual_usd": 1725.42, "confidence": "high", "season_start": "10-01", "season_end": "01-15", "suppressed_by_gate": null, "drivers": ["high forest/ag edge density", "balanced forest/open mix", "water on parcel", "adjacent crop food source", "low public-land hunting pressure", "inside weekend drive radius"]}, {"use_type": "ag_lease", "modeled_annual_usd": 4273.5, "confidence": "medium", "season_start": "04-01", "season_end": "11-30", "suppressed_by_gate": null, "drivers": ["23 tillable acres"]}, {"use_type": "laydown", "modeled_annual_usd": 30429.0, "confidence": "high", "season_start": "01-01", "season_end": "12-31", "suppressed_by_gate": null, "drivers": ["close to interstate interchange", "zoning permits outdoor storage", "dense contractor demand within 15 min", "existing hardstand \u2014 low activation cost"]}, {"use_type": "camping", "modeled_annual_usd": 9656.48, "confidence": "high", "season_start": "04-15", "season_end": "09-30", "suppressed_by_gate": null, "drivers": ["near scenic feature", "canopy screening between sites", "water on parcel"]}, {"use_type": "apiary", "modeled_annual_usd": 560.0, "confidence": "low", "season_start": "04-01", "season_end": "09-30", "suppressed_by_gate": null, "drivers": ["forage acreage supports hive yards"]}, {"use_type": "solar_option", "modeled_annual_usd": 0.0, "confidence": "low", "season_start": null, "season_end": null, "suppressed_by_gate": null, "drivers": ["too far from substation"]}, {"use_type": "cell_easement", "modeled_annual_usd": 0.0, "confidence": "low", "season_start": null, "season_end": null, "suppressed_by_gate": null, "drivers": []}, {"use_type": "billboard", "modeled_annual_usd": 0.0, "confidence": "low", "season_start": null, "season_end": null, "suppressed_by_gate": null, "drivers": ["low traffic corridor"]}]}, "reference_stack": {"uses": ["apiary", "hunting", "laydown"], "total": 32714.42, "rels": {"apiary|hunting": "C", "apiary|laydown": "S", "hunting|laydown": "S"}, "conditions": ["Hive yard placed minimum 150 ft from equipment traffic lanes.", "Vehicle route mapped as an exhibit to both instruments.", "Laydown area fenced and separately accessed.", "Minimum 300 ft separation between laydown perimeter and any hunting stand location.", "Firearm discharge exclusion zone mapped and attached as an exhibit to both instruments.", "Reciprocal liability carve-out in both leases."]}, "laydown_11ac": 30429.0, "stack_40ac": {"uses": ["apiary", "hunting", "laydown"], "total": 32605.58}, "matrix": {"hunting|ag_lease": "C", "hunting|laydown": "S", "hunting|camping": "T", "hunting|apiary": "C", "hunting|solar_option": "C", "hunting|cell_easement": "C", "hunting|billboard": "C", "ag_lease|hunting": "C", "ag_lease|laydown": "X", "ag_lease|camping": "S", "ag_lease|apiary": "C", "ag_lease|solar_option": "C", "ag_lease|cell_easement": "C", "ag_lease|billboard": "C", "laydown|hunting": "S", "laydown|ag_lease": "X", "laydown|camping": "X", "laydown|apiary": "S", "laydown|solar_option": "C", "laydown|cell_easement": "C", "laydown|billboard": "C", "camping|hunting": "T", "camping|ag_lease": "S", "camping|laydown": "X", "camping|apiary": "S", "camping|solar_option": "C", "camping|cell_easement": "C", "camping|billboard": "S", "apiary|hunting": "C", "apiary|ag_lease": "C", "apiary|laydown": "S", "apiary|camping": "S", "apiary|solar_option": "C", "apiary|cell_easement": "C", "apiary|billboard": "C", "solar_option|hunting": "C", "solar_option|ag_lease": "C", "solar_option|laydown": "C", "solar_option|camping": "C", "solar_option|apiary": "C", "solar_option|cell_easement": "C", "solar_option|billboard": "C", "cell_easement|hunting": "C", "cell_easement|ag_lease": "C", "cell_easement|laydown": "C", "cell_easement|camping": "C", "cell_easement|apiary": "C", "cell_easement|solar_option": "C", "cell_easement|billboard": "C", "billboard|hunting": "C", "billboard|ag_lease": "C", "billboard|laydown": "C", "billboard|camping": "S", "billboard|apiary": "C", "billboard|solar_option": "C", "billboard|cell_easement": "C"}, "signals": [{"key": "road_frontage", "name": "Public road frontage", "source": "Parcel geom x road centerline", "feeds": ["hunting", "ag_lease", "laydown", "camping", "billboard"], "kind": "bool", "note": ""}, {"key": "frontage_ft", "name": "Frontage length (ft)", "source": "Geometry intersection", "feeds": ["laydown", "billboard"], "kind": "num", "note": ""}, {"key": "approach_surface", "name": "Approach surface", "source": "Road attributes", "feeds": ["laydown"], "kind": "cat", "note": "paved|gravel|dirt"}, {"key": "mean_slope_pct", "name": "Mean slope %", "source": "USGS 3DEP DEM", "feeds": ["laydown", "camping", "solar_option"], "kind": "num", "note": ""}, {"key": "acreage", "name": "Parcel acreage", "source": "Assessor", "feeds": ["hunting", "ag_lease", "laydown", "camping", "apiary", "solar_option", "cell_easement", "billboard"], "kind": "num", "note": ""}, {"key": "compactness", "name": "Shape compactness ratio", "source": "Geometry", "feeds": ["hunting", "laydown"], "kind": "num", "note": "0-1, 1 = circle"}, {"key": "contiguous_owner_acres", "name": "Same-owner contiguous acreage", "source": "Assessor adjacency join", "feeds": ["hunting", "ag_lease", "solar_option"], "kind": "num", "note": ""}, {"key": "forest_cover_pct", "name": "Forest cover %", "source": "NLCD", "feeds": ["hunting", "camping"], "kind": "num", "note": ""}, {"key": "edge_density", "name": "Forest/ag edge density", "source": "NLCD adjacency", "feeds": ["hunting"], "kind": "num", "note": "primary whitetail signal"}, {"key": "adj_crop_pct", "name": "Adjacent ag crop cover %", "source": "USDA CDL", "feeds": ["hunting"], "kind": "num", "note": ""}, {"key": "water_feature", "name": "Water feature present", "source": "NHD", "feeds": ["hunting", "camping"], "kind": "bool", "note": ""}, {"key": "dist_public_hunt_mi", "name": "Distance to public hunting land (mi)", "source": "State DNR", "feeds": ["hunting"], "kind": "num", "note": "pressure proxy \u2014 higher is better"}, {"key": "drive_min_metro", "name": "Drive time to metro (min)", "source": "Road network", "feeds": ["hunting", "camping", "laydown"], "kind": "num", "note": ""}, {"key": "county_harvest_density", "name": "County deer harvest density", "source": "State DNR harvest report", "feeds": ["hunting"], "kind": "num", "note": ""}, {"key": "neighbor_median_acres", "name": "Neighbor parcel median acreage", "source": "Assessor", "feeds": ["hunting"], "kind": "num", "note": "fragmentation = pressure"}, {"key": "drive_min_interchange", "name": "Drive time to interstate interchange (min)", "source": "Road network", "feeds": ["laydown"], "kind": "num", "note": ""}, {"key": "zoning_class", "name": "Zoning class", "source": "County zoning layer", "feeds": ["laydown", "ag_lease"], "kind": "cat", "note": ""}, {"key": "outdoor_storage_ok", "name": "Outdoor storage permitted", "source": "Zoning text parse", "feeds": ["laydown"], "kind": "bool", "note": "near-gate"}, {"key": "contractor_density_15min", "name": "Contractor businesses within 15 min", "source": "NAICS registry", "feeds": ["laydown"], "kind": "num", "note": "demand proxy"}, {"key": "permit_volume_10mi", "name": "Building permits within 10 mi (12mo)", "source": "County permits", "feeds": ["laydown"], "kind": "num", "note": "demand proxy"}, {"key": "hardstand_sf", "name": "Existing hardstand/gravel area (sf)", "source": "Aerial classification", "feeds": ["laydown"], "kind": "num", "note": ""}, {"key": "power_at_parcel", "name": "Power at parcel", "source": "Utility service map", "feeds": ["laydown", "camping"], "kind": "bool", "note": ""}, {"key": "scenic_prox_mi", "name": "Distance to scenic feature (mi)", "source": "Lake/river/park layers", "feeds": ["camping"], "kind": "num", "note": ""}, {"key": "canopy_pct", "name": "Canopy screening %", "source": "NLCD canopy", "feeds": ["camping"], "kind": "num", "note": ""}, {"key": "competing_campgrounds_25mi", "name": "Competing campgrounds within 25 mi", "source": "POI data", "feeds": ["camping"], "kind": "num", "note": ""}, {"key": "cell_coverage", "name": "Cell coverage present", "source": "FCC", "feeds": ["camping"], "kind": "bool", "note": ""}, {"key": "dist_3phase_ft", "name": "Distance to 3-phase distribution (ft)", "source": "Utility maps", "feeds": ["solar_option", "cell_easement"], "kind": "num", "note": ""}, {"key": "dist_substation_mi", "name": "Distance to substation (mi)", "source": "HIFLD", "feeds": ["solar_option"], "kind": "num", "note": ""}, {"key": "dist_transmission_mi", "name": "Distance to transmission (mi)", "source": "HIFLD", "feeds": ["solar_option"], "kind": "num", "note": ""}, {"key": "solar_irradiance", "name": "Solar irradiance (kWh/m2/day)", "source": "NREL NSRDB", "feeds": ["solar_option"], "kind": "num", "note": ""}, {"key": "cell_gap", "name": "Cell coverage gap present", "source": "FCC", "feeds": ["cell_easement"], "kind": "bool", "note": ""}, {"key": "absentee", "name": "Mailing address != situs", "source": "Assessor", "feeds": [], "kind": "bool", "note": "activation"}, {"key": "out_of_state", "name": "Out-of-state owner", "source": "Assessor", "feeds": [], "kind": "bool", "note": "activation"}, {"key": "hold_years", "name": "Ownership duration (years)", "source": "Deed history", "feeds": [], "kind": "num", "note": "activation"}, {"key": "owner_parcel_count", "name": "Owner total parcel count", "source": "Assessor aggregate", "feeds": [], "kind": "num", "note": "activation + Lane B routing"}, {"key": "owner_is_entity", "name": "Owner is an entity, not an individual", "source": "Assessor", "feeds": [], "kind": "bool", "note": "activation + Lane B routing"}, {"key": "tax_delinquent", "name": "Tax delinquent", "source": "Treasurer", "feeds": [], "kind": "bool", "note": "activation"}, {"key": "estate_indicator", "name": "Estate/trust/probate token in owner name", "source": "Assessor string match", "feeds": [], "kind": "bool", "note": "activation \u2014 highest intent"}, {"key": "inherited_deed", "name": "Recent inherited transfer", "source": "Recorder", "feeds": [], "kind": "bool", "note": "activation"}, {"key": "tax_burden_ratio", "name": "Annual tax / assessed value", "source": "Treasurer + assessor", "feeds": [], "kind": "num", "note": "activation \u2014 pain proxy"}, {"key": "failed_listing", "name": "Prior listing that did not sell", "source": "MLS history", "feeds": [], "kind": "bool", "note": "activation"}, {"key": "no_homestead", "name": "Homestead exemption absent", "source": "Assessor", "feeds": [], "kind": "bool", "note": "activation"}, {"key": "owner_age_proxy", "name": "Owner age proxy", "source": "Public records", "feeds": [], "kind": "num", "note": "activation"}], "gates": [{"key": "landlocked", "reason": "No legal access to the parcel", "suppresses": ["hunting", "ag_lease", "laydown", "camping", "apiary", "solar_option", "cell_easement", "billboard"]}, {"key": "conservation_easement", "reason": "Recorded conservation easement", "suppresses": ["laydown", "camping", "billboard", "solar_option", "ag_lease"]}, {"key": "current_use_program", "reason": "Enrolled in a preferential-assessment program; non-conforming use risks recapture", "suppresses": ["laydown", "camping", "billboard", "solar_option"]}, {"key": "crp_enrolled", "reason": "USDA CRP enrollment restricts surface use", "suppresses": ["laydown", "camping", "ag_lease", "billboard"]}, {"key": "deed_restriction", "reason": "Recorded deed restriction or HOA covenant", "suppresses": ["laydown", "camping", "billboard"]}, {"key": "floodplain", "reason": "Floodplain exceeds 60% of parcel", "suppresses": ["laydown", "camping", "billboard"]}, {"key": "wetland", "reason": "Wetland exceeds 50% of parcel", "suppresses": ["laydown", "camping"]}], "uses": ["hunting", "ag_lease", "laydown", "camping", "apiary", "solar_option", "cell_easement", "billboard"], "anchors": {"hunting_per_acre_year": {"low": 15, "mid": 22, "high": 35, "source": "IN state avg ~$19/ac (DeerPros); Midwest avg ~$35/ac (onX)"}, "ios_per_acre_month": {"low": 150, "mid": 350, "high": 800, "source": "DERIVED, UNVERIFIED. Metro IOS is $0.50-2.00/SF/mo and trailer parking $8,000-20,000/acre/mo (Cauble) - those are infill/port markets. Rural LaPorte modeled at roughly 3-5% of metro. THIS IS THE HIGHEST-PRIORITY ANCHOR TO VERIFY WITH REAL COMPS - the v0 model was initially built on the metro per-SF figure and overstated laydown yield by ~23x."}, "camping_site_night": {"low": 25, "mid": 40, "high": 70, "source": "PILOT_ESTIMATE_UNVERIFIED"}, "ag_per_acre_year": {"low": 120, "mid": 185, "high": 260, "source": "PILOT_ESTIMATE_UNVERIFIED - replace with Purdue IN cash rent survey"}, "apiary_per_yard_year": {"low": 200, "mid": 400, "high": 800, "source": "PILOT_ESTIMATE_UNVERIFIED"}, "solar_option_per_acre_year": {"low": 15, "mid": 30, "high": 60, "source": "PILOT_ESTIMATE_UNVERIFIED - option-stage payment, not operating lease"}, "cell_easement_year": {"low": 4800, "mid": 9600, "high": 24000, "source": "$400-2,000/mo (Raymond James)"}, "billboard_year": {"low": 1200, "mid": 3000, "high": 8000, "source": "PILOT_ESTIMATE_UNVERIFIED"}}, "conditions_by_pair": {"hunting|ag_lease": [], "hunting|laydown": ["Laydown area fenced and separately accessed.", "Minimum 300 ft separation between laydown perimeter and any hunting stand location.", "Firearm discharge exclusion zone mapped and attached as an exhibit to both instruments.", "Reciprocal liability carve-out in both leases."], "hunting|camping": ["Hunting term: Oct 1 - Jan 15. Camping term: Apr 15 - Sep 30.", "Named blackout dates in both instruments. The word 'seasonal' is not sufficient.", "Neither tenant may access the parcel during the other's term without written consent."], "hunting|apiary": [], "hunting|solar_option": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "hunting|cell_easement": [], "hunting|billboard": [], "ag_lease|hunting": [], "ag_lease|laydown": [], "ag_lease|camping": ["Camping sites confined to non-tillable acreage, mapped as an exhibit.", "Farm equipment access route defined and kept clear of camp sites.", "No chemical application within 200 ft of an active camp site."], "ag_lease|apiary": [], "ag_lease|solar_option": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "ag_lease|cell_easement": [], "ag_lease|billboard": [], "laydown|hunting": ["Laydown area fenced and separately accessed.", "Minimum 300 ft separation between laydown perimeter and any hunting stand location.", "Firearm discharge exclusion zone mapped and attached as an exhibit to both instruments.", "Reciprocal liability carve-out in both leases."], "laydown|ag_lease": [], "laydown|camping": [], "laydown|apiary": ["Hive yard placed minimum 150 ft from equipment traffic lanes.", "Vehicle route mapped as an exhibit to both instruments."], "laydown|solar_option": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "laydown|cell_easement": [], "laydown|billboard": [], "camping|hunting": ["Hunting term: Oct 1 - Jan 15. Camping term: Apr 15 - Sep 30.", "Named blackout dates in both instruments. The word 'seasonal' is not sufficient.", "Neither tenant may access the parcel during the other's term without written consent."], "camping|ag_lease": ["Camping sites confined to non-tillable acreage, mapped as an exhibit.", "Farm equipment access route defined and kept clear of camp sites.", "No chemical application within 200 ft of an active camp site."], "camping|laydown": [], "camping|apiary": ["Hive yard placed minimum 200 ft from any camp site.", "Signage disclosing hive presence posted at camp registration."], "camping|solar_option": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "camping|cell_easement": [], "camping|billboard": ["Sign structure placed outside the camping viewshed.", "No illuminated face oriented toward camp sites."], "apiary|hunting": [], "apiary|ag_lease": [], "apiary|laydown": ["Hive yard placed minimum 150 ft from equipment traffic lanes.", "Vehicle route mapped as an exhibit to both instruments."], "apiary|camping": ["Hive yard placed minimum 200 ft from any camp site.", "Signage disclosing hive presence posted at camp registration."], "apiary|solar_option": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "apiary|cell_easement": [], "apiary|billboard": [], "solar_option|hunting": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "solar_option|ag_lease": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "solar_option|laydown": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "solar_option|camping": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "solar_option|apiary": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "solar_option|cell_easement": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "solar_option|billboard": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "cell_easement|hunting": [], "cell_easement|ag_lease": [], "cell_easement|laydown": [], "cell_easement|camping": [], "cell_easement|apiary": [], "cell_easement|solar_option": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "cell_easement|billboard": [], "billboard|hunting": [], "billboard|ag_lease": [], "billboard|laydown": [], "billboard|camping": ["Sign structure placed outside the camping viewshed.", "No illuminated face oriented toward camp sites."], "billboard|apiary": [], "billboard|solar_option": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "billboard|cell_easement": []}, "solar_subordination": ["All surface leases expressly subordinate to the solar option upon exercise.", "Minimum 120 days written notice of exercise to every surface tenant.", "Termination or relocation remedy defined per surface lease, with a stated cure period.", "Option holder acknowledges existing surface leases in a recorded memorandum."], "matrix_counts": {"C": 40, "S": 10, "T": 2, "X": 4}};
+</script>
+<script>
+const $ = s => document.querySelector(s);
+const USES = FALLOW.uses;
+const LABELS = {hunting:"Hunting lease",ag_lease:"Ag lease",laydown:"Laydown / IOS",camping:"Camping",apiary:"Apiary",solar_option:"Solar option",cell_easement:"Cell easement",billboard:"Billboard"};
+const COLORS = {hunting:"#c9a227",ag_lease:"#7a8a4a",laydown:"#8a6d2b",camping:"#b08d3c",apiary:"#d9b64f",solar_option:"#6d675a",cell_easement:"#a9a294",billboard:"#5c564a"};
+const SEASONS = {hunting:"Oct 1 \u2013 Jan 15",ag_lease:"Apr 1 \u2013 Nov 30",laydown:"Year-round",camping:"Apr 15 \u2013 Sep 30",apiary:"Apr 1 \u2013 Sep 30",solar_option:"Option, no term",cell_easement:"Easement",billboard:"Year-round"};
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('.tabs button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tabpane').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+    if(b.dataset.tab==='stack' && window.__init3D) window.__init3D();
+  });
+});
+
+/* ---------- tab 3 tables ---------- */
+const cand = {};
+FALLOW.reference_parcel.candidates.forEach(c=>{cand[c.use_type]=c;});
+$('#useTable').innerHTML = USES.map(u=>{
+  const c = cand[u];
+  return `<tr><td><b>${LABELS[u]}</b></td><td class="num">$${c.modeled_annual_usd.toLocaleString('en-US',{minimumFractionDigits:2})}</td><td>${c.confidence}${c.suppressed_by_gate?` (suppressed: ${c.suppressed_by_gate})`:''}</td><td>${c.season_start?c.season_start+' \u2013 '+c.season_end:'\u2014'}</td><td class="small">${c.drivers.join('; ')||'\u2014'}</td></tr>`;
+}).join('');
+$('#anchorTable').innerHTML = Object.entries(FALLOW.anchors).map(([k,v])=>
+  `<tr><td class="mono">${k}</td><td class="num">$${v.low.toLocaleString()}</td><td class="num">$${v.mid.toLocaleString()}</td><td class="num">$${v.high.toLocaleString()}</td><td class="small">${v.source}</td></tr>`).join('');
+$('#gateTable').innerHTML = FALLOW.gates.map(g=>
+  `<tr><td class="mono">${g.key}</td><td>${g.reason}</td><td class="small">${g.suppresses.join(', ')}</td></tr>`).join('');
+const GROUPS = [['Access & physical',0,7],['Hunting',7,15],['Laydown / IOS',15,22],['Camping / recreation',22,26],['Energy & infrastructure',26,31],['Owner activation',31,43]];
+$('#signalTable').innerHTML = GROUPS.map(([name,a,b])=>{
+  const rows = FALLOW.signals.slice(a,b).map(s=>
+    `<tr><td class="mono">${s.key}</td><td class="small">${s.source}${s.note?` &mdash; ${s.note}`:''}</td><td class="small">${s.feeds.join(', ')||'activation'}</td><td>${s.kind}</td></tr>`).join('');
+  return `<tr><td colspan="4" style="background:var(--paper-2);font-family:var(--display);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase">${name} (${b-a})</td></tr>`+rows;
+}).join('');
+
+/* ---------- tab 2 matrix ---------- */
+const short = {hunting:'HUNT',ag_lease:'AG',laydown:'LAY',camping:'CAMP',apiary:'API',solar_option:'SOL',cell_easement:'CELL',billboard:'BILL'};
+const mt = $('#matrixTable');
+mt.innerHTML = '<tr><th></th>'+USES.map(u=>`<th>${short[u]}</th>`).join('')+'</tr>'+
+  USES.map(a=>'<tr><th>'+short[a]+'</th>'+USES.map(b=>{
+    if(a===b) return '<td class="diag">\u2014</td>';
+    const rel = FALLOW.matrix[a+'|'+b];
+    return `<td class="${rel.toLowerCase()}" data-a="${a}" data-b="${b}" title="${LABELS[a]} \u00d7 ${LABELS[b]}">${rel}</td>`;
+  }).join('')+'</tr>').join('');
+function showPair(a,b){
+  document.querySelectorAll('#matrixTable td').forEach(td=>td.classList.remove('sel'));
+  const td = document.querySelector(`#matrixTable td[data-a="${a}"][data-b="${b}"]`);
+  if(td) td.classList.add('sel');
+  const rel = FALLOW.matrix[a+'|'+b];
+  const names = {C:'Compatible, no condition',S:'Compatible only if spatially separated',T:'Compatible only via temporal separation',X:'Conflict \u2014 cannot coexist on the same acreage'};
+  const conds = FALLOW.conditions_by_pair[a+'|'+b]||[];
+  let extra='';
+  if(b==='solar_option'||a==='solar_option') extra='<p class="small" style="margin-top:8px"><b>Solar subordination applies:</b> '+FALLOW.solar_subordination.join(' ')+'</p>';
+  $('#pairDetail').innerHTML = `<h4 style="font-family:var(--display);font-size:14px">${LABELS[a]} \u00d7 ${LABELS[b]} &mdash; <span class="mono">${rel}</span> &middot; ${names[rel]}</h4>`+
+    (conds.length?`<ul class="cond-list">${conds.map(c=>`<li>${c}</li>`).join('')}</ul>`:`<p class="small" style="margin-top:6px">No conditions required.</p>`)+extra;
+}
+mt.addEventListener('click',e=>{
+  const td = e.target.closest('td[data-a]');
+  if(td) showPair(td.dataset.a, td.dataset.b);
+});
+showPair('hunting','laydown');
+
+/* ---------- tab 1 layer toggles + stack checker ---------- */
+let selected = new Set(['hunting','laydown','apiary']);
+function stackCheck(uses){
+  const arr = [...uses];
+  for(let i=0;i<arr.length;i++) for(let j=i+1;j<arr.length;j++){
+    if(FALLOW.matrix[arr[i]+'|'+arr[j]]==='X') return {ok:false, pair:[arr[i],arr[j]]};
+  }
+  return {ok:true};
+}
+function condsFor(uses){
+  const out = [];
+  const arr = [...uses].sort();
+  for(let i=0;i<arr.length;i++) for(let j=i+1;j<arr.length;j++){
+    (FALLOW.conditions_by_pair[arr[i]+'|'+arr[j]]||[]).forEach(c=>{ if(!out.includes(c)) out.push(c); });
+  }
+  if(uses.has('solar_option') && uses.size>1) FALLOW.solar_subordination.forEach(c=>{ if(!out.includes(c)) out.push(c); });
+  return out;
+}
+function renderLayers(){
+  $('#layerList').innerHTML = USES.map(u=>{
+    const c = cand[u];
+    const on = selected.has(u);
+    return `<label class="layer"><input type="checkbox" data-use="${u}" ${on?'checked':''}>
+      <span><span class="swatch" style="background:${COLORS[u]}"></span><span class="ln">${LABELS[u]}</span><br><span class="ld">${SEASONS[u]}${c.modeled_annual_usd===0?' &middot; $0 on this parcel':''}</span></span>
+      <span class="lv">$${c.modeled_annual_usd.toLocaleString('en-US',{maximumFractionDigits:0})}/yr</span></label>`;
+  }).join('');
+  const total = [...selected].reduce((s,u)=>s+cand[u].modeled_annual_usd,0);
+  const chk = stackCheck(selected);
+  const opt = FALLOW.reference_stack;
+  $('#stackRead').innerHTML =
+    `SELECTED: ${[...selected].map(u=>short[u]).join(' + ')||'\u2014'}<br>`+
+    `STACKED: <b>$${total.toLocaleString('en-US',{minimumFractionDigits:2})}/yr</b> (modeled)<br>`+
+    (chk.ok ? `<span class="ok">CONFLICT-FREE</span>` : `<span class="conflict">CONFLICT: ${LABELS[chk.pair[0]]} \u00d7 ${LABELS[chk.pair[1]]} is X \u2014 this stack must never reach an owner</span>`)+`<br>`+
+    `OPTIMIZER: ${opt.uses.map(u=>short[u]).join(' + ')} = <b>$${opt.total.toLocaleString('en-US',{minimumFractionDigits:2})}/yr</b>`;
+  const conds = condsFor(selected);
+  $('#condList').innerHTML = conds.length?conds.map(c=>`<li>${c}</li>`).join(''):'<li class="small">No separation conditions for this selection.</li>';
+  if(window.__update3D) window.__update3D(selected);
+}
+$('#layerList').addEventListener('change',e=>{
+  const u = e.target.dataset.use;
+  if(e.target.checked) selected.add(u); else selected.delete(u);
+  renderLayers();
+});
+renderLayers();
+
+/* ---------- tab 5 pilot weeks ---------- */
+const WEEKS = [
+ ['W1','Phase 0 gates + Phase 1 repo. Gate 0.1 Indiana analysis, Gate 0.2 assignment-clause language (attorney review), Gate 0.3 recapture check, Gate 0.4 IP license drafted, Gate 0.5 USPTO clearance. Repo at ~/neuruh-repos/NeuruhAI/fallow; .gitignore is commit #1; gitleaks hook proven with a refused canary.'],
+ ['W2','LaPorte extract to DuckDB. 43 signals + 7 gates applied. Row count reconciles to the assessor total within \u00b12%.'],
+ ['W3','Yield Score v0 on the county. Rank top 300. Stack optimizer. 39 tests passing, zero negative yields, every score carries score_version.'],
+ ['W4','Drive-verify top 60. Photograph access, hardstand, gates, neighbors. Log the signal error rate \u2014 v0 calibration data.'],
+ ['W5','Mailer batch 1: 250 pieces to the highest activation-score owners. Front-load hunting outreach \u2014 fall deer season transacts in summer.'],
+ ['W6','Mailer batch 2: 250 pieces. Call every responder within 24 hours.'],
+ ['W7\u2013W8','Owner conversations. First master-lease and flat-fee agreements. Every executed agreement has assignment_clause_present = true.'],
+ ['W9\u2013W10','Demand-side fill. Hunting leases for fall season; laydown outreach to contractors. Days-to-first-fill populated. Storage/laydown is aseasonal and the better pilot vertical on a calendar basis.'],
+ ['W11\u2013W12','Execute subleases. First realized_yield rows written, joining cleanly back to scoring_snapshot_id.'],
+ ['W13','Kill-criteria read. Any two of three failing \u2192 drop long-tail A1/A2, go pure Engine B + Lane B.'],
+];
+$('#pilotWeeks').innerHTML = WEEKS.map(([w,t])=>`<div class="pilot-week"><div class="wk">${w}</div><div class="wt">${t}</div></div>`).join('')+
+  `<p class="small" style="margin-top:10px">Demand-side seeding at zero CAC: one conversation each with Poag Civil Construction, Indy Roof &amp; Restoration, and Baker HVAC &mdash; &ldquo;if secure yard space existed 20 minutes from your jobsites at half warehouse cost, would you take it, and at what price?&rdquo;</p>`;
+</script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+let scene, camera, renderer, controls, zoneMeshes = {};
+let inited = false;
+
+function init3D(){
+  if(inited){ if(renderer) renderer.render(scene,camera); return; }
+  inited = true;
+  const vp = document.getElementById('viewport');
+  try{
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0e0e0c);
+    scene.fog = new THREE.Fog(0x0e0e0c, 260, 520);
+    camera = new THREE.PerspectiveCamera(45, vp.clientWidth/520, 0.1, 1000);
+    camera.position.set(95, 110, 135);
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(vp.clientWidth, 520);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    vp.appendChild(renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.target.set(0,0,0);
+    controls.enableDamping = true;
+    controls.maxPolarAngle = Math.PI/2.15;
+    controls.minDistance = 40; controls.maxDistance = 320;
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const sun = new THREE.DirectionalLight(0xffe9c0, 1.1);
+    sun.position.set(80, 140, 60); scene.add(sun);
+
+    /* Parcel: 42 ac as a square, 1 unit = 10 ft. sqrt(42*43560) = 1352 ft -> 135 units. */
+    const S = 135;
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(S,S), new THREE.MeshStandardMaterial({color:0x3d4a2e, roughness:1}));
+    ground.rotation.x = -Math.PI/2; scene.add(ground);
+    /* tillable ag field (23 ac of the 42) */
+    const ag = new THREE.Mesh(new THREE.PlaneGeometry(S*0.62, S*0.55), new THREE.MeshStandardMaterial({color:0x6d7a3a, roughness:1}));
+    ag.rotation.x = -Math.PI/2; ag.position.set(-S*0.16, 0.05, S*0.18); scene.add(ag);
+    /* forest band (north edge) */
+    const forest = new THREE.Mesh(new THREE.PlaneGeometry(S, S*0.22), new THREE.MeshStandardMaterial({color:0x2c3d22, roughness:1}));
+    forest.rotation.x = -Math.PI/2; forest.position.set(0, 0.05, -S*0.38); scene.add(forest);
+    /* road along the south edge */
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(S, 6), new THREE.MeshStandardMaterial({color:0x2a2a28, roughness:1}));
+    road.rotation.x = -Math.PI/2; road.position.set(0, 0.06, S/2+3); scene.add(road);
+    /* parcel boundary */
+    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(S,S)),
+      new THREE.LineBasicMaterial({color:0xc9a227}));
+    edge.rotation.x = -Math.PI/2; edge.position.y = 0.2; scene.add(edge);
+
+    function box(w,h,d,color,x,z,opacity=0.92){
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d),
+        new THREE.MeshStandardMaterial({color, transparent:true, opacity, roughness:0.8}));
+      m.position.set(x, h/2+0.1, z); scene.add(m); return m;
+    }
+    function ring(r,color,x,z){
+      const m = new THREE.Mesh(new THREE.RingGeometry(r-0.8, r, 48),
+        new THREE.MeshBasicMaterial({color, side:THREE.DoubleSide, transparent:true, opacity:0.85}));
+      m.rotation.x = -Math.PI/2; m.position.set(x, 0.25, z); scene.add(m); return m;
+    }
+    /* laydown pad: 3 usable acres near the road (SE corner), 1 ac = 43560 sq ft -> 3 ac ~ 362x362 ft -> 36 units */
+    zoneMeshes.laydown = new THREE.Group();
+    zoneMeshes.laydown.add(box(36, 2.2, 36, 0x8a6d2b, 42, 42));
+    zoneMeshes.laydown.add(box(30, 1.2, 30, 0x6d5518, 42, 42));
+    /* 300 ft (30 units) exclusion ring around the nearest hunting stand */
+    zoneMeshes.laydown.add(ring(30, 0xa33327, -18, -38));
+    scene.add(zoneMeshes.laydown);
+    /* hunting stands: two towers in the forest band, with 300 ft exclusion rings */
+    zoneMeshes.hunting = new THREE.Group();
+    [[-18,-38],[28,-42]].forEach(([x,z])=>{
+      zoneMeshes.hunting.add(box(3, 9, 3, 0xc9a227, x, z));
+      zoneMeshes.hunting.add(ring(30, 0xa33327, x, z));
+    });
+    scene.add(zoneMeshes.hunting);
+    /* camping: 6 sites on non-tillable ground (west edge), Apr 15 - Sep 30 */
+    zoneMeshes.camping = new THREE.Group();
+    for(let i=0;i<6;i++){
+      const x = -58, z = -18 + i*9;
+      zoneMeshes.camping.add(box(6, 1.4, 6, 0xb08d3c, x, z));
+    }
+    scene.add(zoneMeshes.camping);
+    /* apiary: hive yard 150 ft from laydown lanes, 200 ft from camp sites */
+    zoneMeshes.apiary = new THREE.Group();
+    for(let i=0;i<4;i++){
+      zoneMeshes.apiary.add(box(4, 1.6, 4, 0xd9b64f, -30+i*6, 18));
+    }
+    scene.add(zoneMeshes.apiary);
+    /* ag lease: tillable field marker posts */
+    zoneMeshes.ag_lease = new THREE.Group();
+    [[-45,18],[-5,18],[-45,48],[-5,48]].forEach(([x,z])=>{
+      zoneMeshes.ag_lease.add(box(1.2, 5, 1.2, 0x7a8a4a, x, z));
+    });
+    scene.add(zoneMeshes.ag_lease);
+    /* solar option: hatched overlay plane over the ag field (subordinate) */
+    const solar = new THREE.Mesh(new THREE.PlaneGeometry(S*0.5, S*0.4),
+      new THREE.MeshStandardMaterial({color:0x6d675a, transparent:true, opacity:0.35, roughness:0.6}));
+    solar.rotation.x = -Math.PI/2; solar.position.set(-S*0.16, 0.7, S*0.18);
+    zoneMeshes.solar_option = new THREE.Group(); zoneMeshes.solar_option.add(solar); scene.add(zoneMeshes.solar_option);
+    /* cell easement: tower near the road */
+    zoneMeshes.cell_easement = new THREE.Group();
+    zoneMeshes.cell_easement.add(box(2, 22, 2, 0xa9a294, 58, 30));
+    scene.add(zoneMeshes.cell_easement);
+    /* billboard: structure on the road frontage */
+    zoneMeshes.billboard = new THREE.Group();
+    zoneMeshes.billboard.add(box(14, 6, 1, 0x5c564a, 10, 62));
+    zoneMeshes.billboard.add(box(1.5, 8, 1.5, 0x5c564a, 10, 62));
+    scene.add(zoneMeshes.billboard);
+
+    window.__update3D = (sel)=>{
+      for(const [k,g] of Object.entries(zoneMeshes)) g.visible = sel.has(k);
+      renderer.render(scene,camera);
+    };
+    window.__update3D(new Set(['hunting','laydown','apiary']));
+    const loop = ()=>{ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera); };
+    loop();
+    window.addEventListener('resize', ()=>{
+      const w = vp.clientWidth;
+      camera.aspect = w/520; camera.updateProjectionMatrix();
+      renderer.setSize(w, 520);
+    });
+  }catch(err){
+    document.getElementById('glFallback').style.display='flex';
+  }
+}
+window.__init3D = init3D;
+init3D();
+</script>
+</body>
+</html>
