@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AXON Lattice — Verified Code Map (Batch 018)</title>
+<style>
+  :root{--bg:#0B0D0E;--surface:#14161A;--bone:#E8E6E3;--ink:#B8B4AC;--brass:#C9A227;--line:#2A2D33;--gold:#D8B13A;--dim:#6E6A60}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--bone);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+  header{padding:28px 28px 10px;border-bottom:1px solid var(--line)}
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;color:var(--brass);text-transform:uppercase}
+  h1{font-family:Archivo,Inter,sans-serif;font-size:30px;margin:8px 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--ink);max-width:920px;margin:0}
+  .warn{margin:14px 28px 0;border:1px solid var(--brass);color:var(--gold);padding:10px 14px;font-size:14px;background:#17150a}
+  .warn b{color:var(--brass)}
+  main{padding:18px 28px 40px;max-width:1180px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+  .toolbar button{background:var(--surface);color:var(--bone);border:1px solid var(--line);padding:7px 12px;font:600 13px Inter,sans-serif;cursor:pointer;border-radius:3px}
+  .toolbar button.on{border-color:var(--brass);color:var(--gold)}
+  #viewer{position:relative;height:560px;background:var(--surface);border:1px solid var(--line)}
+  #viewer canvas{display:block}
+  #fallback{display:none;padding:24px;color:var(--ink)}
+  .overlay{position:absolute;left:12px;top:12px;background:rgba(11,13,14,.85);border:1px solid var(--line);padding:10px 12px;font-size:12.5px;max-width:330px}
+  .overlay b{color:var(--gold)}
+  .overlay .row{display:flex;gap:8px;align-items:center;margin:3px 0}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  #readout{margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink);min-height:20px}
+  #readout b{color:var(--gold)}
+  h2{font-family:Archivo,Inter,sans-serif;font-size:20px;margin:34px 0 6px;border-top:1px solid var(--line);padding-top:22px}
+  h3{font-size:15px;margin:18px 0 4px;color:var(--gold)}
+  p{color:var(--ink);max-width:920px}
+  table{border-collapse:collapse;width:100%;max-width:980px;margin:10px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--surface);color:var(--gold);font-weight:600}
+  td.num{font-family:"JetBrains Mono",monospace;text-align:right}
+  .mono{font-family:"JetBrains Mono",monospace}
+  .fig{border:1px solid var(--line);background:var(--surface);padding:14px;margin:12px 0;max-width:980px}
+  .figcap{font-size:12.5px;color:var(--dim);margin-top:8px}
+  .pass{color:var(--gold);font-weight:700}
+  footer{border-top:1px solid var(--line);padding:18px 28px;color:var(--dim);font-size:12.5px}
+  a{color:var(--gold)}
+  @media print{body{background:#fff;color:#111}#viewer{height:420px}.warn{border-color:#888;color:#333}}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Neuruh · Batch 018 · AXON Lattice Substrate — Source Verification</div>
+  <h1>AXON Lattice — the verified code map</h1>
+  <p class="sub">The real source files, read and run on Nov 10, 2026 — not the transcript. 29 Python files in the tarball, 16/16 tests passing as run here, both demos reproducing their headline numbers. Every node below is a module from the tarball; every edge is an import read from that module's code.</p>
+</header>
+<div class="warn"><b>VERIFIED FROM THE UPLOADED SOURCE FILES, NOV 10 2026.</b> Compile 29/29 PASS. Tests 16/16 PASS as run here (test_lattice 9/9, test_substrate 4/4, test_conditional 3/3). Counts vary run to run — Python salts string hashing per process, so shortcut counts move (138 / 156 / 168 cash-buyer shortcuts across runs). Ratios, tick numbers, and cost floors are stable. Nothing here is a live service: KuzuDB was not installed, so persistence ran through the JSONL fallback.</div>
+<main>
+  <div class="toolbar" id="toolbar">
+    <button data-view="all" class="on">All layers (23 modules)</button>
+    <button data-view="phase1">Phase 1 — lattice + router</button>
+    <button data-view="phase2">Phase 2 — substrate + verticals</button>
+    <button data-view="tests">Tests + demos</button>
+    <button id="btnRotate">Pause rotation</button>
+    <button id="btnReset">Reset view</button>
+  </div>
+  <div id="viewer">
+    <div class="overlay">
+      <div class="row"><span class="dot" style="background:#C9A227"></span><span><b>Brass nodes</b> — substrate core (Phase 2, shared by all 7 verticals)</span></div>
+      <div class="row"><span class="dot" style="background:#E8E6E3"></span><span><b>Bone nodes</b> — tests and demos (verified by running them)</span></div>
+      <div class="row"><span class="dot" style="background:#8A877E"></span><span><b>Gray nodes</b> — lattice, router, verticals, graph, viz</span></div>
+      <div class="row"><span style="color:#6E6A60">Solid lines — imports read from the code. Dashed brass lines — runtime use (a module takes the other as an argument, no import). Drag to rotate, wheel to zoom. Click a node for its record.</span></div>
+    </div>
+    <div id="fallback"><b>3D viewer unavailable.</b> WebGL or the Three.js CDN did not load. The tables below carry every verified figure; the module data is the same code the tables are built from.</div>
+  </div>
+  <div id="readout">Click a module node. 23 modules mapped from the tarball (6 package __init__.py files not shown as nodes).</div>
+
+  <h2>1 · Test results as run here</h2>
+  <p>Environment: Python 3.12.3, PyYAML 6.0.1, kuzu NOT installed. All tests run locally; nothing touched a live service.</p>
+  <table>
+    <tr><th>Test file</th><th class="num">Tests</th><th>Result</th><th class="num">Runtime</th><th>Headline numbers observed</th></tr>
+    <tr><td class="mono">tests/test_lattice.py</td><td class="num">9</td><td class="pass">9/9 PASS</td><td class="num">~2 s</td><td>First route 12.7279 → last 0.5; 45 shortcuts minted; diameter proxy 0.1316; class costs cheap_local 10.0 / diagonal_fast 7.071 / red_team 14.142</td></tr>
+    <tr><td class="mono">tests/test_substrate.py</td><td class="num">4</td><td class="pass">4/4 PASS</td><td class="num">~293 s</td><td>Isolation solo 168 / crowd 306 (+138); provenance 276 cross-vertical, 0 single, ratio 1.0; speedup resale optimum tick 5 solo vs tick 2 with neighbors (floor 4.730); breadth 0 solo / 6 crowd</td></tr>
+    <tr><td class="mono">tests/test_conditional.py</td><td class="num">3</td><td class="pass">3/3 PASS</td><td class="num">~25 s</td><td>Tagged 3.01 vs untagged 4.73; tag_b == untagged 4.73, 0 tag_b shortcuts; fallback 28.6245 → 4.73. Cash-buyer shortcuts 138 (run 1), 156 (run 2) — count varies, see §4</td></tr>
+    <tr><td><b>Total</b></td><td class="num"><b>16</b></td><td class="pass"><b>16/16 PASS</b></td><td class="num"></td><td>The transcript's other number, "13/13", was the pre-conditional count (9 + 4). 16/16 is correct after the conditional layer.</td></tr>
+  </table>
+
+  <h2>2 · Phase 1 vs Phase 2 structure</h2>
+  <div class="fig">
+    <svg viewBox="0 0 940 250" width="100%" role="img" aria-label="Layer stack: Phase 1 lattice primitives feed the router; Phase 2 substrate sits on the same lattice and is projected onto by the seven verticals; graph persistence and viz renderers hang off the sides; tests and demos exercise the whole stack.">
+      <rect x="10" y="10" width="920" height="230" fill="none" stroke="#2A2D33"/>
+      <text x="30" y="36" fill="#C9A227" font-family="JetBrains Mono, monospace" font-size="12">FIG 1 — LAYER STACK, AS READ FROM THE IMPORTS</text>
+      <rect x="30" y="55" width="150" height="60" fill="#14161A" stroke="#8A877E"/><text x="40" y="78" fill="#E8E6E3" font-family="JetBrains Mono, monospace" font-size="12">lattice/ (5)</text><text x="40" y="97" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">base heat shortcuts</text><text x="40" y="112" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">bloom traversal</text>
+      <rect x="200" y="55" width="130" height="60" fill="#14161A" stroke="#B8B4AC"/><text x="210" y="78" fill="#E8E6E3" font-family="JetBrains Mono, monospace" font-size="12">router/ (1)</text><text x="210" y="97" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">convergence</text>
+      <rect x="350" y="55" width="200" height="60" fill="#17150a" stroke="#C9A227"/><text x="360" y="78" fill="#D8B13A" font-family="JetBrains Mono, monospace" font-size="12">substrate/ (7)</text><text x="360" y="97" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">roles abstract_lattice</text><text x="360" y="112" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">projection organs engine</text>
+      <rect x="570" y="55" width="130" height="60" fill="#14161A" stroke="#8A877E"/><text x="580" y="78" fill="#E8E6E3" font-family="JetBrains Mono, monospace" font-size="12">verticals/ (1)</text><text x="580" y="97" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">specs — 7 verticals</text>
+      <rect x="720" y="55" width="190" height="60" fill="#14161A" stroke="#6E6A60"/><text x="730" y="78" fill="#E8E6E3" font-family="JetBrains Mono, monospace" font-size="12">graph/ + viz/ (4)</text><text x="730" y="97" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">kuzu_bridge substrate_bridge</text><text x="730" y="112" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">render substrate_render</text>
+      <rect x="30" y="150" width="420" height="55" fill="#14161A" stroke="#E8E6E3"/><text x="40" y="173" fill="#E8E6E3" font-family="JetBrains Mono, monospace" font-size="12">tests/ (3) — 16/16 PASS as run here</text><text x="40" y="192" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">test_lattice 9/9 · test_substrate 4/4 · test_conditional 3/3</text>
+      <rect x="470" y="150" width="440" height="55" fill="#14161A" stroke="#E8E6E3"/><text x="480" y="173" fill="#E8E6E3" font-family="JetBrains Mono, monospace" font-size="12">demos (2) — both exit 0 as run here</text><text x="480" y="192" fill="#B8B4AC" font-family="JetBrains Mono, monospace" font-size="11">demo.py collapse_gain 53,326 · demo_substrate.py 372 shortcuts, ratio 1.0</text>
+      <text x="30" y="228" fill="#6E6A60" font-family="JetBrains Mono, monospace" font-size="11">Arrows run left to right: lattice → router → substrate → verticals. Graph and viz hang off the side; tests and demos sit on top of everything.</text>
+    </svg>
+    <div class="figcap">Figure 1. The package as it actually imports. Phase 1 is five lattice primitives plus one router. Phase 2 is seven substrate modules on top of the same lattice primitives, with one verticals file projecting seven businesses onto the shared substrate.</div>
+  </div>
+  <table>
+    <tr><th></th><th>Phase 1 — self-rewriting lattice</th><th>Phase 2 — cross-vertical emergence engine</th></tr>
+    <tr><td><b>Modules</b></td><td>5 lattice + 1 router (convergence.py)</td><td>7 substrate + 1 verticals (specs.py), built on the same 5 lattice primitives</td></tr>
+    <tr><td><b>Core claim</b></td><td>The graph gets faster the more it is used: same query 12.7279 → 0.5 after 30 traversals</td><td>Learning compounds across verticals: a shortcut minted in resale is live in probate real estate the same tick</td></tr>
+    <tr><td><b>Mechanism</b></td><td>Diagonal edge class collapses Manhattan to Chebyshev cost; heat mints shortcuts; hot nodes bloom into 6×6 sub-lattices</td><td>Six role interiors (6×6 each) with a shared core waypoint; verticals project onto them; hot roles crystallize into organs when ≥ 2 verticals touch them</td></tr>
+    <tr><td><b>Falsification</b></td><td>9 tests, incl. the thesis test (last cost ≤ first cost) and the depth cap</td><td>4 tests: isolation control, provenance proof, speedup proof, organ breadth bar — plus 3 conditional-shortcut tests</td></tr>
+    <tr><td><b>Persistence</b></td><td>KuzuDB bridge with JSONL fallback (fallback exercised here)</td><td>Substrate bridge writing roles, interiors, shortcuts, organs, verticals (JSONL fallback exercised here)</td></tr>
+  </table>
+
+  <h2>3 · Numbers reproduced or not</h2>
+  <table>
+    <tr><th>Transcript claim</th><th>Observed as run here</th><th>Verdict</th></tr>
+    <tr><td>Cost collapse 12.73 → 0.50</td><td>12.7279 → 0.5, 45 shortcuts minted</td><td class="pass">VERIFIED</td></tr>
+    <tr><td>collapse_gain 53,326</td><td>53,326 (demo.py final state; shipped PNG caption agrees)</td><td class="pass">VERIFIED</td></tr>
+    <tr><td>372 shortcuts, transfer ratio 1.0</td><td>372 total, 372 cross-vertical, ratio 1.0</td><td class="pass">VERIFIED</td></tr>
+    <tr><td>Tick 5 solo vs tick 2 crowd</td><td>Resale optimum (4.730) at tick 5 solo, tick 2 with neighbors</td><td class="pass">VERIFIED</td></tr>
+    <tr><td>Isolation 168 solo / 306 crowd (+138)</td><td>168 / 306 (+138), exact</td><td class="pass">VERIFIED</td></tr>
+    <tr><td>Tagged 3.01 vs untagged 4.73</td><td>3.01 vs 4.73, exact</td><td class="pass">VERIFIED</td></tr>
+    <tr><td>Final costs 13.8 / 9.4 / 4.7</td><td>Defense 13.75, real_estate 9.35, resale 4.73</td><td class="pass">VERIFIED</td></tr>
+    <tr><td>Provenance 306 cross-vertical</td><td>276 cross-vertical, 0 single-vertical, ratio 1.0</td><td>PARTIAL — count varies run to run (see §4)</td></tr>
+    <tr><td>Cash-buyer shortcuts 168</td><td>138 (run 1), 156 (run 2)</td><td>PARTIAL — count varies run to run (see §4)</td></tr>
+    <tr><td>Unconditional fallback 25.06 → 4.73</td><td>28.6245 → 4.73 (both runs); floor matches, start does not</td><td>PARTIAL — start varies run to run (see §4)</td></tr>
+    <tr><td>4 IP Registry entries / Git commit / A16Z 2-pager</td><td>No registry entries, no .git, no 2-pager in the files</td><td>STILL PENDING</td></tr>
+  </table>
+
+  <h2>4 · Why some counts move run to run</h2>
+  <p><span class="mono">projection.py</span> computes each vertical's entry row as <span class="mono">abs(hash(vertical_name)) % height</span>. Python salts string hashing per process, so entry rows differ every run, and shortcut counts that depend on them move with it. The structural assertions do not move: tagged 3.01 vs untagged 4.73 on both runs, tag specificity exact, fallback floor 4.73 on both runs, isolation 168/306 exact, speedup tick 5 vs 2 exact, transfer ratio 1.0 exact. Any future re-run should pin <span class="mono">PYTHONHASHSEED</span> for exact count reproduction, or compare ratios and floors, not raw counts.</p>
+
+  <h2>5 · Tarball reconciliation</h2>
+  <p>The tarball holds <b>69 entries, 29 Python files</b> — the transcript's "29 Python files" claim is correct (23 code/demo/test files + 6 package <span class="mono">__init__.py</span> files). The loose zips hold 24 files total, 19 of them Python, and are an <b>earlier snapshot</b> than the tarball: the loose <span class="mono">abstract_lattice.py</span> and <span class="mono">projection.py</span> lack the Conditional Shortcut Layer, the loose README is Phase-1-only (4,625 B vs 8,557 B), and the loose config is Phase-1-only (2,695 B vs 4,556 B). The "finish" phase files the transcript named are all in the tarball: <span class="mono">conditional_shortcuts.py</span>, <span class="mono">substrate_bridge.py</span>, <span class="mono">ncp_adapter.py</span>, plus <span class="mono">test_conditional.py</span>. Nothing named in the transcript is missing. Four files differ between loose and tarball (<span class="mono">abstract_lattice.py</span>, <span class="mono">projection.py</span>, <span class="mono">README.md</span>, <span class="mono">config.yaml</span>); in each case the tarball is the later finished version.</p>
+
+  <h2>6 · Findings and open items</h2>
+  <p><b>Defense is in the code.</b> <span class="mono">specs.py</span> defines defense as a full vertical ("SONA-X / SCADS / X-FORCE AQUA concept pipeline", heaviest transform weight 3.0). Batch 014's instruction was to ignore defense cross-fusion; the lattice build later included it. Recorded as stated, not edited away.</p>
+  <p><b>False name in the tarball README.</b> The license line reads "Proprietary — Neuruh LLC." Neuruh is not a registered entity; the name is false and the fix belongs in the repo on the Mac. It appears nowhere else in this batch's files.</p>
+  <p><b>README table drifts from the code.</b> Real-estate TRANSFORM "rehab_plan" in the README vs "rehab_or_assign_plan" in <span class="mono">specs.py</span>; defense COUNTERPARTY "agency_contact" vs "procurement_agency". The code is authoritative.</p>
+  <p><b>KuzuDB path untested here.</b> KuzuDB is not installed in this environment; both bridges fell back to JSONL and worked. The KuzuDB code path is code-reviewed only.</p>
+  <p><b>Still pending:</b> 4 IP Registry entries, Git commit, A16Z 2-pager; live NCP tasks.py / Celery wiring (the adapter exists, the wiring is external); the six-role model stays asserted, not derived; "nobody is doing this" stays a transcript claim with its caveat.</p>
+</main>
+<footer>
+  Data: verified from the uploaded source files (files__51.zip, files__52.zip, files__53.zip), Nov 10 2026, batch 018. Dossier: <span class="mono">_research/axon-lattice-substrate-source/axon-lattice-substrate-source.md</span>. Concept note: CORE-060 AXON Lattice Substrate. Module byte sizes are from the tarball (the finished version). Three.js 0.158.0 via cdnjs. No live service was touched; tests and demos ran locally only.
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+(function(){
+  var viewer = document.getElementById('viewer');
+  var readout = document.getElementById('readout');
+  if (!window.THREE) {
+    document.getElementById('fallback').style.display = 'block';
+    return;
+  }
+  // ---- module data: name, layer, x, y, bytes, what it does, imports, test result ----
+  // Layers: lattice / router / substrate / verticals / graph / viz / tests / demos.
+  // Edges are imports read from the code; runtime edges are marked runtime:true.
+  var MODULES = [
+    {id:'base', name:'base.py', layer:'lattice', phase:'phase1', x:-21, y:8, z:0, bytes:6842, color:0x8A877E, desc:'Z2 lattice: nodes, orthogonal + diagonal edges (cost sqrt(2)), Manhattan/Chebyshev metrics, collapse_gain(). No package imports.', imports:[]},
+    {id:'heat', name:'heat.py', layer:'lattice', phase:'phase1', x:-21, y:4, z:1.5, bytes:5618, color:0x8A877E, desc:'Visit-Heat Field R(n,t): decay kernel, RAM-disk pinning (/dev/shm, macOS /tmp fallback), bloom candidates. No package imports.', imports:[]},
+    {id:'shortcuts', name:'shortcuts.py', layer:'lattice', phase:'phase1', x:-21, y:0, z:0, bytes:5105, color:0x8A877E, desc:'Shortcut Edge Layer: all-pairs usage counting, minting over theta_edge, hard cap.', imports:['base']},
+    {id:'bloom', name:'bloom.py', layer:'lattice', phase:'phase1', x:-21, y:-4, z:1.5, bytes:5029, color:0x8A877E, desc:'Sub-Lattice Promotion: hot nodes become 6x6 child lattices, depth cap 3.', imports:['base']},
+    {id:'traversal', name:'traversal.py', layer:'lattice', phase:'phase1', x:-21, y:-8, z:0, bytes:4747, color:0x8A877E, desc:'Traversal classes cheap_local / diagonal_fast / red_team, Dijkstra per class.', imports:['base']},
+    {id:'convergence', name:'convergence.py', layer:'router', phase:'phase1', x:-15, y:0, z:0, bytes:8457, color:0xB8B4AC, desc:'ConvergenceRouter: execute, log, heat, mint/bloom loop; SLA-to-class mapping; audit log.', imports:['base','heat','shortcuts','traversal','bloom']},
+    {id:'roles', name:'roles.py', layer:'substrate', phase:'phase2', x:-9, y:12, z:0, bytes:3792, color:0xC9A227, desc:'Six universal roles SOURCE, SIGNAL, VALUATION, TRANSFORM, COUNTERPARTY, CLOSE + 8 abstract edges. File states: if this file is wrong, Phase 2 should not ship. No package imports.', imports:[]},
+    {id:'cond', name:'conditional_shortcuts.py', layer:'substrate', phase:'phase2', x:-9, y:8, z:1.5, bytes:6087, color:0xC9A227, desc:'Conditional Shortcut Layer: tag-bucketed minting, applicable_edges. The finish-phase layer.', imports:['base']},
+    {id:'abstract', name:'abstract_lattice.py', layer:'substrate', phase:'phase2', x:-9, y:4, z:0, bytes:15125, color:0xC9A227, desc:'Shared substrate: 6 role interiors (6x6 each) + spine + shared core waypoint, context-aware Dijkstra.', imports:['base','heat','shortcuts','roles','cond']},
+    {id:'projection', name:'projection.py', layer:'substrate', phase:'phase2', x:-9, y:0, z:1.5, bytes:4987, color:0xC9A227, desc:'Functor: a vertical walks the shared interiors with effort weights; FLOW of 6 roles.', imports:['abstract','roles']},
+    {id:'organs', name:'organs.py', layer:'substrate', phase:'phase2', x:-9, y:-4, z:0, bytes:4905, color:0xC9A227, desc:'Bloom-as-organ: breadth bar (min 2 verticals) for promotion to shared infrastructure.', imports:['base','roles']},
+    {id:'engine', name:'engine.py', layer:'substrate', phase:'phase2', x:-9, y:-8, z:1.5, bytes:5902, color:0xC9A227, desc:'CrossVerticalEngine: tick loop, crystallization, report with transfer_ratio.', imports:['abstract','projection','organs']},
+    {id:'ncp', name:'ncp_adapter.py', layer:'substrate', phase:'phase2', x:-9, y:-12, z:0, bytes:6159, color:0xC9A227, desc:'NCP/Celery adapter: singleton engine, route_task() / route_batch(), crystallize every 5 tasks, persist every 25.', imports:['engine','roles','specs','subbridge']},
+    {id:'specs', name:'specs.py', layer:'verticals', phase:'phase2', x:-3, y:0, z:0, bytes:4590, color:0x8A877E, desc:'Seven verticals as role bindings: real_estate, resale, home_services, defense, construction, creator, partnership. Defense IS present.', imports:['roles']},
+    {id:'kuzu', name:'kuzu_bridge.py', layer:'graph', phase:'phase1', x:3, y:3, z:0, bytes:5773, color:0x6E6A60, desc:'Phase 1 KuzuDB persistence with JSONL fallback. JSONL fallback exercised here (kuzu not installed). No package imports.', imports:[]},
+    {id:'subbridge', name:'substrate_bridge.py', layer:'graph', phase:'phase2', x:3, y:-3, z:1.5, bytes:10335, color:0x6E6A60, desc:'Phase 2 KuzuDB persistence, write-side: roles, interiors, shortcuts, organs, verticals. No package imports.', imports:[]},
+    {id:'render', name:'render.py', layer:'viz', phase:'phase1', x:9, y:3, z:0, bytes:5302, color:0xB8B4AC, desc:'Phase 1 SVG renderer: black grid, red diagonals, purple/teal shortcuts, heat rings, rainbow blooms. Pure-Python SVG.', imports:[], runtime:['convergence']},
+    {id:'subrender', name:'substrate_render.py', layer:'viz', phase:'phase2', x:9, y:-3, z:1.5, bytes:10249, color:0xB8B4AC, desc:'Phase 2 SVG renderer: six role interiors in a 3x2 grid.', imports:[], runtime:['engine']},
+    {id:'test_lattice', name:'test_lattice.py', layer:'tests', phase:'tests', x:15, y:6, z:0, bytes:8825, color:0xE8E6E3, desc:'Phase 1 suite. 9/9 PASS as run here (~2 s). Thesis: first route 12.7279, last 0.5, 45 shortcuts.', imports:['base','heat','shortcuts','bloom','traversal','convergence'], test:'9/9 PASS'},
+    {id:'test_substrate', name:'test_substrate.py', layer:'tests', phase:'tests', x:15, y:0, z:1.5, bytes:9273, color:0xE8E6E3, desc:'Phase 2 falsification suite. 4/4 PASS as run here (~293 s). Isolation 168/306, provenance ratio 1.0, speedup tick 5 vs 2, breadth 0 vs 6.', imports:['engine','roles','specs'], test:'4/4 PASS'},
+    {id:'test_cond', name:'test_conditional.py', layer:'tests', phase:'tests', x:15, y:-6, z:0, bytes:7712, color:0xE8E6E3, desc:'Conditional shortcut suite. 3/3 PASS as run here (~25 s). Tagged 3.01 vs untagged 4.73; tag specificity holds; fallback 28.6245 to 4.73.', imports:['engine','specs'], test:'3/3 PASS'},
+    {id:'demo', name:'demo.py', layer:'demos', phase:'tests', x:21, y:3, z:0, bytes:3990, color:0xE8E6E3, desc:'Phase 1 emergence walk. Exit 0 as run here: 196 nodes, 702 edges, collapse_gain 53,326, 292 routes, 218 shortcuts, 3 blooms. Re-rendered viz_output byte-identically.', imports:['convergence','kuzu','render'], test:'exit 0'},
+    {id:'demo_sub', name:'demo_substrate.py', layer:'demos', phase:'tests', x:21, y:-3, z:1.5, bytes:3931, color:0xE8E6E3, desc:'Phase 2 emergence walk. Exit 0 as run here: tick 1 minted 372 shortcuts, all 6 organs promoted; final costs defense 13.75, real_estate 9.35, resale 4.73; transfer ratio 1.0.', imports:['engine','specs'], test:'exit 0'}
+  ];
+  var byId = {};
+  MODULES.forEach(function(m){ byId[m.id] = m; });
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x14161A);
+  var camera = new THREE.PerspectiveCamera(50, 560/560, 0.1, 500);
+  camera.position.set(0, 6, 42);
+  var renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(viewer.clientWidth, 560);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  viewer.appendChild(renderer.domElement);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+  var dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(10, 20, 15);
+  scene.add(dir);
+
+  var group = new THREE.Group();
+  scene.add(group);
+  var meshes = [];
+  var edgeLines = [];
+
+  function makeLabel(text) {
+    var c = document.createElement('canvas');
+    var ctx = c.getContext('2d');
+    ctx.font = '600 26px "JetBrains Mono", monospace';
+    var w = Math.ceil(ctx.measureText(text).width) + 16;
+    c.width = w; c.height = 40;
+    var ctx2 = c.getContext('2d');
+    ctx2.font = '600 26px "JetBrains Mono", monospace';
+    ctx2.fillStyle = '#E8E6E3';
+    ctx2.fillText(text, 8, 28);
+    var tex = new THREE.CanvasTexture(c);
+    var sp = new THREE.Sprite(new THREE.SpriteMaterial({map: tex, transparent: true, depthWrite: false}));
+    sp.scale.set(w/40 * 1.6, 1.6, 1);
+    return sp;
+  }
+
+  MODULES.forEach(function(m){
+    var geo = new THREE.SphereGeometry(m.layer === 'substrate' ? 0.85 : 0.7, 24, 18);
+    var mat = new THREE.MeshStandardMaterial({color: m.color, metalness: 0.35, roughness: 0.45});
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(m.x, m.y, m.z);
+    mesh.userData.module = m;
+    group.add(mesh);
+    meshes.push(mesh);
+    var label = makeLabel(m.name);
+    label.position.set(m.x, m.y + 1.35, m.z);
+    label.userData.isLabel = true;
+    label.userData.moduleId = m.id;
+    group.add(label);
+    m._label = label;
+    m._mesh = mesh;
+  });
+
+  function addEdge(a, b, runtime) {
+    var ma = byId[a], mb = byId[b];
+    if (!ma || !mb) return;
+    var geo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(ma.x, ma.y, ma.z),
+      new THREE.Vector3(mb.x, mb.y, mb.z)
+    ]);
+    var mat = runtime
+      ? new THREE.LineDashedMaterial({color: 0xC9A227, dashSize: 0.6, gapSize: 0.4})
+      : new THREE.LineBasicMaterial({color: 0x6E6A60, transparent: true, opacity: 0.85});
+    var line = new THREE.Line(geo, mat);
+    if (runtime) line.computeLineDistances();
+    line.userData = {a: a, b: b, runtime: !!runtime};
+    group.add(line);
+    edgeLines.push(line);
+  }
+  MODULES.forEach(function(m){
+    m.imports.forEach(function(t){ addEdge(m.id, t, false); });
+    (m.runtime || []).forEach(function(t){ addEdge(m.id, t, true); });
+  });
+
+  // layer captions
+  [['LATTICE', -21, 11], ['ROUTER', -15, 4], ['SUBSTRATE', -9, 15.5], ['VERTICALS', -3, 4], ['GRAPH', 3, 6.5], ['VIZ', 9, 6.5], ['TESTS', 15, 9.5], ['DEMOS', 21, 6.5]].forEach(function(c){
+    var sp = makeLabel(c[0]);
+    sp.material.color = new THREE.Color(0xC9A227);
+    sp.position.set(c[1], c[2], 0);
+    sp.scale.multiplyScalar(0.85);
+    group.add(sp);
+  });
+
+  var rotating = true, autoAngle = 0;
+  var dragging = false, px = 0, py = 0, rotX = 0.12, rotY = -0.15, zoom = 42;
+  renderer.domElement.addEventListener('pointerdown', function(e){ dragging = true; px = e.clientX; py = e.clientY; });
+  window.addEventListener('pointerup', function(){ dragging = false; });
+  window.addEventListener('pointermove', function(e){
+    if (!dragging) return;
+    rotY += (e.clientX - px) * 0.005;
+    rotX += (e.clientY - py) * 0.005;
+    rotX = Math.max(-0.9, Math.min(0.9, rotX));
+    px = e.clientX; py = e.clientY;
+  });
+  renderer.domElement.addEventListener('wheel', function(e){
+    e.preventDefault();
+    zoom = Math.max(24, Math.min(70, zoom + e.deltaY * 0.03));
+  }, {passive: false});
+
+  var ray = new THREE.Raycaster();
+  var mouse = new THREE.Vector2();
+  function pick(e) {
+    var r = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+    mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(mouse, camera);
+    var hits = ray.intersectObjects(meshes);
+    return hits.length ? hits[0].object.userData.module : null;
+  }
+  renderer.domElement.addEventListener('click', function(e){
+    var m = pick(e);
+    if (!m) return;
+    var parts = ['<b>' + m.name + '</b>', m.bytes + ' B', m.layer + (m.test ? ' · ' + m.test : ''), m.desc];
+    if (m.imports.length) parts.push('imports: ' + m.imports.map(function(id){ return byId[id].name; }).join(', '));
+    if (m.runtime) parts.push('uses at runtime: ' + m.runtime.map(function(id){ return byId[id].name; }).join(', '));
+    readout.innerHTML = parts.join(' — ');
+    meshes.forEach(function(mm){ mm.material.emissive = new THREE.Color(0x000000); });
+    m._mesh.material.emissive = new THREE.Color(0x332a00);
+  });
+  renderer.domElement.addEventListener('mousemove', function(e){
+    var m = pick(e);
+    renderer.domElement.style.cursor = m ? 'pointer' : 'grab';
+  });
+
+  function applyView(view) {
+    meshes.forEach(function(mm){
+      var m = mm.userData.module;
+      var show = view === 'all' ||
+        (view === 'phase1' && (m.phase === 'phase1')) ||
+        (view === 'phase2' && (m.phase === 'phase2')) ||
+        (view === 'tests' && (m.phase === 'tests'));
+      mm.visible = show;
+      m._label.visible = show;
+    });
+    edgeLines.forEach(function(l){
+      var a = byId[l.userData.a], b = byId[l.userData.b];
+      var vis = function(m){ return m._mesh.visible; };
+      l.visible = vis(a) && vis(b);
+    });
+  }
+  document.querySelectorAll('#toolbar [data-view]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#toolbar [data-view]').forEach(function(b){ b.classList.remove('on'); });
+      btn.classList.add('on');
+      applyView(btn.getAttribute('data-view'));
+    });
+  });
+  document.getElementById('btnRotate').addEventListener('click', function(){
+    rotating = !rotating;
+    this.textContent = rotating ? 'Pause rotation' : 'Resume rotation';
+  });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    rotX = 0.12; rotY = -0.15; zoom = 42;
+    applyView('all');
+    document.querySelectorAll('#toolbar [data-view]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view') === 'all'); });
+  });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if (rotating) autoAngle += 0.0012;
+    group.rotation.y = rotY + autoAngle;
+    group.rotation.x = rotX;
+    camera.position.z = zoom;
+    renderer.render(scene, camera);
+  }
+  animate();
+  window.addEventListener('resize', function(){
+    renderer.setSize(viewer.clientWidth, 560);
+    camera.aspect = viewer.clientWidth / 560;
+    camera.updateProjectionMatrix();
+  });
+})();
+</script>
+</body>
+</html>
