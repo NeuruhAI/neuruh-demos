@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repo Tiers - 130-Repo Code-Verified Map, June 30, 2026</title>
+<style>
+  :root{--bg:#0B0D0E;--surface:#14161A;--bone:#E8E6E3;--ink:#B8B4AC;--brass:#C9A227;--line:#2A2D33;--gold:#D8B13A;--dim:#6E6A60;--amber:#D8A24A;--taupe:#8A7D6B;--burnt:#B4552D;--gray:#5A564E}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--bone);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+  header{padding:28px 28px 10px;border-bottom:1px solid var(--line)}
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;color:var(--brass);text-transform:uppercase}
+  h1{font-family:Archivo,Inter,sans-serif;font-size:30px;margin:8px 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--ink);max-width:920px;margin:0}
+  .warn{margin:14px 28px 0;border:1px solid var(--brass);color:var(--gold);padding:10px 14px;font-size:14px;background:#17150a}
+  .warn b{color:var(--brass)}
+  main{padding:18px 28px 40px;max-width:1180px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+  .toolbar button{background:var(--surface);color:var(--bone);border:1px solid var(--line);padding:7px 12px;font:600 13px Inter,sans-serif;cursor:pointer;border-radius:3px}
+  .toolbar button.on{border-color:var(--brass);color:var(--gold)}
+  #viewer{position:relative;height:560px;background:var(--surface);border:1px solid var(--line)}
+  #viewer canvas{display:block}
+  #fallback{display:none;padding:24px;color:var(--ink)}
+  .overlay{position:absolute;left:12px;top:12px;background:rgba(11,13,14,.88);border:1px solid var(--line);padding:10px 12px;font-size:12.5px;max-width:330px}
+  .overlay b{color:var(--gold)}
+  .overlay .row{display:flex;gap:8px;align-items:center;margin:3px 0}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  #panel{position:absolute;right:12px;top:12px;width:300px;background:rgba(11,13,14,.92);border:1px solid var(--brass);padding:12px 14px;font-size:13px}
+  #panel h3{margin:0 0 4px;font-size:14px;color:var(--gold);word-break:break-word}
+  #panel .tier{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;color:var(--brass);text-transform:uppercase}
+  #panel p{margin:6px 0 0;color:var(--bone)}
+  #readout{margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink);min-height:20px}
+  #readout b{color:var(--gold)}
+  h2{font-family:Archivo,Inter,sans-serif;font-size:20px;margin:34px 0 6px;border-top:1px solid var(--line);padding-top:22px}
+  h3{font-size:15px;margin:18px 0 4px;color:var(--gold)}
+  p{color:var(--ink);max-width:920px}
+  table{border-collapse:collapse;width:100%;max-width:980px;margin:10px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--surface);color:var(--gold);font-weight:600}
+  td.num{font-family:"JetBrains Mono",monospace;text-align:right}
+  .mono{font-family:"JetBrains Mono",monospace}
+  .fig{border:1px solid var(--line);background:var(--surface);padding:14px;margin:12px 0;max-width:980px}
+  .figcap{font-size:12.5px;color:var(--dim);margin-top:8px}
+  .donext{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
+  .dstep{flex:1;min-width:160px;border:1px solid var(--line);background:var(--surface);padding:12px}
+  .dstep .n{font-family:"JetBrains Mono",monospace;color:var(--brass);font-size:12px}
+  .dstep p{margin:6px 0 0;font-size:13.5px;color:var(--bone)}
+  .hl{color:var(--gold)}
+  footer{border-top:1px solid var(--line);padding:18px 28px 40px;color:var(--dim);font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Neuruh &middot; Batch 011 Part 3 &middot; Code-verified inventory</div>
+  <h1>Repo Tiers: 130 Repos, Six Tiers</h1>
+  <p class="sub">An interactive Three.js map of the June 30, 2026 code-verified repo inventory, grouped by tier. Drag to rotate, scroll to zoom, click a node to see that repo&rsquo;s one-line verdict.</p>
+</header>
+<div class="warn"><b>HISTORICAL SNAPSHOT, NOT CURRENT.</b> Data is the June 30, 2026 code-verified snapshot of 130 repos (75 NeuruhAI + 55 yousernamehere). The NeuruhAI org is 216 repos as of Nov 8, 2026, so this map is historical, not current. The register names 90 repos below; the full 130-row table lives in INVENTORY.md on Jeramie&rsquo;s Mac and is not reproduced here.</div>
+<main>
+  <div class="toolbar" id="toolbar">
+    <button data-tier="all" class="on">All tiers</button>
+    <button data-tier="0">Tier 0</button>
+    <button data-tier="1">Tier 1</button>
+    <button data-tier="2">Tier 2</button>
+    <button data-tier="3">Tier 3</button>
+    <button data-tier="X">Tier X</button>
+    <button data-tier="S">Tier S</button>
+  </div>
+  <div id="viewer">
+    <div class="overlay" id="legend">
+      <b>Legend</b>
+      <div class="row"><span class="dot" style="background:#C9A227"></span> Tier 0: live / deployed (7)</div>
+      <div class="row"><span class="dot" style="background:#E8E6E3"></span> Tier 1: real, sellable now (20)</div>
+      <div class="row"><span class="dot" style="background:#D8A24A"></span> Tier 2: one fix from sellable (19)</div>
+      <div class="row"><span class="dot" style="background:#8A7D6B"></span> Tier 3: retire / merge (13)</div>
+      <div class="row"><span class="dot" style="background:#B4552D"></span> Tier X: reputational risk (9)</div>
+      <div class="row"><span class="dot" style="background:#5A564E"></span> Tier S: empty shell (22)</div>
+      <div class="row"><span class="dot" style="background:#C9A227;border:2px solid #E8E6E3"></span> Brass ring: genuine asset (5 assets, 6 nodes)</div>
+    </div>
+    <div id="panel">
+      <div class="tier">Repo verdict</div>
+      <h3 id="panel-name">Click a node</h3>
+      <p id="panel-verdict">Click any node in the map to see that repo&rsquo;s one-line verdict from the June 30, 2026 register.</p>
+    </div>
+    <div id="fallback">The 3D map needs JavaScript and the Three.js CDN. The full tier register table below lists every named repo and verdict.</div>
+  </div>
+  <div id="readout">Snapshot date: June 30, 2026. Named repos on this map: <b>90 of 130</b>. Genuine assets in brass: <b>iar_v2 + aegis, TaxShield, landos-engine, design-weaver, find-sell-profit</b>.</div>
+
+  <h2>Do next</h2>
+  <div class="donext">
+    <div class="dstep"><div class="n">STEP 1</div><p>Close the open security items first.</p></div>
+    <div class="dstep"><div class="n">STEP 2</div><p>TaxShield revenue.</p></div>
+    <div class="dstep"><div class="n">STEP 3</div><p>Finish iar_v2 tests.</p></div>
+    <div class="dstep"><div class="n">STEP 4</div><p>Package governance suite.</p></div>
+    <div class="dstep"><div class="n">STEP 5</div><p>Reclassify Tier X + archive shells before any investor.</p></div>
+    <div class="dstep"><div class="n">STEP 6</div><p>Refactor only after revenue.</p></div>
+  </div>
+
+  <h2>Full register: the 90 named repos</h2>
+  <p>Every repo named in the June 30, 2026 register, with its tier and one-line verdict. Tier X verdicts describe a claim-vs-code mismatch: what the repo claims versus what the code actually does.</p>
+  <table>
+    <thead><tr><th>Repo</th><th>Tier</th><th>Verdict</th></tr></thead>
+    <tbody id="repo-rows"></tbody>
+  </table>
+  <div class="fig">
+    <h3>How to read the tiers</h3>
+    <p>Tier 0 is live or deployed today. Tier 1 is real and sellable now. Tier 2 is one fix from sellable, and the verdict names the fix. Tier 3 should be retired or folded into a stronger repo. Tier X carries a claim the code does not support, so it is reputational risk until reclassified. Tier S is a README-only shell to archive. The five genuine assets are ringed in brass on the map: iar_v2 + aegis, TaxShield, landos-engine, design-weaver, and find-sell-profit.</p>
+    <div class="figcap">Figure 1. Tier definitions from the June 30, 2026 register.</div>
+  </div>
+</main>
+<footer>
+  <p>Source: June 30, 2026 code-verified inventory, 130 repos (75 NeuruhAI + 55 yousernamehere). NeuruhAI org: 216 repos as of Nov 8, 2026. This page is a historical snapshot, not a current inventory. Full 130-row table: INVENTORY.md on Jeramie&rsquo;s Mac. Built Nov 10, 2026. Batch 011 Part 3.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+var REPO_DATA = [
+{"n":"TaxShield","t":"0","v":"Only live, revenue-ready product.","h":1},
+{"n":"TaxShieldCalculator","t":"0","v":"Only live, revenue-ready product."},
+{"n":"a-a-outlet-launch","t":"0","v":"Deployed client sites, packaged for handoff."},
+{"n":"niles","t":"0","v":"Deployed client sites, packaged for handoff."},
+{"n":"hub","t":"0","v":"Deployed client sites, packaged for handoff."},
+{"n":"neuruh-landing","t":"0","v":"Deployable corporate marketing site."},
+{"n":"neuruh-command-hub","t":"0","v":"Live internal ops dashboard, wired to Supabase."},
+{"n":"iar_v2","t":"1","v":"Canonical inference router. Crown jewel.","h":1},
+{"n":"aegis","t":"1","v":"Canonical inference router. Crown jewel. (NeuruhAI)","h":1},
+{"n":"ipp-intent-preservation-api","t":"1","v":"Package as ONE governance/provenance product."},
+{"n":"autonomous-governance-core","t":"1","v":"Package as ONE governance/provenance product."},
+{"n":"constraint-engineering-core","t":"1","v":"Package as ONE governance/provenance product."},
+{"n":"contextual-inception-framework","t":"1","v":"Package as ONE governance/provenance product."},
+{"n":"drift-detector-api","t":"1","v":"Package as ONE governance/provenance product."},
+{"n":"semantic-fuse-api","t":"1","v":"Package as ONE governance/provenance product."},
+{"n":"nimdp-validator","t":"1","v":"Package as ONE governance/provenance product."},
+{"n":"master-architect-toolkit","t":"1","v":"React + Stripe spec generator, clean build."},
+{"n":"smartcart-chef-planner","t":"1","v":"Zero-dep meal planner."},
+{"n":"fishcast-ai","t":"1","v":"Fishing-condition scoring engine."},
+{"n":"behavioral-memory-bank","t":"1","v":"Consent-gated memory store."},
+{"n":"notion-auto-exporter","t":"1","v":"Clean, transferable tooling + content."},
+{"n":"ip-timestamp-bundler","t":"1","v":"Clean, transferable tooling + content."},
+{"n":"atomic-node-registry","t":"1","v":"Clean, transferable tooling + content."},
+{"n":"neuruh-factory-router","t":"1","v":"Clean, transferable tooling + content."},
+{"n":"notion-codepack-deploy-harness","t":"1","v":"Clean, transferable tooling + content."},
+{"n":"content-orchestrator","t":"1","v":"Clean, transferable tooling + content."},
+{"n":"neuruh-essays","t":"1","v":"Clean, transferable tooling + content."},
+{"n":"landos-engine","t":"2","v":"Add 7 missing landos.* migrations + strip personal owner data. 148 passing tests.","h":1},
+{"n":"NeuruhOSv2","t":"2","v":"Real multi-tenant orchestrator backend; document + harden."},
+{"n":"design-weaver","t":"2","v":"Decouple from Lovable gateway.","h":1},
+{"n":"find-sell-profit","t":"2","v":"Wire real Stripe persistence + tier-gating.","h":1},
+{"n":"studio","t":"2","v":"Rotate stored logins + move to env."},
+{"n":"vehicle-viz-studio","t":"2","v":"Decouple Lovable + rotate stored logins."},
+{"n":"content-command-center-85","t":"2","v":"Fix migrations (creates 1 of 9 tables)."},
+{"n":"build-creatoros","t":"2","v":"Cleanup + decouple from private Lovable URL."},
+{"n":"territory-engine","t":"2","v":"Decouple from LandOS; 3D acquisition UI is real."},
+{"n":"pulsar-dc-mvp","t":"2","v":"Consolidate legacy app/ vs backend/app/."},
+{"n":"lakeshore-intelligence","t":"2","v":"Generalize beyond Berrien County."},
+{"n":"recipe-engine","t":"2","v":"Wire the engine push (engine_called=0)."},
+{"n":"aegis CRE","t":"2","v":"Add the missing frontend, or sell as backend/API. (yousernamehere)"},
+{"n":"signal-iq","t":"2","v":"Fix broken CI + unmock enrichment/billing."},
+{"n":"lenduruh","t":"2","v":"Productionize the SMB-underwriting MVP."},
+{"n":"neuruh-edge-agent","t":"2","v":"Research prototype; most interesting raw IP."},
+{"n":"Neuruh_AI","t":"2","v":"Swap the dummy LLM for a real model."},
+{"n":"poag-ai-training-portal","t":"2","v":"Wire real data + auth (currently UI templates)."},
+{"n":"poag-pathways","t":"2","v":"Wire real data + auth (currently UI templates)."},
+{"n":"ocn-hybrid-inference-router","t":"3","v":"Fold into iar_v2 as adapters."},
+{"n":"inference-mesh-router","t":"3","v":"Fold into iar_v2 as adapters."},
+{"n":"neuruh-axon model-router","t":"3","v":"Fold into iar_v2 as adapters."},
+{"n":"axon-adapter-sdk","t":"3","v":"Fold into iar_v2 as adapters."},
+{"n":"neuruh-bonsai-gemma4","t":"3","v":"Dedup the two Bonsai forks."},
+{"n":"neuruh-ocn-bonsai","t":"3","v":"Dedup the two Bonsai forks."},
+{"n":"content-command-center","t":"3","v":"Drop; keep -85."},
+{"n":"master-architect-app","t":"3","v":"Retire; keep toolkit."},
+{"n":"TaxShieldFull","t":"3","v":"Broken; drop."},
+{"n":"taxshield-local-snapshot","t":"3","v":"Sandbox; drop."},
+{"n":"RealEstateDealArchitect","t":"3","v":"Redundant; drop."},
+{"n":"nimdp-validator (yousernamehere duplicate)","t":"3","v":"Keep one copy."},
+{"n":"brandon-handoff-archive","t":"3","v":"Archive blobs, not code."},
+{"n":"DFSE-QECA","t":"X","v":"Claims quantum-proof encryption; code is a 40-line XOR toy."},
+{"n":"neuruh-visual-cortex","t":"X","v":"Claims production-ready AI video; outputs placeholder data."},
+{"n":"dispatch-iq","t":"X","v":"Markets a 7-layer defense pipeline; ships README + .gitignore. (NeuruhAI)"},
+{"n":"core-node-ffdb","t":"X","v":"Publishes precise cost/latency/SOC2 numbers for code that does not exist."},
+{"n":"core-node-gray-code","t":"X","v":"Publishes precise cost/latency/SOC2 numbers for code that does not exist."},
+{"n":"pmla-constraint-engineering","t":"X","v":"Claims cryptographic verification; it is SHA-256-of-itself."},
+{"n":"neuruh-vault","t":"X","v":"Claims 858 built IP assets; about 12 nodes have a live URL. (NeuruhAI)"},
+{"n":"axon","t":"X","v":"READMEs say deployed/gateway live; neither compiles or runs."},
+{"n":"neuruh-axon","t":"X","v":"READMEs say deployed/gateway live; neither compiles or runs."},
+{"n":"neuruh-cortex-lens","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-fleet","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-formOS","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-medqueue","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-resell-os","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-roofops","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-stormstack","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-taxshield","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-rei-x-store","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-seeder","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"rei-signal-bot","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"signal-iq-core","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"vault-taxonomy-api","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"probateops","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"pulsar-dc","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-geointel","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-briefer","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-autolegal","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"mother-v2","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"formos","t":"S","v":"README-only shell; archive. (NeuruhAI)"},
+{"n":"neuruh-core","t":"S","v":"README-only shell; archive. (yousernamehere)"},
+{"n":"neuruh-models","t":"S","v":"README-only shell; archive. (yousernamehere)"}
+];
+
+var TIER_LABEL = {"0":"Tier 0","1":"Tier 1","2":"Tier 2","3":"Tier 3","X":"Tier X","S":"Tier S"};
+var TIER_COLOR = {"0":0xC9A227,"1":0xE8E6E3,"2":0xD8A24A,"3":0x8A7D6B,"X":0xB4552D,"S":0x5A564E};
+var TIER_CSS = {"0":"#C9A227","1":"#E8E6E3","2":"#D8A24A","3":"#8A7D6B","X":"#B4552D","S":"#5A564E"};
+var TIER_CENTER = {"0":[-16,9],"1":[0,9],"2":[16,9],"3":[-16,-9],"X":[0,-9],"S":[16,-9]};
+
+function seeded(i){ var x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+
+var tbody = document.getElementById("repo-rows");
+var rowHtml = "";
+for (var i = 0; i < REPO_DATA.length; i++) {
+  var r = REPO_DATA[i];
+  rowHtml += "<tr><td class=\"mono\">" + r.n + "</td><td>" + TIER_LABEL[r.t] + "</td><td>" + r.v + "</td></tr>";
+}
+tbody.innerHTML = rowHtml;
+
+var panelName = document.getElementById("panel-name");
+var panelVerdict = document.getElementById("panel-verdict");
+function showRepo(r) {
+  panelName.textContent = r.n + "  (" + TIER_LABEL[r.t] + ")";
+  panelVerdict.textContent = r.v;
+  var ro = document.getElementById("readout");
+  ro.innerHTML = "<b>" + r.n + "</b>  " + TIER_LABEL[r.t] + "  " + r.v;
+}
+
+var viewer = document.getElementById("viewer");
+var nodes = [];
+var activeTier = "all";
+var toolbarBtns = document.querySelectorAll("#toolbar button");
+for (var b = 0; b < toolbarBtns.length; b++) {
+  toolbarBtns[b].addEventListener("click", function () {
+    for (var j = 0; j < toolbarBtns.length; j++) { toolbarBtns[j].classList.remove("on"); }
+    this.classList.add("on");
+    activeTier = this.getAttribute("data-tier");
+    for (var k = 0; k < nodes.length; k++) {
+      nodes[k].visible = (activeTier === "all" || nodes[k].userData.tier === activeTier);
+    }
+  });
+}
+
+if (typeof THREE === "undefined") {
+  document.getElementById("fallback").style.display = "block";
+} else {
+  try {
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x14161A);
+    var camera = new THREE.PerspectiveCamera(50, viewer.clientWidth / viewer.clientHeight, 0.1, 500);
+    camera.position.set(0, 2, 52);
+    var renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(viewer.clientWidth, 560);
+    viewer.appendChild(renderer.domElement);
+    var group = new THREE.Group();
+    scene.add(group);
+
+    var counts = {"0":0,"1":0,"2":0,"3":0,"X":0,"S":0};
+    for (var n = 0; n < REPO_DATA.length; n++) {
+      var d = REPO_DATA[n];
+      counts[d.t]++;
+      var c = TIER_CENTER[d.t];
+      var idx = counts[d.t];
+      var ang = seeded(n * 3 + 1) * Math.PI * 2;
+      var rad = 0.8 + seeded(n * 3 + 2) * 3.6;
+      var px = c[0] + Math.cos(ang) * rad;
+      var py = c[1] + Math.sin(ang) * rad * 0.62;
+      var pz = (seeded(n * 3 + 3) - 0.5) * 3;
+      var size = d.h ? 0.55 : 0.3;
+      var geo = new THREE.SphereGeometry(size, 18, 14);
+      var mat = new THREE.MeshBasicMaterial({ color: d.h ? 0xC9A227 : TIER_COLOR[d.t] });
+      var mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(px, py, pz);
+      mesh.userData = { repo: d, tier: d.t };
+      group.add(mesh);
+      nodes.push(mesh);
+      if (d.h) {
+        var ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.85, 0.05, 8, 40),
+          new THREE.MeshBasicMaterial({ color: 0xE8E6E3 })
+        );
+        ring.position.set(px, py, pz);
+        group.add(ring);
+      }
+    }
+
+    var tierNames = ["0","1","2","3","X","S"];
+    for (var t = 0; t < tierNames.length; t++) {
+      var tn = tierNames[t];
+      var cc = TIER_CENTER[tn];
+      var cv = document.createElement("canvas");
+      cv.width = 512; cv.height = 96;
+      var ctx = cv.getContext("2d");
+      ctx.fillStyle = TIER_CSS[tn];
+      ctx.font = "bold 44px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(TIER_LABEL[tn], 256, 60);
+      var tex = new THREE.CanvasTexture(cv);
+      var spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }));
+      spr.scale.set(10, 1.9, 1);
+      spr.position.set(cc[0], cc[1] + 5.6, 0);
+      group.add(spr);
+    }
+
+    var dragging = false, moved = 0, lastX = 0, lastY = 0;
+    renderer.domElement.addEventListener("pointerdown", function (e) {
+      dragging = true; moved = 0; lastX = e.clientX; lastY = e.clientY;
+    });
+    window.addEventListener("pointermove", function (e) {
+      if (!dragging) { return; }
+      var dx = e.clientX - lastX, dy = e.clientY - lastY;
+      moved += Math.abs(dx) + Math.abs(dy);
+      group.rotation.y += dx * 0.005;
+      group.rotation.x += dy * 0.003;
+      if (group.rotation.x > 0.6) { group.rotation.x = 0.6; }
+      if (group.rotation.x < -0.6) { group.rotation.x = -0.6; }
+      lastX = e.clientX; lastY = e.clientY;
+    });
+    window.addEventListener("pointerup", function (e) {
+      if (!dragging) { return; }
+      dragging = false;
+      if (moved > 6) { return; }
+      var rect = renderer.domElement.getBoundingClientRect();
+      var mx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      var my = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      var ray = new THREE.Raycaster();
+      ray.setFromCamera({ x: mx, y: my }, camera);
+      var hits = ray.intersectObjects(nodes);
+      if (hits.length > 0) { showRepo(hits[0].object.userData.repo); }
+    });
+    viewer.addEventListener("wheel", function (e) {
+      e.preventDefault();
+      camera.position.z += e.deltaY * 0.02;
+      if (camera.position.z < 20) { camera.position.z = 20; }
+      if (camera.position.z > 80) { camera.position.z = 80; }
+    }, { passive: false });
+
+    (function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    })();
+  } catch (err) {
+    document.getElementById("fallback").style.display = "block";
+  }
+}
+</script>
+</body>
+</html>
