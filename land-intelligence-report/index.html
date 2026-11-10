@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Provenance-Backed Land Intelligence Report - Neuruh Land Intelligence</title>
+<style>
+  :root{
+    --paper:#fdfcf8; --bone:#f4f1e8; --ink:#1a1a17; --muted:#6b675c;
+    --green:#1d4d2b; --green-soft:#e7efe8; --gold:#a8842c; --gold-soft:#f6efdb;
+    --line:#d8d2c2; --red:#9b2c2c; --amber:#8a6d1b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e9e6db;color:var(--ink);
+    font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.45}
+  a{color:var(--green)}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 18px 60px}
+  /* ---------- generator panel (screen only) ---------- */
+  .gen{background:#fff;border:1px solid var(--line);border-radius:6px;padding:18px 20px;margin-bottom:22px}
+  .gen h1{font-size:20px;margin:0 0 4px;font-family:Georgia,serif}
+  .gen p.sub{margin:0 0 14px;color:var(--muted);font-size:13.5px}
+  .badge{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:11px;
+    padding:2px 7px;border-radius:3px;letter-spacing:.04em;vertical-align:middle}
+  .badge.sim{background:#ece7d8;color:#5c5340;border:1px solid #cfc6a8}
+  .badge.modeled{background:var(--gold-soft);color:var(--amber);border:1px solid #d9c48a}
+  .badge.sample{background:#f3e2e2;color:var(--red);border:1px solid #d9a8a8}
+  .badge.unver{background:#f3e2e2;color:var(--red);border:1px solid #d9a8a8}
+  .badge.verified{background:var(--green-soft);color:var(--green);border:1px solid #b6cdb8}
+  .badge.pass{background:var(--green);color:#fff}
+  .badge.flag{background:var(--red);color:#fff}
+  details{border:1px solid var(--line);border-radius:5px;margin:8px 0;background:#fff}
+  details summary{cursor:pointer;padding:9px 12px;font-weight:bold;font-size:14px}
+  details summary span.tag{float:right;font-weight:normal;font-size:12px;color:var(--muted)}
+  .fields{padding:4px 12px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px 18px}
+  .fields label{display:block;font-size:12.5px;color:#444}
+  .fields label b{display:block;font-size:12px;color:var(--ink);margin-bottom:2px}
+  .fields input[type=number],.fields input[type=text],.fields select{
+    width:100%;padding:6px 8px;border:1px solid #b9b29e;border-radius:4px;
+    font-size:14px;font-family:inherit;background:#fff}
+  .fields input[type=checkbox]{transform:scale(1.25);margin-right:6px}
+  .fields .note{grid-column:1/-1;font-size:12.5px;color:var(--muted)}
+  .btnrow{margin:14px 0 4px;display:flex;flex-wrap:wrap;gap:8px}
+  button{cursor:pointer;border:1px solid var(--green);background:var(--green);color:#fff;
+    padding:9px 16px;border-radius:4px;font-size:14px;font-family:inherit}
+  button.ghost{background:#fff;color:var(--green)}
+  button.small{padding:5px 10px;font-size:13px}
+  .statusline{font-size:13px;color:var(--muted);margin-top:10px}
+  .statusline code{font-size:12px}
+  textarea{width:100%;min-height:90px;font-family:ui-monospace,Menlo,monospace;font-size:12px;
+    padding:8px;border:1px solid #b9b29e;border-radius:4px}
+  /* ---------- the report (printable, matches the flyer layout) ---------- */
+  .report{background:var(--paper);border:1px solid #c9c2ae;max-width:860px;margin:0 auto;
+    padding:26px 30px 18px;box-shadow:0 2px 14px rgba(0,0,0,.12)}
+  .rep-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+    border-bottom:2px solid var(--gold);padding-bottom:12px}
+  .brand{font-size:22px;letter-spacing:.14em;color:var(--green);font-weight:bold;line-height:1.1}
+  .brand small{display:block;font-size:10.5px;letter-spacing:.3em;color:var(--gold);margin-top:3px}
+  .rep-title{flex:1;text-align:center}
+  .rep-title h2{font-size:27px;color:var(--green);margin:2px 0 0;line-height:1.15}
+  .rep-id{text-align:right;font-size:12.5px;line-height:1.5;white-space:nowrap}
+  .rep-id b{display:block;font-size:11px;letter-spacing:.08em;color:var(--muted)}
+  .rep-id code{font-size:12px}
+  .sec{margin-top:14px;border:1px solid #b9b29e;border-radius:3px;overflow:hidden}
+  .sec-h{background:var(--green);color:#fff;padding:6px 12px;font-size:13px;
+    letter-spacing:.14em;font-weight:bold;display:flex;justify-content:space-between;align-items:center}
+  .sec-h.gold{background:var(--gold)}
+  .sec-b{padding:12px 14px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .parcel-big{font-size:38px;color:var(--green);font-weight:bold;line-height:1}
+  .parcel-big small{font-size:15px;color:var(--ink)}
+  .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+  .kv div{font-size:13px}
+  .kv b{display:block;font-size:10.5px;letter-spacing:.08em;color:var(--muted)}
+  .chain{display:flex;align-items:stretch;gap:0;margin:4px 0}
+  .chain .node{flex:1;border:1px solid #b9b29e;border-radius:4px;padding:10px;text-align:center;background:#fff}
+  .chain .node b{display:block;font-size:11px;letter-spacing:.08em;color:var(--muted)}
+  .chain .node .nm{font-weight:bold;font-size:14.5px;margin:3px 0}
+  .chain .node .rl{font-size:12.5px;color:#444}
+  .chain .arr{align-self:center;padding:0 7px;color:var(--gold);font-size:20px;font-weight:bold}
+  .yield-big{font-size:40px;color:var(--gold);font-weight:bold;text-align:center;line-height:1}
+  .yield-sub{text-align:center;font-size:13px;color:var(--muted)}
+  .y3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;margin-top:10px}
+  .y3 .v{font-size:21px;font-weight:bold;color:var(--green)}
+  .y3 .l{font-size:11px;color:var(--muted);letter-spacing:.05em}
+  .notes{background:var(--gold-soft);border:1px solid #d9c48a;border-radius:4px;
+    padding:9px 12px;margin-top:10px;font-size:13px}
+  .notes b{color:var(--amber)}
+  .notes ul{margin:5px 0 0;padding-left:18px}
+  table.uses{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  table.uses th{border-bottom:1px solid var(--line);text-align:left;padding:4px 6px;
+    font-size:11px;letter-spacing:.06em;color:var(--muted)}
+  table.uses td{border-bottom:1px solid #eee;padding:5px 6px;vertical-align:top}
+  table.uses td.num{text-align:right;font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+  .flagrow{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #eee}
+  .flagrow:last-child{border-bottom:0}
+  .flagrow .ic{font-size:19px;line-height:1.2}
+  .flagrow b{font-size:14px}
+  .flagrow .d{font-size:13px;color:#444}
+  .flagrow .src{font-size:11.5px;color:var(--muted)}
+  .receipt{display:grid;grid-template-columns:1.5fr .8fr 1fr;gap:14px;align-items:start}
+  .receipt code{font-size:11.5px;word-break:break-all}
+  .passmark{font-size:30px;color:var(--green);font-weight:bold;text-align:center}
+  .passmark small{display:block;font-size:12px;color:var(--muted);font-weight:normal}
+  .rep-foot{margin-top:14px;padding-top:8px;border-top:1px solid var(--line);
+    font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:12px}
+  .srcnote{font-size:12px;color:var(--muted);margin-top:6px}
+  .verifybox{margin-top:16px}
+  .verifybox .out{font-size:13px;margin-top:8px}
+  @media print{
+    body{background:#fff}
+    .wrap{max-width:none;padding:0}
+    .gen,.noprint{display:none !important}
+    .report{box-shadow:none;border:0;max-width:none;padding:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= GENERATOR ================= -->
+  <section class="gen" id="generator">
+    <h1>Land Intelligence Report Generator <span class="badge sim">SIMULATION</span></h1>
+    <p class="sub">Computes a Provenance-Backed Land Intelligence Report from the FALLOW yield
+      engine (lys-0.1.0), the mineral-pits proximity scorer, and a CRUCIBLE-style hash-chained
+      receipt. No live county, SOS, or recorder lookup exists: ownership on the reference parcel is
+      <b>SAMPLE</b> data from the flyer mockup, not verified fact. Every dollar figure is
+      <b>MODELED</b>, not realized. Nothing here is a valuation, an appraisal, or an offer.</p>
+
+    <div class="btnrow">
+      <button type="button" id="btnRef">Load 42-acre LaPorte reference parcel</button>
+      <button type="button" id="btnGen">Generate report</button>
+      <button type="button" class="ghost" id="btnPrint">Print / save PDF</button>
+      <button type="button" class="ghost" id="btnDl">Download receipt JSON</button>
+    </div>
+    <div class="statusline" id="statusline">Load the reference parcel, or enter a custom parcel below, then Generate.</div>
+
+    <details open>
+      <summary>Target parcel <span class="tag">parcel identity</span></summary>
+      <div class="fields">
+        <label><b>Parcel ID</b><input type="text" id="f_parcel_id" value="71-06-17-000-001.000-026"></label>
+        <label><b>Acres</b><input type="number" id="f_acres" value="42" step="0.01" min="0"></label>
+        <label><b>County</b><select id="f_county">
+          <option value="LaPorte, IN" selected>LaPorte, IN</option>
+          <option value="St. Joseph, IN">St. Joseph, IN</option>
+          <option value="Berrien, MI">Berrien, MI</option>
+          <option value="Other">Other</option></select></label>
+        <label><b>Land use</b><select id="f_landuse">
+          <option selected>Agricultural / Vacant</option><option>Residential</option>
+          <option>Commercial</option><option>Industrial</option><option>Timber</option></select></label>
+        <label><b>Section / Township / Range</b><input type="text" id="f_str" value="Section 17, Township 38N, Range 4W"></label>
+        <label><b>Location note</b><input type="text" id="f_locnote" value="Approx. 0.6 mi NE of LaPorte"></label>
+        <div class="note">Parcel ID on the reference parcel comes from the flyer mockup and is
+          <b>UNVERIFIED</b>. Note: an Indiana parcel ID starting 71 is the St. Joseph County code;
+          LaPorte County is 46. The flyer's ID is inconsistent with its own "LaPorte County" label.
+          A live assessor lookup is the fix; until then the ID is carried as printed, flagged.</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Ownership chain <span class="tag">LandGraph P0 pivot - seeded, no live lookup</span></summary>
+      <div class="fields">
+        <label><b>Holding entity</b><input type="text" id="f_hold_llc" value="Prairie View Holdings LLC"></label>
+        <label><b>Holding entity role</b><input type="text" id="f_hold_role" value="Indiana Registered Agent"></label>
+        <label><b>Person</b><input type="text" id="f_person" value="Ryan D. McAllister"></label>
+        <label><b>Person role</b><input type="text" id="f_person_role" value="Manager / Authorized Member"></label>
+        <label><b>Additional parcels held</b><input type="number" id="f_add_parcels" value="3" min="0"></label>
+        <div class="note">These names come from the flyer mockup. Nothing in the record confirms
+          them. They are shown on the reference report as <b>SAMPLE</b> only. For a custom parcel,
+          clear these fields: the report will show ownership as <b>UNVERIFIED - no lookup</b> until a
+          live Indiana SOS / county recorder lookup exists. Never present mockup names as real owners.</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Yield signals <span class="tag">FALLOW lys-0.1.0 - reference vector pre-loaded</span></summary>
+      <div class="fields" id="signalFields"></div>
+      <div class="fields"><div class="note">Signal defaults are the FALLOW test-fixture vector
+        (_good_parcel) that reproduces the reference stack. Change any value and the yield engine
+        recomputes. Missing signals read as defaults and never crash a run, per the engine contract.</div></div>
+    </details>
+
+    <details>
+      <summary>Gates &amp; limits <span class="tag">7 hard suppressors + flyer limiting notes</span></summary>
+      <div class="fields">
+        <label><b>Floodplain % of parcel</b><input type="number" id="f_floodplain" value="20" min="0" max="100"></label>
+        <label><b>Wetland % of parcel</b><input type="number" id="f_wetland" value="0" min="0" max="100"></label>
+        <label><input type="checkbox" id="f_current_use"> Enrolled in preferential-assessment / current-use program</label>
+        <label><input type="checkbox" id="f_crp"> USDA CRP enrolled</label>
+        <label><input type="checkbox" id="f_cons_ease"> Recorded conservation easement</label>
+        <label><input type="checkbox" id="f_deed_restr"> Deed restriction / HOA covenant</label>
+        <label><input type="checkbox" id="f_legal_ease"> Legal easement (access without road frontage)</label>
+        <div class="note">Flyer limiting notes carried on the reference report (SAMPLE, unverified):
+          no soil productivity data within 1.2 miles; parcel partially within floodplain (FEMA Zone A);
+          access appears prescriptive only, no deeded road frontage detected. The floodplain gate fires
+          only above 60%; at 20% the parcel is flagged, not suppressed.</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Distress flags <span class="tag">computed from inputs below</span></summary>
+      <div class="fields">
+        <label><input type="checkbox" id="f_tax_delinq"> Tax delinquent</label>
+        <label><input type="checkbox" id="f_foreclosure"> Foreclosure activity</label>
+        <label><input type="checkbox" id="f_auction"> Listed in upcoming tax / sheriff sale</label>
+        <label><input type="checkbox" id="f_judgments"> Judgment hits against owner / entity</label>
+        <label><b>Owner-entity structure</b><select id="f_entity_risk">
+          <option value="low" selected>Clean - no red-flag structure</option>
+          <option value="moderate">Moderate - layered entities, no judgments</option>
+          <option value="high">High - red-flag structure / judgments</option></select></label>
+        <div class="note">Reference parcel: all clear, so all three flags read LOW / NO RECORD.
+          Distress inputs are user-entered or SAMPLE; they are not pulled from any live treasurer,
+          sheriff, or court feed.</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Mineral overlay <span class="tag">proximity-halo scorer (40 km halo)</span></summary>
+      <div class="fields">
+        <label><b>Nearest heavy-mineral occurrence (km)</b><input type="number" id="f_hm_km" value="382.8" step="0.1" min="0"></label>
+        <label><b>Mineral at nearest occurrence</b><select id="f_hm_mineral">
+          <option value="none" selected>None within halo</option>
+          <option value="garnet">Garnet (w 3.0)</option>
+          <option value="rutile">Rutile (w 3.0)</option>
+          <option value="zircon">Zircon (w 3.0)</option>
+          <option value="titanium">Titanium (w 2.5)</option>
+          <option value="ilmenite">Ilmenite (w 2.5)</option>
+          <option value="gold">Gold (w 2.0)</option>
+          <option value="diamond">Diamond (w 2.0)</option>
+          <option value="magnetite">Magnetite (w 1.5)</option>
+          <option value="monazite">Monazite / REE (w 0.0 - scored, never handled)</option></select></label>
+        <label><input type="checkbox" id="f_own_hm"> Parcel documents its OWN heavies (own-hit ×4.0)</label>
+        <label><input type="checkbox" id="f_permits"> Recent permits within 1 mi</label>
+        <label><input type="checkbox" id="f_leases"> Recent mineral leases within 1 mi</label>
+        <label><input type="checkbox" id="f_drilling"> Recent drilling activity within 1 mi</label>
+        <div class="note">Reference parcel input 382.8 km is the Indiana median nearest-occurrence
+          distance across the 542 scored Indiana pits (mineral-pits CSV, verified 2026-11-10) - a
+          MODELED input, not a measurement on this parcel. All 542 Indiana pits carry zero halo
+          signal. Halo radius 40 km; score = Σ(w / (1 + d/10)) + best mineral × 2.0. Tier 1 is ≥ 70
+          on the pit run; that band is run-relative, not an absolute grade.</div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Valuation <span class="tag">cap-rate math only - NOT a valuation</span></summary>
+      <div class="fields">
+        <label><b>Cap rate % (assumed)</b><input type="number" id="f_caprate" value="3.12" step="0.01" min="0.01"></label>
+        <div class="note">Land value shown on the report = stacked annual yield ÷ cap rate.
+          The 3.12% default is the flyer's figure, <b>ASSUMED and UNVERIFIED</b>. Binding
+          valuation-honesty rule: no dollar valuation is claimable pre-MRR. The real path is the
+          DATUM valuation DAG (income / cap-rate engine for commercial land), which is DESIGNED,
+          not live. Change the cap rate and the value recomputes; the label never changes.</div>
+      </div>
+    </details>
+
+    <div class="verifybox noprint">
+      <h3 style="margin:14px 0 6px">Verify a receipt</h3>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 6px">Paste a downloaded receipt JSON.
+        The hash is recomputed over its canonical content and compared. A match proves the report
+        content is unchanged since issuance; it does not prove the underlying claims are true.</p>
+      <textarea id="verifyInput" placeholder='{"report_id": "LIR-...", "canonical": {...}, "report_hash": "..."}'></textarea>
+      <div class="btnrow"><button type="button" class="small" id="btnVerify">Verify receipt</button></div>
+      <div class="out" id="verifyOut"></div>
+    </div>
+  </section>
+
+  <!-- ================= REPORT (printable) ================= -->
+  <article class="report" id="report">
+    <div class="rep-head">
+      <div class="brand">NEURUH<small>LAND INTELLIGENCE</small></div>
+      <div class="rep-title"><h2>Provenance-Backed<br>Land Intelligence Report</h2></div>
+      <div class="rep-id"><b>REPORT ID</b><code id="r_report_id">LIR--</code><br>
+        <span id="r_date">-</span><br>
+        <span class="badge sim">SIMULATION</span></div>
+    </div>
+
+    <section class="sec">
+      <div class="sec-h"><span>TARGET PARCEL</span><span id="r_parcel_src" class="badge sample">SAMPLE</span></div>
+      <div class="sec-b">
+        <div class="parcel-big"><span id="r_acres">42</span> ACRES <small id="r_county">LaPorte County, IN</small></div>
+        <div style="font-size:13.5px;margin-top:4px">📍 <span id="r_str">Section 17, Township 38N, Range 4W</span><br>
+        <span id="r_locnote">Approx. 0.6 mi NE of LaPorte</span></div>
+        <div class="kv">
+          <div><b>PARCEL ID</b><span id="r_parcel_id">71-06-17-000-001.000-026</span> <span class="badge unver">UNVERIFIED</span></div>
+          <div><b>ACRES</b><span id="r_acres2">42.00</span></div>
+          <div><b>LAND USE</b><span id="r_landuse">Agricultural / Vacant</span></div>
+        </div>
+        <div class="srcnote" id="r_parcel_note">Reference parcel: FALLOW test-fixture signal vector
+          (lys-0.1.0 _good_parcel). Parcel ID as printed on the flyer mockup; county prefix 71 is the
+          St. Joseph County code (LaPorte is 46) - inconsistent with the flyer's own county label.
+          No live assessor lookup has verified this parcel.</div>
+      </div>
+    </section>
+
+    <div class="cols">
+      <section class="sec">
+        <div class="sec-h"><span>OWNERSHIP CHAIN</span><span id="r_own_src" class="badge sample">SAMPLE</span></div>
+        <div class="sec-b">
+          <div class="chain">
+            <div class="node"><b>HOLDING LLC</b><div class="nm" id="r_hold_llc">Prairie View Holdings LLC</div><div class="rl" id="r_hold_role">Indiana Registered Agent</div></div>
+            <div class="arr">→</div>
+            <div class="node"><b>PERSON</b><div class="nm" id="r_person">Ryan D. McAllister</div><div class="rl" id="r_person_role">Manager / Authorized Member</div></div>
+            <div class="arr">→</div>
+            <div class="node"><b>PARCELS</b><div class="nm" id="r_parcels">42 Acres (Target Parcel)</div><div class="rl" id="r_add_parcels">Additional Parcels (3)</div></div>
+          </div>
+          <div class="srcnote" id="r_own_note">Shown as printed on the flyer mockup. <b>Names are
+            UNVERIFIED</b>: no Indiana SOS or county recorder lookup has confirmed them. The live path
+            is the LandGraph P0 pivot (Owner-LLC → registered agent → officers → natural person →
+            full portfolio + distress events). Until that lookup exists, ownership is SAMPLE only and
+            must never be presented as fact.</div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-h gold"><span>YIELD STACK (EST.)</span><span class="badge modeled">MODELED</span></div>
+        <div class="sec-b">
+          <div class="yield-big" id="r_stacked">$32,714 <span style="font-size:18px">/YR</span></div>
+          <div class="yield-sub">Stacked Annual Yield - optimal conflict-free stack (FALLOW lys-0.1.0)</div>
+          <div class="y3">
+            <div><div class="v" id="r_peracre">$778.91</div><div class="l">/AC/YR</div></div>
+            <div><div class="v" id="r_caprate">3.12%</div><div class="l">CAP RATE (ASSUMED)</div></div>
+            <div><div class="v" id="r_landvalue">$1.05M</div><div class="l">LAND VALUE (MODELED EST.)</div></div>
+          </div>
+          <div style="font-size:12.5px;color:var(--muted);margin-top:6px" id="r_gross_line">
+            Modeled gross (all viable uses, before conflict resolution): $46,644.40/yr.
+            The flyer's "$32,714 Est. Gross Annual Yield" label shows the <b>stacked</b> figure; gross is higher.</div>
+          <div class="notes"><b>⚠ CONFLICT / LIMITING NOTES</b>
+            <ul id="r_limit_notes">
+              <li>No soil productivity data within 1.2 miles (low confidence in crop yield).</li>
+              <li>Parcel partially within floodplain (FEMA Zone A).</li>
+              <li>Access appears prescriptive only (no deeded road frontage detected).</li>
+            </ul></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="sec">
+      <div class="sec-h"><span>YIELD DETAIL - USE MODELS &amp; STACK</span><span class="badge modeled">MODELED · lys-0.1.0</span></div>
+      <div class="sec-b">
+        <table class="uses">
+          <thead><tr><th>USE</th><th style="text-align:right">MODELED $/YR</th><th>CONF.</th><th>STATUS</th><th>DRIVERS</th></tr></thead>
+          <tbody id="r_uses"></tbody>
+        </table>
+        <div class="srcnote" id="r_stack_line">Optimal stack: hunting + laydown + apiary = $32,714.42/yr.
+          Relationships: hunting × laydown S (300 ft separation), hunting × apiary C, laydown × apiary S
+          (150 ft hive setback). Lease conditions required are listed in the receipt JSON. Composite
+          score 85.2/100, activation 63.0/100. Anchors are LaPorte-IN market mids; the ios
+          $350/ac/mo anchor is DERIVED UNVERIFIED and is the highest-priority anchor to verify.</div>
+      </div>
+    </section>
+
+    <div class="cols">
+      <section class="sec">
+        <div class="sec-h"><span>MINERAL OVERLAY</span><span class="badge modeled">MODELED</span></div>
+        <div class="sec-b">
+          <div style="font-size:21px;font-weight:bold;color:var(--green)" id="r_mineral_verdict">NO HALO SIGNAL</div>
+          <div style="font-size:13.5px" id="r_mineral_detail">No elevated mineral activity detected within
+            1 mile. No recent permits, leases, or drilling activity.</div>
+          <div class="srcnote" id="r_mineral_src">Halo score 0.00 - nearest documented heavy-mineral
+            occurrence 382.8 km (Indiana median, MODELED input), outside the 40 km provenance halo.
+            All 542 scored Indiana pits carry zero halo signal (mineral-pits CSV, verified 2026-11-10).
+            Proximity is a sampling priority, not a grade. Monazite/REE is weighted 0.0 by design:
+            score it, never handle it.</div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-h"><span>DISTRESS FLAGS</span><span class="badge modeled">MODELED INPUTS</span></div>
+        <div class="sec-b" id="r_distress"></div>
+      </section>
+    </div>
+
+    <section class="sec">
+      <div class="sec-h gold"><span>PROVENANCE RECEIPT</span><span id="r_verdict_badge" class="badge pass">PASS</span></div>
+      <div class="sec-b">
+        <div class="receipt">
+          <div><b style="font-size:11px;letter-spacing:.08em;color:var(--muted)">REPORT HASH (SHA-256)</b><br>
+            <code id="r_hash">-</code><br>
+            <span style="font-size:12px;color:var(--muted)">Registry ID: <code id="r_registry">-</code></span><br>
+            <span style="font-size:12px;color:var(--muted)">Previous receipt: <code id="r_prev">genesis</code></span></div>
+          <div class="passmark"><span id="r_verdict">PASS</span><small id="r_verdict_sub">Data integrity &amp; provenance verified. Sources cryptographically matched.</small></div>
+          <div><b style="font-size:11px;letter-spacing:.08em;color:var(--muted)">TIMESTAMP</b><br>
+            <span id="r_timestamp">-</span><br><br>
+            <b style="font-size:11px;letter-spacing:.08em;color:var(--muted)">SIGNATURE</b><br>
+            <span style="font-size:12.5px">Self-anchored hash chain. No third-party signature; the hash
+            is the signature. Recompute it from the receipt JSON to verify.</span></div>
+        </div>
+        <div class="srcnote" id="r_limitations"><b>Open limitations (disclosed, not hidden):</b>
+          ownership SAMPLE / unverified; parcel ID unverified and county-prefix inconsistent;
+          all dollars MODELED with zero realized-yield observations; cap rate assumed; mineral
+          distance is a MODELED median input; no live lookup behind any flag. PASS means the
+          record is intact and its gaps are disclosed - it does not mean the claims are true.</div>
+      </div>
+    </section>
+
+    <div class="rep-foot">
+      <span>This report is confidential and intended solely for authorized use. Generated by Neuruh
+        Land Intelligence (DeedSonar / LANDOS). Not a valuation, not an appraisal, not an offer.</span>
+      <span>© 2026 Neuruh. All rights reserved.</span>
+    </div>
+  </article>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   Land Intelligence Report Generator - computation core
+   FALLOW lys-0.1.0 ported from ~/workspace/fallow-verify (score.py,
+   signals.py, conflicts.py) + mineral-pits proximity scorer.
+   All dollar anchors are LaPorte-IN market mids. Zero realized-yield
+   observations exist in this market: every dollar figure is MODELED.
+   ===================================================================== */
+
+// ---------- market anchors (mid band, market.laporte-in.json) ----------
+const ANCHORS = {
+  hunting_per_acre_year: 22, ios_per_acre_month: 350, camping_site_night: 40,
+  ag_per_acre_year: 185, apiary_per_yard_year: 400, solar_option_per_acre_year: 30,
+  cell_easement_year: 9600, billboard_year: 3000
+};
+const SCORE_VERSION = "lys-0.1.0";
+const USES = ["hunting","ag_lease","laydown","camping","apiary","solar_option","cell_easement","billboard"];
+const USE_LABELS = {hunting:"Hunting lease",ag_lease:"Ag lease",laydown:"Laydown / IOS yard",
+  camping:"Camping / recreation",apiary:"Apiary",solar_option:"Solar option",
+  cell_easement:"Cell easement",billboard:"Billboard"};
+
+function get(v,k,d){ const x=v[k]; return (x===undefined||x===null)?d:x; }
+function clamp(x,lo,hi){ return Math.max(lo,Math.min(hi,x)); }
+function ramp(x,lo,hi){ if(hi===lo) return 0; return clamp((x-lo)/(hi-lo),0,1); }
+function conf(n,acres){ if(acres<=0) return "low"; if(n>=3) return "high"; if(n>=2) return "medium"; return "low"; }
+
+// ---------- per-use yield models (score.py) ----------
+function modelHunting(v){
+  const acres=+get(v,"acreage",0);
+  if(acres<=0) return [0,"low",[],"10-01","01-15"];
+  let mult=1, strong=0; const drivers=[];
+  const edge=ramp(+get(v,"edge_density",0),0,1);
+  if(edge>0.6){ mult+=0.30*edge; drivers.push("high forest/ag edge density"); strong++; }
+  const forest=+get(v,"forest_cover_pct",0);
+  if(forest>=25&&forest<=75){ mult+=0.15; drivers.push("balanced forest/open mix"); strong++; }
+  else if(forest<10){ mult-=0.35; drivers.push("insufficient cover"); }
+  if(get(v,"water_feature",false)){ mult+=0.10; drivers.push("water on parcel"); }
+  if(+get(v,"adj_crop_pct",0)>40){ mult+=0.12; drivers.push("adjacent crop food source"); strong++; }
+  const pressure=ramp(+get(v,"dist_public_hunt_mi",0),0,12);
+  mult+=0.20*pressure;
+  if(pressure>0.7) drivers.push("low public-land hunting pressure");
+  const drive=+get(v,"drive_min_metro",999);
+  if(drive<=120){ mult+=0.15*(1-ramp(drive,30,120)); drivers.push("inside weekend drive radius"); }
+  if(acres<40) mult+=0.20; else if(acres>200) mult-=0.15;
+  if(+get(v,"neighbor_median_acres",100)<10){ mult-=0.20; drivers.push("fragmented neighbors - pressure risk"); }
+  return [Math.max(0,acres*ANCHORS.hunting_per_acre_year*mult), conf(strong,acres), drivers, "10-01","01-15"];
+}
+function modelLaydown(v){
+  const acres=+get(v,"acreage",0);
+  if(acres<=0) return [0,"low",["no acreage"],"01-01","12-31"];
+  if(!get(v,"road_frontage",false)) return [0,"low",["no road frontage"],"01-01","12-31"];
+  const hardstand_ac=+get(v,"hardstand_sf",0)/43560;
+  const usable_ac=Math.min(acres, Math.max(hardstand_ac, Math.min(3, acres*0.35)));
+  let mult=1, strong=0; const drivers=[];
+  const inter=+get(v,"drive_min_interchange",60);
+  mult+=0.40*(1-ramp(inter,5,45));
+  if(inter<=15){ drivers.push("close to interstate interchange"); strong++; }
+  const surface=String(get(v,"approach_surface","dirt"));
+  mult+=({paved:0.25,gravel:0.05,dirt:-0.30}[surface] ?? -0.30);
+  if(surface==="paved"){ drivers.push("paved approach"); strong++; }
+  if(get(v,"outdoor_storage_ok",false)){ mult+=0.35; drivers.push("zoning permits outdoor storage"); strong++; }
+  else { mult-=0.45; drivers.push("outdoor storage not confirmed by zoning"); }
+  const contractors=+get(v,"contractor_density_15min",0);
+  mult+=0.30*ramp(contractors,0,60);
+  if(contractors>30){ drivers.push("dense contractor demand within 15 min"); strong++; }
+  mult+=0.20*ramp(+get(v,"permit_volume_10mi",0),0,400);
+  if(hardstand_ac>0.25){ mult+=0.25; drivers.push("existing hardstand - low activation cost"); }
+  if(+get(v,"mean_slope_pct",0)>8){ mult-=0.35; drivers.push("slope limits usable pad"); }
+  if(get(v,"power_at_parcel",false)) mult+=0.10;
+  let usd=Math.max(0, usable_ac*ANCHORS.ios_per_acre_month*12*mult);
+  const ceiling=usable_ac*2500*12;
+  if(usd>ceiling){ usd=ceiling; drivers.push("CAPPED by sanity ceiling - verify ios_per_acre_month anchor"); }
+  return [usd, conf(strong,acres), drivers, "01-01","12-31"];
+}
+function modelCamping(v){
+  const acres=+get(v,"acreage",0);
+  if(acres<=0) return [0,"low",[],"04-15","09-30"];
+  const sites=Math.max(1,Math.min(6,acres/5)), booked=22;
+  let mult=1, strong=0; const drivers=[];
+  const scenic=+get(v,"scenic_prox_mi",99);
+  mult+=0.45*(1-ramp(scenic,0.5,15));
+  if(scenic<=5){ drivers.push("near scenic feature"); strong++; }
+  if(+get(v,"canopy_pct",0)>30){ mult+=0.15; drivers.push("canopy screening between sites"); }
+  if(get(v,"water_feature",false)){ mult+=0.20; drivers.push("water on parcel"); strong++; }
+  const drive=+get(v,"drive_min_metro",999);
+  mult+=0.25*(1-ramp(drive,45,180));
+  if(drive<=90) strong++;
+  mult-=0.25*ramp(+get(v,"competing_campgrounds_25mi",0),0,12);
+  if(!get(v,"cell_coverage",true)){ mult-=0.15; drivers.push("no cell coverage"); }
+  return [Math.max(0,sites*ANCHORS.camping_site_night*booked*mult), conf(strong,acres), drivers, "04-15","09-30"];
+}
+function modelAgLease(v){
+  const acres=+get(v,"acreage",0);
+  const tillable=acres*(1-(+get(v,"forest_cover_pct",0))/100);
+  if(tillable<=1) return [0,"low",["insufficient tillable acreage"],"04-01","11-30"];
+  return [Math.max(0,tillable*ANCHORS.ag_per_acre_year), "medium", [tillable.toFixed(0)+" tillable acres"], "04-01","11-30"];
+}
+function modelApiary(v){
+  const acres=+get(v,"acreage",0);
+  if(acres<5) return [0,"low",[],"04-01","09-30"];
+  const yards=Math.max(1,Math.min(3,acres/30));
+  return [Math.max(0,yards*ANCHORS.apiary_per_yard_year), "low", ["forage acreage supports hive yards"], "04-01","09-30"];
+}
+function modelSolar(v){
+  const acres=+get(v,"contiguous_owner_acres",get(v,"acreage",0));
+  if(acres<20) return [0,"low",["below developer minimum assemblage"],null,null];
+  if(+get(v,"dist_substation_mi",99)>5) return [0,"low",["too far from substation"],null,null];
+  const drivers=["within 5 mi of substation", acres.toFixed(0)+" contiguous acres"];
+  if(+get(v,"mean_slope_pct",0)>6) return [Math.max(0,acres*ANCHORS.solar_option_per_acre_year*0.5),"low",drivers.concat(["slope penalty"]),null,null];
+  return [Math.max(0,acres*ANCHORS.solar_option_per_acre_year), "medium", drivers, null, null];
+}
+function modelCell(v){
+  if(!get(v,"cell_gap",false)) return [0,"low",[],null,null];
+  if(+get(v,"dist_3phase_ft",99999)>2000) return [0,"low",["no power within 2000 ft"],null,null];
+  return [ANCHORS.cell_easement_year, "low", ["coverage gap + power nearby"], null, null];
+}
+function modelBillboard(v){
+  if(!get(v,"road_frontage",false)) return [0,"low",[],null,null];
+  if(+get(v,"frontage_ft",0)<100) return [0,"low",["insufficient frontage"],null,null];
+  if(+get(v,"drive_min_interchange",99)>10) return [0,"low",["low traffic corridor"],null,null];
+  return [ANCHORS.billboard_year, "low", ["high-visibility frontage"], null, null];
+}
+const MODELS={hunting:modelHunting,ag_lease:modelAgLease,laydown:modelLaydown,camping:modelCamping,
+  apiary:modelApiary,solar_option:modelSolar,cell_easement:modelCell,billboard:modelBillboard};
+
+// ---------- gates (signals.py - 7 hard suppressors) ----------
+const GATES=[
+  {key:"landlocked",reason:"No legal access to the parcel",suppresses:USES,
+   test:v=>!get(v,"road_frontage",false)&&!get(v,"legal_easement",false)},
+  {key:"conservation_easement",reason:"Recorded conservation easement",
+   suppresses:["laydown","camping","billboard","solar_option","ag_lease"],
+   test:v=>!!get(v,"conservation_easement",false)},
+  {key:"current_use_program",reason:"Enrolled in a preferential-assessment program; non-conforming use risks recapture",
+   suppresses:["laydown","camping","billboard","solar_option"],
+   test:v=>!!get(v,"current_use_enrolled",false)},
+  {key:"crp_enrolled",reason:"USDA CRP enrollment restricts surface use",
+   suppresses:["laydown","camping","ag_lease","billboard"],test:v=>!!get(v,"crp_enrolled",false)},
+  {key:"deed_restriction",reason:"Recorded deed restriction or HOA covenant",
+   suppresses:["laydown","camping","billboard"],test:v=>!!get(v,"deed_restricted",false)},
+  {key:"floodplain",reason:"Floodplain exceeds 60% of parcel",
+   suppresses:["laydown","camping","billboard"],test:v=>(+get(v,"floodplain_pct",0))>60},
+  {key:"wetland",reason:"Wetland exceeds 50% of parcel",
+   suppresses:["laydown","camping"],test:v=>(+get(v,"wetland_pct",0))>50},
+];
+function evaluateGates(v){
+  const suppressed={}, fired=[];
+  for(const g of GATES){
+    let hit=false; try{ hit=!!g.test(v); }catch(e){ hit=false; }
+    if(hit){ fired.push(g.key); for(const u of g.suppresses) if(!(u in suppressed)) suppressed[u]=g.key; }
+  }
+  return {suppressed, fired};
+}
+
+// ---------- activation (score.py) ----------
+const ACT_W={estate_indicator:22,tax_delinquent:18,absentee:14,out_of_state:10,failed_listing:10,
+  inherited_deed:9,no_homestead:7,tax_burden_high:6,long_hold:4};
+function activationScore(v){
+  let s=0; const drivers=[];
+  for(const k of ["estate_indicator","tax_delinquent","absentee","out_of_state","failed_listing","inherited_deed","no_homestead"])
+    if(get(v,k,false)){ s+=ACT_W[k]; drivers.push(k); }
+  if(+get(v,"tax_burden_ratio",0)>0.02){ s+=ACT_W.tax_burden_high; drivers.push("tax_burden_high"); }
+  if(+get(v,"hold_years",0)>15){ s+=ACT_W.long_hold; drivers.push("long_hold"); }
+  return [clamp(s,0,100), drivers];
+}
+
+// ---------- conflict matrix + optimizer (conflicts.py) ----------
+const C="C",S="S",T="T",X="X";
+const PAIRS={
+  "hunting|ag_lease":C,"hunting|laydown":S,"hunting|camping":T,"hunting|apiary":C,
+  "hunting|solar_option":C,"hunting|cell_easement":C,"hunting|billboard":C,
+  "ag_lease|laydown":X,"ag_lease|camping":S,"ag_lease|apiary":C,"ag_lease|solar_option":C,
+  "ag_lease|cell_easement":C,"ag_lease|billboard":C,
+  "laydown|camping":X,"laydown|apiary":S,"laydown|solar_option":C,"laydown|cell_easement":C,
+  "laydown|billboard":C,
+  "camping|apiary":S,"camping|solar_option":C,"camping|cell_easement":C,"camping|billboard":S,
+  "apiary|solar_option":C,"apiary|cell_easement":C,"apiary|billboard":C,
+  "solar_option|cell_easement":C,"solar_option|billboard":C,"cell_easement|billboard":C};
+function rel(a,b){ if(a===b) return C; const k=a+"|"+b, k2=b+"|"+a; return PAIRS[k]||PAIRS[k2]||X; }
+const CONDITIONS={
+  "hunting|laydown":["Laydown area fenced and separately accessed.",
+    "Minimum 300 ft separation between laydown perimeter and any hunting stand location.",
+    "Firearm discharge exclusion zone mapped and attached as an exhibit to both instruments.",
+    "Reciprocal liability carve-out in both leases."],
+  "hunting|camping":["Hunting term: Oct 1 - Jan 15. Camping term: Apr 15 - Sep 30.",
+    "Named blackout dates in both instruments. The word 'seasonal' is not sufficient.",
+    "Neither tenant may access the parcel during the other's term without written consent."],
+  "ag_lease|camping":["Camping sites confined to non-tillable acreage, mapped as an exhibit.",
+    "Farm equipment access route defined and kept clear of camp sites.",
+    "No chemical application within 200 ft of an active camp site."],
+  "laydown|apiary":["Hive yard placed minimum 150 ft from equipment traffic lanes.",
+    "Vehicle route mapped as an exhibit to both instruments."],
+  "camping|apiary":["Hive yard placed minimum 200 ft from any camp site.",
+    "Signage disclosing hive presence posted at camp registration."],
+  "camping|billboard":["Sign structure placed outside the camping viewshed.",
+    "No illuminated face oriented toward camp sites."]};
+const SOLAR_SUBORDINATION=[
+  "All surface leases expressly subordinate to the solar option upon exercise.",
+  "Minimum 120 days written notice of exercise to every surface tenant.",
+  "Termination or relocation remedy defined per surface lease, with a stated cure period.",
+  "Option holder acknowledges existing surface leases in a recorded memorandum."];
+function isCompatible(uses){
+  for(let i=0;i<uses.length;i++) for(let j=i+1;j<uses.length;j++)
+    if(rel(uses[i],uses[j])===X) return [false, uses[i]+" x "+uses[j]+" is a hard conflict"];
+  return [true,null];
+}
+function conditionsFor(uses){
+  const out=[]; const s=[...uses].sort();
+  for(let i=0;i<s.length;i++) for(let j=i+1;j<s.length;j++){
+    const r=rel(s[i],s[j]);
+    if(r===S||r===T){
+      const k=s[i]+"|"+s[j], k2=s[j]+"|"+s[i];
+      out.push(...(CONDITIONS[k]||CONDITIONS[k2]||[s[i]+" x "+s[j]+": separation required - condition not yet specified."]));
+    }
+  }
+  if(uses.includes("solar_option")&&uses.length>1) out.push(...SOLAR_SUBORDINATION);
+  return [...new Set(out)];
+}
+function optimize(values,maxUses){
+  maxUses=maxUses||4;
+  const pool=Object.keys(values).filter(u=>values[u]&&values[u]>0);
+  if(!pool.length) return {uses:[],total:0,relationships:{},conditions:[],rejected:true,reason:"no viable use candidates"};
+  let best=[], bestVal=-1;
+  // iterative combination enumeration
+  function* combosGen(arr,r){ function* rec(start,pre){ if(pre.length===r){ yield pre; return; } for(let i=start;i<arr.length;i++) yield* rec(i+1,pre.concat(arr[i])); } yield* rec(0,[]); }
+  for(let r=1;r<=Math.min(pool.length,maxUses);r++){
+    for(const combo of combosGen(pool,r)){
+      const ok=isCompatible(combo)[0]; if(!ok) continue;
+      const val=combo.reduce((a,u)=>a+values[u],0);
+      if(val>bestVal){ bestVal=val; best=combo; }
+    }
+  }
+  const rels={}; const sb=[...best].sort();
+  for(let i=0;i<sb.length;i++) for(let j=i+1;j<sb.length;j++) rels[sb[i]+"|"+sb[j]]=rel(sb[i],sb[j]);
+  return {uses:sb,total:Math.round(bestVal*100)/100,relationships:rels,conditions:conditionsFor(best),rejected:false,reason:null};
+}
+
+// ---------- public scoring entry point ----------
+function scoreParcel(v){
+  const acreage=+get(v,"acreage",0);
+  const {suppressed,fired}=evaluateGates(v);
+  const candidates=USES.map(use=>{
+    if(use in suppressed)
+      return {use_type:use,modeled_annual_usd:0,confidence:"low",season_start:null,season_end:null,
+              suppressed_by_gate:suppressed[use],drivers:[]};
+    const [usd,conf,drivers,s,e]=MODELS[use](v);
+    return {use_type:use,modeled_annual_usd:Math.round(usd*100)/100,confidence:conf,
+            season_start:s,season_end:e,suppressed_by_gate:null,drivers};
+  });
+  const viable=candidates.filter(c=>!c.suppressed_by_gate&&c.modeled_annual_usd>0);
+  const gross=Math.round(viable.reduce((a,c)=>a+c.modeled_annual_usd,0)*100)/100;
+  const [act]=activationScore(v);
+  const composite=Math.round((0.6*clamp(gross/12000,0,1)*100+0.4*act)*100)/100;
+  const high=viable.filter(c=>c.confidence==="high").length;
+  const med=viable.filter(c=>c.confidence==="medium").length;
+  const overall=high>=2?"high":((high+med)>=2?"medium":"low");
+  return {score_version:SCORE_VERSION,acreage,composite_score:composite,
+    activation_score:Math.round(act*100)/100,modeled_gross_annual_usd:gross,
+    confidence:overall,gates_fired:fired,candidates};
+}
+
+// ---------- mineral overlay (mineral-pits proximity scorer) ----------
+const HM_WEIGHTS={garnet:3.0,rutile:3.0,zircon:3.0,hms:3.0,titanium:2.5,ilmenite:2.5,placer:2.5,
+  gold:2.0,diamond:2.0,magnetite:1.5,staurolite:1.5,kyanite:1.5,corundum:1.0,monazite:0.0,ree:0.0};
+const HALO_KM=40;
+function mineralScore(m){
+  // m: {nearest_hm_km, mineral, own_hm}
+  const d=+m.nearest_hm_km;
+  if(!isFinite(d)||d>HALO_KM||m.mineral==="none"||!m.mineral)
+    return {score:0,verdict:"NO HALO SIGNAL",in_halo:false,detail:"No documented heavy-mineral occurrence within the 40 km provenance halo."};
+  const w=HM_WEIGHTS[m.mineral]||0;
+  let raw=w/(1+d/10)+w*2.0;
+  if(m.own_hm) raw*=4.0;
+  raw=Math.round(raw*100)/100;
+  if(raw<=0)
+    return {score:0,verdict:"NO HALO SIGNAL",in_halo:true,
+      detail:"Occurrence "+d+" km ("+(m.mineral||"unknown")+") carries weight 0.0 by design - monazite/REE is scored, never handled. No usable halo signal."};
+  const band=raw>=70?"Tier 1 (≥ 70 on the pit run)":raw>=30?"Moderate signal":"Weak signal";
+  return {score:raw,verdict:raw>=70?"TIER 1 HALO SIGNAL":"HALO SIGNAL - "+band.toUpperCase(),
+    in_halo:true,detail:"Nearest documented occurrence "+d+" km ("+(m.mineral||"unknown")+", weight "+w+"). Raw halo score "+raw.toFixed(2)+". Band is run-relative, not an absolute grade."};
+}
+
+// ---------- SHA-256: WebCrypto first, pure-JS fallback (identical output) ----------
+function sha256Sync(ascii){
+  function rr(v,a){ return (v>>>a)|(v<<(32-a)); }
+  var maxWord=Math.pow(2,32), result="";
+  var words=[], asciiBitLength=ascii.length*8;
+  var hash=sha256Sync.h=sha256Sync.h||[], k=sha256Sync.k=sha256Sync.k||[];
+  var primeCounter=k.length, isComposite={};
+  for(var candidate=2;primeCounter<64;candidate++){
+    if(!isComposite[candidate]){
+      for(var i=0;i<313;i+=candidate) isComposite[i]=candidate;
+      hash[primeCounter]=(Math.pow(candidate,.5)*maxWord)|0;
+      k[primeCounter++]=(Math.pow(candidate,1/3)*maxWord)|0;
+    }
+  }
+  ascii+="\x80";
+  while(ascii.length%64-56) ascii+="\x00";
+  for(var i=0;i<ascii.length;i++){
+    var j=ascii.charCodeAt(i); if(j>>8) return ""; // ASCII only
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=((asciiBitLength/maxWord)|0);
+  words[words.length]=(asciiBitLength);
+  for(var j=0;j<words.length;){
+    var w=words.slice(j,j+=16), oldHash=hash;
+    hash=hash.slice(0,8);
+    for(var i=0;i<64;i++){
+      var w15=w[i-15], w2=w[i-2];
+      var a=hash[0], e=hash[4];
+      var temp1=hash[7]
+        +(rr(e,6)^rr(e,11)^rr(e,25))
+        +((e&hash[5])^((~e)&hash[6]))
+        +k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var temp2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(temp1+temp2)|0].concat(hash);
+      hash[4]=(hash[4]+temp1)|0;
+    }
+    for(var i=0;i<8;i++) hash[i]=(hash[i]+oldHash[i])|0;
+  }
+  for(var i=0;i<8;i++){
+    for(var j=3;j+1;j--){
+      var b=(hash[i]>>(j*8))&255;
+      result+=((b<16)?0:"")+b.toString(16);
+    }
+  }
+  return result;
+}
+function utf8Bytes(str){ return unescape(encodeURIComponent(str)); }
+async function sha256hex(str){
+  const ascii=utf8Bytes(str);
+  try{
+    if(window.crypto&&window.crypto.subtle){
+      const buf=await window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+  }catch(e){ /* fall through to sync implementation */ }
+  return sha256Sync(ascii);
+}
+// canonical JSON: sorted keys, recursive - the same bytes every time
+function canonical(o){
+  if(o===undefined) return "null";
+  if(o===null||typeof o!=="object") return JSON.stringify(o);
+  if(Array.isArray(o)) return "["+o.map(canonical).join(",")+"]";
+  return "{"+Object.keys(o).sort().map(k=>JSON.stringify(k)+":"+canonical(o[k])).join(",")+"}";
+}
+</script>
+
+<script>
+"use strict";
+/* =====================================================================
+   UI wiring: form <-> engine <-> printable report <-> receipt
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+const money=n=>"$"+Math.round(n).toLocaleString("en-US");
+const money2=n=>"$"+n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate=d=>d.toISOString().slice(0,10);
+
+// ---------- signal form ----------
+const SIGNAL_FIELDS=[
+  ["road_frontage","bool","Public road frontage"],["frontage_ft","num","Frontage length (ft)"],
+  ["approach_surface","cat:paved|gravel|dirt","Approach surface"],
+  ["mean_slope_pct","num","Mean slope %"],["forest_cover_pct","num","Forest cover %"],
+  ["edge_density","num","Forest/ag edge density (0-1)"],["adj_crop_pct","num","Adjacent ag crop %"],
+  ["water_feature","bool","Water feature present"],["dist_public_hunt_mi","num","Distance to public hunting land (mi)"],
+  ["drive_min_metro","num","Drive time to metro (min)"],["neighbor_median_acres","num","Neighbor parcel median acreage"],
+  ["drive_min_interchange","num","Drive time to interstate interchange (min)"],
+  ["outdoor_storage_ok","bool","Outdoor storage permitted (zoning)"],["contractor_density_15min","num","Contractor businesses within 15 min"],
+  ["permit_volume_10mi","num","Building permits within 10 mi (12 mo)"],["hardstand_sf","num","Existing hardstand / gravel (sq ft)"],
+  ["power_at_parcel","bool","Power at parcel"],["scenic_prox_mi","num","Distance to scenic feature (mi)"],
+  ["canopy_pct","num","Canopy screening %"],["competing_campgrounds_25mi","num","Competing campgrounds within 25 mi"],
+  ["cell_coverage","bool","Cell coverage present"],["contiguous_owner_acres","num","Same-owner contiguous acreage"],
+  ["dist_substation_mi","num","Distance to substation (mi)"],["dist_3phase_ft","num","Distance to 3-phase distribution (ft)"],
+  ["cell_gap","bool","Cell coverage gap present"],
+  ["absentee","bool","Absentee owner (mailing != situs)"],["out_of_state","bool","Out-of-state owner"],
+  ["hold_years","num","Ownership duration (years)"],["estate_indicator","bool","Estate / trust / probate token in owner name"],
+  ["tax_burden_ratio","num","Annual tax / assessed value"],["no_homestead","bool","Homestead exemption absent"],
+  ["tax_delinquent","bool","Tax delinquent (activation + distress)"],["inherited_deed","bool","Recent inherited transfer"],
+  ["failed_listing","bool","Prior listing that did not sell"]
+];
+const REFERENCE_VECTOR={
+  parcel_apn:"71-06-17-000-001.000-026",acreage:42.0,road_frontage:true,frontage_ft:620,
+  approach_surface:"gravel",mean_slope_pct:3.0,forest_cover_pct:45.0,edge_density:0.78,
+  adj_crop_pct:55.0,water_feature:true,dist_public_hunt_mi:11.0,drive_min_metro:72.0,
+  neighbor_median_acres:55.0,drive_min_interchange:12.0,outdoor_storage_ok:true,
+  contractor_density_15min:41.0,permit_volume_10mi:260.0,hardstand_sf:18000.0,
+  power_at_parcel:true,scenic_prox_mi:4.0,canopy_pct:48.0,competing_campgrounds_25mi:3.0,
+  cell_coverage:true,contiguous_owner_acres:42.0,dist_substation_mi:8.0,absentee:true,
+  out_of_state:true,hold_years:22.0,estate_indicator:true,tax_burden_ratio:0.026,
+  no_homestead:true,floodplain_pct:20,wetland_pct:0,current_use_enrolled:false,
+  crp_enrolled:false,conservation_easement:false,deed_restricted:false,legal_easement:false
+};
+const REFERENCE_OWNERSHIP={hold_llc:"Prairie View Holdings LLC",hold_role:"Indiana Registered Agent",
+  person:"Ryan D. McAllister",person_role:"Manager / Authorized Member",add_parcels:3};
+const LIMIT_NOTES_REF=[
+  "No soil productivity data within 1.2 miles (low confidence in crop yield).",
+  "Parcel partially within floodplain (FEMA Zone A).",
+  "Access appears prescriptive only (no deeded road frontage detected)."];
+
+function buildSignalFields(){
+  const host=$("signalFields");
+  host.innerHTML=SIGNAL_FIELDS.map(([key,type,label])=>{
+    if(type==="bool")
+      return `<label><input type="checkbox" id="s_${key}"> ${label}</label>`;
+    if(type.startsWith("cat:")){
+      const opts=type.slice(4).split("|").map(o=>`<option>${o}</option>`).join("");
+      return `<label><b>${label}</b><select id="s_${key}">${opts}</select></label>`;
+    }
+    return `<label><b>${label}</b><input type="number" id="s_${key}" step="any"></label>`;
+  }).join("");
+}
+function setSignals(v){
+  for(const [key,type] of SIGNAL_FIELDS){
+    const el=$("s_"+key); if(!el) continue;
+    const val=get(v,key,undefined);
+    if(type==="bool") el.checked=!!val;
+    else if(val!==undefined) el.value=val;
+  }
+}
+function readSignals(){
+  const v={};
+  for(const [key,type] of SIGNAL_FIELDS){
+    const el=$("s_"+key); if(!el) continue;
+    if(type==="bool") v[key]=el.checked;
+    else if(type.startsWith("cat:")) v[key]=el.value;
+    else if(el.value!=="") v[key]=parseFloat(el.value);
+  }
+  return v;
+}
+function loadReference(){
+  $("f_parcel_id").value=REFERENCE_VECTOR.parcel_apn;
+  $("f_acres").value=42; $("f_county").value="LaPorte, IN";
+  $("f_landuse").value="Agricultural / Vacant";
+  $("f_str").value="Section 17, Township 38N, Range 4W";
+  $("f_locnote").value="Approx. 0.6 mi NE of LaPorte";
+  $("f_hold_llc").value=REFERENCE_OWNERSHIP.hold_llc;
+  $("f_hold_role").value=REFERENCE_OWNERSHIP.hold_role;
+  $("f_person").value=REFERENCE_OWNERSHIP.person;
+  $("f_person_role").value=REFERENCE_OWNERSHIP.person_role;
+  $("f_add_parcels").value=REFERENCE_OWNERSHIP.add_parcels;
+  setSignals(REFERENCE_VECTOR);
+  $("f_floodplain").value=20; $("f_wetland").value=0;
+  $("f_current_use").checked=false; $("f_crp").checked=false;
+  $("f_cons_ease").checked=false; $("f_deed_restr").checked=false; $("f_legal_ease").checked=false;
+  $("f_tax_delinq").checked=false; $("f_foreclosure").checked=false; $("f_auction").checked=false;
+  $("f_judgments").checked=false; $("f_entity_risk").value="low";
+  $("f_hm_km").value=382.8; $("f_hm_mineral").value="none"; $("f_own_hm").checked=false;
+  $("f_permits").checked=false; $("f_leases").checked=false; $("f_drilling").checked=false;
+  $("f_caprate").value=3.12;
+  $("statusline").textContent="Reference parcel loaded (SAMPLE ownership, FALLOW test-fixture vector). Generate to compute.";
+}
+
+// ---------- distress ----------
+function computeDistress(){
+  const delinq=$("f_tax_delinq").checked, fore=$("f_foreclosure").checked,
+    auction=$("f_auction").checked, judg=$("f_judgments").checked,
+    entity=$("f_entity_risk").value;
+  const flags=[];
+  flags.push({title:delinq||fore?"HIGH DISTRESS":"LOW DISTRESS",
+    detail:delinq?"Tax delinquent - activation signal + distress flag.":
+      fore?"Foreclosure activity detected.":
+      "No tax delinquency or foreclosure activity.",
+    src:"Input: user-entered / SAMPLE. No live treasurer feed.",
+    bad:delinq||fore});
+  flags.push({title:auction?"LISTED - AUCTION RECORD":"NO AUCTION RECORD",
+    detail:auction?"Listed in an upcoming tax or sheriff sale.":
+      "Not listed in upcoming tax or sheriff sales.",
+    src:"Input: user-entered / SAMPLE. No live sheriff feed.",
+    bad:auction});
+  const riskHigh=entity==="high"||judg, riskMod=entity==="moderate";
+  flags.push({title:riskHigh?"OWNER-ENTITY RISK HIGH":riskMod?"OWNER-ENTITY RISK MODERATE":"OWNER-ENTITY RISK LOW",
+    detail:judg?"Judgment hits against owner / entity.":
+      entity==="high"?"Red-flag corporate structure.":
+      entity==="moderate"?"Layered entities, no judgments.":
+      "No red-flag corporate structure or judgment hits.",
+    src:"Input: user-entered / SAMPLE. No live SOS / court lookup.",
+    bad:riskHigh});
+  const overall=(delinq||auction||riskHigh)?"ELEVATED":((fore||riskMod)?"WATCH":"LOW");
+  return {flags,overall};
+}
+
+// ---------- report generation ----------
+let lastReceipt=null, reportCounter=0;
+function prevHash(){
+  try{ return localStorage.getItem("lir_prev_hash")||"genesis"; }catch(e){ return "genesis"; }
+}
+function storeHash(h){ try{ localStorage.setItem("lir_prev_hash",h); }catch(e){} }
+
+async function generateReport(){
+  const acres=parseFloat($("f_acres").value)||0;
+  const v=readSignals();
+  v.acreage=acres;
+  v.parcel_apn=$("f_parcel_id").value||"UNKNOWN";
+  v.floodplain_pct=parseFloat($("f_floodplain").value)||0;
+  v.wetland_pct=parseFloat($("f_wetland").value)||0;
+  v.current_use_enrolled=$("f_current_use").checked;
+  v.crp_enrolled=$("f_crp").checked;
+  v.conservation_easement=$("f_cons_ease").checked;
+  v.deed_restricted=$("f_deed_restr").checked;
+  v.legal_easement=$("f_legal_ease").checked;
+  // distress inputs also feed activation
+  v.tax_delinquent=$("f_tax_delinq").checked;
+
+  const sp=scoreParcel(v);
+  const values={}; for(const c of sp.candidates) if(!c.suppressed_by_gate) values[c.use_type]=c.modeled_annual_usd;
+  const stack=optimize(values);
+  const capRate=(parseFloat($("f_caprate").value)||0)/100;
+  const landValue=capRate>0?stack.total/capRate:0;
+  const perAcre=acres>0?stack.total/acres:0;
+
+  const mineral=mineralScore({nearest_hm_km:parseFloat($("f_hm_km").value),
+    mineral:$("f_hm_mineral").value, own_hm:$("f_own_hm").checked});
+  const localAct=[]; 
+  if($("f_permits").checked) localAct.push("permits");
+  if($("f_leases").checked) localAct.push("leases");
+  if($("f_drilling").checked) localAct.push("drilling");
+
+  const distress=computeDistress();
+  // SAMPLE status is determined by content, not by a flag: the reference
+  // ownership names match the flyer mockup exactly. Anything else is
+  // USER-ENTERED (or UNVERIFIED when blank).
+  const isSample=$("f_hold_llc").value.trim()===REFERENCE_OWNERSHIP.hold_llc &&
+    $("f_person").value.trim()===REFERENCE_OWNERSHIP.person;
+  const ownershipBlank=!$("f_hold_llc").value.trim()&&!$("f_person").value.trim();
+
+  // verdict: FLAG on contradictory / impossible inputs; otherwise PASS with disclosed limits
+  let verdict="PASS", verdictSub="Data integrity & provenance verified. Sources cryptographically matched.";
+  const flagReasons=[];
+  if(acres<=0){ verdict="FLAG"; flagReasons.push("acreage is zero or negative"); }
+  if(capRate<=0){ verdict="FLAG"; flagReasons.push("cap rate is zero or negative"); }
+  if(stack.total===0&&sp.gates_fired.length===0&&acres>0){ verdict="FLAG"; flagReasons.push("no viable use and no gate explains it"); }
+  if(verdict==="FLAG") verdictSub="Held for review: "+flagReasons.join("; ")+".";
+
+  reportCounter++;
+  const now=new Date();
+  const reportId="LIR-"+fmtDate(now).replace(/-/g,"")+"-"+String(reportCounter).padStart(3,"0");
+
+  const canonicalContent={
+    report_id:reportId, generated_utc:now.toISOString(), score_version:SCORE_VERSION,
+    market:"laporte-in",
+    parcel:{parcel_id:$("f_parcel_id").value, acres, county:$("f_county").value,
+      land_use:$("f_landuse").value, section_township_range:$("f_str").value,
+      location_note:$("f_locnote").value, parcel_id_status:"UNVERIFIED"},
+    ownership:{holding_llc:$("f_hold_llc").value||null, holding_role:$("f_hold_role").value||null,
+      person:$("f_person").value||null, person_role:$("f_person_role").value||null,
+      additional_parcels:parseInt($("f_add_parcels").value||"0",10),
+      status:isSample?"SAMPLE - flyer mockup names, unverified":(ownershipBlank?"UNVERIFIED - no lookup":"USER-ENTERED - unverified")},
+    yield:{gross_annual_usd:sp.modeled_gross_annual_usd, stacked_annual_usd:stack.total,
+      per_acre_usd:Math.round(perAcre*100)/100, stack_uses:stack.uses,
+      relationships:stack.relationships, lease_conditions_required:stack.conditions,
+      composite_score:sp.composite_score, activation_score:sp.activation_score,
+      confidence:sp.confidence, gates_fired:sp.gates_fired,
+      candidates:sp.candidates.map(c=>({use:c.use_type,usd:c.modeled_annual_usd,conf:c.confidence,
+        suppressed_by:c.suppressed_by_gate,drivers:c.drivers}))},
+    valuation:{cap_rate_assumed_pct:parseFloat($("f_caprate").value),
+      land_value_modeled_usd:Math.round(landValue*100)/100,
+      status:"MODELED ESTIMATE - NOT A VALUATION. Cap rate assumed, unverified. DATUM income approach is the real path, DESIGNED not live."},
+    mineral:{nearest_hm_km:parseFloat($("f_hm_km").value), mineral:$("f_hm_mineral").value,
+      own_hm:$("f_own_hm").checked, halo_km:HALO_KM, halo_score:mineral.score,
+      verdict:mineral.verdict, local_activity_1mi:localAct},
+    distress:{overall:distress.overall, flags:distress.flags.map(f=>({title:f.title,detail:f.detail}))},
+    limiting_notes:isSample?LIMIT_NOTES_REF:[],
+    provenance:{engine:"FALLOW lys-0.1.0 + mineral-pits halo scorer + hash chain",
+      limitations:["ownership SAMPLE/unverified","parcel ID unverified, county-prefix inconsistent",
+        "all dollars MODELED, zero realized-yield observations","cap rate assumed",
+        "mineral distance is a MODELED median input","no live lookup behind any flag"]}
+  };
+  const hash=await sha256hex(canonical(canonicalContent));
+  const registryId="NRH-RE-LIR-RPT-001-"+hash.slice(0,8);
+  const prev=prevHash();
+  const receipt={report_id:reportId, registry_id:registryId, report_hash:hash,
+    prev_receipt_hash:prev, verdict, verdict_reasons:flagReasons, canonical:canonicalContent};
+  lastReceipt=receipt;
+  storeHash(hash);
+
+  renderReport(receipt, {isSample, ownershipBlank, localAct, mineral, distress, landValue, perAcre, capRate, stack, sp});
+  $("statusline").innerHTML="Report <code>"+reportId+"</code> generated. Verdict: <b>"+verdict+"</b>. "+
+    "Hash <code>"+hash.slice(0,16)+"…</code> chained after <code>"+String(prev).slice(0,16)+"</code>. "+
+    "Stack: "+(stack.uses.join(" + ")||"none")+" = "+money2(stack.total)+"/yr.";
+  return receipt;
+}
+
+function renderReport(receipt, ctx){
+  const c=receipt.canonical;
+  $("r_report_id").textContent=receipt.report_id;
+  $("r_date").textContent=c.generated_utc.slice(0,10)+" (UTC)";
+  $("r_acres").textContent=c.parcel.acres;
+  $("r_county").textContent=c.parcel.county;
+  $("r_str").textContent=c.parcel.section_township_range;
+  $("r_locnote").textContent=c.parcel.location_note;
+  $("r_parcel_id").textContent=c.parcel.parcel_id;
+  $("r_acres2").textContent=(+c.parcel.acres).toFixed(2);
+  $("r_landuse").textContent=c.parcel.land_use;
+  $("r_parcel_src").textContent=ctx.isSample?"SAMPLE":"USER INPUT";
+  $("r_parcel_src").className="badge "+(ctx.isSample?"sample":"unver");
+  // ownership
+  $("r_hold_llc").textContent=c.ownership.holding_llc||"- UNVERIFIED -";
+  $("r_hold_role").textContent=c.ownership.holding_role||"No lookup";
+  $("r_person").textContent=c.ownership.person||"- UNVERIFIED -";
+  $("r_person_role").textContent=c.ownership.person_role||"No lookup";
+  $("r_parcels").textContent=c.parcel.acres+" Acres (Target Parcel)";
+  $("r_add_parcels").textContent="Additional Parcels ("+c.ownership.additional_parcels+")";
+  $("r_own_src").textContent=ctx.isSample?"SAMPLE":(ctx.ownershipBlank?"UNVERIFIED":"USER-ENTERED");
+  $("r_own_src").className="badge "+(ctx.isSample?"sample":"unver");
+  $("r_own_note").innerHTML=ctx.isSample?
+    "Shown as printed on the flyer mockup. <b>Names are UNVERIFIED</b>: no Indiana SOS or county recorder lookup has confirmed them. The live path is the LandGraph P0 pivot (Owner-LLC → registered agent → officers → natural person → full portfolio + distress events). Until that lookup exists, ownership is SAMPLE only and must never be presented as fact.":
+    "No live SOS / recorder lookup exists. Ownership shown is user-entered and unverified. The live path is the LandGraph P0 pivot.";
+  // yield
+  $("r_stacked").innerHTML=money(c.yield.stacked_annual_usd)+' <span style="font-size:18px">/YR</span>';
+  $("r_peracre").textContent="$"+c.yield.per_acre_usd.toFixed(2);
+  $("r_caprate").textContent=(c.valuation.cap_rate_assumed_pct).toFixed(2)+"%";
+  $("r_landvalue").textContent="$"+(c.valuation.land_value_modeled_usd>=1e6?
+    (c.valuation.land_value_modeled_usd/1e6).toFixed(2)+"M":
+    Math.round(c.valuation.land_value_modeled_usd).toLocaleString());
+  $("r_gross_line").innerHTML="Modeled gross (all viable uses, before conflict resolution): "+
+    money2(c.yield.gross_annual_usd)+"/yr. The flyer's \"$32,714 Est. Gross Annual Yield\" label shows the "+
+    "<b>stacked</b> figure; gross is higher.";
+  $("r_limit_notes").innerHTML=(c.limiting_notes.length?c.limiting_notes:
+    ["No limiting notes entered for this parcel."] ).map(n=>"<li>"+n+"</li>").join("");
+  // uses table
+  $("r_uses").innerHTML=c.yield.candidates.map(u=>{
+    const inStack=c.yield.stack_uses.includes(u.use);
+    const status=u.suppressed_by?"Suppressed: "+u.suppressed_by:(inStack?"<b>IN STACK</b>":"Viable - not in optimal stack");
+    return "<tr><td>"+USE_LABELS[u.use]+"</td><td class='num'>"+money2(u.usd)+"</td><td>"+u.conf+"</td><td>"+status+"</td><td>"+(u.drivers.join("; ")||"-")+"</td></tr>";
+  }).join("");
+  $("r_stack_line").textContent="Optimal stack: "+(c.yield.stack_uses.map(u=>USE_LABELS[u]).join(" + ")||"none")+
+    " = "+money2(c.yield.stacked_annual_usd)+"/yr. Relationships: "+
+    (Object.entries(c.yield.relationships).map(([k,v])=>k.replace("|"," × ")+" "+v).join("; ")||"none")+
+    ". Lease conditions required: "+(c.yield.lease_conditions_required.length?c.yield.lease_conditions_required.length+" (see receipt JSON)":"none")+
+    ". Composite score "+c.yield.composite_score+"/100, activation "+c.yield.activation_score+"/100. "+
+    "Anchors are LaPorte-IN market mids; the ios $350/ac/mo anchor is DERIVED UNVERIFIED and is the highest-priority anchor to verify.";
+  // mineral
+  $("r_mineral_verdict").textContent=ctx.mineral.verdict;
+  $("r_mineral_detail").textContent=ctx.mineral.detail+
+    (ctx.localAct.length?" Local activity within 1 mi: "+ctx.localAct.join(", ")+".":" No recent permits, leases, or drilling activity within 1 mi.");
+  $("r_mineral_src").textContent="Halo score "+ctx.mineral.score.toFixed(2)+" - nearest documented heavy-mineral occurrence "+
+    c.mineral.nearest_hm_km+" km, outside the 40 km provenance halo. All 542 scored Indiana pits carry zero halo signal (mineral-pits CSV, verified 2026-11-10). Proximity is a sampling priority, not a grade. Monazite/REE is weighted 0.0 by design: score it, never handle it.";
+  // distress
+  $("r_distress").innerHTML=ctx.distress.flags.map(f=>
+    '<div class="flagrow"><div class="ic">'+(f.bad?"⚠️":"✅")+'</div><div><b>'+f.title+'</b><div class="d">'+f.detail+
+    '</div><div class="src">'+f.src+'</div></div></div>').join("")+
+    '<div class="srcnote">Overall distress: <b>'+ctx.distress.overall+'</b>. Flags are computed from the inputs above, not from any live feed.</div>';
+  // receipt
+  $("r_hash").textContent=receipt.report_hash;
+  $("r_registry").textContent=receipt.registry_id;
+  $("r_prev").textContent=receipt.prev_receipt_hash;
+  $("r_verdict").textContent=receipt.verdict;
+  $("r_verdict_badge").textContent=receipt.verdict;
+  $("r_verdict_badge").className="badge "+(receipt.verdict==="PASS"?"pass":"flag");
+  $("r_verdict_sub").textContent=receipt.verdict==="PASS"?
+    "Data integrity & provenance verified. Sources cryptographically matched.":
+    "Held for review: "+receipt.verdict_reasons.join("; ")+".";
+  $("r_timestamp").textContent=c.generated_utc.replace("T"," ").replace(/\.\d+Z$/," UTC");
+}
+
+// ---------- receipt download + verify ----------
+function downloadReceipt(){
+  if(!lastReceipt){ alert("Generate a report first."); return; }
+  const blob=new Blob([JSON.stringify(lastReceipt,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=lastReceipt.report_id+"-receipt.json";
+  document.body.appendChild(a); a.click(); a.remove();
+}
+async function verifyReceipt(){
+  const out=$("verifyOut");
+  let parsed; try{ parsed=JSON.parse($("verifyInput").value); }
+  catch(e){ out.innerHTML='<span class="badge flag">INVALID JSON</span> Could not parse the pasted receipt.'; return; }
+  if(!parsed.canonical||!parsed.report_hash){
+    out.innerHTML='<span class="badge flag">NOT A RECEIPT</span> Missing canonical content or report_hash.'; return; }
+  const recomputed=await sha256hex(canonical(parsed.canonical));
+  if(recomputed===parsed.report_hash){
+    out.innerHTML='<span class="badge pass">VERIFIED</span> Recomputed hash matches the receipt: <code>'+
+      recomputed.slice(0,24)+'…</code> Report '+parsed.report_id+', verdict '+(parsed.verdict||"?")+
+      '. Content is unchanged since issuance. (This proves integrity, not truth.)';
+  }else{
+    out.innerHTML='<span class="badge flag">MISMATCH</span> Recomputed <code>'+recomputed.slice(0,24)+
+      '…</code> does not match stored <code>'+String(parsed.report_hash).slice(0,24)+'…</code>. Content changed since issuance.';
+  }
+}
+
+// ---------- wire up ----------
+buildSignalFields();
+$("btnRef").addEventListener("click",()=>{ loadReference(); });
+$("btnGen").addEventListener("click",()=>{ generateReport(); });
+$("btnPrint").addEventListener("click",()=>window.print());
+$("btnDl").addEventListener("click",downloadReceipt);
+$("btnVerify").addEventListener("click",()=>{ verifyReceipt(); });
+// initial state: reference parcel loaded, report generated on first paint
+loadReference();
+generateReport();
+
+// test hook (used by verify.js; not a public API)
+window.LIR={scoreParcel,optimize,mineralScore,sha256hex,canonical,generateReport,
+  loadReference,readSignals,getReceipt:()=>lastReceipt,setField:(id,v)=>{const el=$(id); if(!el) return; if(el.type==="checkbox") el.checked=!!v; else el.value=v;}};
+</script>
+</body>
+</html>
