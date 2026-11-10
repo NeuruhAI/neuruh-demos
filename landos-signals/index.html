@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LandOS Signal Registry — 49 Clean Signals (June 2026 Build State)</title>
+<style>
+  :root{
+    --obsidian:#0e0c09; --obsidian2:#16130e; --bone:#e8e0d0; --bone-dim:#b3a98f;
+    --brass:#c9a227; --brass-dim:#8f7320; --ink:#141109; --line:#3a3324;
+    --gray:#8a8578; --pass:#55503f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--obsidian);color:var(--bone);font-family:Georgia,'Times New Roman',serif;line-height:1.5}
+  a{color:var(--brass)}
+  header{border-bottom:1px solid var(--line);padding:18px 22px 14px}
+  .docctl{font-family:'Courier New',monospace;font-size:11px;letter-spacing:.14em;color:var(--bone-dim);text-transform:uppercase}
+  .docctl b{color:var(--brass)}
+  h1{font-size:30px;margin:8px 0 4px;line-height:1.15}
+  h1 .n{color:var(--brass)}
+  .sub{color:var(--bone-dim);font-size:15px;max-width:900px}
+  .banner{margin:14px 22px 0;border:1px solid var(--brass-dim);background:#1d180c;color:var(--bone);padding:10px 14px;font-size:14px}
+  .banner b{color:var(--brass)}
+  main{padding:0 22px 40px;max-width:1180px}
+  h2{font-size:21px;margin:34px 0 6px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  h2 .n{color:var(--brass)}
+  p{max-width:900px}
+  .meta{font-family:'Courier New',monospace;font-size:12px;color:var(--bone-dim)}
+  #viewer{position:relative;height:520px;border:1px solid var(--line);background:var(--obsidian2);margin-top:14px;overflow:hidden}
+  #viewer canvas{display:block}
+  .clabel{position:absolute;transform:translate(-50%,-50%);font-family:'Courier New',monospace;font-size:11px;letter-spacing:.12em;color:var(--bone);background:rgba(14,12,9,.82);border:1px solid var(--line);padding:3px 8px;pointer-events:none;white-space:nowrap}
+  .clabel b{color:var(--brass)}
+  #fallback{display:none;padding:18px;color:var(--bone-dim)}
+  #detail{border:1px solid var(--line);background:var(--obsidian2);padding:12px 16px;margin-top:12px;min-height:64px}
+  #detail h3{margin:0 0 4px;font-size:17px}
+  #detail h3 .st{font-family:'Courier New',monospace;font-size:11px;letter-spacing:.1em;border:1px solid var(--brass-dim);color:var(--brass);padding:2px 6px;margin-left:8px;vertical-align:middle}
+  #detail p{margin:0;color:var(--bone-dim);font-size:14px}
+  .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .chip{font-family:'Courier New',monospace;font-size:11px;letter-spacing:.08em;border:1px solid var(--line);padding:4px 9px;color:var(--bone)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  .d-live{background:var(--brass)} .d-key{background:var(--bone)} .d-model{background:var(--gray)} .d-pass{background:var(--pass);border:1px solid var(--gray)} .d-amber{background:transparent;border:1px dashed var(--brass-dim)}
+  .famgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  @media (max-width:760px){.famgrid{grid-template-columns:1fr}}
+  .fam{border:1px solid var(--line);background:var(--obsidian2);padding:12px 14px}
+  .fam h3{margin:0 0 2px;font-size:17px}
+  .fam h3 .cnt{color:var(--brass);font-family:'Courier New',monospace;font-size:12px}
+  .fam p.desc{margin:0 0 10px;color:var(--bone-dim);font-size:13px}
+  table.sig{width:100%;border-collapse:collapse;font-size:13.5px}
+  table.sig td{padding:5px 4px;border-top:1px solid #241f16;vertical-align:top}
+  table.sig td.src{color:var(--bone-dim);font-family:'Courier New',monospace;font-size:11px;text-align:right;white-space:nowrap}
+  .st{font-family:'Courier New',monospace;font-size:10px;letter-spacing:.08em;padding:1px 5px;border:1px solid var(--line);white-space:nowrap}
+  .st-live{color:var(--brass);border-color:var(--brass-dim)} .st-key{color:var(--bone)} .st-model{color:var(--gray)} .st-pass{color:var(--bone-dim)}
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:14px}
+  @media (max-width:760px){.tiers{grid-template-columns:1fr}}
+  .tier{border:1px solid var(--line);padding:14px;background:var(--obsidian2)}
+  .tier.t0{border-color:var(--brass-dim)}
+  .tier h3{margin:0 0 4px;font-size:16px}
+  .tier h3 .tag{font-family:'Courier New',monospace;font-size:10px;letter-spacing:.1em;color:var(--brass);border:1px solid var(--brass-dim);padding:2px 6px;margin-left:6px}
+  .tier p{margin:0;font-size:13.5px;color:var(--bone-dim)}
+  .tier p b{color:var(--bone)}
+  .amber{border:1px dashed var(--brass-dim);background:#171207;padding:14px 16px;margin-top:14px}
+  .amber h3{margin:0 0 4px;font-size:16px}
+  .amber p{margin:0;font-size:14px;color:var(--bone-dim)}
+  .amber .sig3{font-family:'Courier New',monospace;font-size:12px;color:var(--bone);margin-top:8px}
+  footer{border-top:1px solid var(--line);margin-top:36px;padding:14px 0;color:var(--bone-dim);font-size:13px}
+  footer .meta{font-size:11px}
+  .statline{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .stat{border:1px solid var(--line);padding:8px 12px;font-family:'Courier New',monospace;font-size:12px}
+  .stat b{color:var(--brass);font-size:16px}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="docctl">Neuruh &middot; LandOS &middot; <b>Signal Registry Visual</b> &middot; Build state: June 2026 &middot; Dossier: _research/landos-codex-build</div>
+  <h1>LandOS Signal Registry <span class="n">&mdash; 49 Clean Signals</span></h1>
+  <p class="sub">The targeting brain of the Acquisition Legion. Four families, 49 signals, zero protected-class proxies. Family weights sum to 1.0. Clean posture is enforced at load: the engine refuses to start if a non-clean signal is active.</p>
+</header>
+<div class="banner"><b>June 2026 build state.</b> 37 of 49 signals have a real extractor. 7 live-verified against real national APIs, 14 wired and key-gated, 16 awaiting a trained vision model, 12 on passthrough. The amber tier is built but <b>unscored</b>. The New Carlisle 1,659-parcel run is UNVERIFIED (paste not meant for that chat). Regrid token status unknown.</div>
+<main>
+  <div class="statline" id="statline">
+    <div class="stat"><b>49</b> clean signals</div>
+    <div class="stat"><b>37</b> with a real extractor</div>
+    <div class="stat"><b>7</b> live-verified</div>
+    <div class="stat"><b>14</b> key-gated</div>
+    <div class="stat"><b>16</b> model-away</div>
+    <div class="stat"><b>12</b> passthrough</div>
+    <div class="stat"><b>87</b>/100 selftest (Berrien parcel)</div>
+  </div>
+
+  <h2><span class="n">Fig. 1.</span> The registry as a graph</h2>
+  <p>Four family clusters orbit the scoring engine. Node color is extractor status, not importance. Click any node for its source and status. Drag to orbit, scroll to zoom. If WebGL is unavailable, the full registry is listed below the canvas.</p>
+  <div id="viewer"><div id="fallback">3D view unavailable in this browser (WebGL or the Three.js CDN did not load). The complete registry, with the same status for every signal, is listed in Fig. 2 below.</div></div>
+  <div id="detail"><h3>Click a node in the graph</h3><p>Each signal carries its source and its extractor status as of June 2026. Status is what the build could prove, not what it hopes.</p></div>
+  <div class="legend">
+    <span class="chip"><span class="dot d-live"></span>LIVE-VERIFIED — returned real data in the June 2026 test</span>
+    <span class="chip"><span class="dot d-key"></span>KEY-GATED — wired, runs on precomputed fields until an ATTOM/Regrid key lands</span>
+    <span class="chip"><span class="dot d-model"></span>MODEL-AWAY — harness real, returns missing until trained weights drop into LANDOS_VISION_MODEL</span>
+    <span class="chip"><span class="dot d-pass"></span>PASSTHROUGH — next round, not yet wired</span>
+    <span class="chip"><span class="dot d-amber"></span>AMBER — built as a capture, unscored, gated behind legal review</span>
+  </div>
+
+  <h2><span class="n">Fig. 2.</span> The 49 signals, by family</h2>
+  <div class="famgrid" id="famgrid"></div>
+
+  <h2><span class="n">Fig. 3.</span> The imagery tier stack</h2>
+  <p>Imagery provenance is the one-shot decision: a poisoned training corpus cannot be cleaned retroactively. NAIP is flown for agriculture, so it covers the rural fringe — pole barns, farms, estates — better than any paid product. That is the highest-intent target class, and it runs on free, clean, national data.</p>
+  <div class="tiers">
+    <div class="tier t0"><h3>TIER 0 — NAIP<span class="tag">FREE · BACKBONE · ON</span></h3>
+      <p><b>USDA aerial imagery, public domain, ML-training clean.</b> Entire continental US, 2–3 year refresh, 30–60cm. Runs on every parcel. Drives the triage score. Outbuilding detection, driveway geometry, vehicle / equipment presence, pool, lot context, water adjacency, vegetation state.</p></div>
+    <div class="tier"><h3>TIER 1 — Nearmap<span class="tag">PAID · CONFIRM · GATED</span></h3>
+      <p><b>4.4–7.5cm, 87% of US population, 130+ pre-built AI property attributes</b> (roof type, material, condition, tree overhang) already trained. Called only on parcels that already score high on free Tier 0. Triage free, confirm paid. Switched off until funded.</p></div>
+    <div class="tier"><h3>STREET-LEVEL<span class="tag">DEFERRED</span></h3>
+      <p><b>No clean, free, national street-level source for model training exists.</b> Google Street View is ToS-blocked for ML derivatives. Mapillary and KartaView are CC-BY-SA — share-alike forces derivatives open. Live-only as a human decision aid via licensed API, never ingested into the proprietary dataset.</p></div>
+  </div>
+
+  <div class="amber">
+    <h3>Amber tier — parked and unscored</h3>
+    <p>Built as property-event captures but NOT in the active signal array, so the engine never calls them. Flipping any into scoring is one registry edit, gated behind a disparate-impact legal review. That switch is Jeramie's, not the build's.</p>
+    <div class="sig3">EVICTION HISTORY &nbsp;·&nbsp; BANKRUPTCY LINKAGE &nbsp;·&nbsp; DIVORCE-RELATED FILINGS</div>
+  </div>
+
+  <h2><span class="n">Fig. 4.</span> What the score is for</h2>
+  <p>Score tells you which parcels. The graph (LandGraph, the entity-resolution layer built beside this engine) tells you who is behind them and what else they own. Record signals first — tax delinquency, probate stage, pre-foreclosure, USPS vacancy, tenure are the top weights, free, structured, and need no computer vision. NAIP-CV second, geospatial joins third, Nearmap last. The labeled dataset the feedback loop accrues — score, contact, close, realized margin — is the long-game asset: years out, that corpus is worth more than the SaaS. The Indiana layer is proven by a live Elkhart parcel — 20-06-05-388-014.000-012, 418 W Marion, class 520 — identity only: no owner, no sale, no value, no delinquency. Berrien MI has no reachable public ArcGIS REST.</p>
+  <p class="meta">Sources: LANDOS-CODEX-V1.md (10-chapter doctrine) · landos_signals.json (49-signal registry) · landos_engine.py (FastAPI scorer, port 8400) · extractor package geo.py / imagery.py / record_signals.py · June 2026 build transcript. Dossier: _research/landos-codex-build/landos-codex-build.md. Concept: RE-038 LandOS Codex.</p>
+
+  <footer>
+    <p>Neuruh — LandOS Signal Registry visual. June 2026 build state; nothing here claims a live service. The production engine (db: up) is a different build from the session engine in the transcript; which is canonical in the repo today is UNKNOWN. The New Carlisle run is UNVERIFIED. The 49-vs-50 signal count is UNVERIFIED.</p>
+    <p class="meta">Built 2026-11-10 · Upload absorption batch 013 · Three.js 0.158.0 (cdnjs, pinned) · Obsidian / bone / brass · No live claim anywhere on this page.</p>
+  </footer>
+</main>
+<script>
+const SIGNALS = [
+/* Family A — Structure & Condition (15): 14 model-away, 1 live */
+{id:'A01',fam:'A',name:'Roof material class',src:'CV',st:'model',note:'3-tab / architectural / metal / tile. 3-tab is an age or deferred-capex proxy.'},
+{id:'A02',fam:'A',name:'Roof degradation grade',src:'CV',st:'model',note:'Staining, moss, wear — distinct from material.'},
+{id:'A03',fam:'A',name:'Roof tarp / visible damage',src:'CV',st:'model',note:'Acute distress.'},
+{id:'A04',fam:'A',name:'Roof geometry complexity',src:'CV',st:'model',note:'Reroof-cost proxy.'},
+{id:'A05',fam:'A',name:'Solar array presence',src:'CV',st:'model',note:'Recent-capex marker.'},
+{id:'A06',fam:'A',name:'Pool presence + state',src:'CV',st:'model',note:'Green / neglected pool reads as vacancy.'},
+{id:'A07',fam:'A',name:'Outbuilding count',src:'CV / NAIP',st:'model',note:'Multi-structure reads as farm / estate.'},
+{id:'A08',fam:'A',name:'Outbuilding-vs-main condition gradient',src:'CV',st:'model',note:'Deferred maintenance.'},
+{id:'A09',fam:'A',name:'Yard debris / junk density',src:'CV',st:'model',note:'Cleanout-volume proxy.'},
+{id:'A10',fam:'A',name:'Vehicle count in yard / drive',src:'CV',st:'model',note:'Occupancy + accumulation.'},
+{id:'A11',fam:'A',name:'RV / boat / trailer presence',src:'CV',st:'model',note:'High-value cleanout items.'},
+{id:'A12',fam:'A',name:'Footprint addition / irregularity',src:'CV + assessor',st:'model',note:'Unpermitted-add flag or value-add.'},
+{id:'A13',fam:'A',name:'Driveway surface class',src:'CV',st:'model',note:'Paved / gravel / dirt investment proxy.'},
+{id:'A14',fam:'A',name:'Basement / foundation inference',src:'CV + assessor',st:'model',note:'Grade + footprint.'},
+{id:'A15',fam:'A',name:'Vegetation overgrowth / unmaintained lawn',src:'CV / NAIP',st:'live',note:'Vacancy / distress. NAIP veg index from real pixels: urban test point 0.01.'},
+/* Family B — Land & Geospatial (14): 5 live, 2 model, 7 passthrough */
+{id:'B01',fam:'B',name:'Lot acreage',src:'assessor',st:'pass',note:'Passthrough, next round.'},
+{id:'B02',fam:'B',name:'Lot-shape irregularity / split potential',src:'GIS',st:'pass',note:'Subdivision upside. Passthrough, next round.'},
+{id:'B03',fam:'B',name:'Road frontage width',src:'GIS',st:'pass',note:'Access / development value. Passthrough, next round.'},
+{id:'B04',fam:'B',name:'Slope / topography',src:'USGS DEM',st:'live',note:'Buildability. USGS EPQS 3-pt gradient, Berrien test ~1% → 0.04.'},
+{id:'B05',fam:'B',name:'FEMA flood-zone status',src:'FEMA NFHL',st:'live',note:'Risk + price-suppression. Berrien test Zone X → 0.1.'},
+{id:'B06',fam:'B',name:'Tree-canopy coverage %',src:'NAIP NIR',st:'live',note:'Clearing cost / privacy premium. NAIP veg index from real pixels: urban test point 0.04.'},
+{id:'B07',fam:'B',name:'Adjacent land use',src:'GIS / zoning',st:'pass',note:'Industrial / commercial / ag neighbor effect. Passthrough, next round.'},
+{id:'B08',fam:'B',name:'Distance to nearest paved road + road class',src:'OSM / GIS',st:'live',note:'OSM Overpass, Berrien test major road <400m → 0.8.'},
+{id:'B09',fam:'B',name:'Utility access proximity',src:'GIS',st:'pass',note:'Power / water lines. Passthrough, next round.'},
+{id:'B10',fam:'B',name:'Structure count on parcel',src:'CV / footprints',st:'model',note:'Model-away: returns missing until trained weights land.'},
+{id:'B11',fam:'B',name:'Proximity to active nearby permits / new construction',src:'permit data',st:'pass',note:'Gentrification front. Passthrough, next round.'},
+{id:'B12',fam:'B',name:'Parcel-split feasibility vs zoning minimum',src:'zoning + assessor',st:'pass',note:'Passthrough, next round.'},
+{id:'B13',fam:'B',name:'Driveway length from front road',src:'CV',st:'model',note:'Segmentation + geometry. Longer = higher weight. Model-away.'},
+{id:'B14',fam:'B',name:'Water adjacency',src:'USGS NHD',st:'live',note:'Creek / river via NHD hydrography. Berrien test stream <500m → 0.6.'},
+/* Family C — Owner & Event (14): all key-gated */
+{id:'C01',fam:'C',name:'Tenure length / years since last sale',src:'assessor',st:'key',note:'Runs on precomputed fields today; live with RECORD_SOURCE=attom_regrid + key.'},
+{id:'C02',fam:'C',name:'Equity estimate',src:'assessor + AVM',st:'key',note:'Last-sale price vs current AVM. Pure math, not an owner trait.'},
+{id:'C03',fam:'C',name:'Free-and-clear / mortgage age',src:'recorded liens',st:'key',note:'Runs on precomputed fields today; live with a key.'},
+{id:'C04',fam:'C',name:'Property-tax delinquency',src:'county treasurer',st:'key',note:'Weight 0.95. Top-weight motivation signal; needs the aggregator.'},
+{id:'C05',fam:'C',name:'Pre-foreclosure / lis pendens',src:'public filing',st:'key',note:'Weight 1.0. Top-weight motivation signal; needs the aggregator.'},
+{id:'C06',fam:'C',name:'Code-enforcement case',src:'municipal',st:'key',note:'Open / history. Runs on precomputed fields today.'},
+{id:'C07',fam:'C',name:'Building-permit recency + type',src:'permit data',st:'key',note:'Active-repair signal ("struck with repair issues").'},
+{id:'C08',fam:'C',name:'Expired / abandoned permit',src:'permit data',st:'key',note:'Stalled project = distress.'},
+{id:'C09',fam:'C',name:'USPS vacancy / utility-inactive indicator',src:'USPS / utility',st:'key',note:'Runs on precomputed fields today.'},
+{id:'C10',fam:'C',name:'Multi-property owner flag',src:'assessor',st:'key',note:'Portfolio motivation — behavioral, not demographic.'},
+{id:'C11',fam:'C',name:'Ownership vehicle',src:'deed / SOS',st:'key',note:'LLC / trust / individual — approach calibration.'},
+{id:'C12',fam:'C',name:'Quitclaim / non-arms-length last transfer',src:'deed',st:'key',note:'Family / distress transfer.'},
+{id:'C13',fam:'C',name:'Probate case stage granularity',src:'probate court',st:'key',note:'Weight 0.95. Stage detail on top of the base probate event.'},
+{id:'C14',fam:'C',name:"Mechanic's lien / contractor-dispute filing",src:'public filing',st:'key',note:'Runs on precomputed fields today.'},
+/* Market (6): 1 live, 5 passthrough */
+{id:'M01',fam:'M',name:'Town population threshold',src:'Census',st:'live',note:'Wired through the Census geocoder (keyless best-effort + keyed fallback).'},
+{id:'M02',fam:'M',name:'Price appreciation',src:'market',st:'pass',note:'Passthrough, next round.'},
+{id:'M03',fam:'M',name:'Permit velocity',src:'permit data',st:'pass',note:'Passthrough, next round.'},
+{id:'M04',fam:'M',name:'In-migration rate',src:'market',st:'pass',note:'Passthrough, next round.'},
+{id:'M05',fam:'M',name:'Boom-proximity isochrone',src:'GIS',st:'pass',note:'~45-min isochrone of a booming metro. Passthrough, next round.'},
+{id:'M06',fam:'M',name:'Emerging-market detection',src:'market',st:'pass',note:'Composite of permit velocity, price appreciation, in-migration. Passthrough, next round.'}
+];
+const FAMS = {
+  A:{title:'Family A — Structure & Condition',count:15,desc:'Computer vision over aerial imagery. The salvage instinct as a classifier: pole barn + old equipment + long drive is a pattern read by eye for 25 years.'},
+  B:{title:'Family B — Land & Geospatial',count:14,desc:'Parcel geometry, terrain, water, roads, and flood risk from national GIS. Free, national, no key.'},
+  C:{title:'Family C — Owner & Event',count:14,desc:'Public-record motivation signals. The highest weights in the registry — and the ones that need the aggregator, because the free county layers carry identity only.'},
+  M:{title:'Market',count:6,desc:'Price, permit, and migration velocity. The compound multiplier: small town inside a booming metro isochrone.'}
+};
+const ST = {
+  live:{label:'LIVE-VERIFIED',color:0xc9a227},
+  key:{label:'KEY-GATED',color:0xe8e0d0},
+  model:{label:'MODEL-AWAY',color:0x8a8578},
+  pass:{label:'PASSTHROUGH',color:0x55503f}
+};
+/* ---- DOM lists (Fig. 2) ---- */
+(function(){
+  const grid = document.getElementById('famgrid');
+  Object.keys(FAMS).forEach(function(k){
+    const f = FAMS[k];
+    const div = document.createElement('div');
+    div.className = 'fam'; div.id = 'fam-' + k;
+    const rows = SIGNALS.filter(function(s){return s.fam===k;}).map(function(s){
+      return '<tr><td><b>'+s.id+'</b>&nbsp; '+s.name+'</td><td><span class="st st-'+s.st+'">'+ST[s.st].label+'</span></td><td class="src">'+s.src+'</td></tr>';
+    }).join('');
+    div.innerHTML = '<h3>'+f.title+' <span class="cnt">'+f.count+' signals</span></h3><p class="desc">'+f.desc+'</p><table class="sig">'+rows+'</table>';
+    grid.appendChild(div);
+  });
+})();
+/* ---- Three.js scene (Fig. 1) ---- */
+(function(){
+  var viewer = document.getElementById('viewer');
+  var detail = document.getElementById('detail');
+  if (typeof THREE === 'undefined') { document.getElementById('fallback').style.display = 'block'; return; }
+  var scene, camera, renderer, nodes = [], labels = [], raycaster, mouse;
+  var W = viewer.clientWidth, H = 520;
+  try {
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x16130e);
+    camera = new THREE.PerspectiveCamera(46, W / H, 0.1, 200);
+    camera.position.set(0, 2, 46);
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    viewer.appendChild(renderer.domElement);
+  } catch (e) { document.getElementById('fallback').style.display = 'block'; return; }
+  raycaster = new THREE.Raycaster(); mouse = new THREE.Vector2();
+  var centers = {A:[-15,6,0], B:[15,6,0], C:[-15,-7,0], M:[15,-7,0]};
+  var hubGeo = new THREE.OctahedronGeometry(1.6);
+  var hubMat = new THREE.MeshBasicMaterial({color:0xc9a227, wireframe:true});
+  var hub = new THREE.Mesh(hubGeo, hubMat);
+  scene.add(hub);
+  var ringGeo = new THREE.TorusGeometry(2.6, 0.03, 8, 60);
+  var ring = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({color:0x8f7320}));
+  scene.add(ring);
+  var placed = {A:[], B:[], C:[], M:[]};
+  SIGNALS.forEach(function(s, i){
+    var c = centers[s.fam];
+    var arr = placed[s.fam];
+    var a = (arr.length / FAMS[s.fam].count) * Math.PI * 2;
+    var r = 3.4 + (arr.length % 3) * 1.1;
+    var x = c[0] + Math.cos(a) * r;
+    var y = c[1] + Math.sin(a) * r * 0.8;
+    var z = ((arr.length * 37) % 5 - 2) * 0.7;
+    var geo = new THREE.SphereGeometry(s.st === 'live' ? 0.55 : 0.42, 14, 12);
+    var mat = new THREE.MeshBasicMaterial({color: ST[s.st].color});
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    mesh.userData.sig = s;
+    scene.add(mesh); nodes.push(mesh); arr.push(mesh);
+    var lg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(x,y,z)]);
+    scene.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color:0x3a3324, transparent:true, opacity:0.55})));
+  });
+  /* amber cluster, parked below */
+  var amberGeo = new THREE.SphereGeometry(0.42, 14, 12);
+  var amberMat = new THREE.MeshBasicMaterial({color:0x6b5a2a, wireframe:true});
+  [['Eviction history',0],['Bankruptcy linkage',1],['Divorce-related filings',2]].forEach(function(p){
+    var m = new THREE.Mesh(amberGeo, amberMat);
+    m.position.set(-2 + p[1]*2, -14, -4);
+    m.userData.sig = {id:'AMBER', fam:'X', name:p[0], src:'public record', st:'amber', note:'Built as a property-event capture. UNSCORED — gated behind a disparate-impact legal review. Never present as active scoring.'};
+    scene.add(m); nodes.push(m);
+  });
+  Object.keys(centers).forEach(function(k){
+    var el = document.createElement('div');
+    el.className = 'clabel';
+    el.innerHTML = '<b>'+FAMS[k].title.split(' — ')[0]+'</b> · '+FAMS[k].count+' signals';
+    el.dataset.cx = centers[k][0]; el.dataset.cy = centers[k][1]; el.dataset.cz = centers[k][2];
+    viewer.appendChild(el); labels.push(el);
+  });
+  var ael = document.createElement('div');
+  ael.className = 'clabel'; ael.innerHTML = '<b>AMBER TIER</b> · parked · unscored';
+  ael.dataset.cx = 0; ael.dataset.cy = -14; ael.dataset.cz = -4;
+  viewer.appendChild(ael); labels.push(ael);
+  var hel = document.createElement('div');
+  hel.className = 'clabel'; hel.innerHTML = '<b>LANDOS ENGINE</b> · port 8400';
+  hel.dataset.cx = 0; hel.dataset.cy = 0; hel.dataset.cz = 0;
+  viewer.appendChild(hel); labels.push(hel);
+  function showDetail(s){
+    var lab = s.st === 'amber' ? 'AMBER — UNSCORED' : ST[s.st].label;
+    detail.innerHTML = '<h3>'+s.id+' — '+s.name+'<span class="st">'+lab+'</span></h3><p>Source: '+s.src+'. '+s.note+'</p>';
+  }
+  renderer.domElement.addEventListener('click', function(ev){
+    var r = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+    mouse.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    var hit = raycaster.intersectObjects(nodes);
+    if (hit.length) showDetail(hit[0].object.userData.sig);
+  });
+  var dragging = false, px = 0, py = 0, rotX = 0.12, rotY = 0;
+  renderer.domElement.addEventListener('mousedown', function(e){dragging = true; px = e.clientX; py = e.clientY;});
+  window.addEventListener('mouseup', function(){dragging = false;});
+  window.addEventListener('mousemove', function(e){
+    if (!dragging) return;
+    rotY += (e.clientX - px) * 0.005; rotX += (e.clientY - py) * 0.005;
+    rotX = Math.max(-0.9, Math.min(0.9, rotX)); px = e.clientX; py = e.clientY;
+  });
+  renderer.domElement.addEventListener('wheel', function(e){
+    e.preventDefault();
+    camera.position.z = Math.max(24, Math.min(70, camera.position.z + (e.deltaY > 0 ? 2 : -2)));
+  }, {passive:false});
+  function projectLabels(){
+    labels.forEach(function(el){
+      var v = new THREE.Vector3(parseFloat(el.dataset.cx), parseFloat(el.dataset.cy), parseFloat(el.dataset.cz));
+      v.applyEuler(new THREE.Euler(rotX, rotY, 0));
+      v.project(camera);
+      el.style.left = ((v.x * 0.5 + 0.5) * W) + 'px';
+      el.style.top = ((-v.y * 0.5 + 0.5) * H) + 'px';
+      el.style.display = v.z < 1 ? 'block' : 'none';
+    });
+  }
+  var t = 0;
+  (function animate(){
+    requestAnimationFrame(animate);
+    t += 0.008;
+    scene.rotation.y = rotY; scene.rotation.x = rotX;
+    hub.rotation.y = t * 0.6; hub.rotation.x = t * 0.3;
+    ring.rotation.x = Math.PI / 2 + Math.sin(t * 0.2) * 0.08;
+    renderer.render(scene, camera);
+    projectLabels();
+  })();
+  window.addEventListener('resize', function(){
+    W = viewer.clientWidth;
+    camera.aspect = W / H; camera.updateProjectionMatrix();
+    renderer.setSize(W, H);
+  });
+})();
+</script>
+</body>
+</html>
