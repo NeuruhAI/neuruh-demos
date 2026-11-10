@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>η-Gate  -  Compress → Qubit → Gate → Regenerate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<style>
+:root{
+  --obsidian:#0e0e0c; --obsidian-2:#171713; --obsidian-3:#201f1a;
+  --bone:#ece7db; --bone-2:#d8d2c2; --bone-dim:#a9a294;
+  --ink:#141310; --paper:#f4f1e8; --paper-2:#ebe7da;
+  --brass:#b08d3c; --brass-bright:#c9a227; --brass-dim:#8a6d2b;
+  --warn:#a33327; --ok:#5c6e46; --dim:#7a7466;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',system-ui,sans-serif;
+  --display:'Archivo',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
+a{color:var(--brass-dim)}
+.docbar{background:var(--obsidian);color:var(--bone);padding:14px 28px 12px;border-bottom:3px solid var(--brass)}
+.docbar .row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.docbar .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass-bright)}
+.docbar h1{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:-.01em;line-height:1.05;margin-top:4px}
+.docbar h1 span{color:var(--brass-bright)}
+.docbar .sub{font-size:13px;color:var(--bone-2);max-width:640px;margin-top:6px}
+.docbar .meta{font-family:var(--mono);font-size:11px;color:var(--bone-dim);text-align:right;line-height:1.7}
+.docbar .meta b{color:var(--bone)}
+.stubbar{background:#f3ead2;border-bottom:1px solid var(--brass);padding:8px 28px;font-family:var(--mono);font-size:12px;color:#6d5518}
+.stubbar b{color:#a33327}
+.tabs{background:var(--obsidian-2);display:flex;flex-wrap:wrap;gap:2px;padding:0 20px;border-bottom:1px solid var(--obsidian-3)}
+.tabs button{font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.04em;background:transparent;border:0;color:var(--bone-dim);padding:13px 16px;cursor:pointer;border-bottom:3px solid transparent}
+.tabs button:hover{color:var(--bone)}
+.tabs button.active{color:var(--brass-bright);border-bottom-color:var(--brass-bright)}
+main{max-width:1180px;margin:0 auto;padding:26px 28px 60px}
+.tabpane{display:none}
+.tabpane.active{display:block}
+h2{font-family:var(--display);font-weight:800;font-size:22px;margin:4px 0 6px}
+h3{font-family:var(--display);font-weight:700;font-size:16px;margin:18px 0 6px}
+.lede{color:#3d3a30;max-width:760px;margin-bottom:14px}
+.card{background:#fff;border:1px solid #d8d2c2;border-radius:6px;padding:16px 18px;margin:12px 0}
+.card h3{margin-top:0}
+.mono{font-family:var(--mono);font-size:13px}
+.formula{font-family:var(--mono);font-size:17px;background:var(--obsidian);color:var(--bone);padding:14px 18px;border-radius:6px;margin:12px 0;line-height:1.7}
+.formula b{color:var(--brass-bright)}
+.kv{display:grid;grid-template-columns:220px 1fr;gap:6px 14px;font-size:14px}
+.kv dt{font-family:var(--mono);font-size:12px;color:var(--dim);padding-top:2px}
+.kv dd{margin:0}
+#scene{width:100%;height:440px;background:var(--obsidian);border-radius:6px;display:block}
+.scene-fallback{color:var(--bone-dim);font-family:var(--mono);font-size:12px;padding:12px 0 0}
+.legend{display:flex;flex-wrap:wrap;gap:18px;font-family:var(--mono);font-size:12px;color:#3d3a30;margin-top:10px}
+.legend .sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.slider-row{display:grid;grid-template-columns:170px 1fr 64px;gap:14px;align-items:center;padding:9px 0;border-bottom:1px solid #e5e0d2}
+.slider-row label{font-family:var(--mono);font-size:12px}
+.slider-row output{font-family:var(--mono);font-size:13px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--brass)}
+.verdict{font-family:var(--display);font-weight:800;font-size:26px;padding:10px 16px;border-radius:6px;display:inline-block;margin:8px 0}
+.verdict.pass{background:#eef1e6;color:#3f5230;border:1px solid #5c6e46}
+.verdict.blocked{background:#f7e9e6;color:#7a2a1e;border:1px solid #a33327}
+.etabig{font-family:var(--mono);font-size:34px;font-weight:700}
+.etabig small{font-size:14px;color:var(--dim)}
+.adv{border:1px dashed #a9a294;border-radius:6px;padding:12px 16px;margin:12px 0;background:#faf6ea}
+.adv .tag{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#6d5518}
+.btn{font-family:var(--display);font-weight:700;font-size:13px;background:var(--obsidian);color:var(--bone);border:1px solid var(--brass);border-radius:6px;padding:10px 16px;cursor:pointer;margin:6px 8px 6px 0}
+.btn:hover{background:var(--obsidian-3)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:#a9a294}
+pre{background:var(--obsidian);color:var(--bone);padding:14px 18px;border-radius:6px;overflow-x:auto;font-family:var(--mono);font-size:13px;line-height:1.65;margin:12px 0}
+pre .ok{color:#b7c79b}
+pre .no{color:#e8a49b}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+th,td{border:1px solid #d8d2c2;padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--paper-2);font-family:var(--mono);font-size:12px}
+footer{border-top:1px solid #d8d2c2;margin-top:34px;padding-top:16px;font-size:13px;color:#5c564a}
+footer .mono{font-size:11px}
+.pill{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass-dim);margin-right:6px}
+</style>
+</head>
+<body>
+<div class="docbar">
+  <div class="row">
+    <div>
+      <div class="kicker">Neuruh &middot; Upload absorption batch 010 &middot; &eta; Doctrine</div>
+      <h1>&eta;-Gate <span> -  Compress &rarr; Qubit &rarr; Gate &rarr; Regenerate</span></h1>
+      <div class="sub">The doctrine-&eta; objective as the judge over world-seeding. Move the sliders and watch the gate open or close. The L4 amplifier forecast is shown as advisory-only: it can never authorize a seed.</div>
+    </div>
+    <div class="meta">
+      <b>Absorbed</b> 2026-11-10<br>
+      <b>Branch</b> feat/eta-doctrine-gate<br>
+      <b>Gate</b> &eta; &ge; 70 AND accuracy &ge; 0.6<br>
+      <b>Codebook</b> STUB-MODE
+    </div>
+  </div>
+</div>
+<div class="stubbar"><b>STUB-MODE CODEBOOK</b>  -  deterministic SHA-256 hash-bucket centroids, dim 16. This is not a learned embedding yet. Same group in &rarr; same centroid out, every time. Swap path later: re-embed, not rebuild.</div>
+<div class="tabs">
+  <button class="active" data-tab="loop">1 &middot; The Loop</button>
+  <button data-tab="formula">2 &middot; The Formula</button>
+  <button data-tab="qubit">3 &middot; The Qubit</button>
+  <button data-tab="blocked">4 &middot; The Blocked Path</button>
+</div>
+<main>
+<section class="tabpane active" id="tab-loop">
+  <h2>The loop</h2>
+  <p class="lede">Four stages, one loop. Knowledge compresses into a qubit; the qubit faces the gate; only what passes the gate regenerates into a world. The fabricated world sits off the loop, blocked, with its amplifier forecast still visible  -  and still powerless.</p>
+  <canvas id="scene" width="1120" height="440"></canvas>
+  <div class="scene-fallback" id="scene-note">Three.js scene: brass loop COMPRESS &rarr; QUBIT &rarr; GATE &rarr; REGENERATE, with the fabricated node held outside the loop. If the 3D view does not render, the gate math below still runs.</div>
+  <div class="legend">
+    <span><span class="sw" style="background:#c9a227"></span>Live loop (brass)</span>
+    <span><span class="sw" style="background:#7a7466"></span>Fabricated / blocked (gray)</span>
+    <span><span class="sw" style="background:#5c6e46"></span>Gate open: &eta; &ge; 70 AND accuracy &ge; 0.6</span>
+    <span><span class="sw" style="background:#a33327"></span>Gate closed</span>
+  </div>
+  <div class="card">
+    <h3>How to read it</h3>
+    <dl class="kv">
+      <dt>COMPRESS</dt><dd>NCE squeezes a dataset (10k leads &rarr; 100 targets). Lossy-semantic compression keeps structure and discards detail; the loss is declared, not hidden.</dd>
+      <dt>QUBIT</dt><dd>The compressed unit: shape (codebook centroid) + modifier (residual transform) + shared group (VQ cell) + loss manifest + provenance hash.</dd>
+      <dt>GATE</dt><dd>Doctrine-&eta; judges. A world seeds only if &eta; &ge; 70 AND feedback accuracy &ge; 0.6. The gate ring in the scene opens brass when the live inputs pass, closes gray when they do not.</dd>
+      <dt>REGENERATE</dt><dd>The seeder expands centroid + modifier back into a vector, re-attaches the content residual, and declares the loss in the world spec.</dd>
+      <dt>FABRICATED</dt><dd>A world the amplifier invented (current 0 &rarr; day14 94). It never enters the loop. Its forecast is advisory metadata, logged, never authorizing.</dd>
+    </dl>
+  </div>
+</section>
+
+<section class="tabpane" id="tab-formula">
+  <h2>The formula, live</h2>
+  <p class="lede">Doctrine-&eta; is the canonical objective. The paren ambiguity in the written form is pinned here: violations only ever subtract, because the denominator is (1 + E<sub>wasted</sub> + C<sub>violations</sub>).</p>
+  <div class="formula">&eta; = (I<sub>quality</sub> &times; I<sub>relevance</sub> &times; I<sub>velocity</sub>) / (1 + E<sub>wasted</sub> + C<sub>violations</sub>) &times; 100<br><span style="font-size:13px;color:var(--bone-dim)">bounded 0&ndash;100 &middot; gate: &eta; &ge; 70 AND accuracy &ge; 0.6</span></div>
+  <div class="card">
+    <h3>Live inputs</h3>
+    <div class="slider-row"><label for="s-iq">I_quality</label><input type="range" id="s-iq" min="0" max="1" step="0.01" value="1"><output id="o-iq">1.00</output></div>
+    <div class="slider-row"><label for="s-ir">I_relevance</label><input type="range" id="s-ir" min="0" max="1" step="0.01" value="0.95"><output id="o-ir">0.95</output></div>
+    <div class="slider-row"><label for="s-iv">I_velocity</label><input type="range" id="s-iv" min="0" max="1" step="0.01" value="0.95"><output id="o-iv">0.95</output></div>
+    <div class="slider-row"><label for="s-ew">E_wasted</label><input type="range" id="s-ew" min="0" max="1" step="0.01" value="0.05"><output id="o-ew">0.05</output></div>
+    <div class="slider-row"><label for="s-cv">C_violations</label><input type="range" id="s-cv" min="0" max="10" step="0.1" value="0"><output id="o-cv">0.0</output></div>
+    <div class="slider-row"><label for="s-acc">accuracy (feedback)</label><input type="range" id="s-acc" min="0" max="1" step="0.01" value="0.9"><output id="o-acc">0.90</output></div>
+    <p style="margin-top:14px">
+      <button class="btn" id="preset-strong">Load the STRONG cluster (&eta; 86.0)</button>
+      <button class="btn" id="preset-fabricated">Load the fabricated case (&eta; 0.0)</button>
+      <button class="btn ghost" id="preset-reset">Reset</button>
+    </p>
+    <div style="margin-top:10px"><span class="etabig">&eta; = <span id="eta-value">86.0</span> <small>/ 100</small></span></div>
+    <div><span class="verdict pass" id="gate-verdict">PASS  -  seed authorized</span></div>
+    <p class="mono" id="gate-reason">doctrine-&eta; 86.0 &ge; 70 and accuracy 0.90 &ge; 0.6</p>
+  </div>
+  <div class="adv">
+    <div class="tag">Amplifier forecast  -  advisory only &middot; cannot authorize</div>
+    <p style="margin-top:6px">The L4 amplifier still runs and still forecasts. Its live output for Sovereign AI Infrastructure: <b>current 0 &rarr; day14 94</b>. Under Option 1 that forecast is a suggestion, logged as advisory metadata. It cannot pass or fail a seed. An amplifier inflates weak signals; a gate discriminates them. They are opposite species wearing one name (&eta;).</p>
+    <p class="mono">forecast day14: <span id="amp-forecast">94</span> &middot; gate weight: 0 (advisory) &middot; authorizing score: doctrine-&eta; only</p>
+  </div>
+  <div class="card">
+    <h3>Why the denominator matters</h3>
+    <p>If the formula parsed as (I<sub>q</sub>&middot;I<sub>r</sub>&middot;I<sub>v</sub>)/E<sub>wasted</sub> + C<sub>violations</sub>, adding violations would <i>raise</i> &eta;  -  backwards. The pinned form divides by (1 + E<sub>wasted</sub> + C<sub>violations</sub>), so violations only ever drag &eta; down. One paren decides whether the objective rewards or penalizes constraint-breaking. Try it: raise C<sub>violations</sub> to 5 and watch &eta; collapse.</p>
+  </div>
+</section>
+
+<section class="tabpane" id="tab-qubit">
+  <h2>The qubit</h2>
+  <p class="lede">A knowledge qubit is a vector-quantized unit, not a scalar. Flag 2 in the session conceded the point: a "numerical value of text" is a shape with a modifier, living in a shared group. Everything inside one cell is treated as the same shape; intra-group distinctions are the loss. Who draws the cell boundaries? &eta;.</p>
+  <table>
+    <tr><th style="width:180px">Part</th><th>What it is</th><th>Where it lives</th></tr>
+    <tr><td class="mono">shape</td><td>A codebook centroid: a geometric primitive, a direction / region in meaning-space.</td><td>qubit.shape</td></tr>
+    <tr><td class="mono">modifier</td><td>The residual transform adapting that centroid to the specific instance.</td><td>qubit.modifier</td></tr>
+    <tr><td class="mono">shared_group</td><td>The VQ cell: the equivalence class of letters / words / context that all resolve to the same shape + modifier.</td><td>qubit.shared_group</td></tr>
+    <tr><td class="mono">loss_manifest</td><td>What compression dropped, declared honestly. A qubit that hides its loss is a false chunk waiting to happen.</td><td>qubit.loss_manifest</td></tr>
+    <tr><td class="mono">eta_doctrine</td><td>The &eta; that justified keeping this qubit at all.</td><td>qubit.eta_doctrine</td></tr>
+    <tr><td class="mono">content_residual</td><td>What the style-prior gets wrong: the incompressible surprise. Style compresses hard; content does not.</td><td>qubit.content_residual</td></tr>
+    <tr><td class="mono">provenance</td><td>SHA-256 hash of the core. <span class="mono">verify()</span> re-hashes and compares: a tamper / fabrication tripwire. A phantom qubit fails provenance and cannot seed.</td><td>qubit.provenance_hash</td></tr>
+  </table>
+  <div class="card">
+    <h3>Codebook: stub, not learned <span class="pill">STUB-MODE</span></h3>
+    <p>No real VQ codebook exists. The stub (<span class="mono">_scripts/codebook.py</span>) is deterministic hash-bucket centroids: SHA-256 of the group label &rarr; bytes &rarr; floats in [-1, 1], dim 16, mode <span class="mono">stub-hashbucket</span>. Same group in &rarr; same centroid out, every time. That makes qubits valid, provenance-verifiable, and inverse-able today.</p>
+    <p style="margin-top:8px"><b>Swap path (later):</b> replace <span class="mono">_stub_centroid()</span> with a learned lookup, flip <span class="mono">codebook_mode</span> to <span class="mono">"learned"</span>, re-embed existing qubits (iterate <span class="mono">03-IP/_qubits/*.json</span>, call <span class="mono">shape_for()</span> again, rewrite shape, re-hash provenance). Shared-group ids and content_residual untouched. Nothing rebuilds; everything re-embeds.</p>
+  </div>
+  <div class="card">
+    <h3>The book example</h3>
+    <p>Style compresses hard (cadence, grammar, an author's signature: high redundancy, low entropy, small prior). Content does not (the specific propositions are the incompressible surprise; Shannon's floor says only the unexpected part carries information). You cannot rebuild the book from style alone. You store style-prior (tiny, lossy) + content residual (what the prior gets wrong). That split is exactly why the system "stores and seeds" instead of just storing.</p>
+  </div>
+</section>
+
+<section class="tabpane" id="tab-blocked">
+  <h2>The blocked path</h2>
+  <p class="lede">The amplifier's live output, on the record: EMERGING: Sovereign AI Infrastructure  -  current 0 &rarr; day14 94. Before Option 1, that forecast could birth a world. After Option 1, it is advisory metadata. This tab shows the rejection, the test that proves the rails, and what is still open.</p>
+  <div class="card">
+    <h3>The fabricated case</h3>
+    <dl class="kv">
+      <dt>World</dt><dd>Sovereign AI Infrastructure</dd>
+      <dt>Amplifier forecast</dt><dd>current 0 &rarr; day14 94 ("even a weak upward trend gets amplified")</dd>
+      <dt>Doctrine-&eta;</dt><dd>0.0 (no quality, no relevance, no velocity behind the trend)</dd>
+      <dt>Gate</dt><dd><b>BLOCKED</b>  -  doctrine-&eta; 0.0 &lt; 70. The forecast is logged and ignored as an authorizer.</dd>
+      <dt>Why it matters</dt><dd>An amplifier is a false-chunk generator with a cron schedule: a thing that rhymes with a trend and skips the confirmation, filing itself to Notion as IP nightly.</dd>
+    </dl>
+    <p style="margin-top:10px"><button class="btn" id="preset-fabricated-2">Load this case into the Formula tab</button></p>
+  </div>
+  <div class="card">
+    <h3>Full-loop test  -  expected output</h3>
+    <p><span class="mono">_scripts/test_full_loop.py</span> proves compress &rarr; qubit &rarr; gate &rarr; regenerate on the stub. This is the transcript's expected output, not a run receipt from this workspace: whether it ran green on the Mac is UNKNOWN.</p>
+    <pre>[1] doctrine-eta = 86.0  inputs={...}
+[2] qubit saved: &lt;16hex&gt;  <span class="ok">provenance_ok=True</span>  -&gt; /Users/.../03-IP/_qubits/&lt;id&gt;.json
+[3] seeded=True  fidelity={'loss_pct': 0.03, 'dropped': ['exact_parcel_geometry','owner_phone']}
+[4] fabricated seeded=False  gate=['doctrine-eta 0.0 &lt; 70']  <span class="no">&larr; the current 0 &rarr; 94 fabrication blocked on the same rails</span></pre>
+  </div>
+  <div class="card">
+    <h3>Option 1  -  the decision</h3>
+    <p>Doctrine-&eta; becomes the judge; the L4 amplifier is stripped of gate authority and demoted to advisory. Nothing deleted; <span class="mono">l4_engine.py</span> untouched. The knowledge qubit is the inverse unit: it carries the shape + modifier, the doctrine-&eta; that justified keeping it, and a loss manifest  -  so compress &rarr; regenerate is inverse for what was kept and honest about what got dropped.</p>
+    <p style="margin-top:8px"><b>Still open:</b> <span class="mono">world_activator.py</span> integration (Jeramie said he will do it in a minute). Until it lands, the branch <span class="mono">feat/eta-doctrine-gate</span> must not merge to main. The four new modules are self-contained and testable without it.</p>
+  </div>
+  <div class="card">
+    <h3>Monetization  -  "Neuruh Emergence Engine"</h3>
+    <p>Licensable module, not just internal plumbing: doctrine-&eta; objective + gate + qubit codec + inverse seeder. Per-tenant <span class="mono">neuruh.config.json</span> is the white-label seam. Tiers: (1) objective-only scoring license, (2) full gate + seeder with audit receipts, (3) sovereign on-prem with tenant-isolated codebooks. No dollar figures are attached to these tiers in the transcript; none are invented here. MRR $0.</p>
+    <p style="margin-top:8px"><b>Security / audit:</b> every &eta; computation and every gate decision writes an immutable SHA-256 receipt (CRUCIBLE-compatible). Config holds env-var names, not secrets. Qubit <span class="mono">verify()</span> is the tamper tripwire. This is the transcript's compliance framing (SOC2 CC7 / ISO 27001 A.12.4 story), not an audit result.</p>
+  </div>
+</section>
+
+<footer>
+  <p><b>Sources.</b> &eta; doctrine / knowledge qubit / seeder inverse transcript (chat session, absorbed 2026-11-10) &middot; Batch 010 dossiers: <span class="mono">_research/eta-doctrine-qubit/</span>, <span class="mono">_research/landos-dev-skill/</span>, <span class="mono">_research/estimator/</span> &middot; Vault notes MTH-023 Eta Doctrine, MTH-024 NCE, MTH-011 Knowledge Qubits, MTH-018 Quantum Prompt Lattice, CORE-015 World Emitter.</p>
+  <p style="margin-top:6px"><b>Honesty labels.</b> The five files (<span class="mono">eta_doctrine.py, knowledge_qubit.py, emergence_gate.py, seeder_inverse.py, neuruh.config.json</span>) live on Jeramie's Mac at <span class="mono">~/neuruh-vault/</span>; they were not run or read from this workspace. The full-loop test output is expected output from the transcript, not a run receipt. The codebook is STUB-mode hash-bucket, not learned. The L4 amplifier's live output (current 0 &rarr; day14 94) is transcript-quoted, not re-verified. The 1AM cron's behavior after the demotion is UNKNOWN.</p>
+  <p style="margin-top:6px" class="mono">eta-gate &middot; batch 010 &middot; 2026-11-10 &middot; obsidian / bone / brass &middot; no blue &middot; cal.com/neuruh &middot; jeramie@neuruh.com</p>
+</footer>
+</main>
+<script>
+// ---- Pure gate math (testable in jsdom; no DOM needed) ----
+window.computeEta = function(iq, ir, iv, ew, cv){
+  var v = (iq * ir * iv) / (1 + ew + cv) * 100;
+  if (v < 0) v = 0;
+  if (v > 100) v = 100;
+  return v;
+};
+window.gateDecision = function(eta, accuracy){
+  return (eta >= 70 && accuracy >= 0.6) ? 'PASS' : 'BLOCKED';
+};
+
+// ---- Tabs ----
+document.querySelectorAll('.tabs button').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.tabs button').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.tabpane').forEach(function(p){ p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.getAttribute('data-tab')).classList.add('active');
+  });
+});
+
+// ---- Live gate ----
+var SLIDERS = ['iq','ir','iv','ew','cv','acc'];
+function readInputs(){
+  var o = {};
+  SLIDERS.forEach(function(k){
+    var el = document.getElementById('s-' + k);
+    o[k] = parseFloat(el.value);
+    var out = document.getElementById('o-' + k);
+    out.textContent = (k === 'cv') ? o[k].toFixed(1) : o[k].toFixed(2);
+  });
+  return o;
+}
+function updateGate(){
+  var v = readInputs();
+  var eta = window.computeEta(v.iq, v.ir, v.iv, v.ew, v.cv);
+  var verdict = window.gateDecision(eta, v.acc);
+  document.getElementById('eta-value').textContent = eta.toFixed(1);
+  var el = document.getElementById('gate-verdict');
+  if (verdict === 'PASS'){
+    el.className = 'verdict pass';
+    el.textContent = 'PASS  -  seed authorized';
+  } else {
+    el.className = 'verdict blocked';
+    el.textContent = 'BLOCKED  -  seed refused';
+  }
+  document.getElementById('gate-reason').textContent =
+    'doctrine-η ' + eta.toFixed(1) + (eta >= 70 ? ' ≥ 70' : ' < 70') +
+    ' and accuracy ' + v.acc.toFixed(2) + (v.acc >= 0.6 ? ' ≥ 0.6' : ' < 0.6');
+  if (window.__setGateState) window.__setGateState(verdict === 'PASS');
+}
+SLIDERS.forEach(function(k){
+  document.getElementById('s-' + k).addEventListener('input', updateGate);
+});
+function setSliders(vals){
+  SLIDERS.forEach(function(k){ document.getElementById('s-' + k).value = vals[k]; });
+  updateGate();
+}
+document.getElementById('preset-strong').addEventListener('click', function(){
+  setSliders({iq:1, ir:0.95, iv:0.95, ew:0.05, cv:0, acc:0.9});
+});
+function loadFabricated(){
+  setSliders({iq:0, ir:0.9, iv:0.9, ew:0.1, cv:0, acc:0.9});
+}
+document.getElementById('preset-fabricated').addEventListener('click', loadFabricated);
+document.getElementById('preset-fabricated-2').addEventListener('click', function(){
+  document.querySelector('[data-tab="formula"]').click();
+  loadFabricated();
+});
+document.getElementById('preset-reset').addEventListener('click', function(){
+  setSliders({iq:1, ir:0.95, iv:0.95, ew:0.05, cv:0, acc:0.9});
+});
+updateGate();
+
+// ---- Three.js loop (guarded: no-op without the CDN build) ----
+(function(){
+  if (!window.THREE) return;
+  var canvas = document.getElementById('scene');
+  var renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true});
+  } catch (e) { return; }
+  renderer.setSize(canvas.clientWidth || 1120, 440);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0e0e0c);
+  var camera = new THREE.PerspectiveCamera(42, (canvas.clientWidth || 1120) / 440, 0.1, 100);
+  camera.position.set(0, 2.2, 11);
+  camera.lookAt(0, 0, 0);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  var dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(4, 6, 8);
+  scene.add(dir);
+
+  var BRASS = 0xc9a227, BRASS_D = 0x8a6d2b, GRAY = 0x7a7466, GREEN = 0x7fae7f, RED = 0xa33327;
+  function labelSprite(text, color){
+    var c = document.createElement('canvas');
+    c.width = 512; c.height = 96;
+    var g = c.getContext('2d');
+    g.font = '700 44px Archivo, sans-serif';
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = color || '#ece7db';
+    g.fillText(text, 256, 48);
+    var tex = new THREE.CanvasTexture(c);
+    var mat = new THREE.SpriteMaterial({map: tex, transparent: true, depthWrite: false});
+    var sp = new THREE.Sprite(mat);
+    sp.scale.set(3.4, 0.64, 1);
+    return sp;
+  }
+  function node(mesh, x, y, label){
+    mesh.position.set(x, y, 0);
+    scene.add(mesh);
+    var sp = labelSprite(label);
+    sp.position.set(x, y - 1.35, 0);
+    scene.add(sp);
+    return mesh;
+  }
+  var compress = node(new THREE.Mesh(new THREE.OctahedronGeometry(0.85), new THREE.MeshStandardMaterial({color: BRASS, metalness: 0.6, roughness: 0.35})), -6, 0.9, 'COMPRESS');
+  var qubit = node(new THREE.Mesh(new THREE.IcosahedronGeometry(0.85, 0), new THREE.MeshStandardMaterial({color: BRASS, metalness: 0.6, roughness: 0.35, wireframe: true})), -2, 0.9, 'QUBIT');
+  var gate = node(new THREE.Mesh(new THREE.TorusGeometry(0.85, 0.22, 16, 48), new THREE.MeshStandardMaterial({color: GREEN, metalness: 0.5, roughness: 0.4})), 2, 0.9, 'GATE');
+  var regen = node(new THREE.Mesh(new THREE.TetrahedronGeometry(1.0), new THREE.MeshStandardMaterial({color: BRASS, metalness: 0.6, roughness: 0.35})), 6, 0.9, 'REGENERATE');
+  var fab = node(new THREE.Mesh(new THREE.BoxGeometry(1.1, 1.1, 1.1), new THREE.MeshStandardMaterial({color: GRAY, metalness: 0.2, roughness: 0.8})), 2, -2.2, 'FABRICATED');
+  // Loop edges
+  var edgeMat = new THREE.LineBasicMaterial({color: BRASS_D});
+  function edge(a, b){
+    var geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(a[0], a[1], 0), new THREE.Vector3(b[0], b[1], 0)]);
+    scene.add(new THREE.Line(geo, edgeMat));
+  }
+  edge([-5.1, 0.9], [-2.9, 0.9]);
+  edge([-1.1, 0.9], [1.1, 0.9]);
+  edge([2.9, 0.9], [5.1, 0.9]);
+  edge([6, 0.1], [6, -0.9]);
+  edge([6, -0.9], [-6, -0.9]);
+  edge([-6, -0.9], [-6, 0.1]);
+  // Blocked spur: gate -> fabricated (dashed gray)
+  var dashMat = new THREE.LineDashedMaterial({color: GRAY, dashSize: 0.3, gapSize: 0.25});
+  var spurGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(2, 0.1, 0), new THREE.Vector3(2, -1.6, 0)]);
+  var spur = new THREE.Line(spurGeo, dashMat);
+  spur.computeLineDistances();
+  scene.add(spur);
+  // Flow particles along the loop
+  var pGeo = new THREE.BufferGeometry();
+  var pCount = 60;
+  var pPos = new Float32Array(pCount * 3);
+  pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+  var points = new THREE.Points(pGeo, new THREE.PointsMaterial({color: BRASS, size: 0.14}));
+  scene.add(points);
+  function loopPoint(t){
+    // rectangle loop through the four nodes
+    var per = 1 / 4, seg = Math.floor(t / per), u = (t - seg * per) / per;
+    var corners = [[-6, 0.9], [6, 0.9], [6, -0.9], [-6, -0.9]];
+    var a = corners[seg % 4], b = corners[(seg + 1) % 4];
+    return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+  }
+  var gateOpen = true;
+  window.__setGateState = function(open){
+    gateOpen = open;
+    gate.material.color.setHex(open ? GREEN : RED);
+  };
+  var clock = new THREE.Clock();
+  function animate(){
+    requestAnimationFrame(animate);
+    var t = clock.getElapsedTime();
+    compress.rotation.y = t * 0.5;
+    qubit.rotation.y = -t * 0.4;
+    gate.rotation.z = t * 0.3;
+    regen.rotation.y = t * 0.6;
+    fab.rotation.y = t * 0.1;
+    for (var i = 0; i < pCount; i++){
+      var p = loopPoint(((i / pCount) + t * 0.03) % 1);
+      pPos[i * 3] = p[0]; pPos[i * 3 + 1] = p[1]; pPos[i * 3 + 2] = 0;
+    }
+    pGeo.attributes.position.needsUpdate = true;
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>
