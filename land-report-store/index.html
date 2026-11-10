@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Land Intelligence Report - Order | Neuruh / DeedSonar Land Intelligence</title>
+<style>
+  :root{
+    --paper:#f7f4ec; --paper2:#fffdf7; --ink:#1d1d1a; --ink2:#4a463d;
+    --green:#1e4d2c; --green2:#2c6b3f; --brass:#a67c2e; --brass2:#c9a24b;
+    --line:#d8d2c0; --red:#8a2f23; --amber:#8a6d1a; --ok:#2c6b3f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.55}
+  h1,h2,h3{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;letter-spacing:-.01em}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 20px 60px}
+  /* status banner */
+  .banner{background:#1d1d1a;color:#f7f4ec;padding:10px 20px;font-size:13px;
+    display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .banner b{color:#e8c97a}
+  .banner .tag{border:1px solid #e8c97a;color:#e8c97a;padding:1px 8px;border-radius:20px;
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.08em}
+  header.hero{padding:34px 0 8px;text-align:left}
+  .kicker{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.18em;
+    color:var(--brass);text-transform:uppercase}
+  header.hero h1{font-size:40px;line-height:1.05;margin:8px 0 6px;color:var(--green)}
+  header.hero p.sub{font-size:17px;color:var(--ink2);max-width:640px;margin:0}
+  .rule{height:3px;background:linear-gradient(90deg,var(--green) 0 60%,var(--brass) 60% 64%,var(--line) 64%);
+    margin:22px 0 0}
+  section{margin-top:36px}
+  section>h2{font-size:22px;color:var(--green);margin:0 0 4px}
+  section>p.lede{color:var(--ink2);margin:0 0 16px;max-width:720px}
+  .card{background:var(--paper2);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  /* what you get blocks */
+  .blocks{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.blocks{grid-template-columns:1fr}}
+  .block{border:1px solid var(--line);border-left:4px solid var(--green);background:var(--paper2);
+    padding:12px 14px;border-radius:4px}
+  .block h3{margin:0 0 2px;font-size:15px;color:var(--green)}
+  .block p{margin:0;font-size:13.5px;color:var(--ink2)}
+  .block .n{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;color:var(--brass);
+    letter-spacing:.1em}
+  /* sample report */
+  .sample{border:2px solid var(--green);border-radius:6px;overflow:hidden;background:#fff}
+  .sample-head{background:var(--green);color:#fff;padding:14px 18px;display:flex;
+    justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+  .sample-head h3{margin:0;font-size:20px}
+  .sample-head .rid{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+  .watermark{text-align:center;background:#fdf3d7;color:var(--amber);font-weight:700;
+    font-size:12px;letter-spacing:.12em;padding:6px}
+  .sample-body{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.sample-body{grid-template-columns:1fr}}
+  .sblock{border:1px solid var(--line);border-radius:4px;padding:10px 12px}
+  .sblock h4{margin:0 0 6px;font-size:12px;letter-spacing:.12em;color:var(--green);text-transform:uppercase}
+  .sblock p,.sblock li{font-size:13.5px;margin:2px 0}
+  .sblock ul{margin:4px 0 0;padding-left:18px}
+  .big{font-size:26px;font-weight:800;color:var(--brass2);color:#8a6d1a}
+  .flag{font-size:11px;font-weight:700;color:var(--amber);background:#fdf3d7;border-radius:3px;
+    padding:1px 6px;letter-spacing:.06em}
+  .flag.red{color:var(--red);background:#fbe9e5}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;word-break:break-all}
+  /* tiers */
+  .tiers{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.tiers{grid-template-columns:1fr}}
+  .tier{border:1px solid var(--line);border-radius:6px;background:var(--paper2);padding:20px;
+    display:flex;flex-direction:column}
+  .tier.hot{border:2px solid var(--brass)}
+  .tier h3{margin:0;font-size:18px;color:var(--green)}
+  .tier .price{font-size:34px;font-weight:800;margin:6px 0 2px}
+  .tier .price span{font-size:14px;font-weight:400;color:var(--ink2)}
+  .tier ul{margin:10px 0 16px;padding-left:18px;font-size:14px}
+  .tier ul li{margin:4px 0}
+  .tier .pick{margin-top:auto}
+  button,.btn{cursor:pointer;border:0;border-radius:4px;padding:11px 18px;font-size:15px;
+    font-weight:700;font-family:inherit}
+  .btn-primary{background:var(--green);color:#fff}
+  .btn-primary:hover{background:var(--green2)}
+  .btn-brass{background:var(--brass);color:#fff}
+  .btn-ghost{background:transparent;border:1px solid var(--green);color:var(--green)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-small{padding:7px 12px;font-size:13px}
+  .cta-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:14px}
+  .cta-row .note{font-size:13px;color:var(--ink2)}
+  /* stepper */
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px}
+  .step{flex:1;min-width:110px;border:1px solid var(--line);border-radius:4px;padding:8px 10px;
+    font-size:12.5px;background:#efece2;color:var(--ink2)}
+  .step b{display:block;font-size:13px;color:var(--ink)}
+  .step.on{border-color:var(--green);background:#e7efe8}
+  .step.done{border-color:var(--brass);background:#f6efdb}
+  .step .st{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.06em}
+  .panel{display:none}
+  .panel.on{display:block}
+  label{display:block;font-size:13px;font-weight:700;margin:12px 0 3px}
+  input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:4px;
+    font-size:14px;font-family:inherit;background:#fff}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--brass2)}
+  .frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:760px){.frow{grid-template-columns:1fr}}
+  .hint{font-size:12.5px;color:var(--ink2);margin-top:3px}
+  .navrow{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  /* checkout handoff */
+  .handoff{border:2px solid var(--amber);background:#fdf8e7;border-radius:6px;padding:16px 18px}
+  .handoff h3{margin:0 0 6px;color:#6d5410}
+  .handoff code{background:#fff;border:1px solid var(--line);padding:1px 5px;border-radius:3px;
+    font-size:12.5px}
+  .handoff pre{background:#1d1d1a;color:#e8e8e0;padding:12px;border-radius:4px;overflow:auto;
+    font-size:12.5px;line-height:1.5}
+  .statusline{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;
+    background:#1d1d1a;color:#e8c97a;padding:8px 10px;border-radius:4px;margin:10px 0}
+  /* delivery + ledger */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+  th{background:#efece2;font-size:12px;letter-spacing:.06em}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;
+    letter-spacing:.06em}
+  .pill.ordered{background:#e7efe8;color:var(--green)}
+  .pill.paid{background:#fdf3d7;color:var(--amber)}
+  .pill.delivered{background:#e7efe8;color:var(--green)}
+  .pill.sample{background:#fbe9e5;color:var(--red)}
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--ink2)}
+  footer p{margin:4px 0}
+  .docctl{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11.5px;color:var(--ink2)}
+  details{margin-top:10px}
+  summary{cursor:pointer;font-weight:700;color:var(--green)}
+</style>
+</head>
+<body>
+<div class="banner">
+  <span><b>NEURUH</b> / DeedSonar Land Intelligence &middot; Provenance-Backed Land Intelligence Report</span>
+  <span class="tag">SIMULATION - NO LIVE CHECKOUT - NO REAL PAYMENT</span>
+</div>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Neuruh / DeedSonar Land Intelligence</div>
+  <h1>Provenance-Backed<br>Land Intelligence Report</h1>
+  <p class="sub">One page a buyer can act on and re-verify: the parcel, the ownership chain, the yield stack, the mineral overlay, the distress flags, and a hash-chained provenance receipt. Built from the pieces that already exist. Nothing here is live yet.</p>
+  <div class="rule"></div>
+</header>
+
+<section id="offer">
+  <h2>What the buyer gets</h2>
+  <p class="lede">Six blocks, one page. Every block is either verified against a named source or labeled with exactly how it is not verified. The report is the product. The storefront sells the report.</p>
+  <div class="blocks">
+    <div class="block"><span class="n">BLOCK 01</span><h3>Target Parcel</h3>
+      <p>Parcel ID, acres (deeded), land use, section / township / range, and location. County parcel geometry and situs from the county record.</p></div>
+    <div class="block"><span class="n">BLOCK 02</span><h3>Ownership Chain</h3>
+      <p>Holding entity to natural person to parcels. Resolved through the LandGraph-style pivot: LLC, registered agent, officer, person, full portfolio.</p></div>
+    <div class="block"><span class="n">BLOCK 03</span><h3>Yield Stack (Est.)</h3>
+      <p>Modeled gross annual yield from stacked, non-conflicting uses, with the conflict rules that were enforced and the limiting notes that cut against it.</p></div>
+    <div class="block"><span class="n">BLOCK 04</span><h3>Mineral Overlay</h3>
+      <p>Proximity score against heavy-mineral occurrences. A halo signal is a sampling priority, not a grade. No signal is reported as no signal.</p></div>
+    <div class="block"><span class="n">BLOCK 05</span><h3>Distress Flags</h3>
+      <p>Tax delinquency, foreclosure activity, auction record, and owner-entity risk. Absence of a flag is stated as absence, not as proof of clean title.</p></div>
+    <div class="block"><span class="n">BLOCK 06</span><h3>Provenance Receipt</h3>
+      <p>SHA-256 report hash over canonical content, PASS/FLAG verdict, timestamp, and the previous receipt hash. The buyer re-hashes to confirm.</p></div>
+  </div>
+</section>
+
+<section id="sample">
+  <h2>Sample report</h2>
+  <p class="lede">The 42-acre LaPorte County reference parcel from the flyer, rendered as it would be delivered. This sample is the flyer content, labeled where the flyer is not verified. Owner names are UNVERIFIED. Yield is MODELED. The flyer hash is a mockup value, not a computed hash.</p>
+  <div class="sample" id="sampleReport">
+    <div class="sample-head">
+      <h3>Provenance-Backed Land Intelligence Report</h3>
+      <span class="rid">REPORT ID VLND-24-0513-42 &middot; May 13, 2024</span>
+    </div>
+    <div class="watermark">SAMPLE - NOT A PAID REPORT - OWNER NAMES UNVERIFIED - YIELD MODELED</div>
+    <div class="sample-body">
+      <div class="sblock">
+        <h4>Target Parcel</h4>
+        <p><b style="font-size:20px">42 ACRES</b><br>LaPorte County, IN</p>
+        <p>Parcel ID <span class="mono">71-06-17-000-001.000-026</span><br>
+        Acres (deeded) 42.00 &middot; Agricultural / Vacant<br>
+        Section 17, Township 38N, Range 4W<br>Approx. 0.6 mi NE of LaPorte</p>
+      </div>
+      <div class="sblock">
+        <h4>Ownership Chain <span class="flag">UNVERIFIED - SAMPLE</span></h4>
+        <p>HOLDING LLC: Prairie View Holdings LLC <span class="flag">UNVERIFIED</span><br>
+        PERSON: Ryan D. McAllister, Manager / Authorized Member <span class="flag">UNVERIFIED</span><br>
+        PARCELS: 42 acres (target parcel) + additional parcels (3)</p>
+        <p>Stated source in flyer: IN SOS and county recorder indices. No liens or encumbrances detected. Not independently verified here.</p>
+      </div>
+      <div class="sblock">
+        <h4>Yield Stack (Est.) <span class="flag">MODELED</span></h4>
+        <p><span class="big">$32,714 /yr</span><br>Est. gross annual yield</p>
+        <p>$778 /ac/yr &middot; 3.12% cap rate (est.) &middot; $1.05M land value (est.)</p>
+        <p>Stack: hunting + laydown + apiary. Matches FALLOW modeled yield for this reference parcel. No lease has closed on it.</p>
+        <ul>
+          <li>No soil productivity data within 1.2 miles (low confidence in crop yield)</li>
+          <li>Parcel partially within floodplain (FEMA Zone A)</li>
+          <li>Access appears prescriptive only (no deeded road frontage detected)</li>
+        </ul>
+      </div>
+      <div class="sblock">
+        <h4>Mineral Overlay</h4>
+        <p><b>NO HALO SIGNAL</b><br>No elevated mineral activity detected within 1 mile. No recent permits, leases, or drilling activity.</p>
+        <h4 style="margin-top:10px">Distress Flags</h4>
+        <p>LOW DISTRESS: no tax delinquency or foreclosure activity.<br>
+        NO AUCTION RECORD: not listed in upcoming tax or sheriff sales.<br>
+        OWNER-ENTITY RISK LOW: no red-flag corporate structure or judgment hits.</p>
+      </div>
+      <div class="sblock" style="grid-column:1/-1">
+        <h4>Provenance Receipt</h4>
+        <p>Report hash (SHA-256): <span class="mono">a3f8c2e19b47d501f5c9b6e7d8a2c1b4e9f7a6d3c0b1e2f4a5d6</span>
+        <span class="flag red">MOCKUP VALUE - 56 HEX CHARS, NOT A VALID 64-CHAR SHA-256 - NOT COMPUTED</span></p>
+        <p>Verdict: PASS (flyer claim) &middot; Timestamp 2024-05-13 14:32:17 UTC &middot; Signature: verified, chain anchored (flyer claim). Real delivered reports carry a computed 64-char SHA-256 over canonical content, chained to the previous receipt hash. The flyer value above is reproduced only to show what not to trust.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tiers">
+  <h2>Two tiers, one free qualifier</h2>
+  <p class="lede">Prices are the recorded ladder (2026-10-01). No new price was invented for this product. The flyer report maps to the Dossier tier. The Scan is the entry tier.</p>
+  <div class="tiers">
+    <div class="tier" id="tier-scan">
+      <h3>Property Opportunity Scan</h3>
+      <div class="price">$100 <span>one parcel, one time</span></div>
+      <ul>
+        <li>Target parcel block: ID, acres, land use, location</li>
+        <li>Distress flags: delinquency, foreclosure, auction record</li>
+        <li>Mineral overlay: halo signal or no signal</li>
+        <li>Short-form provenance receipt (hash + timestamp)</li>
+        <li>Delivered as PDF + JSON receipt</li>
+      </ul>
+      <div class="pick"><button class="btn btn-ghost" data-tier="scan">Order the Scan - $100</button></div>
+    </div>
+    <div class="tier hot" id="tier-dossier">
+      <h3>Property Intelligence Dossier</h3>
+      <div class="price">$1,500 <span>one parcel, 2-3 hrs</span></div>
+      <ul>
+        <li>Everything in the Scan, plus:</li>
+        <li>Full ownership chain (LLC to person to full portfolio)</li>
+        <li>Yield stack with conflict rules enforced and limiting notes</li>
+        <li>Full one-page report, as shown in the sample above</li>
+        <li>Hash-chained provenance receipt, re-verifiable by the buyer</li>
+        <li>Delivered as PDF + JSON receipt + ledger entry</li>
+      </ul>
+      <div class="pick"><button class="btn btn-brass" data-tier="dossier">Order the Dossier - $1,500</button></div>
+    </div>
+  </div>
+  <div class="cta-row">
+    <a href="https://cal.com/neuruh" target="_blank" rel="noopener"><button class="btn btn-primary">Book the free 10-min qualifier - cal.com/neuruh</button></a>
+    <span class="note">The free qualifier is the primary call to action. Not sure which tier fits? Book 10 minutes first. No payment is taken on this page today.</span>
+  </div>
+</section>
+
+<section id="order">
+  <h2>Order flow</h2>
+  <p class="lede">State machine: browse &rarr; order &rarr; checkout &rarr; paid &rarr; delivered &rarr; receipt. Each step shows its delivery state. Nothing is charged on this page. The checkout step is a handoff, not a payment form.</p>
+
+  <div class="steps" id="stepper">
+    <div class="step" data-step="tier"><b>1. Tier</b><span class="st" id="st-tier">NOT STARTED</span></div>
+    <div class="step" data-step="parcel"><b>2. Parcel</b><span class="st" id="st-parcel">NOT STARTED</span></div>
+    <div class="step" data-step="buyer"><b>3. Buyer</b><span class="st" id="st-buyer">NOT STARTED</span></div>
+    <div class="step" data-step="checkout"><b>4. Checkout</b><span class="st" id="st-checkout">NOT STARTED</span></div>
+    <div class="step" data-step="delivery"><b>5. Delivery</b><span class="st" id="st-delivery">NOT STARTED</span></div>
+    <div class="step" data-step="ledger"><b>6. Receipt ledger</b><span class="st" id="st-ledger">NOT STARTED</span></div>
+  </div>
+
+  <!-- STEP 1: TIER -->
+  <div class="panel on" id="panel-tier">
+    <div class="card">
+      <h3 style="margin-top:0">Step 1 - Pick a tier</h3>
+      <p>Choose the tier. You can change it later, before checkout.</p>
+      <div class="frow">
+        <div>
+          <label><input type="radio" name="tierPick" value="scan" style="width:auto"> Property Opportunity Scan - $100</label>
+          <p class="hint">Parcel + distress flags + mineral overlay + short receipt.</p>
+        </div>
+        <div>
+          <label><input type="radio" name="tierPick" value="dossier" style="width:auto" checked> Property Intelligence Dossier - $1,500</label>
+          <p class="hint">The full one-page report: ownership chain, yield stack, receipt.</p>
+        </div>
+      </div>
+      <div class="navrow">
+        <button class="btn btn-primary" id="toParcel">Continue to parcel</button>
+      </div>
+      <p class="hint" id="orderSummary1">No order yet. State: BROWSE.</p>
+    </div>
+  </div>
+
+  <!-- STEP 2: PARCEL -->
+  <div class="panel" id="panel-parcel">
+    <div class="card">
+      <h3 style="margin-top:0">Step 2 - The parcel</h3>
+      <p>Pre-filled with the 42-acre LaPorte reference parcel from the flyer. Edit any field for a different parcel.</p>
+      <div class="frow">
+        <div><label for="fParcelId">Parcel ID</label>
+          <input id="fParcelId" value="71-06-17-000-001.000-026"></div>
+        <div><label for="fAcres">Acres (deeded)</label>
+          <input id="fAcres" type="number" step="0.01" value="42.00"></div>
+      </div>
+      <div class="frow">
+        <div><label for="fCounty">County</label><input id="fCounty" value="LaPorte"></div>
+        <div><label for="fState">State</label><input id="fState" value="IN"></div>
+      </div>
+      <div class="frow">
+        <div><label for="fLandUse">Land use</label><input id="fLandUse" value="Agricultural / Vacant"></div>
+        <div><label for="fSTR">Section / Township / Range</label><input id="fSTR" value="Section 17, Township 38N, Range 4W"></div>
+      </div>
+      <div><label for="fLoc">Location note</label>
+        <input id="fLoc" value="Approx. 0.6 mi NE of LaPorte"></div>
+      <div class="navrow">
+        <button class="btn btn-ghost" id="backTier">Back</button>
+        <button class="btn btn-primary" id="toBuyer">Continue to buyer details</button>
+      </div>
+      <p class="hint" id="orderSummary2"></p>
+    </div>
+  </div>
+
+  <!-- STEP 3: BUYER -->
+  <div class="panel" id="panel-buyer">
+    <div class="card">
+      <h3 style="margin-top:0">Step 3 - Buyer details</h3>
+      <p>Where the report goes. Nothing is sent anywhere from this demo page; in the live flow this is the delivery address for the report and receipt.</p>
+      <div class="frow">
+        <div><label for="fName">Full name *</label><input id="fName" placeholder="Buyer name"></div>
+        <div><label for="fEmail">Email (delivery) *</label><input id="fEmail" type="email" placeholder="buyer@example.com"></div>
+      </div>
+      <div class="frow">
+        <div><label for="fPhone">Phone (optional)</label><input id="fPhone" placeholder="Optional"></div>
+        <div><label for="fUse">What will you use it for? (optional)</label>
+          <select id="fUse">
+            <option value="">Select one</option>
+            <option>Buying the parcel</option>
+            <option>Leasing / yield on idle land</option>
+            <option>Lending / underwriting</option>
+            <option>Broker / client work</option>
+            <option>Other</option>
+          </select></div>
+      </div>
+      <div class="navrow">
+        <button class="btn btn-ghost" id="backParcel">Back</button>
+        <button class="btn btn-primary" id="toCheckout">Review order</button>
+      </div>
+      <p class="hint" id="buyerError" style="color:var(--red);font-weight:700"></p>
+    </div>
+  </div>
+
+  <!-- STEP 4: CHECKOUT -->
+  <div class="panel" id="panel-checkout">
+    <div class="card">
+      <h3 style="margin-top:0">Step 4 - Checkout</h3>
+      <div id="reviewBox"></div>
+      <div class="handoff" id="stripeHandoff">
+        <h3>CHECKOUT HANDOFF - STRIPE NOT CONNECTED</h3>
+        <p><b>Status checked 2026-11-10:</b> the Stripe connector reports <code>reauthorization_required</code>. No live or test checkout is wired into this page. No card form is shown, because there is no Stripe session to charge against. This is the exact gap, and the exact steps to close it:</p>
+        <div class="statusline">STRIPE STATUS 2026-11-10: DISCONNECTED - oauth.refresh-token failed, reauthorization_required</div>
+        <ol>
+          <li><b>Reauthorize Stripe (Jeramie, one tap).</b> Open <code>https://agent.meta.ai/connectors/connect/stripe</code> and complete Stripe OAuth. This reconnects both test and live modes.</li>
+          <li><b>Confirm the connection.</b> Run <code>/opt/hatch/bin/stripe status</code>. It must report connected. Then run <code>/opt/hatch/bin/stripe list-tools</code> and read the reviewed write operations (the exact <code>stripe_api_operation_id</code> values for creating products, prices, and payment links; they are only visible after reconnect, so they are not invented here).</li>
+          <li><b>Create the test-mode products.</b> Two products, test mode only:
+            <pre>Product 1: name "Property Opportunity Scan", unit_amount 10000, currency usd
+Product 2: name "Property Intelligence Dossier", unit_amount 150000, currency usd</pre>
+            Create one Price per product, then one Payment Link per price. Record the two test-mode Payment Link URLs.</li>
+          <li><b>Test the full loop.</b> Pay with test card <code>4242 4242 4242 4242</code>, any future expiry, any 3-digit CVC. Confirm the success redirect lands back on this storefront and the order moves to PAID-TEST.</li>
+          <li><b>Go live (separate step, Jeramie's tap).</b> Duplicate the two products in live mode, create live Payment Links, swap the two URLs in this page's checkout config, and flip the banner from SIMULATION to LIVE. Never reuse a test-mode link for a real charge.</li>
+        </ol>
+        <p><b>Until then:</b> the button below walks the rest of the flow in simulation only. It moves no money, charges no card, and the order is labeled PAID-TEST, never PAID.</p>
+      </div>
+      <div class="navrow">
+        <button class="btn btn-ghost" id="backBuyer">Back</button>
+        <button class="btn btn-brass" id="simulatePay">Simulate test payment - no money moves</button>
+      </div>
+      <p class="hint">Simulated payment records state PAID-TEST. A real Stripe test payment records PAID-TEST too, with a Stripe payment ID attached. A live payment would record PAID with a live payment ID. The three states are never mixed.</p>
+    </div>
+  </div>
+
+  <!-- STEP 5: DELIVERY -->
+  <div class="panel" id="panel-delivery">
+    <div class="card">
+      <h3 style="margin-top:0">Step 5 - Delivery</h3>
+      <p id="deliveryState"><span class="pill ordered">ORDERED</span> Order placed. Awaiting payment.</p>
+      <div id="deliveryBox"></div>
+      <div class="navrow">
+        <button class="btn btn-primary" id="toLedger" disabled>Continue to receipt ledger</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6: LEDGER -->
+  <div class="panel" id="panel-ledger">
+    <div class="card">
+      <h3 style="margin-top:0">Step 6 - Receipt ledger</h3>
+      <p>Append-only, hash-chained, in this browser (localStorage). Each entry chains to the previous receipt hash. Export downloads the ledger as JSONL. Verify recomputes every hash and reports CHAIN VALID or CHAIN BROKEN.</p>
+      <div class="navrow">
+        <button class="btn btn-primary btn-small" id="verifyChain">Verify chain</button>
+        <button class="btn btn-ghost btn-small" id="exportLedger">Export ledger (JSONL)</button>
+        <button class="btn btn-ghost btn-small" id="clearLedger">Clear ledger (demo reset)</button>
+      </div>
+      <p id="chainResult" style="font-weight:700"></p>
+      <div style="overflow:auto;margin-top:10px">
+        <table id="ledgerTable">
+          <thead><tr><th>Order</th><th>Tier</th><th>Amount</th><th>Parcel</th><th>Report hash</th><th>Prev hash</th><th>Status</th><th>Time (UTC)</th></tr></thead>
+          <tbody id="ledgerBody"><tr><td colspan="8">Ledger is empty. Complete an order to add the first entry.</td></tr></tbody>
+        </table>
+      </div>
+      <details>
+        <summary>Receipt / JSON format (shared with the report generator)</summary>
+        <p class="hint">Receipt version 1.0. The same schema is emitted by the report generator demo at <span class="mono">land-intelligence-report</span>. Canonical content is hashed with the <code>report_hash_sha256</code> field stripped (NRH-style token stripping, so the ID never influences its own hash). Genesis previous hash is the string <code>GENESIS</code>.</p>
+        <pre id="schemaPre" class="mono" style="background:#1d1d1a;color:#e8e8e0;padding:12px;border-radius:4px;overflow:auto;font-size:12px"></pre>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><b>Honesty footer.</b> No fake sales. No fake testimonials. No sold counters. No revenue is claimed anywhere on this page. Delivery states are explicit: ORDERED, PAID-TEST, DELIVERED-SAMPLE. The sample report is the flyer content, labeled where it is unverified or modeled. The flyer brand "Veridian Intelligence Group" is fictional and is not used here; this storefront is Neuruh / DeedSonar land intelligence.</p>
+  <p><b>What is live:</b> nothing. This is a browser simulation of the order flow. Stripe is disconnected (reauthorization required, checked 2026-11-10). No report is generated against live county data. The receipt ledger lives only in this browser.</p>
+  <p><b>What is real:</b> the price ladder (Scan $100 / Dossier $1,500, recorded 2026-10-01), the free 10-min qualifier (cal.com/neuruh), the reference-parcel yield figures (FALLOW modeled, $32,714/yr stacked), and the SHA-256 hashes computed in this page over canonical receipt content.</p>
+  <p class="docctl">DOC CONTROL: Land Report Store v1.0 &middot; 2026-11-10 &middot; Concept RE-040 &middot; Selling-side dossier: _research/land-intelligence-report/selling-side.md (vault) &middot; Report generator: land-intelligence-report (parallel build) &middot; Receipt format v1.0 shared with the generator.</p>
+</footer>
+</div>
+
+<script>
+"use strict";
+/* Land Report Store v1.0 - self-contained, no external calls, no fetch/XHR. */
+
+/* ---------- pure-JS SHA-256 (sync, ASCII byte string in) ---------- */
+function sha256(ascii){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  var mp=Math.pow,mw=mp(2,32),i,j,result='';
+  var words=[],bitLen=ascii.length*8;
+  var hash=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[];
+  var pc=k.length,isC={};
+  for(var cand=2;pc<64;cand++){
+    if(!isC[cand]){
+      for(i=0;i<313;i+=cand)isC[i]=cand;
+      hash[pc]=(mp(cand,.5)*mw)|0;
+      k[pc++]=(mp(cand,1/3)*mw)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){
+    j=ascii.charCodeAt(i);
+    if(j>>8)return null;
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=(bitLen/mw)|0;
+  words[words.length]=bitLen;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),old=hash;
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);
+      hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)hash[i]=(hash[i]+old[i])|0;
+  }
+  for(i=0;i<8;i++)for(j=3;j+1;j--){
+    var b=(hash[i]>>(j*8))&255;
+    result+=((b<16)?'0':'')+b.toString(16);
+  }
+  return result;
+}
+function toUtf8(str){
+  var out='';
+  for(var i=0;i<str.length;i++){
+    var c=str.charCodeAt(i);
+    if(c<128)out+=str.charAt(i);
+    else if(c<2048)out+=String.fromCharCode((c>>6)|192,(c&63)|128);
+    else if(c<55296||c>57343)out+=String.fromCharCode((c>>12)|224,((c>>6)&63)|128,(c&63)|128);
+    else{
+      i++;var c2=str.charCodeAt(i);
+      var cp=0x10000+(((c&0x3FF)<<10)|(c2&0x3FF));
+      out+=String.fromCharCode((cp>>18)|240,((cp>>12)&63)|128,((cp>>6)&63)|128,(cp&63)|128);
+    }
+  }
+  return out;
+}
+function hashStr(s){return sha256(toUtf8(s));}
+/* canonical JSON: sorted keys, arrays in order */
+function canonical(v){
+  if(v===null||typeof v!=='object')return JSON.stringify(v);
+  if(Array.isArray(v))return '['+v.map(canonical).join(',')+']';
+  return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+canonical(v[k]);}).join(',')+'}';
+}
+
+/* ---------- state ---------- */
+var TIERS={
+  scan:{key:'scan',name:'Property Opportunity Scan',amount:100,blurb:'Parcel + distress flags + mineral overlay + short receipt.'},
+  dossier:{key:'dossier',name:'Property Intelligence Dossier',amount:1500,blurb:'Full one-page report: ownership chain, yield stack, receipt.'}
+};
+var REF_PARCEL_ID='71-06-17-000-001.000-026';
+var order={tier:'dossier',parcelId:REF_PARCEL_ID,acres:'42.00',county:'LaPorte',state:'IN',
+  landUse:'Agricultural / Vacant',str:'Section 17, Township 38N, Range 4W',loc:'Approx. 0.6 mi NE of LaPorte',
+  name:'',email:'',phone:'',use:'',orderId:null,reportId:null,state:'BROWSE',receipt:null,ledgerLogged:false};
+var LEDGER_KEY='lir_ledger_v1';
+
+function $(id){return document.getElementById(id);}
+function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function todayParts(){var d=new Date();function p(n){return (n<10?'0':'')+n;}
+  return {ymd:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate()),
+          yy:String(d.getUTCFullYear()).slice(2),mmdd:p(d.getUTCMonth()+1)+p(d.getUTCDate()),
+          iso:d.toISOString()};}
+
+/* ---------- stepper / panels ---------- */
+var PANELS=['tier','parcel','buyer','checkout','delivery','ledger'];
+function showPanel(name){
+  PANELS.forEach(function(p){$('panel-'+p).classList.toggle('on',p===name);});
+  var idx=PANELS.indexOf(name);
+  PANELS.forEach(function(p,i){
+    var s=$('st-'+p);
+    if(i<idx){if(s.textContent==='NOT STARTED'||s.textContent==='IN PROGRESS')s.textContent='DONE';document.querySelector('[data-step="'+p+'"]').className='step done';}
+    else if(i===idx){s.textContent='IN PROGRESS';document.querySelector('[data-step="'+p+'"]').className='step on';}
+    else{s.textContent='NOT STARTED';document.querySelector('[data-step="'+p+'"]').className='step';}
+  });
+}
+function setStepState(name,txt,cls){
+  $('st-'+name).textContent=txt;
+  document.querySelector('[data-step="'+name+'"]').className='step '+(cls||'');
+}
+function tierLabel(){return TIERS[order.tier].name+' - $'+TIERS[order.tier].amount.toLocaleString('en-US');}
+function orderLine(){
+  return tierLabel()+' | Parcel '+$('fParcelId').value+' ('+$('fAcres').value+' ac, '+$('fCounty').value+', '+$('fState').value+')';
+}
+
+/* ---------- tier pick ---------- */
+document.querySelectorAll('[data-tier]').forEach(function(b){
+  b.addEventListener('click',function(){
+    order.tier=b.getAttribute('data-tier');
+    document.querySelector('input[name="tierPick"][value="'+order.tier+'"]').checked=true;
+    setStepState('tier','SELECTED: '+order.tier.toUpperCase(),'done');
+    order.state='ORDER';
+    $('orderSummary1').textContent='Order started. State: ORDER. '+orderLine();
+    showPanel('parcel');
+  });
+});
+$('toParcel').addEventListener('click',function(){
+  order.tier=document.querySelector('input[name="tierPick"]:checked').value;
+  setStepState('tier','SELECTED: '+order.tier.toUpperCase(),'done');
+  order.state='ORDER';
+  $('orderSummary1').textContent='Order started. State: ORDER. '+orderLine();
+  showPanel('parcel');
+});
+$('backTier').addEventListener('click',function(){showPanel('tier');});
+$('toBuyer').addEventListener('click',function(){
+  order.parcelId=$('fParcelId').value.trim();
+  order.acres=$('fAcres').value.trim();
+  order.county=$('fCounty').value.trim();
+  order.state=$('fState').value.trim();
+  order.landUse=$('fLandUse').value.trim();
+  order.str=$('fSTR').value.trim();
+  order.loc=$('fLoc').value.trim();
+  setStepState('parcel','ENTERED: '+order.parcelId,'done');
+  $('orderSummary2').textContent='Parcel recorded. '+orderLine();
+  showPanel('buyer');
+});
+$('backParcel').addEventListener('click',function(){showPanel('parcel');});
+
+/* ---------- buyer ---------- */
+$('toCheckout').addEventListener('click',function(){
+  order.name=$('fName').value.trim();
+  order.email=$('fEmail').value.trim();
+  order.phone=$('fPhone').value.trim();
+  order.use=$('fUse').value;
+  if(!order.name||!order.email||order.email.indexOf('@')<1){
+    $('buyerError').textContent='Name and a valid delivery email are required before review.';
+    return;
+  }
+  $('buyerError').textContent='';
+  setStepState('buyer','ENTERED: '+order.email,'done');
+  renderReview();
+  showPanel('checkout');
+});
+$('backBuyer').addEventListener('click',function(){showPanel('buyer');});
+
+/* ---------- review ---------- */
+function renderReview(){
+  var t=TIERS[order.tier];
+  $('reviewBox').innerHTML=
+    '<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">Order review</h3>'+
+    '<table><tr><th>Tier</th><td>'+t.name+' - $'+t.amount.toLocaleString('en-US')+'</td></tr>'+
+    '<tr><th>Parcel</th><td>'+order.parcelId+' - '+order.acres+' ac, '+order.county+', '+order.state+' ('+order.landUse+')</td></tr>'+
+    '<tr><th>Section</th><td>'+order.str+' - '+order.loc+'</td></tr>'+
+    '<tr><th>Buyer</th><td>'+order.name+' - '+order.email+(order.phone?' - '+order.phone:'')+'</td></tr>'+
+    '<tr><th>Use</th><td>'+(order.use||'Not stated')+'</td></tr>'+
+    '<tr><th>Delivery</th><td>PDF report + JSON receipt, to the delivery email above (live flow). In this demo, delivery renders below.</td></tr>'+
+    '<tr><th>State</th><td><span class="pill ordered">ORDERED</span> - payment not yet taken.</td></tr></table></div>';
+}
+
+/* ---------- ledger ---------- */
+function loadLedger(){
+  try{return JSON.parse(localStorage.getItem(LEDGER_KEY)||'[]');}
+  catch(e){return [];}
+}
+function saveLedger(rows){localStorage.setItem(LEDGER_KEY,JSON.stringify(rows));}
+function renderLedger(){
+  var rows=loadLedger();
+  var tb=$('ledgerBody');
+  tb.innerHTML='';
+  if(!rows.length){
+    tb.innerHTML='<tr><td colspan="8">Ledger is empty. Complete an order to add the first entry.</td></tr>';
+    return;
+  }
+  rows.forEach(function(r){
+    var tr=document.createElement('tr');
+    [r.order_id,r.tier,'$'+r.amount_usd.toLocaleString('en-US'),r.parcel_id,
+     (r.report_hash||'').slice(0,16)+'…',(r.prev_receipt_hash||'').slice(0,16)+'…',
+     r.status,r.timestamp_utc].forEach(function(v,i){
+      var td=document.createElement('td');
+      if(i===4||i===5){td.className='mono';}
+      if(i===6){td.innerHTML='<span class="pill '+(r.status==='PAID-TEST'?'paid':'delivered')+'">'+r.status+'</span>';}
+      else td.textContent=v;
+      tr.appendChild(td);
+    });
+    tb.appendChild(tr);
+  });
+}
+function verifyChain(){
+  var rows=loadLedger();
+  if(!rows.length){$('chainResult').textContent='Ledger is empty. Nothing to verify.';return true;}
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    var expectPrev=i===0?'GENESIS':rows[i-1].report_hash;
+    if(r.prev_receipt_hash!==expectPrev){
+      $('chainResult').textContent='CHAIN BROKEN at entry '+(i+1)+': prev hash does not match the previous entry.';
+      return false;
+    }
+    var copy=JSON.parse(JSON.stringify(r.receipt));
+    var claimed=copy.provenance.report_hash_sha256;
+    delete copy.provenance.report_hash_sha256;
+    var recomputed=hashStr(canonical(copy));
+    if(recomputed!==claimed){
+      $('chainResult').textContent='CHAIN BROKEN at entry '+(i+1)+': report hash does not recompute from the receipt content.';
+      return false;
+    }
+  }
+  $('chainResult').textContent='CHAIN VALID: '+rows.length+' entr'+(rows.length===1?'y':'ies')+', every hash recomputes, every link matches.';
+  return true;
+}
+$('verifyChain').addEventListener('click',verifyChain);
+$('exportLedger').addEventListener('click',function(){
+  var rows=loadLedger();
+  var text=rows.map(function(r){return JSON.stringify(r);}).join('\n');
+  download('land-report-ledger.jsonl',text,'application/jsonl');
+});
+$('clearLedger').addEventListener('click',function(){
+  if(window.confirm('Clear the in-browser ledger? This is a demo reset. Export first if you need the entries.')){
+    localStorage.removeItem(LEDGER_KEY);
+    renderLedger();
+    $('chainResult').textContent='Ledger cleared (demo reset).';
+  }
+});
+function download(name,text,mime){
+  var blob=new Blob([text],{type:mime||'application/json'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+/* ---------- receipt + delivery ---------- */
+function buildReceipt(){
+  var parts=todayParts();
+  var rows=loadLedger();
+  var seq=rows.length+1;
+  var seq2=(seq<10?'0':'')+seq;
+  order.orderId='ORD-'+parts.ymd+'-'+seq2;
+  order.reportId='VLND-'+parts.yy+'-'+parts.mmdd+'-'+seq2;
+  var isRef=order.parcelId===REF_PARCEL_ID;
+  var prev=rows.length?rows[rows.length-1].report_hash:'GENESIS';
+  var receipt={
+    receipt_version:'1.0',
+    report_id:order.reportId,
+    order_id:order.orderId,
+    tier:order.tier,
+    amount_usd:TIERS[order.tier].amount,
+    payment_status:'PAID-TEST',
+    payment_note:'Simulated test payment in this demo. No money moved. No Stripe session.',
+    buyer:{name:order.name,email:order.email,phone:order.phone||null,use:order.use||null},
+    parcel:{parcel_id:order.parcelId,county:order.county,state:order.state,acres:parseFloat(order.acres)||null,
+      land_use:order.landUse,section_township_range:order.str,location_note:order.loc},
+    ownership_chain: isRef ? [
+      {role:'HOLDING LLC',name:'Prairie View Holdings LLC',note:'Indiana Registered Agent',verified:false,verification_note:'UNVERIFIED - name from the flyer mockup, not independently verified'},
+      {role:'PERSON',name:'Ryan D. McAllister',note:'Manager / Authorized Member',verified:false,verification_note:'UNVERIFIED - name from the flyer mockup, not independently verified'},
+      {role:'PARCELS',name:'42 acres (target parcel)',note:'Additional parcels (3)',verified:false,verification_note:'UNVERIFIED - parcel count from the flyer mockup'}
+    ] : [{role:'NOTE',name:null,note:'Ownership chain PENDING LIVE SCORING for this parcel. No chain is asserted.',verified:false}],
+    yield_stack: isRef ? {
+      gross_annual_yield_usd:32714,per_acre_yield_usd:778,cap_rate_pct:3.12,land_value_usd:1050000,
+      modeled:true,model_note:'MODELED - matches FALLOW modeled stacked yield for the 42-acre LaPorte reference parcel (hunting + laydown + apiary). No lease has closed on it.',
+      components:['hunting','laydown','apiary'],
+      conflict_notes:['No soil productivity data within 1.2 miles (low confidence in crop yield)','Parcel partially within floodplain (FEMA Zone A)','Access appears prescriptive only (no deeded road frontage detected)']
+    } : {gross_annual_yield_usd:null,modeled:null,model_note:'PENDING LIVE SCORING - no yield is asserted for this parcel in the demo.'},
+    mineral_overlay: isRef ? {
+      halo_signal:'NONE',detail:'No elevated mineral activity detected within 1 mile. No recent permits, leases, or drilling activity.'
+    } : {halo_signal:'PENDING',detail:'PENDING LIVE SCORING - no mineral signal is asserted for this parcel in the demo.'},
+    distress_flags: isRef ? [
+      {flag:'LOW DISTRESS',detail:'No tax delinquency or foreclosure activity'},
+      {flag:'NO AUCTION RECORD',detail:'Not listed in upcoming tax or sheriff sales'},
+      {flag:'OWNER-ENTITY RISK LOW',detail:'No red-flag corporate structure or judgment hits'}
+    ] : [{flag:'PENDING',detail:'PENDING LIVE SCORING - no distress flags are asserted for this parcel in the demo.'}],
+    provenance:{
+      report_hash_sha256:null,
+      verdict: isRef ? 'PASS' : 'PASS-SHELL',
+      verdict_note: isRef ? 'Sources matched for the reference-parcel sample. Owner names remain UNVERIFIED.' : 'Shell only: parcel block recorded, scored blocks pending live scoring.',
+      timestamp_utc:parts.iso,
+      prev_receipt_hash:prev,
+      sources: isRef ? ['Flyer mockup image__63.jpg (sample values, labeled)','FALLOW modeled yield for the 42-acre LaPorte reference parcel','County parcel record (parcel ID as entered)'] : ['County parcel record (parcel ID as entered)']
+    },
+    status: isRef ? 'DELIVERED-SAMPLE' : 'DELIVERED-SHELL'
+  };
+  var forHash=JSON.parse(JSON.stringify(receipt));
+  delete forHash.provenance.report_hash_sha256;
+  receipt.provenance.report_hash_sha256=hashStr(canonical(forHash));
+  return receipt;
+}
+
+function renderDelivery(){
+  var r=order.receipt;
+  var isRef=order.parcelId===REF_PARCEL_ID;
+  var t=TIERS[order.tier];
+  var html='<p><span class="pill paid">PAID-TEST</span> <span class="pill delivered">'+r.status+'</span></p>';
+  html+='<p>Order <b>'+order.orderId+'</b> - '+t.name+' ($'+t.amount.toLocaleString('en-US')+') - paid in simulation only. Report <b>'+order.reportId+'</b> delivered below. In the live flow this report and its JSON receipt go to '+order.email+'.</p>';
+  if(order.tier==='scan'){
+    html+='<div class="sample"><div class="sample-head"><h3>Property Opportunity Scan - Short Form</h3><span class="rid">'+order.reportId+'</span></div>'+
+    '<div class="watermark">'+(isRef?'SAMPLE - OWNER NAMES UNVERIFIED - YIELD MODELED':'SHELL - SCORED BLOCKS PENDING LIVE SCORING')+'</div>'+
+    '<div class="sample-body"><div class="sblock"><h4>Target Parcel</h4><p>'+r.parcel.parcel_id+'<br>'+r.parcel.acres+' ac, '+r.parcel.county+', '+r.parcel.state+'<br>'+r.parcel.land_use+'<br>'+r.parcel.section_township_range+'<br>'+r.parcel.location_note+'</p></div>'+
+    '<div class="sblock"><h4>Distress Flags</h4><p>'+r.distress_flags.map(function(f){return f.flag+': '+f.detail;}).join('<br>')+'</p>'+
+    '<h4 style="margin-top:10px">Mineral Overlay</h4><p>'+r.mineral_overlay.halo_signal+': '+r.mineral_overlay.detail+'</p></div></div></div>';
+  }else{
+    html+='<div class="sample"><div class="sample-head"><h3>Provenance-Backed Land Intelligence Report</h3><span class="rid">'+order.reportId+'</span></div>'+
+    '<div class="watermark">'+(isRef?'SAMPLE - OWNER NAMES UNVERIFIED - YIELD MODELED':'SHELL - SCORED BLOCKS PENDING LIVE SCORING')+'</div>'+
+    '<div class="sample-body">'+
+    '<div class="sblock"><h4>Target Parcel</h4><p><b style="font-size:20px">'+r.parcel.acres+' ACRES</b><br>'+r.parcel.county+' County, '+r.parcel.state+'</p><p>Parcel ID <span class="mono">'+r.parcel.parcel_id+'</span><br>Acres (deeded) '+r.parcel.acres+' &middot; '+r.parcel.land_use+'<br>'+r.parcel.section_township_range+'<br>'+r.parcel.location_note+'</p></div>'+
+    '<div class="sblock"><h4>Ownership Chain</h4><p>'+r.ownership_chain.map(function(o){return (o.role+': '+(o.name||o.note));}).join('<br>')+'</p><p>'+(isRef?'<span class="flag">UNVERIFIED - SAMPLE</span> Owner names from the flyer mockup, not independently verified.':'No chain asserted in the demo shell.')+'</p></div>'+
+    '<div class="sblock"><h4>Yield Stack (Est.)</h4>'+(isRef?'<p><span class="big">$32,714 /yr</span><br>Est. gross annual yield</p><p>$778 /ac/yr &middot; 3.12% cap rate (est.) &middot; $1.05M land value (est.)</p><p>Stack: hunting + laydown + apiary. <span class="flag">MODELED</span></p><ul><li>No soil productivity data within 1.2 miles</li><li>Parcel partially within floodplain (FEMA Zone A)</li><li>Access appears prescriptive only</li></ul>':'<p>PENDING LIVE SCORING. No yield asserted.</p>')+'</div>'+
+    '<div class="sblock"><h4>Mineral Overlay</h4><p><b>'+r.mineral_overlay.halo_signal+'</b><br>'+r.mineral_overlay.detail+'</p><h4 style="margin-top:10px">Distress Flags</h4><p>'+r.distress_flags.map(function(f){return f.flag+': '+f.detail;}).join('<br>')+'</p></div>'+
+    '<div class="sblock" style="grid-column:1/-1"><h4>Provenance Receipt</h4><p>Report hash (SHA-256): <span class="mono">'+r.provenance.report_hash_sha256+'</span></p><p>Verdict: '+r.provenance.verdict+' &middot; Timestamp '+r.provenance.timestamp_utc+' &middot; Previous receipt hash: <span class="mono">'+r.provenance.prev_receipt_hash+'</span></p><p>'+r.provenance.verdict_note+' Recompute the hash over the canonical JSON below (hash field stripped) to confirm.</p></div>'+
+    '</div></div>';
+  }
+  html+='<div class="navrow"><button class="btn btn-primary btn-small" id="dlReport">Download report JSON receipt</button>'+
+  '<button class="btn btn-ghost btn-small" id="copyHash">Copy report hash</button></div>'+
+  '<p class="hint">Report hash: <span class="mono" id="hashEcho">'+r.provenance.report_hash_sha256+'</span></p>';
+  $('deliveryBox').innerHTML=html;
+  $('dlReport').addEventListener('click',function(){
+    download(order.reportId+'.json',JSON.stringify(order.receipt,null,2),'application/json');
+  });
+  $('copyHash').addEventListener('click',function(){
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(r.provenance.report_hash_sha256);}
+  });
+}
+
+$('simulatePay').addEventListener('click',function(){
+  order.receipt=buildReceipt();
+  order.state='PAID-TEST';
+  setStepState('checkout','PAID-TEST (SIMULATED)','done');
+  setStepState('delivery','DELIVERED','done');
+  $('deliveryState').innerHTML='<span class="pill paid">PAID-TEST</span> Simulated test payment recorded. No money moved. No Stripe session. Order '+order.orderId+'.';
+  renderDelivery();
+  $('toLedger').disabled=false;
+  showPanel('delivery');
+});
+
+$('toLedger').addEventListener('click',function(){
+  if(!order.ledgerLogged&&order.receipt){
+    var rows=loadLedger();
+    rows.push({order_id:order.orderId,report_id:order.reportId,tier:order.tier,
+      amount_usd:TIERS[order.tier].amount,parcel_id:order.parcelId,
+      report_hash:order.receipt.provenance.report_hash_sha256,
+      prev_receipt_hash:order.receipt.provenance.prev_receipt_hash,
+      status:'PAID-TEST',timestamp_utc:order.receipt.provenance.timestamp_utc,
+      receipt:order.receipt});
+    saveLedger(rows);
+    order.ledgerLogged=true;
+    setStepState('ledger','LOGGED: '+order.orderId,'done');
+  }
+  renderLedger();
+  showPanel('ledger');
+});
+
+/* ---------- schema pre + init ---------- */
+$('schemaPre').textContent=JSON.stringify({
+  receipt_version:'1.0',report_id:'VLND-26-1110-01',order_id:'ORD-20261110-01',
+  tier:'dossier',amount_usd:1500,payment_status:'PAID-TEST',
+  buyer:{name:'...',email:'...',phone:null,use:null},
+  parcel:{parcel_id:'71-06-17-000-001.000-026',county:'LaPorte',state:'IN',acres:42.0,land_use:'Agricultural / Vacant',section_township_range:'Section 17, Township 38N, Range 4W',location_note:'Approx. 0.6 mi NE of LaPorte'},
+  ownership_chain:[{role:'HOLDING LLC',name:'...',note:'...',verified:false}],
+  yield_stack:{gross_annual_yield_usd:32714,per_acre_yield_usd:778,cap_rate_pct:3.12,land_value_usd:1050000,modeled:true,components:['hunting','laydown','apiary'],conflict_notes:['...']},
+  mineral_overlay:{halo_signal:'NONE',detail:'...'},
+  distress_flags:[{flag:'LOW DISTRESS',detail:'...'}],
+  provenance:{report_hash_sha256:'<64 hex, computed over canonical content with this field stripped>',verdict:'PASS',timestamp_utc:'...',prev_receipt_hash:'GENESIS',sources:['...']},
+  status:'DELIVERED-SAMPLE'
+},null,2);
+
+renderLedger();
+showPanel('tier');
+</script>
+</body>
+</html>
