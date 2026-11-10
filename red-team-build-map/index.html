@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red-Team Build Map — Tier 0 to Tier 4 (June 2026 extraction)</title>
+<style>
+  :root{--bg:#0B0D0E;--surface:#14161A;--bone:#E8E6E3;--ink:#B8B4AC;--brass:#C9A227;--line:#2A2D33;--gold:#D8B13A;--dim:#6E6A60;--gray:#8A877E}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--bone);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+  header{padding:28px 28px 10px;border-bottom:1px solid var(--line)}
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;color:var(--brass);text-transform:uppercase}
+  h1{font-family:Archivo,Inter,sans-serif;font-size:30px;margin:8px 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--ink);max-width:900px;margin:0}
+  .warn{margin:14px 28px 0;border:1px solid var(--brass);color:var(--gold);padding:10px 14px;font-size:14px;background:#17150a}
+  .warn b{color:var(--brass)}
+  main{padding:18px 28px 40px;max-width:1180px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+  .toolbar button{background:var(--surface);color:var(--bone);border:1px solid var(--line);padding:7px 12px;font:600 13px Inter,sans-serif;cursor:pointer;border-radius:3px}
+  .toolbar button.on{border-color:var(--brass);color:var(--gold)}
+  #viewer{position:relative;height:560px;background:var(--surface);border:1px solid var(--line)}
+  #viewer canvas{display:block}
+  #fallback{display:none;padding:24px;color:var(--ink)}
+  .overlay{position:absolute;left:12px;top:12px;background:rgba(11,13,14,.85);border:1px solid var(--line);padding:10px 12px;font-size:12.5px;max-width:340px}
+  .overlay b{color:var(--gold)}
+  .overlay .row{display:flex;gap:8px;align-items:center;margin:3px 0}
+  .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  .sq{width:10px;height:10px;flex:none}
+  #readout{margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink);min-height:20px}
+  #readout b{color:var(--gold)}
+  h2{font-family:Archivo,Inter,sans-serif;font-size:20px;margin:34px 0 6px;border-top:1px solid var(--line);padding-top:22px}
+  h3{font-size:15px;margin:18px 0 4px;color:var(--gold)}
+  p{color:var(--ink);max-width:900px}
+  table{border-collapse:collapse;width:100%;max-width:980px;margin:10px 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--surface);color:var(--gold);font-weight:600}
+  td.num{font-family:"JetBrains Mono",monospace;text-align:right}
+  .mono{font-family:"JetBrains Mono",monospace}
+  .fig{border:1px solid var(--line);background:var(--surface);padding:14px;margin:12px 0;max-width:980px}
+  .figcap{font-size:12.5px;color:var(--dim);margin-top:8px}
+  .pill{display:inline-block;border:1px solid var(--line);padding:1px 7px;border-radius:20px;font-size:11.5px;font-family:"JetBrains Mono",monospace}
+  .pill.built{border-color:var(--brass);color:var(--gold)}
+  .pill.queued{border-color:var(--gray);color:var(--bone)}
+  .pill.partial{border-color:var(--gray);color:var(--ink)}
+  .pill.new{border-color:var(--gold);color:var(--gold)}
+  .pill.held{border-color:#8a5a2a;color:#d8a05a}
+  .pill.dead{border-color:#7a3a2a;color:#d88a6a}
+  footer{border-top:1px solid var(--line);padding:18px 28px;color:var(--dim);font-size:12.5px}
+  a{color:var(--gold)}
+  @media print{body{background:#fff;color:#111}#viewer{height:420px}.warn{border-color:#888;color:#333}}
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Neuruh · Batch 014 · 4-Pass Red-Team Extraction</div>
+  <h1>The build map — Tier 0 to Tier 4</h1>
+  <p class="sub">Pass 4 of the June 2026 red-team extraction over the Master Handoff, Canon Rebuild, and Board Q&amp;A Bank. Twelve components (C1–C12) stacked in five tiers, with the first close as the keystone: the moment the pitch stops being narrative and starts being evidence. Toggle to the second view for the amplification stack (A–J) the extraction proposed.</p>
+</header>
+<div class="warn"><b>JUNE 2026 EXTRACTION — HISTORICAL RECORD.</b> Tier 0 in its June form is dead: the Vercel role flip and the JV paper are superseded by the October 22 correction and the November 4 503 state. The moat is empty today — zero closes, no labeled training set shown. Nothing on this page is a live claim.</div>
+<main>
+  <div class="toolbar" id="toolbar">
+    <button id="btnBuild" class="on">Build map — Tier 0 to 4</button>
+    <button id="btnAmp">Amplification stack — A to J</button>
+    <button id="btnRotate">Pause rotation</button>
+    <button id="btnReset">Reset view</button>
+  </div>
+  <div id="viewer">
+    <div class="overlay" id="legend">
+      <div class="row"><span class="dot" style="background:#C9A227"></span><span><b>Brass octahedra</b> — BUILT (C1–C3)</span></div>
+      <div class="row"><span class="dot" style="background:#E8E6E3"></span><span><b>Bone tetrahedra</b> — QUEUED (C4–C6)</span></div>
+      <div class="row"><span class="sq" style="background:#8A877E"></span><span><b>Gray cubes</b> — PARTIAL (C7)</span></div>
+      <div class="row"><span class="dot" style="background:#D8B13A;border:2px solid #D8B13A"></span><span><b>Gold rings</b> — NEW (C8–C12)</span></div>
+      <div class="row"><span class="dot" style="background:#C9A227;width:14px;height:14px"></span><span><b>Keystone sphere</b> — FIRST CLOSE (Tier 1)</span></div>
+      <div class="row"><span style="color:#6E6A60">Drag to rotate, wheel to zoom. Click a node for its record.</span></div>
+    </div>
+    <div id="fallback"><b>3D viewer unavailable.</b> WebGL or the Three.js CDN did not load. The tables below carry every component, tier, and amplification; the build map is the same data the tables are built from.</div>
+  </div>
+  <div id="readout">Click a node. 12 components across 5 tiers, plus 10 amplifications. Data: June 2026 extraction, absorbed 2026-11-10.</div>
+
+  <h2>1 · The tiers, in order</h2>
+  <p>Each tier gates the next. Tier 0 is the unblock; Tier 1 is the shortest path to the first close; Tier 2 converts one close into moat and pitch; Tier 3 makes "autonomous" real, honestly; Tier 4 productizes the licensable layers.</p>
+  <table id="tierTable">
+    <tr><th>Tier</th><th>Name</th><th>Components</th><th>Gate</th><th>June 2026 status</th></tr>
+    <tr><td class="num">0</td><td>Unblock + paper</td><td>C3 deploy (Vercel role flip), JV paper</td><td>Everything</td><td><span class="pill dead">SUPERSEDED</span> Role flip + JV paper dead in June form (Oct 22 correction, Nov 4 503). Surviving requirement: define ownership of lead data + outcome ledger on Jeramie's own infrastructure.</td></tr>
+    <tr><td class="num">1</td><td>Shortest path to first close</td><td>C4 manual contact entry, C8 Proof-of-Outcome schema</td><td>First close</td><td>Queued. C8 schema must exist BEFORE the first close or the close's IP value is lost.</td></tr>
+    <tr><td class="num">2</td><td>Convert one close into moat + pitch</td><td>C9 label backfill, C5 pierce projection, first Proof-of-Outcome row</td><td>Diligence artifact + unit economics</td><td>C9 <span class="pill held">HELD</span> — APG backfill path dead after Oct 22. Replacement label source is open Q-014-1.</td></tr>
+    <tr><td class="num">3</td><td>Autonomy + coverage</td><td>C6 scheduler, C7 adapters (obit → estate → meeting-7a → violations → tax-delinquent)</td><td>"Autonomous" honest</td><td>Queued. Meeting-7a VA-fed only; do not block on down E2 infra.</td></tr>
+    <tr><td class="num">4</td><td>Productize the licensable layers</td><td>C10 Resolve API, C12 compliance rail, C11 FSP fusion</td><td>Revenue</td><td>New. Sequence: Resolve first (built, highest margin, no services drag). C11 gated on FSP state check.</td></tr>
+  </table>
+
+  <h2>2 · Components C1–C12</h2>
+  <table id="compTable">
+    <tr><th>ID</th><th>Component</th><th>State</th><th>Note</th></tr>
+    <tr><td class="mono">C1</td><td>Engine core (weights/gates/provider chain = config; scoring/classify/pierce/resolve = logic)</td><td><span class="pill built">BUILT</span></td><td>June 2026 engine. Not hosted in Nov 2026; production DB unreachable. Built does not mean running.</td></tr>
+    <tr><td class="mono">C2</td><td>Projection bridge (sync_to_crm.py, single writer)</td><td><span class="pill built">BUILT</span></td><td>The firewall in code: sole writer into public.acquisition_leads.</td></tr>
+    <tr><td class="mono">C3</td><td>CRM cockpit (apg-land-crm, commit 48fe324)</td><td><span class="pill built">BUILT</span></td><td>Deploy-blocked in June; deployment now 503 DEPLOYMENT_PAUSED (Nov 4). Ownership/access unresolved.</td></tr>
+    <tr><td class="mono">C4</td><td>Manual-contact-entry module ($0 callable path)</td><td><span class="pill queued">QUEUED</span></td><td>First callable leads for $0, before any paid trace.</td></tr>
+    <tr><td class="mono">C5</td><td>Pierce-projection-to-card</td><td><span class="pill queued">QUEUED</span></td><td>Full coverage of the 81-entity → 71-human pierce.</td></tr>
+    <tr><td class="mono">C6</td><td>Scheduler (daily_run.sh + launchd)</td><td><span class="pill queued">QUEUED</span></td><td>Daily hunt. LandOS was not on the clock in June 2026.</td></tr>
+    <tr><td class="mono">C7</td><td>DiscoveryAdapters (obit → estate → meeting-7a → violations → tax-delinquent)</td><td><span class="pill partial">PARTIAL</span></td><td>Recipe Engine proven vs a mock LandOS; real-engine node_id persistence is the open gate.</td></tr>
+    <tr><td class="mono">C8</td><td>Proof-of-Outcome Ledger (amp A)</td><td><span class="pill new">NEW</span></td><td>Instrument closed_outcomes BEFORE the first close. Training set + diligence artifact + sellable benchmark dataset.</td></tr>
+    <tr><td class="mono">C9</td><td>Historical-label backfill from APG CRM (amp B)</td><td><span class="pill held">HELD</span></td><td>Depended on JV paper; path dead after Oct 22. Replacement label source open (Q-014-1).</td></tr>
+    <tr><td class="mono">C10</td><td>Resolve API (amp C)</td><td><span class="pill new">NEW</span></td><td>Pierce/identity as a horizontal API. Cleanest licensable-IP surface; highest margin, no services drag.</td></tr>
+    <tr><td class="mono">C11</td><td>FSP contents-valuation fusion (amp G)</td><td><span class="pill new">NEW</span></td><td>Gated on FSP state check ([VERIFY] in the corpus). Do not claim the goods surface as built.</td></tr>
+    <tr><td class="mono">C12</td><td>Compliance-rail SKU (amp J)</td><td><span class="pill new">NEW</span></td><td>DNC/TCPA gate + consent logic + R1–R5 as a land-and-prove wedge. "Tool, not advice" framing is load-bearing.</td></tr>
+  </table>
+
+  <h2>3 · Pass 2 — the stress test, ranked 1–9</h2>
+  <p>The extraction's attack, in severity order. #1 is the load-bearing one: everything downstream of it is narrative until it is fixed.</p>
+  <table id="stressTable">
+    <tr><th>#</th><th>Finding</th><th>What it means</th></tr>
+    <tr><td class="num">1</td><td><b>The moat is empty today</b></td><td>Zero closes; no labeled training set shown. The defensibility thesis (Q7, Q10, Q11, Q13) is narrative, not data. Diligence-killer: "Show me the labeled training set and the weight deltas from real closes."</td></tr>
+    <tr><td class="num">2</td><td>Unit economics fights the operating model</td><td>"Marginal cost ≈ zero" vs VA hours × signals × counties. "Autonomous" does two jobs: canon says scout-and-propose, pitch sells self-driving.</td></tr>
+    <tr><td class="num">3</td><td>Unpapered JV + partner-controlled deployment</td><td>Bryan held the live tenant, the operating data, and the future closed_outcomes. Firewall protects IP, not go-to-market or the data that becomes the moat. Now superseded: Nov 4 503 state.</td></tr>
+    <tr><td class="num">4</td><td>TAM sound, SOM bridge missing</td><td>136 leads, 2 counties, 0 closes. Per-event economics "is THE Phase 1 deliverable" — it does not exist. The meeting-ender for the investor lens.</td></tr>
+    <tr><td class="num">5</td><td>Five surfaces claimed, one built</td><td>Property/lead built; services, goods, data resale asserted with proofs borrowed from adjacent non-estate work.</td></tr>
+    <tr><td class="num">6</td><td>Data-source ToU unmapped at SKU level</td><td>IOCS disqualifying, mycase ToU-restricted, estatesales.net scraped. Cleared in exactly one jurisdiction; already failed once.</td></tr>
+    <tr><td class="num">7</td><td>The platform is the least-built thing</td><td>HelmAI cockpit + Jarvis: architecture locked, app not built. The largest valuation expander is the least real.</td></tr>
+    <tr><td class="num">8</td><td>Rent-vs-own doctrine clash</td><td>Data is commodity (rent it) vs sovereign-data direction (own the tracer + miner). No switch-over trigger stated. D5 defines it as monthly-volume × cost-delta, not a date.</td></tr>
+    <tr><td class="num">9</td><td>Crown jewel + newest signal underspecified / infra-blocked</td><td>Parcel-assembly detection is one sentence — no adjacency definition, no value model. Meeting-7a automated depends on local Ollama, listed DOWN (E2 hard-gated).</td></tr>
+  </table>
+
+  <h2>4 · Pass 3 — the amplification stack A–J</h2>
+  <table id="ampTable">
+    <tr><th>ID</th><th>Amplification</th><th>Why it matters</th></tr>
+    <tr><td class="mono">A</td><td>Proof-of-Outcome Ledger</td><td>Every close writes the full chain, hashed. Training set + diligence artifact + benchmark dataset, at once. The moat-manufacturing process.</td></tr>
+    <tr><td class="mono">B</td><td>Bootstrap labels from APG's 27-table CRM</td><td>Mine historical deals → retrospective labels → seed weights. The only path that turns "25 years of labels" into a dataset. HELD after Oct 22.</td></tr>
+    <tr><td class="mono">C</td><td>Neuruh Resolve — pierce/identity API</td><td>Sell the pierce without exposing discovery method or scoring weights. Highest margin, pure software.</td></tr>
+    <tr><td class="mono">D</td><td>Negative-space distress feed</td><td>Compute what didn't happen (permit that should have been pulled, silent property in a rising zip). Un-Googleable.</td></tr>
+    <tr><td class="mono">E</td><td>One scraper, three filters</td><td>Same ingest → property leads + roll-up targets + white-label customers. Strongest compounding story; nearly free.</td></tr>
+    <tr><td class="mono">F</td><td>Receipts as white-label trust layer</td><td>Per-lead provenance tenants can show their own counsel. Gives "compliance as a feature" a delivery mechanism.</td></tr>
+    <tr><td class="mono">G</td><td>FSP/ResellOS fusion</td><td>Estate-event detection → property scoring + contents valuation in one pass. Gated on FSP state check.</td></tr>
+    <tr><td class="mono">H</td><td>Dispatch OS</td><td>Heartbeat-orchestrator + voice dispatch as an operations layer for the same operators who buy leads. Baker was live but unsigned (June 2026).</td></tr>
+    <tr><td class="mono">I</td><td>Three stacked SKUs</td><td>Resolve usage-priced + HelmAI $5K + $493/mo + benchmark data to institutions. Three revenue lines, three buyers. Resolve first.</td></tr>
+    <tr><td class="mono">J</td><td>Compliance-rail wedge SKU</td><td>DNC/TCPA gate + R1–R5 as a land-and-prove wedge for wholesalers. Lead with the felt pain; upsell the engine.</td></tr>
+  </table>
+
+  <h2>5 · The numbers the extraction stood on</h2>
+  <div class="fig">
+    <p class="mono">286 raw → 136 qualified (124 Berrien MI + 12 St. Joseph IN) · 38 individual / 81 entity / 17 govt · 81 entities → 71 controlling humans → 3 portfolio hubs (Colovos 13, Cook ~8, Whirlpool-orbit 4+) · 8 dead-entity distress flags · 111 engine tests green (June 2026) · 0 closes · 119 callable after trace · Tracerfy ~$0.02/lead (June 2026 pricing, unverified current) · IP Registry 801 entries / $850K–$1.75M pre-money — UNVERIFIED in the transcript itself · Product ladder $47 → $97 DealSnap → $297 → $497 → $5K + $493/mo white-label</p>
+    <div class="figcap">Figure 1 — Every figure above is June 2026, from the three source documents as inventoried in Pass 1. The 801-entry IP Registry count is not reconciled against the NRH Registry record (batch 004); the two counts are separate claims with different dates.</div>
+  </div>
+
+  <h2>6 · What is NOT in this record</h2>
+  <p>The three source documents (Master Handoff, Canon Rebuild, Board Q&amp;A Bank) are <b>not on file in the vault</b> — checked 2026-11-10. The only Board Q&amp;A trace is one incidental mention in an 11-Notion Anchorpoint note. This page and its dossier are the record of the extraction; the transcript behind them is the sole source. If the three documents surface later (Mac lane, Drive lane), the dossier should be re-verified against them — in particular the 286 → 136 funnel, the 71-human pierce, and the 801-entry IP Registry count.</p>
+  <p>Decisions still open from the extraction: D1 first-close market (recommend St. Joseph IN probate, Ind. Code 29-1-12; proven once end-to-end in the Steward case); D2 meeting-intel VA-fed only; D3 Resolve standalone vs cockpit-only; D4 goods/resale activation timing; D5 rent-vs-sovereign switch-over trigger. Open questions Q-014-1 to Q-014-7 are in the dossier.</p>
+</main>
+<footer>
+  Source: 4-pass red-team extraction transcript, June 2026 documents, absorbed 2026-11-10 (batch 014). Dossier: _research/red-team-extraction-landOS-apg/red-team-extraction-landOS-apg.md in the Neuruh Obsidian vault. Three.js 0.158.0 via cdnjs. No live claim: every state on this page is June 2026 unless labeled otherwise. Contact: jeramie@neuruh.com · cal.com/neuruh
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+(function(){
+  var BUILD_DATA = {
+  "tiers": [
+    {
+      "n": 0,
+      "label": "TIER 0 — UNBLOCK + PAPER",
+      "note": "Gates everything. June form SUPERSEDED (Oct 22, Nov 4 503)."
+    },
+    {
+      "n": 1,
+      "label": "TIER 1 — FIRST CLOSE",
+      "note": "Shortest path to first close. Keystone tier."
+    },
+    {
+      "n": 2,
+      "label": "TIER 2 — CLOSE INTO MOAT",
+      "note": "One close becomes diligence artifact + unit economics."
+    },
+    {
+      "n": 3,
+      "label": "TIER 3 — AUTONOMY",
+      "note": "Scheduler + adapters. Makes autonomous honest."
+    },
+    {
+      "n": 4,
+      "label": "TIER 4 — PRODUCTIZE",
+      "note": "Resolve API, compliance rail, FSP fusion."
+    }
+  ],
+  "components": [
+    {
+      "id": "C1",
+      "name": "Engine core",
+      "tier": 0,
+      "state": "BUILT",
+      "note": "Weights/gates/provider chain = config; scoring/classify/pierce/resolve = logic. BUILT June 2026; not hosted Nov 2026."
+    },
+    {
+      "id": "C2",
+      "name": "Projection bridge",
+      "tier": 0,
+      "state": "BUILT",
+      "note": "sync_to_crm.py, single writer into public.acquisition_leads. The firewall in code."
+    },
+    {
+      "id": "C3",
+      "name": "CRM cockpit",
+      "tier": 0,
+      "state": "BUILT",
+      "note": "apg-land-crm, commit 48fe324, CRM-1 to 4 gates passed. Deploy-blocked June; 503 DEPLOYMENT_PAUSED Nov 4."
+    },
+    {
+      "id": "C4",
+      "name": "Manual contact entry",
+      "tier": 1,
+      "state": "QUEUED",
+      "note": "$0 callable path. First callable leads before any paid trace."
+    },
+    {
+      "id": "C8",
+      "name": "Proof-of-Outcome Ledger",
+      "tier": 1,
+      "state": "NEW",
+      "note": "Instrument closed_outcomes BEFORE the first close. Training set + diligence artifact + benchmark dataset."
+    },
+    {
+      "id": "C9",
+      "name": "Label backfill (APG CRM)",
+      "tier": 2,
+      "state": "HELD",
+      "note": "Depended on JV paper; path dead after Oct 22 correction. Replacement label source open (Q-014-1)."
+    },
+    {
+      "id": "C5",
+      "name": "Pierce projection",
+      "tier": 2,
+      "state": "QUEUED",
+      "note": "Full coverage of the 81-entity to 71-human pierce."
+    },
+    {
+      "id": "C6",
+      "name": "Scheduler",
+      "tier": 3,
+      "state": "QUEUED",
+      "note": "daily_run.sh + launchd. Daily hunt. LandOS not on the clock June 2026."
+    },
+    {
+      "id": "C7",
+      "name": "DiscoveryAdapters",
+      "tier": 3,
+      "state": "PARTIAL",
+      "note": "obit, estate, meeting-7a, violations, tax-delinquent. Recipe Engine proven vs mock LandOS; node_id persistence open gate."
+    },
+    {
+      "id": "C10",
+      "name": "Resolve API",
+      "tier": 4,
+      "state": "NEW",
+      "note": "Pierce/identity as horizontal API. Cleanest licensable-IP surface; highest margin."
+    },
+    {
+      "id": "C12",
+      "name": "Compliance-rail SKU",
+      "tier": 4,
+      "state": "NEW",
+      "note": "DNC/TCPA gate + consent logic + R1-R5 wedge. Tool, not advice."
+    },
+    {
+      "id": "C11",
+      "name": "FSP fusion",
+      "tier": 4,
+      "state": "NEW",
+      "note": "Contents valuation in one pass with property scoring. Gated on FSP state check."
+    }
+  ],
+  "amps": [
+    {
+      "id": "A",
+      "name": "Proof-of-Outcome Ledger",
+      "note": "Every close writes the full chain, hashed. Moat-manufacturing process."
+    },
+    {
+      "id": "B",
+      "name": "APG label backfill",
+      "note": "Mine 27-table CRM to retrospective labels. HELD after Oct 22."
+    },
+    {
+      "id": "C",
+      "name": "Neuruh Resolve API",
+      "note": "Sell the pierce without exposing discovery or weights."
+    },
+    {
+      "id": "D",
+      "name": "Negative-space feed",
+      "note": "Compute what did not happen. Un-Googleable."
+    },
+    {
+      "id": "E",
+      "name": "One scraper, three filters",
+      "note": "Leads + roll-up targets + white-label customers from one ingest."
+    },
+    {
+      "id": "F",
+      "name": "Receipts trust layer",
+      "note": "Per-lead provenance tenants can show counsel."
+    },
+    {
+      "id": "G",
+      "name": "FSP fusion",
+      "note": "Property scoring + contents valuation in one pass. Gated on FSP check."
+    },
+    {
+      "id": "H",
+      "name": "Dispatch OS",
+      "note": "Orchestrator + voice dispatch as operations layer. Baker live but unsigned."
+    },
+    {
+      "id": "I",
+      "name": "Three stacked SKUs",
+      "note": "Resolve + HelmAI $5K+$493/mo + benchmark data. Resolve first."
+    },
+    {
+      "id": "J",
+      "name": "Compliance-rail wedge",
+      "note": "DNC/TCPA + R1-R5 for wholesalers. Lead with felt pain."
+    }
+  ]
+};
+  var readout = document.getElementById('readout');
+  var viewer = document.getElementById('viewer');
+  var fallback = document.getElementById('fallback');
+  if (typeof THREE === 'undefined') { fallback.style.display = 'block'; return; }
+
+  var W = viewer.clientWidth, H = 560;
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x14161a);
+  var camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 500);
+  camera.position.set(0, 14, 34);
+  camera.lookAt(0, 8, 0);
+  var renderer = new THREE.WebGLRenderer({antialias: true});
+  renderer.setSize(W, H);
+  viewer.appendChild(renderer.domElement);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+  var dl = new THREE.DirectionalLight(0xffffff, 0.9);
+  dl.position.set(10, 24, 14);
+  scene.add(dl);
+
+  var BRASS = 0xC9A227, GOLD = 0xD8B13A, BONE = 0xE8E6E3, GRAY = 0x8A877E;
+  var root = new THREE.Group();
+  scene.add(root);
+  var pickables = [];
+
+  function textSprite(text, scale) {
+    var c = document.createElement('canvas');
+    var ctx = c.getContext('2d');
+    ctx.font = '600 44px Inter, sans-serif';
+    var w = Math.ceil(ctx.measureText(text).width) + 30;
+    c.width = w; c.height = 64;
+    var ctx2 = c.getContext('2d');
+    ctx2.font = '600 44px Inter, sans-serif';
+    ctx2.fillStyle = '#C9A227';
+    ctx2.fillText(text, 15, 44);
+    var tex = new THREE.CanvasTexture(c);
+    var mat = new THREE.SpriteMaterial({map: tex, transparent: true, depthWrite: false});
+    var sp = new THREE.Sprite(mat);
+    sp.scale.set(scale * (w / 64), scale, 1);
+    return sp;
+  }
+
+  function tierPlane(y, label) {
+    var geo = new THREE.BoxGeometry(30, 0.18, 9);
+    var mat = new THREE.MeshStandardMaterial({color: 0x1b1e23, roughness: 0.9, metalness: 0.1});
+    var m = new THREE.Mesh(geo, mat);
+    m.position.set(0, y, 0);
+    root.add(m);
+    var edge = new THREE.LineSegments(
+      new THREE.EdgesGeometry(geo),
+      new THREE.LineBasicMaterial({color: BRASS, transparent: true, opacity: 0.55}));
+    edge.position.copy(m.position);
+    root.add(edge);
+    var sp = textSprite(label, 1.6);
+    sp.position.set(-16.5, y + 0.9, 0);
+    root.add(sp);
+  }
+
+  function nodeMesh(state) {
+    var mat;
+    if (state === 'BUILT') return new THREE.Mesh(new THREE.OctahedronGeometry(1.05), new THREE.MeshStandardMaterial({color: BRASS, roughness: 0.35, metalness: 0.6}));
+    if (state === 'QUEUED') return new THREE.Mesh(new THREE.TetrahedronGeometry(1.25), new THREE.MeshStandardMaterial({color: BONE, roughness: 0.6, metalness: 0.1}));
+    if (state === 'PARTIAL') return new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), new THREE.MeshStandardMaterial({color: GRAY, roughness: 0.7, metalness: 0.2}));
+    if (state === 'HELD') return new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.32, 12, 32), new THREE.MeshStandardMaterial({color: 0x8a5a2a, roughness: 0.5, metalness: 0.4}));
+    return new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.32, 12, 32), new THREE.MeshStandardMaterial({color: GOLD, roughness: 0.4, metalness: 0.5}));
+  }
+
+  var buildGroup = new THREE.Group();
+  var ampGroup = new THREE.Group();
+  ampGroup.visible = false;
+  root.add(buildGroup);
+  root.add(ampGroup);
+
+  // Build-map view: tiers stacked vertically, components spread on each tier.
+  var tierY = {0: 0, 1: 4.5, 2: 9, 3: 13.5, 4: 18};
+  BUILD_DATA.tiers.forEach(function(t) {
+    var plane = new THREE.Group();
+    var geo = new THREE.BoxGeometry(30, 0.18, 9);
+    var m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color: 0x1b1e23, roughness: 0.9, metalness: 0.1}));
+    m.position.set(0, tierY[t.n], 0);
+    plane.add(m);
+    var edge = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({color: BRASS, transparent: true, opacity: 0.55}));
+    edge.position.copy(m.position);
+    plane.add(edge);
+    var sp = textSprite(t.label, 1.7);
+    sp.position.set(-17.5, tierY[t.n] + 1.0, 0);
+    plane.add(sp);
+    buildGroup.add(plane);
+  });
+  var tierSlots = {0: [-10, -3.4, 3.4], 1: [-6, 6], 2: [-8, 0], 3: [-6, 6], 4: [-9, 0, 9]};
+  var compById = {};
+  BUILD_DATA.components.forEach(function(c) {
+    var xs = tierSlots[c.tier];
+    var idx = BUILD_DATA.components.filter(function(x){ return x.tier === c.tier; }).indexOf(c);
+    var x = xs[Math.min(idx, xs.length - 1)];
+    var mesh = nodeMesh(c.state);
+    mesh.position.set(x, tierY[c.tier] + 1.6, (idx % 2 === 0 ? -1.2 : 1.6));
+    mesh.userData = {kind: 'comp', id: c.id, name: c.name, state: c.state, note: c.note};
+    buildGroup.add(mesh);
+    pickables.push(mesh);
+    compById[c.id] = mesh;
+    var lbl = textSprite(c.id, 0.9);
+    lbl.position.set(x, tierY[c.tier] + 3.1, (idx % 2 === 0 ? -1.2 : 1.6));
+    buildGroup.add(lbl);
+  });
+  // Keystone: FIRST CLOSE sphere at Tier 1 center, linked to Tier 2.
+  var key = new THREE.Mesh(new THREE.SphereGeometry(1.5, 24, 18), new THREE.MeshStandardMaterial({color: BRASS, roughness: 0.3, metalness: 0.65}));
+  key.position.set(0, tierY[1] + 1.6, 0);
+  key.userData = {kind: 'keystone', id: 'FIRST CLOSE', name: 'First close — the keystone', state: 'KEYSTONE', note: 'The first real close converts the pitch from narrative to evidence, seeds the training data, produces the unit-economics number, and validates the SKUs. Everything after it in the chain is pre-ignition until it happens.'};
+  buildGroup.add(key);
+  pickables.push(key);
+  var keyLbl = textSprite('FIRST CLOSE', 1.1);
+  keyLbl.position.set(0, tierY[1] + 3.6, 0);
+  buildGroup.add(keyLbl);
+  // Dependency chain edges: tier to tier through the keystone.
+  var edgeMat = new THREE.LineBasicMaterial({color: BRASS, transparent: true, opacity: 0.45});
+  function edge(a, b) {
+    var g = new THREE.BufferGeometry().setFromPoints([a, b]);
+    buildGroup.add(new THREE.Line(g, edgeMat));
+  }
+  edge(new THREE.Vector3(-3.4, tierY[0] + 1.6, 1.6), new THREE.Vector3(-6, tierY[1] + 1.6, -1.2));
+  edge(new THREE.Vector3(0, tierY[1] + 1.6, 0), new THREE.Vector3(0, tierY[2] + 1.6, -1.2));
+  edge(new THREE.Vector3(0, tierY[2] + 1.6, 1.6), new THREE.Vector3(-6, tierY[3] + 1.6, -1.2));
+  edge(new THREE.Vector3(6, tierY[3] + 1.6, 1.6), new THREE.Vector3(0, tierY[4] + 1.6, -1.2));
+
+  // Amplification view: A-J as two rows of gold rings.
+  BUILD_DATA.amps.forEach(function(a, i) {
+    var col = i % 5, row = Math.floor(i / 5);
+    var mesh = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.34, 12, 32), new THREE.MeshStandardMaterial({color: GOLD, roughness: 0.4, metalness: 0.5}));
+    mesh.position.set(-12 + col * 6, 12 - row * 7, 0);
+    mesh.userData = {kind: 'amp', id: a.id, name: a.name, state: 'AMPLIFICATION', note: a.note};
+    ampGroup.add(mesh);
+    pickables.push(mesh);
+    var lbl = textSprite(a.id + ' — ' + a.name, 1.0);
+    lbl.position.set(-12 + col * 6, 12 - row * 7 + 2.2, 0);
+    ampGroup.add(lbl);
+  });
+  var ampTitle = textSprite('AMPLIFICATION STACK A–J', 1.7);
+  ampTitle.position.set(0, 17.5, 0);
+  ampGroup.add(ampTitle);
+
+  // Interaction: drag rotate, wheel zoom, click to inspect.
+  var rotY = 0.35, rotX = 0.12, targetRotY = 0.35, autoRotate = true;
+  var dragging = false, downX = 0, downY = 0, moved = 0;
+  renderer.domElement.addEventListener('pointerdown', function(e){ dragging = true; downX = e.clientX; downY = e.clientY; moved = 0; });
+  window.addEventListener('pointerup', function(){ dragging = false; });
+  window.addEventListener('pointermove', function(e){
+    if (!dragging) return;
+    var dx = e.clientX - downX, dy = e.clientY - downY;
+    moved += Math.abs(dx) + Math.abs(dy);
+    targetRotY += dx * 0.005;
+    rotX = Math.max(-0.4, Math.min(0.6, rotX + dy * 0.003));
+    downX = e.clientX; downY = e.clientY;
+  });
+  renderer.domElement.addEventListener('wheel', function(e){
+    e.preventDefault();
+    camera.position.z = Math.max(16, Math.min(60, camera.position.z + e.deltaY * 0.03));
+  }, {passive: false});
+  var ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+  renderer.domElement.addEventListener('click', function(e){
+    if (moved > 6) return;
+    var r = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+    mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(mouse, camera);
+    var active = buildGroup.visible ? pickables.filter(function(p){ return p.parent === buildGroup; }) : pickables.filter(function(p){ return p.parent === ampGroup; });
+    var hits = ray.intersectObjects(active, false);
+    if (hits.length) {
+      var d = hits[0].object.userData;
+      readout.innerHTML = '<b>' + d.id + ' — ' + d.name + ' [' + d.state + ']</b> ' + d.note;
+    }
+  });
+
+  var btnBuild = document.getElementById('btnBuild');
+  var btnAmp = document.getElementById('btnAmp');
+  var btnRotate = document.getElementById('btnRotate');
+  var btnReset = document.getElementById('btnReset');
+  btnBuild.addEventListener('click', function(){
+    buildGroup.visible = true; ampGroup.visible = false;
+    btnBuild.classList.add('on'); btnAmp.classList.remove('on');
+    readout.textContent = 'Build map view: 12 components across 5 tiers. Click a node for its record.';
+  });
+  btnAmp.addEventListener('click', function(){
+    buildGroup.visible = false; ampGroup.visible = true;
+    btnAmp.classList.add('on'); btnBuild.classList.remove('on');
+    readout.textContent = 'Amplification view: A–J. Click a ring for its record.';
+  });
+  btnRotate.addEventListener('click', function(){
+    autoRotate = !autoRotate;
+    btnRotate.textContent = autoRotate ? 'Pause rotation' : 'Resume rotation';
+  });
+  btnReset.addEventListener('click', function(){
+    targetRotY = 0.35; rotX = 0.12; camera.position.set(0, 14, 34);
+  });
+
+  function animate(){
+    requestAnimationFrame(animate);
+    if (autoRotate && !dragging) targetRotY += 0.0016;
+    rotY += (targetRotY - rotY) * 0.08;
+    root.rotation.y = rotY;
+    root.rotation.x = rotX;
+    key.rotation.y += 0.01;
+    renderer.render(scene, camera);
+  }
+  animate();
+  window.addEventListener('resize', function(){
+    var w = viewer.clientWidth;
+    camera.aspect = w / H;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, H);
+  });
+})();
+</script>
+</body>
+</html>
