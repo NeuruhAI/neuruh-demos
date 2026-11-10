@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRUCIBLE Gate — Adversarial Convergence Engine</title>
+<style>
+  :root{
+    --obsidian:#141210; --obsidian-2:#1d1a17; --bone:#f2ede3; --bone-2:#e4dcc9;
+    --ink:#221d17; --brass:#b08d3c; --brass-2:#d4af5a; --muted:#8a8172;
+    --kill:#a33b2e; --iterate:#8a6d1f; --ship:#3f6b3a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--obsidian);color:var(--bone);font-family:Inter,system-ui,sans-serif;line-height:1.5}
+  header.docctl{border-bottom:1px solid var(--brass);padding:18px 28px;display:flex;flex-wrap:wrap;gap:8px 28px;align-items:baseline;background:var(--obsidian-2)}
+  header.docctl h1{font-family:Archivo,Inter,sans-serif;font-size:26px;margin:0;letter-spacing:.02em}
+  header.docctl .meta{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted)}
+  header.docctl .meta b{color:var(--brass-2);font-weight:600}
+  main{max-width:1180px;margin:0 auto;padding:24px 28px 60px}
+  .lede{font-size:17px;color:var(--bone-2);max-width:860px}
+  .lede b{color:var(--brass-2)}
+  h2{font-family:Archivo,Inter,sans-serif;font-size:19px;margin:34px 0 10px;border-bottom:1px solid #3a342c;padding-bottom:6px}
+  h2 .fig{color:var(--brass-2);font-family:"JetBrains Mono",monospace;font-size:13px;margin-right:8px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--obsidian-2);border:1px solid #3a342c;border-radius:10px;padding:18px 20px}
+  .card h3{margin:0 0 10px;font-size:15px;color:var(--brass-2);font-family:Archivo,Inter,sans-serif}
+  .card p{margin:6px 0;font-size:14px;color:var(--bone-2)}
+  .card .small{font-size:12px;color:var(--muted)}
+  label{display:block;font-size:13px;color:var(--bone-2);margin:12px 0 4px}
+  label output{float:right;font-family:"JetBrains Mono",monospace;color:var(--brass-2)}
+  input[type=range]{width:100%;accent-color:var(--brass)}
+  .multbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .multbtns button{background:#26211b;color:var(--bone);border:1px solid #4a4234;border-radius:6px;padding:8px 12px;font-family:"JetBrains Mono",monospace;font-size:13px;cursor:pointer}
+  .multbtns button.active{background:var(--brass);color:#171310;border-color:var(--brass);font-weight:700}
+  .scorebox{text-align:center;padding:14px;border:1px solid #4a4234;border-radius:10px;margin-top:16px;background:#141210}
+  .scorebox .num{font-family:"JetBrains Mono",monospace;font-size:44px;color:var(--brass-2);line-height:1.1}
+  .scorebox .verdict{font-family:Archivo,Inter,sans-serif;font-size:22px;font-weight:800;letter-spacing:.04em;margin-top:4px}
+  .verdict.KILL{color:#e06a5a}.verdict.ITERATE{color:#d9b45a}.verdict.SHIP-CANDIDATE{color:#8fc48a}
+  .scorebox .math{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted);margin-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #3a342c}
+  th{color:var(--brass-2);font-family:"JetBrains Mono",monospace;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  td.mono{font-family:"JetBrains Mono",monospace}
+  .flow{display:flex;flex-wrap:wrap;gap:0;align-items:stretch;margin:8px 0}
+  .flow .step{flex:1;min-width:130px;background:var(--obsidian-2);border:1px solid #4a4234;padding:12px;text-align:center;font-size:13px}
+  .flow .step b{display:block;color:var(--brass-2);font-size:14px;margin-bottom:4px}
+  .flow .arrow{align-self:center;color:var(--brass-2);font-size:20px;padding:0 6px}
+  .walk{font-family:"JetBrains Mono",monospace;font-size:15px;background:#141210;border:1px solid #4a4234;border-radius:8px;padding:14px 16px;line-height:2}
+  .walk .k{color:#e06a5a;font-weight:700}
+  .walk .n{color:var(--brass-2)}
+  #scene{width:100%;height:420px;border:1px solid #4a4234;border-radius:10px;background:#0f0d0b;display:block}
+  .fallback{display:none;background:#2a2118;border:1px solid var(--brass);color:var(--bone-2);padding:12px;border-radius:8px;margin-top:10px;font-size:13px}
+  .legend{font-size:12px;color:var(--muted);margin-top:8px}
+  .legend span{margin-right:14px}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+  ul{margin:6px 0 6px 18px;font-size:14px;color:var(--bone-2)}
+  li{margin:3px 0}
+  code{font-family:"JetBrains Mono",monospace;font-size:12.5px;background:#26211b;padding:1px 5px;border-radius:4px}
+  footer{border-top:1px solid #3a342c;margin-top:40px;padding-top:16px;font-size:12.5px;color:var(--muted)}
+  footer b{color:var(--brass-2)}
+  .tabs{display:flex;gap:8px;margin:18px 0 0}
+  .tabs button{background:#26211b;color:var(--bone);border:1px solid #4a4234;border-radius:6px 6px 0 0;padding:8px 14px;cursor:pointer;font-size:13px}
+  .tabs button.active{background:var(--brass);color:#171310;font-weight:700;border-color:var(--brass)}
+  .tabpane{display:none}
+  .tabpane.active{display:block}
+</style>
+</head>
+<body>
+<header class="docctl">
+  <h1>CRUCIBLE Gate</h1>
+  <span class="meta">DOC <b>CODEX-CRUCIBLE-1.0</b></span>
+  <span class="meta">BUILD STATE <b>June 14, 2026</b></span>
+  <span class="meta">ENGINE <b>crucible.py 1.0.0</b></span>
+  <span class="meta">VERDICT <b>adversarial convergence</b></span>
+</header>
+<main>
+  <p class="lede">The engine that grades the grader. Every auto-generated World scored <b>87–94</b>, the self-improvement loop flagged the same issues six times without fixing them, and the system filed its own forecasts as IP. CRUCIBLE inserts the adversary that was missing: <b>a World&rsquo;s score cannot rise on its own narrative</b>. It rises only when a real external signal is logged.</p>
+
+  <h2><span class="fig">Fig. 1</span>The gate — three-dimensional view</h2>
+  <canvas id="scene"></canvas>
+  <div class="fallback" id="gl-fallback">3D view unavailable (WebGL or the Three.js CDN could not load). Every figure and the calculator below work without it.</div>
+  <p class="legend"><span><i class="sw" style="background:#b08d3c"></i>brass — the gate</span><span><i class="sw" style="background:#a33b2e"></i>red — KILL</span><span><i class="sw" style="background:#8a6d1f"></i>ochre — ITERATE</span><span><i class="sw" style="background:#3f6b3a"></i>green — SHIP-CANDIDATE</span><span>Click a ladder bar in 3D to set the multiplier in the calculator.</span></p>
+
+  <h2><span class="fig">Fig. 2</span>The formula — try it live</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>Inputs</h3>
+      <label>Emergence score (raw, from frontmatter) <output id="o-em">94</output></label>
+      <input type="range" id="in-em" min="0" max="100" value="94">
+      <label>Objection penalty (sum of severities &times; 4, capped at 60) <output id="o-pen">56</output></label>
+      <input type="range" id="in-pen" min="0" max="60" value="56">
+      <label>Strongest external signal logged</label>
+      <div class="multbtns" id="multbtns">
+        <button data-m="0.15" class="active">nothing &times;0.15</button>
+        <button data-m="0.30">1 real lead &times;0.30</button>
+        <button data-m="0.50">paid pilot &times;0.50</button>
+        <button data-m="1.00">revenue / contract &times;1.00</button>
+      </div>
+      <p class="small">Signals are logged only by <code>crucible.py signal --apply</code>. The engine never invents one. With zero signal, a perfect World (100, zero objections) scores (100 &minus; 0) &times; 0.15 = 15. That is a KILL.</p>
+    </div>
+    <div class="card">
+      <h3>Verdict</h3>
+      <div class="scorebox">
+        <div class="num" id="score-num">5.7</div>
+        <div class="verdict KILL" id="score-verdict">KILL</div>
+        <div class="math" id="score-math">max(0, 94 &minus; 56) &times; 0.15 = 5.7</div>
+      </div>
+      <p style="margin-top:12px">KILL &lt; 20, or 3 strikes &middot; ITERATE 20&ndash;49 &middot; SHIP-CANDIDATE &ge; 50 (requires a real external signal). CRUCIBLE never auto-deploys; SHIP-CANDIDATE is a flag for a human.</p>
+      <p class="small">Strike rule: every KILL verdict increments a per-asset strike count. At 3 strikes the asset is force-killed. KILL = move to <code>03-IP/_killed/</code>, never delete. Dry-run by default; <code>--apply</code> to persist.</p>
+    </div>
+  </div>
+
+  <h2><span class="fig">Fig. 3</span>The kill flow</h2>
+  <div class="flow">
+    <div class="step"><b>1. World in</b>frontmatter: asset_id, emergence_score, market_size, vertical</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><b>2. Red team</b>hostile diligence: who pays, why now, what breaks, cheapest disproof</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><b>3. Penalty</b>min(60, &Sigma;severity &times; 4)</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><b>4. Multiplier</b>strongest real signal only</div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><b>5. Verdict</b>KILL / ITERATE / SHIP-CANDIDATE</div>
+  </div>
+
+  <h2><span class="fig">Fig. 4</span>Sample walkthrough — verified offline</h2>
+  <div class="walk">
+    emergence 94 &nbsp; <span class="n">&minus; penalty 56</span> (severities 5 + 5 + 4 = 14 &times; 4)<br>
+    = 38 &nbsp; <span class="n">&times; 0.15</span> (no signal logged)<br>
+    = <span class="n">5.7</span> &nbsp; &rarr; &nbsp; <span class="k">KILL</span><br>
+    <span style="color:#8a8172">Reproduced in the vault absorption, mock red-team dry-run, exit 0. Flag counts depend on the sample text: this run flagged 4 unverified stats and 10 grandiose terms.</span>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button data-tab="ladder" class="active">Multiplier ladder</button>
+    <button data-tab="quarantine">Stat quarantine</button>
+    <button data-tab="grandiosity">Grandiosity filter</button>
+    <button data-tab="runbook">Runbook</button>
+  </div>
+  <div class="card" style="border-radius:0 10px 10px 10px">
+    <div class="tabpane active" id="tab-ladder">
+      <table>
+        <tr><th>Strongest signal logged</th><th class="mono">Multiplier</th><th>What it means</th></tr>
+        <tr><td>Revenue &gt; 0, or signed contract / LOI</td><td class="mono">1.00</td><td>Full score. The market has spoken.</td></tr>
+        <tr><td>Active paid pilot</td><td class="mono">0.50</td><td>Someone paid to try it.</td></tr>
+        <tr><td>At least one real qualified lead</td><td class="mono">0.30</td><td>A human asked for it.</td></tr>
+        <tr><td><b>Nothing</b> (current state of every World)</td><td class="mono">0.15</td><td>Perfect World, zero signal: 15. KILL.</td></tr>
+      </table>
+      <p class="small">The multiplier is the whole game. A score can&rsquo;t rise on its own narrative — only on a real external signal.</p>
+    </div>
+    <div class="tabpane" id="tab-quarantine">
+      <p>Any numeric claim (<code>$X</code>, <code>X%</code>, <code>XB/M/K</code>) on a line <b>without</b> a citation marker (<code>http</code>, <code>source:</code>, <code>](http</code>, <code>doi</code>, <code>according to</code>) is flagged UNVERIFIED and written to the verdict.</p>
+      <p>Rule for external documents: an UNVERIFIED claim may not leave the building. Source it with a real citation from a real search, or stamp it <code>[UNVERIFIED]</code>.</p>
+      <p class="small">This is the fix for the confabulated &ldquo;$1.8B DoD budget, 340% YoY, $8.3B by 2028 (Govini), 67% of contracts, 50K GitHub stars&rdquo; problem.</p>
+    </div>
+    <div class="tabpane" id="tab-grandiosity">
+      <table>
+        <tr><th>Flagged term</th><th>Plain replacement</th></tr>
+        <tr><td>sovereign</td><td>self-hosted / independent</td></tr>
+        <tr><td>hermetic</td><td>air-gapped / isolated</td></tr>
+        <tr><td>apotheosis</td><td>(drop)</td></tr>
+        <tr><td>apex predator</td><td>leading option</td></tr>
+        <tr><td>god mode / godhood</td><td>(drop)</td></tr>
+        <tr><td>emergent intelligence</td><td>automated generation</td></tr>
+        <tr><td>wavefunction collapse</td><td>the model selected an output</td></tr>
+        <tr><td>darwinian</td><td>candidate selection</td></tr>
+        <tr><td>moat</td><td>durable advantage</td></tr>
+        <tr><td>paradigm / transcend</td><td>(drop) / improve on</td></tr>
+      </table>
+      <p class="small">External outputs only. Internal tools keep the flavor. &ldquo;Sovereign hermetic apotheosis&rdquo; reads as someone who hasn&rsquo;t shipped.</p>
+    </div>
+    <div class="tabpane" id="tab-runbook">
+      <ol style="font-size:14px;color:#e4dcc9">
+        <li>Move files into the vault: <code>crucible.py</code> &rarr; <code>~/neuruh-vault/_scripts/</code>, <code>CRUCIBLE-CODEX.md</code> &rarr; <code>~/neuruh-vault/03-IP/</code>, <code>audit_agentic.sh</code> &rarr; <code>_scripts/</code>.</li>
+        <li><code>pip install requests pyyaml --break-system-packages</code></li>
+        <li>Create tables: paste <code>crucible_schema.sql</code> into Supabase &rarr; SQL Editor &rarr; Run. Tables: <code>crucible_verdicts</code>, <code>crucible_signals</code>, view <code>crucible_asset_signal</code>.</li>
+        <li>Set env in <code>~/.zshrc</code> (codex &sect;8), fill the real service key, <code>source ~/.zshrc</code>.</li>
+        <li>Prove offline: <code>python3 crucible.py run --mock-redteam --dry-run</code> — every World prints a KILL at ~0.15&times;.</li>
+        <li>Live model, still dry: <code>python3 crucible.py run --target all</code>. Read the objections.</li>
+        <li>Go live: <code>python3 crucible.py run --target all --apply</code>. When a demo books: <code>crucible.py signal --asset &lt;X&gt; --type lead --apply</code>.</li>
+        <li>Nightly chain, only after step 7 looks right: <code>world_seeder.py</code> &rarr; <code>crucible.py run --target all --apply</code> &rarr; <code>briefer_v2.py</code>.</li>
+      </ol>
+    </div>
+  </div>
+
+  <footer>
+    <p><b>Two CRUCIBLEs, one name.</b> This gate (<code>crucible.py</code>, red-team judge over Worlds) is a different implementation from the batch 009 faithfulness judge (<code>crucible_service.py</code>) and from the <code>NeuruhAI/crucible</code> receipt sealer. Recorded distinctly in the vault: <code>01-Core-Architecture/CRUCIBLE.md</code> (CORE-054).</p>
+    <p><b>Open conflict.</b> The build wires to Supabase project <code>lvdimujkfheeyqchjzra</code>, the legacy project the estate record refuses (LEGACY_SPINE_REFUSED). Confirm the current project before any <code>--apply</code>.</p>
+    <p><b>Honesty.</b> The briefer figures (792 assets, zero deployed, zero revenue, $10,850 cash, 90&ndash;120 day horizon) are transcript-reported from screenshots, not independently verified. The 100-task agenda (NEURUH-TODAY.md, June 14 2026) is a list, not executed work. Dossier: <code>_research/crucible-build/crucible-build.md</code>.</p>
+    <p>Formula: crucible_score = max(0, emergence_raw &minus; objection_penalty) &times; external_signal_multiplier &middot; Codex CODEX-CRUCIBLE-1.0, dated 2026-06-14 &middot; Absorbed 2026-11-10.</p>
+  </footer>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+<script>
+(function(){
+  // ---- Calculator (exact formula from crucible.py) ----
+  var em = 94, pen = 56, mult = 0.15;
+  var inEm = document.getElementById('in-em'), inPen = document.getElementById('in-pen');
+  var oEm = document.getElementById('o-em'), oPen = document.getElementById('o-pen');
+  var num = document.getElementById('score-num'), verd = document.getElementById('score-verdict'), math = document.getElementById('score-math');
+  function render(){
+    var score = Math.round(Math.max(0, em - pen) * mult * 10) / 10;
+    var v = score < 20 ? 'KILL' : (score < 50 ? 'ITERATE' : 'SHIP-CANDIDATE');
+    num.textContent = score.toFixed(1);
+    verd.textContent = v;
+    verd.className = 'verdict ' + v;
+    math.textContent = 'max(0, ' + em + ' \u2212 ' + pen + ') \u00d7 ' + mult.toFixed(2) + ' = ' + score.toFixed(1);
+    oEm.textContent = em; oPen.textContent = pen;
+    document.querySelectorAll('#multbtns button').forEach(function(b){
+      b.classList.toggle('active', parseFloat(b.dataset.m) === mult);
+    });
+  }
+  inEm.addEventListener('input', function(){ em = +inEm.value; render(); });
+  inPen.addEventListener('input', function(){ pen = +inPen.value; render(); });
+  document.querySelectorAll('#multbtns button').forEach(function(b){
+    b.addEventListener('click', function(){ mult = parseFloat(b.dataset.m); render(); });
+  });
+  window.setCrucibleMultiplier = function(m){ mult = m; render(); };
+  render();
+
+  // ---- Tabs ----
+  document.querySelectorAll('#tabs button').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#tabs button').forEach(function(x){ x.classList.remove('active'); });
+      document.querySelectorAll('.tabpane').forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      document.getElementById('tab-' + b.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---- Three.js scene: the gate, the ladder, the worlds ----
+  var fb = document.getElementById('gl-fallback');
+  if (typeof THREE === 'undefined') { fb.style.display = 'block'; return; }
+  try {
+    var canvas = document.getElementById('scene');
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f0d0b);
+    var camera = new THREE.PerspectiveCamera(48, 2, 0.1, 100);
+    camera.position.set(0, 5.2, 13.5);
+    camera.lookAt(0, 1.6, 0);
+    scene.add(new THREE.AmbientLight(0xf2ede3, 0.55));
+    var key = new THREE.DirectionalLight(0xd4af5a, 1.1); key.position.set(6, 10, 8); scene.add(key);
+    var fill = new THREE.DirectionalLight(0x8a8172, 0.4); fill.position.set(-6, 4, -4); scene.add(fill);
+
+    var brass = new THREE.MeshStandardMaterial({ color: 0xb08d3c, metalness: 0.7, roughness: 0.35 });
+    var bone = new THREE.MeshStandardMaterial({ color: 0xe4dcc9, metalness: 0.05, roughness: 0.8 });
+    var dark = new THREE.MeshStandardMaterial({ color: 0x26211b, metalness: 0.2, roughness: 0.9 });
+    var killM = new THREE.MeshStandardMaterial({ color: 0xa33b2e, metalness: 0.3, roughness: 0.5 });
+    var itM = new THREE.MeshStandardMaterial({ color: 0x8a6d1f, metalness: 0.3, roughness: 0.5 });
+    var shipM = new THREE.MeshStandardMaterial({ color: 0x3f6b3a, metalness: 0.3, roughness: 0.5 });
+
+    // Floor
+    var floor = new THREE.Mesh(new THREE.PlaneGeometry(26, 16), new THREE.MeshStandardMaterial({ color: 0x1d1a17, roughness: 1 }));
+    floor.rotation.x = -Math.PI / 2; floor.position.y = 0; scene.add(floor);
+    // Gate: two pillars + lintel
+    [-2.6, 2.6].forEach(function(x){
+      var p = new THREE.Mesh(new THREE.BoxGeometry(0.7, 5.2, 0.7), brass);
+      p.position.set(x, 2.6, 0); scene.add(p);
+    });
+    var lintel = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.6, 0.8), brass);
+    lintel.position.set(0, 5.5, 0); scene.add(lintel);
+    // Gate threshold line
+    var thresh = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.08, 0.5), bone);
+    thresh.position.set(0, 0.05, 0); scene.add(thresh);
+
+    // Worlds flowing through the gate: incoming (bone octahedra), verdict-colored after
+    var worlds = [];
+    function world(x, y, z, mat, label){
+      var m = new THREE.Mesh(new THREE.OctahedronGeometry(0.42), mat);
+      m.position.set(x, y, z); m.userData.label = label; scene.add(m); worlds.push(m); return m;
+    }
+    // Incoming row (pre-gate, z = +4)
+    world(-4.4, 1.0, 4.2, bone, '94'); world(-3.0, 1.6, 4.2, bone, '89');
+    world(-1.6, 1.0, 4.2, bone, '94'); world(-0.2, 1.6, 4.2, bone, '87');
+    // At the gate (z = 0): the sample World 94 being judged
+    var sample = world(0, 2.2, 0, brass, '94 -> 5.7 KILL');
+    // Outgoing (post-gate, z = -4): killed drop to the pit, one iterate, survivors pass
+    world(-4.2, 0.5, -4.2, killM, 'KILL 5.7'); world(-2.6, 0.5, -4.2, killM, 'KILL');
+    world(-1.0, 1.2, -4.2, itM, 'ITERATE 32'); world(0.8, 1.2, -4.2, killM, 'KILL');
+    world(2.6, 1.8, -4.2, shipM, 'SHIP 62'); world(4.2, 1.2, -4.2, killM, 'KILL');
+    // Killed pit
+    var pit = new THREE.Mesh(new THREE.BoxGeometry(7.5, 0.25, 2.2), dark);
+    pit.position.set(-1.4, 0.12, -4.2); scene.add(pit);
+
+    // Multiplier ladder: 4 bars, height proportional to multiplier, clickable
+    var ladder = [
+      { m: 0.15, label: 'nothing', x: 7.2 },
+      { m: 0.30, label: '1 lead', x: 8.6 },
+      { m: 0.50, label: 'pilot', x: 10.0 },
+      { m: 1.00, label: 'revenue', x: 11.4 }
+    ];
+    var bars = [];
+    ladder.forEach(function(r){
+      var h = 0.6 + r.m * 4.2;
+      var bar = new THREE.Mesh(new THREE.BoxGeometry(1.0, h, 1.0), new THREE.MeshStandardMaterial({ color: 0xb08d3c, metalness: 0.6, roughness: 0.4 }));
+      bar.position.set(r.x - 3.4, h / 2, -1.5);
+      bar.userData.mult = r.m; bar.userData.label = r.label;
+      scene.add(bar); bars.push(bar);
+    });
+
+    // Interaction: click a ladder bar to set the multiplier
+    var ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+    canvas.addEventListener('click', function(ev){
+      var rect = canvas.getBoundingClientRect();
+      mouse.x = ((ev.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((ev.clientY - rect.top) / rect.height) * 2 + 1;
+      ray.setFromCamera(mouse, camera);
+      var hits = ray.intersectObjects(bars);
+      if (hits.length) { window.setCrucibleMultiplier(hits[0].object.userData.mult); }
+    });
+
+    function resize(){
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    var t = 0;
+    (function animate(){
+      requestAnimationFrame(animate);
+      t += 0.008;
+      worlds.forEach(function(w, i){ w.rotation.y += 0.006 + i * 0.0004; w.position.y += Math.sin(t * 2 + i) * 0.0015; });
+      sample.rotation.y += 0.02;
+      renderer.render(scene, camera);
+    })();
+  } catch (e) {
+    fb.style.display = 'block';
+  }
+})();
+</script>
+</body>
+</html>
