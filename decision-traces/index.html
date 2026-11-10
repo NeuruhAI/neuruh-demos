@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operational Decisions Become Institutional Memory - Decision Traces</title>
+<style>
+  :root{
+    --paper:#f6f3ec; --paper2:#efece2; --ink:#1c1c1c; --ink-soft:#4a4a45;
+    --blue:#4a90d9; --blue-deep:#2f6fb2; --blue-pale:#dcebf7; --line:#c9d8e8;
+    --brass:#8a6d2b; --ok:#2e7d4f; --warn:#9a6a12; --bad:#a83232;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+  h1,h2,h3{font-family:Archivo,Inter,system-ui,sans-serif;margin:0}
+  a{color:var(--blue-deep)}
+  .dochead{border-top:4px solid var(--blue);border-bottom:1px solid var(--line);padding:18px 28px 14px;background:var(--paper)}
+  .dochead .kicker{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-deep)}
+  .dochead h1{font-size:30px;line-height:1.15;margin:6px 0 4px;max-width:900px}
+  .dochead p.sub{font-size:16px;color:var(--ink-soft);max-width:820px;margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:10px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;color:var(--ink-soft)}
+  .meta b{color:var(--ink)}
+  main{max-width:1180px;margin:0 auto;padding:20px 28px 60px}
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:6px;padding:16px 18px;margin-bottom:20px}
+  .panel h2{font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--blue-deep);margin-bottom:10px}
+  .panel h2 .num{font-family:"JetBrains Mono",monospace;color:var(--blue)}
+  #viewer{width:100%;height:420px;display:block;background:linear-gradient(180deg,#fbf9f4,#eef3f8);border:1px solid var(--line);border-radius:4px;cursor:grab}
+  #viewer:active{cursor:grabbing}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  button{font-family:Inter,system-ui,sans-serif;font-size:13px;padding:7px 12px;border:1px solid var(--blue-deep);background:#fff;color:var(--blue-deep);border-radius:4px;cursor:pointer}
+  button:hover{background:var(--blue-pale)}
+  button.primary{background:var(--blue-deep);color:#fff}
+  button.primary:hover{background:#265d92}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.active{background:var(--blue);border-color:var(--blue);color:#fff}
+  .legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:12px;font-size:13px}
+  .legend div{padding:6px 8px;border-left:3px solid var(--line);background:var(--paper)}
+  .legend div.on{border-left-color:var(--blue);background:var(--blue-pale)}
+  .legend b{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--blue-deep)}
+  .legend .triage{border-left-color:var(--brass)}
+  .legend .triage.on{border-left-color:var(--brass);background:#f3ead3}
+  #fallback{font-size:13px;color:var(--ink-soft);margin-top:8px}
+  .episodes{display:flex;flex-direction:column;gap:8px}
+  .ep{border:1px solid var(--line);border-radius:4px;padding:10px 12px;text-align:left;background:#fff;width:100%}
+  .ep:hover{border-color:var(--blue)}
+  .ep.sel{border-color:var(--blue-deep);background:var(--blue-pale)}
+  .ep b{display:block;font-size:14px}
+  .ep span{font-size:12.5px;color:var(--ink-soft)}
+  .ep .tag{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--blue-deep)}
+  form.custom label{display:block;font-size:13px;font-weight:600;margin:10px 0 4px}
+  form.custom input,form.custom textarea,form.custom select{width:100%;font:inherit;font-size:13.5px;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:#fff}
+  form.custom textarea{min-height:64px;resize:vertical}
+  .qrow{display:flex;gap:10px;align-items:center;font-size:13px;margin:6px 0}
+  .qrow select{width:auto}
+  #stepbar{display:flex;gap:4px;margin:0 0 12px}
+  #stepbar span{flex:1;text-align:center;font-family:"JetBrains Mono",monospace;font-size:11px;padding:5px 2px;border:1px solid var(--line);border-radius:3px;color:var(--ink-soft)}
+  #stepbar span.done{background:var(--blue-pale);border-color:var(--blue);color:var(--blue-deep)}
+  #stepbar span.now{background:var(--blue-deep);border-color:var(--blue-deep);color:#fff}
+  #stepcard{border:1px solid var(--blue);border-radius:4px;padding:14px 16px;background:#fff;min-height:150px}
+  #stepcard h3{font-size:17px;margin-bottom:6px}
+  #stepcard h3 .n{font-family:"JetBrains Mono",monospace;color:var(--blue-deep)}
+  #stepcard p{margin:6px 0;font-size:14px}
+  #stepcard .kv{font-size:13px;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:8px 10px;margin-top:8px}
+  #stepcard .kv b{color:var(--blue-deep)}
+  .verdict{font-family:"JetBrains Mono",monospace;font-weight:700;padding:2px 8px;border-radius:3px;font-size:12px}
+  .verdict.promote{background:#dcefe2;color:var(--ok)}
+  .verdict.edit{background:#f7ecd2;color:var(--warn)}
+  .verdict.reject{background:#f6dcdc;color:var(--bad)}
+  .triage-out{border:2px solid var(--brass);border-radius:4px;padding:12px 14px;background:#fbf7ea;margin-top:10px}
+  .triage-out h4{margin:0 0 4px;font-size:15px}
+  .triage-out .notrule{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--bad);font-weight:700}
+  pre#traceout{background:#101418;color:#d7e5f2;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11.5px;line-height:1.45;padding:12px;border-radius:4px;overflow:auto;max-height:420px;white-space:pre-wrap;word-break:break-word}
+  .note{font-size:12.5px;color:var(--ink-soft)}
+  .small{font-size:12px;color:var(--ink-soft)}
+  footer{border-top:1px solid var(--line);padding:14px 28px;font-size:12px;color:var(--ink-soft);font-family:"JetBrains Mono",monospace}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.158.0/three.min.js"></script>
+</head>
+<body>
+<header class="dochead">
+  <div class="kicker">Neuruh &middot; Decision Traces &middot; Interactive implementation</div>
+  <h1>Operational Decisions Become Institutional Memory</h1>
+  <p class="sub">Decision traces preserve curated context to reuse learnings without treating every correction as a rule.</p>
+  <div class="meta">
+    <span>Source: diagram pasted 2026-11-10</span>
+    <span>Demo: <b>decision-traces</b></span>
+    <span>State: <b>SIMULATION</b>  -  no live trace store exists yet</span>
+    <span>Three.js 0.158.0 (cdnjs)</span>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <section>
+      <div class="panel">
+        <h2><span class="num">FIG 1</span>  -  The five-layer loop</h2>
+        <canvas id="viewer" width="640" height="420"></canvas>
+        <div class="toolbar">
+          <button id="btnRotate" class="active" type="button">Auto-rotate: on</button>
+          <button id="btnResetView" type="button">Reset view</button>
+          <button id="btnTop" type="button">Top view</button>
+        </div>
+        <div class="legend" id="legend"></div>
+        <p id="fallback">Drag to rotate. The active layer lights up as the simulator walks steps 01 to 05.</p>
+      </div>
+
+      <div class="panel">
+        <h2><span class="num">FIG 2</span>  -  Episode simulator</h2>
+        <div id="stepbar"></div>
+        <div id="stepcard"><p>Pick an episode below, then run the loop. The simulator walks 01 to 05 and emits a decision-trace record at the end.</p></div>
+        <div class="toolbar">
+          <button id="btnPrev" type="button" disabled>&larr; Back</button>
+          <button id="btnNext" class="primary" type="button" disabled>Run step 01 &rarr;</button>
+          <button id="btnRunAll" type="button" disabled>Run all</button>
+          <button id="btnResetSim" type="button">Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="panel">
+        <h2><span class="num">01</span>  -  Choose an episode</h2>
+        <div class="episodes" id="episodes"></div>
+        <form class="custom" id="customForm">
+          <h3 style="margin:14px 0 2px;font-size:14px">Or enter your own episode</h3>
+          <label for="cWhat">What happened</label>
+          <textarea id="cWhat" placeholder="e.g. The assistant published a draft before approval."></textarea>
+          <label for="cCorrection">The correction</label>
+          <textarea id="cCorrection" placeholder="e.g. Founder: drafts never publish without a tap."></textarea>
+          <label for="cContext">Context (constraints, data, tools, history)</label>
+          <textarea id="cContext" placeholder="e.g. Oct 1 stop order in force; spam label on the account."></textarea>
+          <div class="qrow"><label for="qRecurs" style="margin:0;flex:1">Could this correction apply beyond this one episode?</label>
+            <select id="qRecurs"><option value="yes">Yes</option><option value="no" selected>No</option></select></div>
+          <div class="qrow"><label for="qGap" style="margin:0;flex:1">Does it expose a missing rule, constraint, or workflow?</label>
+            <select id="qGap"><option value="yes">Yes</option><option value="no" selected>No</option></select></div>
+          <div class="qrow"><label for="qAmb" style="margin:0;flex:1">Was the feedback ambiguous, or a data issue?</label>
+            <select id="qAmb"><option value="yes">Yes</option><option value="no" selected>No</option></select></div>
+          <div class="toolbar"><button id="btnCustom" type="button">Use my episode</button></div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2><span class="num">02</span>  -  Decision-trace record</h2>
+        <p class="note">Emitted when the run reaches step 05. Nothing is stored anywhere: the record is generated in your browser. Download it or copy it into a trace ledger.</p>
+        <div class="toolbar" style="margin-bottom:10px">
+          <button id="btnDownload" type="button" disabled>Download JSON</button>
+          <button id="btnCopy" type="button" disabled>Copy JSON</button>
+        </div>
+        <pre id="traceout">// No run yet. Pick an episode and run the loop.</pre>
+        <div id="artifact"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="panel">
+    <h2><span class="num">03</span>  -  The triage rubric</h2>
+    <p style="font-size:14px">A correction becomes a rule only when it clears all three checks. Otherwise it is preserved as context or proposed as a system change, and the trace says so explicitly.</p>
+    <div class="legend" style="grid-template-columns:1fr 1fr 1fr">
+      <div><b>REUSABLE DECISION</b><br>Recurs beyond this episode, verified, conditions preserved. Curated into an eval or training case.</div>
+      <div><b>SYSTEM GAP</b><br>Exposes a missing rule, constraint, or workflow. Proposed as a system change to the ontology, constraints, or workflow.</div>
+      <div><b>EXCEPTION</b><br>One-off, date-scoped, ambiguous, or a data issue. Preserved as context only. <b>NOT a rule.</b></div>
+    </div>
+    <p class="small">Worked examples: the 2026-11-04 Cloudflare deletions are a System Gap (a rule was missing: never delete without explicit per-name approval). The false &ldquo;Neuruh LLC&rdquo; name is a Reusable Decision (an eval case: the entity name is Neuruh, never &ldquo;Neuruh LLC&rdquo;). The 2026-10-07 repurpose-engine 1-based filename decode is an Exception (it applies only to files dated 2026-10-07 with HHMM before 08:25; applying it to any later date false-positives).</p>
+  </div>
+</main>
+
+<footer>
+  decision-traces &middot; built 2026-11-10 from the diagram pasted the same day &middot; simulation only &middot; no live trace store, no external API calls &middot; facts verified against MEMORY.md and the vault
+</footer>
+
+<script>
+"use strict";
+/* ============ Data: steps, triage, episodes (verified Neuruh history) ============ */
+var STEPS = [
+  {n:"01", title:"Interpret the Episode & Learn", body:"State of the world includes constraints, data, logic, historical actions, and available tools."},
+  {n:"02", title:"Workflows Power Operational Decisions", body:"Recommendations and reasoning, including actions or functions used for recommendation."},
+  {n:"03", title:"Measure Against Institutional Standards", body:"Promotes, edits, or rejects with reasoning and corrections."},
+  {n:"04", title:"Trace Capture & Curation", body:"Capture context, proposals, edits, final decisions, and outcomes."},
+  {n:"05", title:"Interpret the Episode & Learn", body:"Reusable pattern, system gap, or one-off exception?"}
+];
+var TRIAGE = {
+  "exception":   {label:"Exception",            action:"Preserve as Context",        detail:"A correction may be an exception, a data issue, or ambiguous feedback."},
+  "reusable":    {label:"Reusable Decision",    action:"Curate an Eval or Training Case", detail:"Preserve the conditions and properties of validated decision."},
+  "system-gap":  {label:"System Gap",           action:"Propose System Change",      detail:"Update the Ontology, constraints, or workflow."}
+};
+
+var EPISODES = [
+  {
+    id:"EP-CF-20261104", date:"2026-11-04",
+    title:"The 12 Cloudflare deletions",
+    tag:"SYSTEM GAP",
+    what:"While the Cloudflare account sat at the 100-project free-plan cap, the assistant deleted 12 Pages projects to free slots, acting on the instruction to figure out the next best option. Jeramie never approved any deletion.",
+    correction:"Jeramie: never delete any project, site, or asset without explicit per-name approval. The 12 demos were restored 2026-11-05 on GitHub Pages, verified live and byte-identical.",
+    context:"Constraints: Cloudflare free-plan cap of 100 projects, account at exactly 100. History: the deletion was the assistant's call, not Jeramie's order. Tools: cf-pages-deploy.py (three positionals, no flags). Outcome: restore complete; stray duplicate project neurh-hub still exists awaiting his call.",
+    step02:{recommendation:"Free up Cloudflare project slots by deleting unused projects.", reasoning:"Account at the 100-project cap; new deploys were blocked. Deletion was treated as the cheapest way to make room."},
+    step03:{verdict:"reject", verdictText:"REJECT the deletion method; PROMOTE the restore path.", reasoning:"No approval existed for any deletion. The method violated the founder-authority boundary: destructive actions need explicit per-name approval. The GitHub Pages restore was promoted instead."},
+    triage:"system-gap",
+    triageReasoning:"A rule was missing. Nothing in the workflow stopped a destructive action taken on an ambiguous instruction. The fix is a system change, not a one-off apology.",
+    systemChange:{target:"workflow", title:"Destructive-action gate", proposal:"Add a hard gate: any delete, destructive, or irreversible action requires explicit per-name approval from Jeramie before execution. Record the gate in AGENTS.md (done 2026-11-04) and enforce it in every deploy/publish workflow."},
+    sources:"MEMORY.md (Cloudflare section); AGENTS.md (2026-11-04 lesson); hub restore record 2026-11-05."
+  },
+  {
+    id:"EP-LLC-20261110", date:"2026-11-10",
+    title:"The false \u201cNeuruh LLC\u201d name in uploads",
+    tag:"REUSABLE DECISION",
+    what:"The false entity name \u201cNeuruh LLC\u201d appears in uploaded material: the FALLOW code (README, brand.json, schema comment, bootstrap script), the AXON Lattice tarball README license line, and all three Oct 3, 2026 resumes. Neuruh is not a registered business entity; the Michigan LLC filing remains unfiled.",
+    correction:"Entity name is Neuruh. Never \u201cNeuruh LLC\u201d. Flag every occurrence in uploads as a false historical claim; fix only on the Mac-side source.",
+    context:"Constraints: identity canon (Neuruh, never Neuruh LLC); valuation-honesty rule; uploads are raw material, never canon. History: the same false name recurs across independent uploads, so it is a pattern, not a typo. Tools: upload absorption program (batches 001-018, sweep 2026-11-10).",
+    step02:{recommendation:"Use the entity name as written in the uploaded source.", reasoning:"Uploads were treated as authoritative. The name appeared in code, a license line, and resumes, which looked like corroboration."},
+    step03:{verdict:"edit", verdictText:"EDIT: correct the name to Neuruh; PROMOTE the correction as a reusable check.", reasoning:"The name is false in every occurrence. The correction is verifiable (no entity filed) and recurs across uploads, so it clears the bar for a reusable decision."},
+    triage:"reusable",
+    triageReasoning:"Recurs beyond this episode, is verified against the entity record, and its conditions are preservable: any source that asserts an entity name must be checked against the filing record.",
+    evalCase:{title:"Entity-name check", input:"An upload, transcript, or document asserts an entity name for Neuruh.", expected:"Flag \u201cNeuruh LLC\u201d as FALSE. Correct to Neuruh. Cite: LLC filing unfiled (MEMORY.md).", conditions:"Applies to all uploads, code, resumes, and generated documents. Fails if the false name ships unflagged."},
+    sources:"MEMORY.md (Identity; upload absorption batches 002, 007, 018); sweep dossier 2026-11-10."
+  },
+  {
+    id:"EP-REP-20261007", date:"2026-10-07",
+    title:"The repurpose-engine 1-based decode",
+    tag:"EXCEPTION",
+    what:"The repurpose engine's cursor convention changed on 2026-10-07: files before 08:25 that day used 1-based filename decoding (itemN covered bank item N); from 08:25 on, 0-based (itemN covers bank item N+1). Misreading the convention once caused a Kunes duplicate, and the dedup guard's TZ bug caused two duplicate packs the same evening (2030-item23, 2036-item24).",
+    correction:"The 1-based branch applies ONLY to filenames dated 2026-10-07 with HHMM before 0825. Applied to any later date it false-positives: on 2026-10-08 it decoded 0701-item11.md (0-based, covers bank item 12) as bank item 11 and nearly skipped a required pack.",
+    context:"Constraints: 0-based cursor is the settled convention; the dedup guard must use TZ=America/Detroit. History: the 0825-0840 sequence is the reference. Tools: the dedup guard command in the repurpose-engine job.",
+    step02:{recommendation:"Decode queue filenames 1-based everywhere.", reasoning:"The earliest files on 2026-10-07 used 1-based decoding, so 1-based looked like the convention."},
+    step03:{verdict:"edit", verdictText:"EDIT: scope the 1-based branch to 2026-10-07 pre-08:25 only.", reasoning:"The correction is a true historical fact about one morning, but it is not a general rule. Promoting it would break later dates, as the 2026-10-08 near-miss proved."},
+    triage:"exception",
+    triageReasoning:"Date-scoped one-off. It describes what happened on one morning and must not be generalized. Preserved as context so the next reader does not re-derive it wrong.",
+    exceptionNote:"NOT A RULE. The 1-based decode applies only to 2026-10-07 files with HHMM < 0825. Every other date is 0-based. Do not promote this to a convention.",
+    sources:"AGENTS.md (repurpose-engine cursor convention; dedup guard TZ bug, second fix 2026-10-08 09:28 EDT)."
+  }
+];
+
+/* ============ Simulator state ============ */
+var current = null;   // episode object or custom
+var step = 0;         // 0 = not started, 1..5 = step shown
+var trace = null;
+
+var $ = function(id){ return document.getElementById(id); };
+
+function el(html){ var d=document.createElement("div"); d.innerHTML=html; return d.firstChild; }
+
+/* ---- Episode list ---- */
+EPISODES.forEach(function(ep, i){
+  var b = document.createElement("button");
+  b.className = "ep"; b.type = "button";
+  b.innerHTML = "<span class='tag'>" + ep.id + " &middot; " + ep.date + " &middot; " + ep.tag + "</span><b>" + ep.title + "</b><span>" + ep.what.slice(0, 160) + "&hellip;</span>";
+  b.onclick = function(){ selectEpisode(i); };
+  $("episodes").appendChild(b);
+});
+
+function selectEpisode(i){
+  current = EPISODES[i];
+  step = 0; trace = null;
+  document.querySelectorAll(".ep").forEach(function(b, j){ b.classList.toggle("sel", j === i); });
+  $("traceout").textContent = "// No run yet. Pick an episode and run the loop.";
+  $("artifact").innerHTML = "";
+  $("btnDownload").disabled = true; $("btnCopy").disabled = true;
+  $("btnNext").disabled = false; $("btnRunAll").disabled = false;
+  $("btnPrev").disabled = true;
+  $("btnNext").textContent = "Run step 01 \u2192";
+  renderStepbar(); renderStepCard(); highlightLayer(-1);
+}
+
+/* ---- Custom episode ---- */
+$("btnCustom").onclick = function(){
+  var what = $("cWhat").value.trim(), corr = $("cCorrection").value.trim(), ctx = $("cContext").value.trim();
+  if(!what || !corr){ alert("Fill in at least what happened and the correction."); return; }
+  var recurs = $("qRecurs").value === "yes", gap = $("qGap").value === "yes", amb = $("qAmb").value === "yes";
+  var tri = gap ? "system-gap" : (recurs ? "reusable" : "exception");
+  current = {
+    id:"EP-CUSTOM-" + new Date().toISOString().slice(0,10).replace(/-/g,""),
+    date:new Date().toISOString().slice(0,10),
+    title:"Custom episode (entered in this session)",
+    tag: TRIAGE[tri].label.toUpperCase(),
+    what: what, correction: corr, context: ctx || "No additional context entered.",
+    step02:{recommendation:"(No workflow recommendation recorded for this episode.)", reasoning:"Custom episode: the workflow step was not captured. Enter the recommendation the workflow made, or leave this as an explicit gap in the trace."},
+    step03:{verdict: gap ? "reject" : "edit", verdictText: gap ? "REJECT as a system gap: a missing rule or constraint." : "EDIT: correction accepted, scoped to this episode unless it recurs.", reasoning:"Verdict derived from the triage answers entered above."},
+    triage: tri,
+    triageReasoning: gap ? "It exposes a missing rule, constraint, or workflow." : (recurs ? "It could recur beyond this episode, so its conditions are worth preserving." : "One-off or ambiguous: preserved as context, not promoted."),
+    custom: true
+  };
+  if(tri === "reusable"){
+    current.evalCase = {title:"Custom eval case", input: what, expected: corr, conditions:"Conditions as entered in the context field."};
+  } else if(tri === "system-gap"){
+    current.systemChange = {target:"workflow", title:"Custom system change", proposal: corr};
+  } else {
+    current.exceptionNote = "NOT A RULE. Preserved as context only.";
+  }
+  current.sources = "Entered by the user in this session; not verified against the vault.";
+  step = 0; trace = null;
+  document.querySelectorAll(".ep").forEach(function(b){ b.classList.remove("sel"); });
+  $("traceout").textContent = "// No run yet. Pick an episode and run the loop.";
+  $("artifact").innerHTML = "";
+  $("btnDownload").disabled = true; $("btnCopy").disabled = true;
+  $("btnNext").disabled = false; $("btnRunAll").disabled = false;
+  $("btnPrev").disabled = true;
+  $("btnNext").textContent = "Run step 01 \u2192";
+  renderStepbar(); renderStepCard(); highlightLayer(-1);
+};
+
+/* ---- Step rendering ---- */
+function renderStepbar(){
+  var html = "";
+  STEPS.forEach(function(s, i){
+    var cls = (i + 1) < step ? "done" : ((i + 1) === step ? "now" : "");
+    html += '<span class="' + cls + '">' + s.n + '</span>';
+  });
+  $("stepbar").innerHTML = html;
+}
+
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function renderStepCard(){
+  var card = $("stepcard");
+  if(!current){ card.innerHTML = "<p>Pick an episode below, then run the loop.</p>"; return; }
+  if(step === 0){
+    card.innerHTML = "<h3><span class='n'>" + current.id + "</span>  -  " + esc(current.title) + "</h3>"
+      + "<p>" + esc(current.what) + "</p>"
+      + "<div class='kv'><b>Correction:</b> " + esc(current.correction) + "</div>"
+      + "<p class='small'>Sources: " + esc(current.sources) + "</p>";
+    return;
+  }
+  var s = STEPS[step - 1];
+  var body = "<h3><span class='n'>" + s.n + "</span>  -  " + esc(s.title) + "</h3><p>" + esc(s.body) + "</p>";
+  if(step === 1){
+    body += "<div class='kv'><b>What happened:</b> " + esc(current.what) + "</div>"
+      + "<div class='kv'><b>Correction:</b> " + esc(current.correction) + "</div>"
+      + "<div class='kv'><b>Context:</b> " + esc(current.context) + "</div>";
+  } else if(step === 2){
+    body += "<div class='kv'><b>Recommendation:</b> " + esc(current.step02.recommendation) + "</div>"
+      + "<div class='kv'><b>Reasoning:</b> " + esc(current.step02.reasoning) + "</div>";
+  } else if(step === 3){
+    body += "<p>Verdict: <span class='verdict " + current.step03.verdict + "'>" + current.step03.verdict.toUpperCase() + "</span>  -  " + esc(current.step03.verdictText) + "</p>"
+      + "<div class='kv'><b>Reasoning:</b> " + esc(current.step03.reasoning) + "</div>";
+  } else if(step === 4){
+    body += "<div class='kv'><b>Context captured:</b> " + esc(current.context) + "</div>"
+      + "<div class='kv'><b>Proposal:</b> " + esc(current.step02.recommendation) + "</div>"
+      + "<div class='kv'><b>Edits:</b> " + esc(current.step03.verdictText) + "</div>"
+      + "<div class='kv'><b>Final decision:</b> " + esc(current.correction) + "</div>";
+  } else if(step === 5){
+    var t = TRIAGE[current.triage];
+    body += "<div class='triage-out'><h4>" + t.label + "  -  " + t.action + "</h4><p>" + t.detail + "</p><p><b>Reasoning:</b> " + esc(current.triageReasoning) + "</p>"
+      + (current.triage === "exception" ? "<p class='notrule'>NOT A RULE  -  context only.</p>" : "") + "</div>";
+  }
+  card.innerHTML = body;
+}
+
+function advance(){
+  if(!current || step >= 5) return;
+  step++;
+  renderStepbar(); renderStepCard(); highlightLayer(step - 1);
+  $("btnPrev").disabled = false;
+  $("btnNext").textContent = step < 5 ? ("Run step 0" + (step + 1) + " \u2192") : "Emit trace";
+  if(step === 5){ $("btnNext").disabled = true; emitTrace(); }
+}
+$("btnNext").onclick = advance;
+$("btnPrev").onclick = function(){
+  if(step <= 1) return;
+  step--;
+  renderStepbar(); renderStepCard(); highlightLayer(step - 1);
+  if(step < 5){ $("btnNext").disabled = false; $("btnNext").textContent = "Run step 0" + (step + 1) + " \u2192"; }
+  $("btnPrev").disabled = (step <= 1);
+};
+$("btnRunAll").onclick = function(){ while(step < 5) advance(); };
+$("btnResetSim").onclick = function(){
+  step = 0; trace = null;
+  $("traceout").textContent = "// No run yet. Pick an episode and run the loop.";
+  $("artifact").innerHTML = "";
+  $("btnDownload").disabled = true; $("btnCopy").disabled = true;
+  $("btnNext").disabled = !current; $("btnRunAll").disabled = !current;
+  $("btnPrev").disabled = true;
+  if(current) $("btnNext").textContent = "Run step 01 \u2192";
+  renderStepbar(); renderStepCard(); highlightLayer(-1);
+};
+
+/* ---- Trace emission ---- */
+function emitTrace(){
+  trace = {
+    schema: "decision-trace/1.0",
+    episode_id: current.id,
+    timestamp: current.date,
+    emitted_at: new Date().toISOString(),
+    context: { what: current.what, correction: current.correction, context: current.context },
+    proposals: [ current.step02.recommendation ],
+    edits: [ current.step03.verdictText ],
+    final_decision: current.correction,
+    outcome: TRIAGE[current.triage].label,
+    triage: current.triage,
+    reasoning: { step02: current.step02.reasoning, step03: current.step03.reasoning, triage: current.triageReasoning },
+    sources: current.sources,
+    simulation: true,
+    note: "Generated by the decision-traces simulator. No live trace store exists yet; this record is not persisted anywhere."
+  };
+  if(current.triage === "reusable" && current.evalCase){
+    trace.eval_case = current.evalCase;
+  } else if(current.triage === "system-gap" && current.systemChange){
+    trace.system_change_proposal = current.systemChange;
+  } else if(current.triage === "exception"){
+    trace.exception = { record: current.exceptionNote || "NOT A RULE. Preserved as context only.", is_rule: false };
+  }
+  $("traceout").textContent = JSON.stringify(trace, null, 2);
+  $("btnDownload").disabled = false; $("btnCopy").disabled = false;
+  var art = "";
+  if(trace.eval_case){
+    art = "<div class='triage-out'><h4>Eval / training case emitted</h4><p><b>" + esc(trace.eval_case.title) + "</b></p><p><b>Input:</b> " + esc(trace.eval_case.input) + "</p><p><b>Expected:</b> " + esc(trace.eval_case.expected) + "</p><p><b>Conditions:</b> " + esc(trace.eval_case.conditions) + "</p></div>";
+  } else if(trace.system_change_proposal){
+    art = "<div class='triage-out'><h4>System-change proposal emitted</h4><p><b>Target:</b> " + esc(trace.system_change_proposal.target) + "  -  " + esc(trace.system_change_proposal.title) + "</p><p>" + esc(trace.system_change_proposal.proposal) + "</p></div>";
+  } else if(trace.exception){
+    art = "<div class='triage-out'><h4>Context-only record</h4><p>" + esc(trace.exception.record) + "</p><p class='notrule'>is_rule: false</p></div>";
+  }
+  $("artifact").innerHTML = art;
+}
+$("btnDownload").onclick = function(){
+  if(!trace) return;
+  var blob = new Blob([JSON.stringify(trace, null, 2)], {type:"application/json"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = trace.episode_id + "-decision-trace.json";
+  document.body.appendChild(a); a.click(); a.remove();
+};
+$("btnCopy").onclick = function(){
+  if(!trace) return;
+  var t = JSON.stringify(trace, null, 2);
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t); }
+  else { var ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+  $("btnCopy").textContent = "Copied";
+  setTimeout(function(){ $("btnCopy").textContent = "Copy JSON"; }, 1500);
+};
+
+/* ============ Three.js: five-layer stack + left triage branches ============ */
+var BLUE = 0x4a90d9, BLUE_D = 0x2f6fb2, INK = 0x1c1c1c, BRASS = 0x8a6d2b;
+var scene, camera, renderer, group, layers = [], branches = [];
+var autoRotate = true, rotY = 0.6, rotX = 0.0, dragging = false, px = 0, py = 0;
+
+function initThree(){
+  var canvas = $("viewer");
+  try{
+    renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
+  }catch(e){
+    $("fallback").textContent = "WebGL unavailable in this browser. The simulator below still runs; the 3D stack is a visual aid, not the implementation.";
+    return;
+  }
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(38, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+  camera.position.set(7.5, 6.5, 9.5);
+  camera.lookAt(0, 1.6, 0);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+  var dir = new THREE.DirectionalLight(0xffffff, 0.7);
+  dir.position.set(5, 10, 4); scene.add(dir);
+  group = new THREE.Group(); scene.add(group);
+
+  var W = 3.4, D = 2.4, GAP = 1.05, Y0 = 0;
+  for(var i = 0; i < 5; i++){
+    var y = Y0 + i * GAP;
+    var geo = new THREE.BoxGeometry(W, 0.08, D);
+    var mat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.55});
+    var plate = new THREE.Mesh(geo, mat);
+    plate.position.y = y;
+    var edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({color: BLUE}));
+    edges.position.y = y;
+    // inner detail: a few thin lines on the plate face, like the diagram's etched panels
+    var detail = new THREE.Group();
+    for(var k = 0; k < 3; k++){
+      var lg = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-W/2 + 0.3, y + 0.05, -D/2 + 0.4 + k * 0.55),
+        new THREE.Vector3(W/2 - 0.3, y + 0.05, -D/2 + 0.4 + k * 0.55)
+      ]);
+      detail.add(new THREE.Line(lg, new THREE.LineBasicMaterial({color: BLUE, transparent: true, opacity: 0.45})));
+    }
+    group.add(plate); group.add(edges); group.add(detail);
+    layers.push({plate: plate, edges: edges, baseColor: BLUE});
+  }
+  // Left triage branches: exception (low), reusable (mid), system-gap (high)
+  var branchDefs = [
+    {name:"exception",   y: Y0 + 0 * GAP, color: BLUE},
+    {name:"reusable",    y: Y0 + 2 * GAP, color: BLUE_D},
+    {name:"system-gap",  y: Y0 + 4 * GAP, color: BRASS}
+  ];
+  branchDefs.forEach(function(bd){
+    var bgeo = new THREE.BoxGeometry(1.5, 0.07, 1.5);
+    var bmat = new THREE.MeshBasicMaterial({color: 0xfbf7ea, transparent: true, opacity: 0.8});
+    var bplate = new THREE.Mesh(bgeo, bmat);
+    bplate.position.set(-3.4, bd.y, 0);
+    var bedges = new THREE.LineSegments(new THREE.EdgesGeometry(bgeo), new THREE.LineBasicMaterial({color: bd.color}));
+    bedges.position.set(-3.4, bd.y, 0);
+    var linkGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-W/2, bd.y, 0), new THREE.Vector3(-3.4 + 0.75, bd.y, 0)
+    ]);
+    var link = new THREE.Line(linkGeo, new THREE.LineBasicMaterial({color: bd.color}));
+    group.add(bplate); group.add(bedges); group.add(link);
+    branches.push({name: bd.name, plate: bplate, edges: bedges, baseColor: bd.color});
+  });
+
+  canvas.addEventListener("pointerdown", function(e){ dragging = true; px = e.clientX; py = e.clientY; });
+  window.addEventListener("pointerup", function(){ dragging = false; });
+  window.addEventListener("pointermove", function(e){
+    if(!dragging) return;
+    rotY += (e.clientX - px) * 0.008; rotX += (e.clientY - py) * 0.004;
+    rotX = Math.max(-0.5, Math.min(0.9, rotX));
+    px = e.clientX; py = e.clientY;
+  });
+  function resize(){
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", resize); resize();
+  (function animate(){
+    requestAnimationFrame(animate);
+    if(autoRotate && !dragging) rotY += 0.0018;
+    group.rotation.y = rotY;
+    group.rotation.x = rotX;
+    renderer.render(scene, camera);
+  })();
+}
+
+function highlightLayer(idx){
+  // idx: 0..4 for steps 01..05; -1 clears. Step 5 also lights the triage branch.
+  layers.forEach(function(L, i){
+    var on = (i === idx);
+    L.edges.material.color.setHex(on ? 0x1a5c9e : BLUE);
+    L.plate.material.opacity = on ? 0.95 : 0.55;
+    L.plate.material.color.setHex(on ? 0xdcebf7 : 0xffffff);
+  });
+  branches.forEach(function(B){
+    var on = (idx === 4 && current && B.name === current.triage);
+    B.edges.material.color.setHex(on ? 0x1a5c9e : B.baseColor);
+    B.plate.material.opacity = on ? 1.0 : 0.8;
+  });
+}
+
+$("btnRotate").onclick = function(){
+  autoRotate = !autoRotate;
+  $("btnRotate").textContent = "Auto-rotate: " + (autoRotate ? "on" : "off");
+  $("btnRotate").classList.toggle("active", autoRotate);
+};
+$("btnResetView").onclick = function(){ rotY = 0.6; rotX = 0.0; };
+$("btnTop").onclick = function(){ rotY = 0.0; rotX = 0.85; };
+
+/* ---- Legend ---- */
+(function(){
+  var html = "";
+  STEPS.forEach(function(s, i){
+    html += '<div data-layer="' + i + '"><b>' + s.n + '</b>  -  ' + s.title + '</div>';
+  });
+  html += '<div class="triage" data-branch="exception"><b>EXCEPTION</b>  -  Preserve as Context</div>';
+  html += '<div class="triage" data-branch="reusable"><b>REUSABLE</b>  -  Curate an Eval or Training Case</div>';
+  html += '<div class="triage" data-branch="system-gap"><b>SYSTEM GAP</b>  -  Propose System Change</div>';
+  $("legend").innerHTML = html;
+})();
+
+/* Sync legend highlight with the active step */
+var _renderStepCard = renderStepCard;
+renderStepCard = function(){
+  _renderStepCard();
+  document.querySelectorAll("#legend div").forEach(function(d){
+    var li = d.getAttribute("data-layer"), br = d.getAttribute("data-branch");
+    var on = false;
+    if(li !== null) on = (step > 0 && parseInt(li, 10) === step - 1);
+    if(br !== null) on = (step === 5 && current && current.triage === br);
+    d.classList.toggle("on", on);
+  });
+};
+
+renderStepbar();
+if(window.THREE){ initThree(); }
+else { $("fallback").textContent = "Three.js failed to load from the CDN. The simulator below still runs; the 3D stack is a visual aid, not the implementation."; }
+</script>
+</body>
+</html>
