@@ -49,7 +49,7 @@ h3{font-family:var(--display);font-weight:700;font-size:16px;margin:18px 0 6px}
 .kv{display:grid;grid-template-columns:220px 1fr;gap:6px 14px;font-size:14px}
 .kv dt{font-family:var(--mono);font-size:12px;color:var(--dim);padding-top:2px}
 .kv dd{margin:0}
-#scene{width:100%;height:440px;background:var(--obsidian);border-radius:6px;display:block}
+#scene{width:100%;height:440px;background:var(--obsidian);border-radius:6px;display:block;touch-action:none}
 .scene-fallback{color:var(--bone-dim);font-family:var(--mono);font-size:12px;padding:12px 0 0}
 .legend{display:flex;flex-wrap:wrap;gap:18px;font-family:var(--mono);font-size:12px;color:#3d3a30;margin-top:10px}
 .legend .sw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
@@ -309,8 +309,30 @@ updateGate();
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0e0e0c);
   var camera = new THREE.PerspectiveCamera(42, (canvas.clientWidth || 1120) / 440, 0.1, 100);
-  camera.position.set(0, 2.2, 11);
-  camera.lookAt(0, 0, 0);
+  /* orbit: drag to rotate, wheel to zoom (scroll zooms the scene, not the page) */
+  var orbitTheta = 0, orbitPhi = 1.373, orbitRadius = 11.22;
+  var orbitDragging = false, orbitLX = 0, orbitLY = 0;
+  function applyOrbit(){
+    camera.position.set(
+      orbitRadius * Math.sin(orbitPhi) * Math.sin(orbitTheta),
+      orbitRadius * Math.cos(orbitPhi),
+      orbitRadius * Math.sin(orbitPhi) * Math.cos(orbitTheta));
+    camera.lookAt(0, 0, 0);
+  }
+  applyOrbit();
+  canvas.style.touchAction = "none";
+  canvas.addEventListener("pointerdown", function(e){ orbitDragging = true; orbitLX = e.clientX; orbitLY = e.clientY; });
+  window.addEventListener("pointerup", function(){ orbitDragging = false; });
+  window.addEventListener("pointermove", function(e){
+    if (!orbitDragging) return;
+    orbitTheta -= (e.clientX - orbitLX) * 0.005;
+    orbitPhi = Math.max(0.3, Math.min(1.45, orbitPhi - (e.clientY - orbitLY) * 0.004));
+    orbitLX = e.clientX; orbitLY = e.clientY;
+  });
+  canvas.addEventListener("wheel", function(e){
+    e.preventDefault();
+    orbitRadius = Math.max(5, Math.min(22, orbitRadius + e.deltaY * 0.01));
+  }, {passive: false});
   scene.add(new THREE.AmbientLight(0xffffff, 0.55));
   var dir = new THREE.DirectionalLight(0xffffff, 0.9);
   dir.position.set(4, 6, 8);
@@ -395,6 +417,7 @@ updateGate();
       pPos[i * 3] = p[0]; pPos[i * 3 + 1] = p[1]; pPos[i * 3 + 2] = 0;
     }
     pGeo.attributes.position.needsUpdate = true;
+    applyOrbit();
     renderer.render(scene, camera);
   }
   animate();
