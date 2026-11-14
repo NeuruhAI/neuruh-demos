@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token-Swap Prompting Lab (SIMULATION) | Neuruh</title>
+<style>
+  :root { --bone:#f4f1ea; --paper:#fbf9f4; --ink:#1c1a17; --brass:#8a6d2b; --line:#d8d2c4; --muted:#6b655a; --pass:#2e6b34; --fail:#9b2c2c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Inter, system-ui, sans-serif; line-height:1.55; }
+  header.doc { background:var(--paper); border-bottom:3px solid var(--brass); padding:28px 24px 20px; }
+  header.doc h1 { font-family:Archivo, Inter, sans-serif; font-size:30px; margin:0 0 6px; letter-spacing:-0.5px; }
+  header.doc .sub { color:var(--muted); margin:0 0 14px; }
+  .meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px 24px; border-top:1px solid var(--line); padding-top:12px; font-size:13px; }
+  .meta b { display:block; font-family:"JetBrains Mono", monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--brass); }
+  main { max-width:1020px; margin:0 auto; padding:24px; }
+  section { background:var(--paper); border:1px solid var(--line); padding:20px 22px; margin-bottom:20px; }
+  h2 { font-family:Archivo, Inter, sans-serif; font-size:20px; margin:0 0 4px; }
+  h2 .no { color:var(--brass); font-family:"JetBrains Mono", monospace; font-size:14px; margin-right:8px; }
+  h3 { font-size:15px; margin:18px 0 6px; }
+  h4 { margin:0 0 6px; font-size:15px; }
+  p, li { font-size:14.5px; }
+  .muted { color:var(--muted); font-size:13.5px; }
+  .src { font-size:13px; color:var(--muted); }
+  .note { font-size:13.5px; border-left:3px solid var(--brass); padding-left:10px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:10px 0; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--bone); font-family:"JetBrains Mono", monospace; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; }
+  .pass { color:var(--pass); font-weight:700; }
+  .fail { color:var(--fail); font-weight:700; }
+  .tcard { border:1px solid var(--line); padding:14px; margin:10px 0; cursor:pointer; background:var(--paper); }
+  .tcard.sel { border:2px solid var(--brass); }
+  .tcard pre, pre { background:var(--bone); border:1px solid var(--line); padding:10px; overflow-x:auto; font-family:"JetBrains Mono", monospace; font-size:13px; white-space:pre-wrap; word-wrap:break-word; }
+  .slots { font-size:13px; }
+  .sim { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .pane { border:1px solid var(--line); min-height:120px; padding:12px; font-family:"JetBrains Mono", monospace; font-size:13.5px; white-space:pre-wrap; word-wrap:break-word; background:var(--bone); }
+  mark.tok { background:#f2d98c; padding:0 2px; }
+  mark.val { background:#bcd6a8; padding:0 2px; }
+  label { display:block; margin:10px 0 4px; font-weight:600; font-size:14px; }
+  select, input[type=text] { width:100%; padding:9px 10px; font-size:14.5px; border:1px solid var(--line); background:#fff; font-family:inherit; }
+  button { background:var(--ink); color:var(--paper); border:0; padding:10px 18px; font-size:14.5px; cursor:pointer; margin:8px 8px 0 0; }
+  button.preset { background:var(--bone); color:var(--ink); border:1px solid var(--brass); padding:6px 10px; font-size:13px; }
+  button.verify-btn { margin:0; padding:6px 14px; }
+  .rcard { border:1px solid var(--line); padding:14px; margin:12px 0; background:var(--bone); }
+  .rcard p { margin:5px 0; font-size:13.5px; }
+  code { font-family:"JetBrains Mono", monospace; font-size:12px; word-break:break-all; }
+  .verdict { font-family:"JetBrains Mono", monospace; font-size:12px; border:1px solid var(--line); padding:2px 8px; margin-left:8px; }
+  .verdict.pass { color:var(--pass); border-color:var(--pass); }
+  .verdict.fail { color:var(--fail); border-color:var(--fail); }
+  .banner { background:#fff8e1; border:1px solid var(--brass); padding:12px 14px; margin-bottom:20px; font-size:14px; }
+  footer { max-width:1020px; margin:0 auto; padding:0 24px 32px; color:var(--muted); font-size:13px; }
+  @media (max-width:700px) { .sim { grid-template-columns:1fr; } }
+  @media print { body { background:#fff; } section { break-inside:avoid; } }
+</style>
+</head>
+<body>
+<header class="doc">
+  <h1>Token-Swap Prompting Lab</h1>
+  <p class="sub">A working simulator for Token-Swap Prompting (AI-MTH-002). Pick a sourced template, swap one token, check the drift, keep the receipt. SIMULATION throughout: the swaps run in this page only, nothing is sent anywhere, and no image or text is generated.</p>
+  <div class="meta">
+    <div><b>Document</b>NRH-DOC-TSL-001 rev A</div>
+    <div><b>Built</b>2026-11-14</div>
+    <div><b>Framework</b>Token-Swap Prompting, AI-MTH-002</div>
+    <div><b>Atlas tier</b>UNKNOWN (stated, not assigned)</div>
+    <div><b>Demo tier</b>Tier B working demo (this page executes; the framework stays UNKNOWN)</div>
+    <div><b>State</b>SIMULATION. DESIGNED, not VERIFIED as a method.</div>
+  </div>
+</header>
+<main>
+  <div class="banner"><strong>Read first.</strong> Token-Swap Prompting is a prompt engineering technique, not a product. The codex and the atlas state its role and nothing else: no tier, no dependencies, no repo, no owner. This page shows exactly what the sources state, then simulates the technique with rules that are this build's design, labeled as such. Swap rules, drift criteria, and thresholds are mine. They are not paper rules.</div>
+
+  <section>
+    <h2><span class="no">1</span>What the sources actually say</h2>
+    <p class="muted">Read in full before building: the vault, the Ecosystem Codex, the Framework Atlas, the content bank, the live SAL Content Pipeline demo, and the live receipt-chain-explorer.</p>
+    <table>
+      <tr><th>Source</th><th>What it states</th><th>Status</th></tr>
+      <tr><td>Ecosystem Codex Volume VI (NRH-DOC-CODEX-001 rev A)</td><td>Token-Swap Prompting: "Prompt engineering technique", posture "Independently developed". No tier stated. No dependencies stated. No numbers stated for it. The codex verifies 31 named frameworks and names 20 in Volume VI; Token-Swap Prompting is one of the 20.</td><td>Verified</td></tr>
+      <tr><td>Framework Atlas frameworks.json (token-swap-prompting entry)</td><td>Function "Prompt engineering technique", domain "Prompt and cognition", posture "Independently developed", tier <strong>UNKNOWN</strong>. Tier source: "No tier stated in Volume VI, and no matching entry in the 28-entry master asset register." Dependencies: none stated.</td><td>Verified</td></tr>
+      <tr><td>Vault: HQ-Hub L1 knowledge base (AI-MTH-002)</td><td>"SHOT_LABEL blocks with locked geometry, wardrobe, scene, brand compliance. Commercial image generation." Use: "Not directly AXON, image generation pipeline for Neuruh Creatorverse."</td><td>Verified</td></tr>
+      <tr><td>Vault: IPP methodology</td><td>"A master template defines immutable visual DNA while designated tokens permit controlled variation." Verbatim template: <code>&lt;ANGLE_TOKEN&gt; | [LOCKED: ultra-photoreal 8K, golden-hour, global illumination, natural color science, zero stylization artifacts]</code>, with swap options P1 "High-altitude aerial...", P2 "Eye-level cinematic hero shot...", P3 "Low-angle twilight view...". Applied to code generation: lock architectural patterns, domain models, and security requirements while allowing variation only in implementation details.</td><td>Verified</td></tr>
+      <tr><td>Vault: Command Codex, /image command</td><td>Token-Swap Prompting format: SHOT_LABEL, locked geometry, scene description, lighting, color palette, mood, technical specs. Output for Midjourney (with --ar and --v flags) and DALL-E (natural language). Style direction: dark UI aesthetic, tactical/command-center feel, emerald and slate color palette, Neuruh brand alignment.</td><td>Verified</td></tr>
+      <tr><td>Vault: session log 2026-03-30</td><td>Real example: Grok image prompt built for Wired editorial aesthetic (fractured black monolith, geometric neural lattice, electric cyan, photorealistic 3D render), SHOT_LABEL format, locked geometry + wardrobe + scene. Prompt versions v1 structured, v2 compressed, v3 physical object rebuild.</td><td>Verified</td></tr>
+      <tr><td>Vault: Token-Swap Image Protocol (CRE-006)</td><td>A <strong>separate</strong> concept: METHOD/CREATIVE LINEAGE, no repo, owner UNKNOWN. Note: "Token-Swap P5 canonical name still undecided (Sunset Silhouette vs Workshop Focus)." Not the same object as Token-Swap Prompting (AI-MTH-002). The two are not merged on this page.</td><td>Verified</td></tr>
+      <tr><td>Content bank content-bank.md</td><td>30 items, each a verified fact with proof. Platform formats: X under 280 chars, blunt, one link max; Threads 1-2 short paragraphs; IG caption plus hook first line; FB groups teach-first value only. Cursor on disk: cursor_index 8, updated 2026-11-13 21:55.</td><td>Verified</td></tr>
+      <tr><td>Receipt-chain-explorer (live demo)</td><td>Receipt format v1.0: canonical JSON (keys sorted, arrays in order), provenance.report_hash_sha256 stripped before hashing, SHA-256 only, first receipt prev hash GENESIS, link passes when prev hash equals the previous receipt hash.</td><td>Verified</td></tr>
+      <tr><td>SAL Content Pipeline (live demo)</td><td>Stage/receipt pattern reference for this build: simulator plus receipt panel, receipts computed for real in the browser, design decisions labeled as the builder's own.</td><td>Verified</td></tr>
+      <tr><td>Standalone Token-Swap Prompting dossier</td><td>No standalone dossier exists in the vault. The framework is known only through the mentions above. Recorded as a gap, not filled in.</td><td>Gap</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="no">2</span>Prompt template library</h2>
+    <p class="muted">Six templates, each drawn from a stated source, each showing its source. Click a card to select it. Locked text is never a swappable token. If a template assembles stated fields into template form, the card says so.</p>
+    <div id="template-list"></div>
+  </section>
+
+  <section>
+    <h2><span class="no">3</span>Token-swap simulator</h2>
+    <p class="muted">Pick a template above, pick one token, type a replacement, press Run swap. The before prompt shows the token highlighted; the after prompt shows the replacement highlighted. One token per run. Each run emits a receipt below.</p>
+    <label for="token-select">Token to swap</label>
+    <select id="token-select"></select>
+    <div id="preset-row"></div>
+    <div id="bank-row"></div>
+    <label for="replacement">Replacement value</label>
+    <input type="text" id="replacement" value="" autocomplete="off">
+    <p class="muted" id="token-echo"></p>
+    <button type="button" id="run-swap">Run swap</button>
+    <button type="button" id="copy-after">Copy after prompt</button>
+    <div id="run-output"><p class="muted">No run yet this session. Pick a token, type a replacement, press Run swap.</p></div>
+    <div class="sim">
+      <div><h3>Before</h3><div class="pane" id="before-pane">Select a template above.</div></div>
+      <div><h3>After</h3><div class="pane" id="after-pane">Run a swap to see the result.</div></div>
+    </div>
+    <p class="muted" id="word-counts"></p>
+  </section>
+
+  <section>
+    <h2><span class="no">4</span>Drift check</h2>
+    <p class="muted">Deterministic checks on the before/after pair, computed for real on every run. The criteria and thresholds are this build's design, labeled as such. No source states a banned-word list, so no banned-word check exists here; that is recorded as a gap. This check measures text shape only. It never claims semantic equivalence, which it cannot measure.</p>
+    <table>
+      <tr><th>Criterion</th><th>Result</th><th>Note</th></tr>
+      <tbody id="drift-body"><tr><td colspan="3" class="muted">No run yet.</td></tr></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="no">5</span>Receipt panel</h2>
+    <p class="muted">Each completed run emits one receipt format v1.0 record. The hash is computed for real in this browser with a synchronous SHA-256 implementation over canonical JSON with the hash field stripped. The first receipt in a session chains from GENESIS; each later receipt chains to the previous receipt hash. Press Verify on any receipt to recompute its hash and check its link. This demo's chain is separate from the pipeline first-run receipt in the receipt-chain-explorer; the two chains do not share hashes.</p>
+    <div id="receipt-list"><p class="muted">No receipts yet this session. Run the simulator to emit one.</p></div>
+  </section>
+
+  <section>
+    <h2><span class="no">6</span>Status board: Token-Swap Prompting</h2>
+    <p class="muted">Stated state of the real framework. This board describes the framework; the simulator above is separate and labeled SIMULATION throughout.</p>
+    <table>
+      <tr><th>Item</th><th>State</th><th>Evidence</th><th>Status</th></tr>
+      <tr><td>Framework</td><td>Token-Swap Prompting, asset ID AI-MTH-002</td><td>Vault registry master label index; HQ-Hub L1 knowledge base</td><td>Verified</td></tr>
+      <tr><td>Function</td><td>Prompt engineering technique</td><td>Codex Volume VI; Atlas frameworks.json</td><td>Verified</td></tr>
+      <tr><td>Tier</td><td>UNKNOWN</td><td>Atlas: no tier stated in Volume VI, no matching entry in the 28-entry master asset register</td><td>Verified</td></tr>
+      <tr><td>Dependencies</td><td>None stated</td><td>Atlas dependency note for token-swap-prompting</td><td>Verified</td></tr>
+      <tr><td>Posture</td><td>Independently developed</td><td>Codex Volume VI; Atlas</td><td>Verified</td></tr>
+      <tr><td>Method</td><td>SHOT_LABEL blocks with locked geometry, wardrobe, scene, brand compliance; master template defines immutable visual DNA, designated tokens permit controlled variation</td><td>Vault HQ-Hub L1; IPP methodology</td><td>Verified</td></tr>
+      <tr><td>Use</td><td>Commercial image generation; image generation pipeline for Neuruh Creatorverse; not directly AXON</td><td>Vault HQ-Hub L1</td><td>Verified</td></tr>
+      <tr><td>Repo / runtime</td><td>NO REPO</td><td>Vault CRE-006 evidence (no repo by that name in the match list); no repo stated for AI-MTH-002</td><td>Verified</td></tr>
+      <tr><td>Owner</td><td>UNKNOWN</td><td>Vault CRE-006 court record; no owner stated for AI-MTH-002</td><td>Verified</td></tr>
+      <tr><td>Related, distinct</td><td>Token-Swap Image Protocol (CRE-006) is a separate METHOD/CREATIVE LINEAGE concept; Quantum Prompt Lattice notes Token-Swap as its language lineage ("Token-Swap to QPL")</td><td>Vault CRE-006; Quantum Prompt Lattice note, 2026-11-10 batch 010</td><td>Verified</td></tr>
+      <tr><td>This demo</td><td>Tier B working demo: template library, swap simulator, drift check, and receipt chain all execute in the browser</td><td>This page. Token-Swap Prompting itself stays Tier UNKNOWN per the atlas; the demo does not promote it.</td><td>Designed</td></tr>
+    </table>
+    <h3>DESIGNED vs VERIFIED</h3>
+    <table>
+      <tr><th>Claim</th><th>Class</th></tr>
+      <tr><td>The six templates and their stated sources</td><td>VERIFIED (sourced, see section 1)</td></tr>
+      <tr><td>The swap rules, drift criteria, and thresholds</td><td>DESIGNED (mine, see section 7)</td></tr>
+      <tr><td>The receipt chain math (SHA-256, GENESIS first)</td><td>VERIFIED in Node against Node crypto (see build report); the browser computes it for real on each run</td></tr>
+      <tr><td>Token-Swap Prompting as a working method</td><td>DESIGNED (this page simulates it; no source defines executable swap rules)</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2><span class="no">7</span>Design decisions (mine, labeled)</h2>
+    <p class="muted">Nothing in this section is a paper claim. Each decision below was made by this build because the sources do not define it.</p>
+    <ul>
+      <li><strong>Swap rules.</strong> (1) Every occurrence of the exact token string is replaced with the replacement verbatim. (2) No partial matches: [SCENE] never matches [SCENE_DESCRIPTION]. (3) Locked text is never a slot and is verified unchanged by the drift check. (4) One token per run. (5) The replacement is inserted verbatim, no escaping, no case changes; if it contains brackets the bracket-balance check fails, which is the correct behavior. (6) An empty replacement is allowed to run and fails the non-empty check, so the check is demonstrable.</li>
+      <li><strong>Token forms.</strong> The source uses both <code>[LOCKED: ...]</code> and <code>&lt;ANGLE_TOKEN&gt;</code>. The simulator accepts square-bracket and angle-bracket tokens. T1 keeps the source's angle-bracket form verbatim.</li>
+      <li><strong>Drift criteria and thresholds.</strong> Six checks, all computed for real: bracket balance; swapped token gone; locked block intact (N/A when a template has no locked block); replacement non-empty; length ratio within 50% to 200% (my threshold); word-count delta within 30 words (my threshold). Word count is whitespace-split. No semantic check exists and none is claimed.</li>
+      <li><strong>Template assembly.</strong> T2, T3, and T4 assemble stated fields into template form; the assembly is mine and each card says so. T5 assembles the stated IPP code-generation sentence into template form. T1 is verbatim from the source. T6 pairs the stated X format rule with verbatim bank facts.</li>
+      <li><strong>Default values.</strong> T2 and T3 defaults come from the stated /image style direction (dark UI, tactical/command-center, emerald and slate). T4 defaults are the four stated values from the session log. T5 defaults are my choices. T6 defaults are bank item 10 and the stated cal.com/neuruh link.</li>
+      <li><strong>Receipt ids.</strong> tok-20261114-0001 and up, per session run. This demo's chain is separate from the pipeline first-run receipt rcpt-20261114-0001 in the receipt-chain-explorer.</li>
+      <li><strong>SHA-256.</strong> A synchronous pure-JS implementation, so the same code path runs in the browser and in the Node test. Verified against Node crypto on vectors including the empty string, "abc", a 56-character RFC vector, a 1,000-character input, a unicode input, and real canonical receipt JSON (see build report).</li>
+      <li><strong>FACT picker.</strong> When the T6 FACT token is selected, a dropdown offers all 30 bank items verbatim with their proof shown. Choosing one fills the replacement value.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2><span class="no">8</span>Gaps (honest)</h2>
+    <ul>
+      <li>No standalone Token-Swap Prompting dossier exists in the vault. The framework is known only through mentions in the HQ-Hub L1 knowledge base, the IPP methodology, the Command Codex /image command, the registry label index, and the session log.</li>
+      <li>No source states swap rules, drift criteria, thresholds, or a banned-word list. All of those on this page are this build's design.</li>
+      <li>No source states a repo, an owner, a runtime, a tier, or dependencies for Token-Swap Prompting. All are UNKNOWN or NO REPO on the status board.</li>
+      <li>Token-Swap P5 canonical name is still undecided (Sunset Silhouette vs Workshop Focus), per vault CRE-006. That open item belongs to the separate Token-Swap Image Protocol concept and is not resolved here.</li>
+      <li>The Quantum Prompt Lattice note says Token-Swap is its language lineage ("Token-Swap to QPL") with a Constraint Domination Protocol collapse engine, but no source defines how the two connect mechanically. Not modeled here.</li>
+      <li>Bank item facts in the T6 picker are reproduced verbatim, including their stated list prices and the camper listing figures. Those are source facts, not valuations of Token-Swap Prompting. No valuation of the framework is made anywhere on this page.</li>
+      <li>Layout was not eyeballed in a live browser by this build; behavior, swap logic, drift checks, and hashes were tested in Node (see the build report).</li>
+    </ul>
+  </section>
+</main>
+<footer>
+  Token-Swap Prompting Lab. SIMULATION. Sources: Neuruh Ecosystem Codex NRH-DOC-CODEX-001 rev A; Framework Atlas frameworks.json; vault notes cited in section 1; content bank content-bank.md. Built 2026-11-14. No data leaves this page.
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
