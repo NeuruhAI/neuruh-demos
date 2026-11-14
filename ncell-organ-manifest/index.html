@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N-Cell Organ Manifests: SIMULATION</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <span class="badge">Simulation</span>
+  <h1>N-Cell Organ Manifests</h1>
+  <p>This page demonstrates what an organMask byte means once an Organ Manifest exists. It stamps headers for display only. It enforces nothing, routes nothing, and grants no authority.</p>
+  <div class="provenance">
+    <strong>Provenance.</strong> Organ roles and non-negotiable boundaries are quoted verbatim from Section 4 of the N-Cell position paper,
+    <code>https://ncell-position-paper.pages.dev/</code> (accessed 2026-11-14). The paper defines the N-Cell/64 header byte fields in Section 3.3 but does <strong>not</strong> define per-organ bit meanings.
+    Every organMask bit assignment on this page is the manifest's own mapping, labeled as such. It is <strong>never</strong> a paper claim.
+    Where the paper is silent, the manifest says <span class="unresolved">unresolved</span> instead of inventing a value.
+  </div>
+</header>
+<main>
+  <section>
+    <h2>1. Pick an organ</h2>
+    <div class="picker" id="picker" role="group" aria-label="Organs"></div>
+    <p class="muted">Ten organs, one per row of the paper Section 4 mapping table.</p>
+  </section>
+
+  <section id="manifestSection">
+    <h2>2. Manifest: <span id="organTitle">loading</span></h2>
+    <p><strong>Paper role (Section 4, verbatim):</strong></p>
+    <blockquote id="paperRole"></blockquote>
+    <p><strong>Non-negotiable boundary (Section 4, verbatim):</strong></p>
+    <blockquote id="paperBoundary"></blockquote>
+    <p class="muted" id="paperSource"></p>
+    <h3>Manifest fields</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Value</th><th>Grounding</th></tr></thead>
+      <tbody id="fieldRows"></tbody>
+    </table>
+    <h3>organMask bit mapping (manifest-defined, NOT a paper claim)</h3>
+    <p class="muted">Check the capability families to include in the stamped header. Bit order follows the manifest's capability family list.</p>
+    <table>
+      <thead><tr><th>Bit</th><th>Capability family</th><th>Value when set</th></tr></thead>
+      <tbody id="bitRows"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. Stamp an N-Cell/64 header</h2>
+    <p class="muted">Header layout, paper Section 3.3: byte 0 routeMask, byte 1 organMask, byte 2 lifecycleMask, byte 3 authorityMask, byte 4 memoryMask, byte 5 confidence 0-255, byte 6 risk 0-255, byte 7 outputMask. Byte 1 is computed from the checked capability families above. The other bytes are yours to set; this demo does not validate them against the manifest, because the paper assigns no per-organ values for them.</p>
+    <div class="stamp-grid">
+      <label>Byte 0 routeMask (hex)<input id="inRoute" value="00" maxlength="2" inputmode="text"></label>
+      <label>Byte 2 lifecycleMask (hex)<input id="inLifecycle" value="00" maxlength="2" inputmode="text"></label>
+      <label>Byte 3 authorityMask (hex)<input id="inAuthority" value="00" maxlength="2" inputmode="text"></label>
+      <label>Byte 4 memoryMask (hex)<input id="inMemory" value="00" maxlength="2" inputmode="text"></label>
+      <label>Byte 5 confidence (0-255)<input id="inConfidence" value="128" type="number" min="0" max="255"></label>
+      <label>Byte 6 risk (0-255)<input id="inRisk" value="0" type="number" min="0" max="255"></label>
+      <label>Byte 7 outputMask (hex)<input id="inOutput" value="00" maxlength="2" inputmode="text"></label>
+    </div>
+    <div class="bitgrid" id="familyChecks"></div>
+    <p style="margin-top:12px"><button class="primary" id="stampBtn" type="button">Stamp header</button></p>
+    <h3>Stamped header</h3>
+    <div id="headerOut">No header stamped yet.</div>
+    <table style="margin-top:12px">
+      <thead><tr><th>Byte</th><th>Field</th><th>Hex</th><th>Decimal</th><th>Meaning here</th></tr></thead>
+      <tbody id="headerRows"><tr><td colspan="5" class="muted">Stamp a header to see its bytes.</td></tr></tbody>
+    </table>
+    <h3>Topology delta (paper Section 3.5)</h3>
+    <p class="muted">Delta is the XOR of successive headers: <span class="mono">delta = header XOR previous header</span>. A changed bit names a changed byte, not a reason. The receipt must still retain semantic evidence: why a route changed, which policy acted, which model proposed the change, and what outcome followed.</p>
+    <div id="deltaOut" class="mono">No previous header yet.</div>
+    <h3>Governance intersection (paper Section 3.4)</h3>
+    <p class="muted">Executable topology is the intersection of proposed, allowed, and available capability: <span class="mono">E* = E_proposed AND E_allowed AND E_available</span>. This demo does not compute that intersection. Stamping a header here is not approval, and an organMask bit set here grants nothing.</p>
+    <details>
+      <summary>Raw manifest JSON</summary>
+      <pre id="rawJson"></pre>
+    </details>
+  </section>
+</main>
+<footer>
+  N-Cell Organ Manifest demo. SIMULATION. Source paper: https://ncell-position-paper.pages.dev/ Section 4, accessed 2026-11-14. Schema version 1.0.0. Bit assignments are manifest-defined, never paper claims.
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
