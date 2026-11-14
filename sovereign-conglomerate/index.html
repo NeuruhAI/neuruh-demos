@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sovereign Conglomerate Explorer | Neuruh</title>
+<style>
+  :root { --bone:#f4f1ea; --paper:#fbf9f4; --ink:#1a1815; --ink-soft:#4a463e; --brass:#a67c2e; --line:#d8d2c4; --unknown:#8a7a5a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Georgia, "Times New Roman", serif; line-height:1.55; }
+  header.doc-control { background:var(--ink); color:var(--bone); padding:18px 24px; }
+  header.doc-control .kicker { font-family:"Courier New", monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#c9a86a; }
+  header.doc-control h1 { margin:6px 0 4px; font-size:28px; }
+  header.doc-control p { margin:0; color:#d8d2c4; font-size:14px; }
+  .sim-banner { background:var(--brass); color:#fff; font-family:"Courier New", monospace; font-size:13px; letter-spacing:1px; padding:8px 24px; }
+  main { max-width:1020px; margin:0 auto; padding:24px; }
+  section.card { background:var(--paper); border:1px solid var(--line); padding:20px 24px; margin-bottom:20px; }
+  h2 { font-size:20px; border-bottom:2px solid var(--brass); padding-bottom:6px; margin-top:0; }
+  h3 { font-size:17px; margin-bottom:6px; }
+  h4 { font-size:15px; margin:14px 0 6px; }
+  .meta-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px 24px; font-size:14px; }
+  .meta-grid dt { font-family:"Courier New", monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); }
+  .meta-grid dd { margin:0 0 8px; }
+  .node-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
+  .node-card { text-align:left; background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--brass); padding:14px; cursor:pointer; font-family:inherit; color:inherit; }
+  .node-card:hover { border-color:var(--brass); }
+  .node-card.selected { outline:2px solid var(--brass); outline-offset:1px; }
+  .node-name { display:block; font-size:17px; font-weight:bold; }
+  .node-tier { display:block; margin:6px 0; }
+  .node-role { display:block; font-size:14px; color:var(--ink-soft); }
+  .node-anchors { display:block; font-size:13px; color:var(--ink-soft); margin-top:6px; }
+  .badge { font-family:"Courier New", monospace; font-size:12px; padding:2px 8px; border:1px solid var(--ink); white-space:nowrap; }
+  .badge-a { background:#1a1815; color:#f4f1ea; }
+  .badge-b { background:#e8e0cc; color:#1a1815; }
+  .badge-c { background:#fff; color:#1a1815; border-style:dashed; }
+  .badge-unknown { background:#efe9d8; color:var(--unknown); border-color:var(--unknown); }
+  .fact-list dt { font-family:"Courier New", monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-soft); margin-top:10px; }
+  .fact-list dd { margin:2px 0 0; }
+  .src { font-size:12px; color:var(--ink-soft); font-style:italic; }
+  .unknown-line { background:#efe9d8; border-left:4px solid var(--unknown); padding:8px 12px; font-size:14px; }
+  .layer { border:1px solid var(--line); padding:14px 18px; margin-bottom:12px; }
+  .layer h3 { margin-top:0; }
+  table.data-table { width:100%; border-collapse:collapse; font-size:14px; }
+  table.data-table th, table.data-table td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  table.data-table th { background:#e8e0cc; font-family:"Courier New", monospace; font-size:12px; letter-spacing:1px; text-transform:uppercase; }
+  tr.row-diff td { background:#fdf3d8; }
+  tr.row-same td { background:#fff; }
+  .mono { font-family:"Courier New", monospace; font-size:12px; word-break:break-all; }
+  select, button.action { font-family:inherit; font-size:15px; padding:8px 10px; border:1px solid var(--ink); background:#fff; color:var(--ink); }
+  button.action { background:var(--ink); color:var(--bone); cursor:pointer; }
+  button.action:hover { background:#33302a; }
+  .verify-btn { font-family:inherit; font-size:14px; padding:6px 12px; border:1px solid var(--ink); background:#fff; cursor:pointer; }
+  .verify-result { font-family:"Courier New", monospace; font-size:13px; }
+  .verify-result.pass { color:#1e6b34; font-weight:bold; }
+  .verify-result.fail { color:#a11f1f; font-weight:bold; }
+  .receipt { border:1px solid var(--line); padding:14px 18px; margin-bottom:12px; background:#fff; }
+  .receipt h4 { margin-top:0; }
+  .cmp-controls { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  footer { max-width:1020px; margin:0 auto; padding:0 24px 32px; font-size:13px; color:var(--ink-soft); }
+  footer a { color:var(--brass); }
+  svg.hub { width:100%; height:auto; display:block; }
+  .hub-label { font-family:"Courier New", monospace; font-size:12px; fill:var(--ink); }
+  .hub-sub { font-family:"Courier New", monospace; font-size:10px; fill:var(--ink-soft); }
+</style>
+</head>
+<body>
+<header class="doc-control">
+  <div class="kicker">Neuruh &middot; Document Control</div>
+  <h1>Sovereign Conglomerate Explorer</h1>
+  <p>Operating model: scale via agent swarms rather than hiring. Positioning framework. Tier UNKNOWN.</p>
+  <p>Built 2026-11-14, overnight run. Static page only. No backend. No data leaves the page.</p>
+</header>
+<div class="sim-banner">SIMULATION. This demo runs in the browser only. It states only what the sources state. Everything unstated is UNKNOWN.</div>
+<main>
+  <section class="card">
+    <h2>Control</h2>
+    <dl class="meta-grid">
+      <div><dt>Subject</dt><dd>Sovereign Conglomerate</dd></div>
+      <div><dt>Function (verbatim)</dt><dd>Operating model: scale via agent swarms rather than hiring</dd></div>
+      <div><dt>Posture (verbatim)</dt><dd>Positioning framework</dd></div>
+      <div><dt>Tier</dt><dd>UNKNOWN</dd></div>
+      <div><dt>Source</dt><dd>Neuruh Ecosystem Codex, NRH-DOC-CODEX-001 rev A, Volume VI; Framework Atlas, frameworks.json</dd></div>
+      <div><dt>Built</dt><dd>2026-11-14</dd></div>
+    </dl>
+    <p><strong>Read this first.</strong> The codex names 20 of 31 claimed frameworks in Volume VI. Sovereign Conglomerate is one of the 20 named. No tier is stated for it in Volume VI, and no matching entry exists in the 28-entry master asset register, so the atlas records its tier as UNKNOWN. This demo does not assign a tier. A tier of UNKNOWN means no tier is stated, not that the framework is unimportant. No dollar valuation appears anywhere on this page, by the Valuation Honesty Rule: no dollar valuation is claimable pre-MRR.</p>
+    <p><strong>What is DESIGNED vs VERIFIED.</strong> Sovereign Conglomerate is DESIGNED as a positioning framework: a stated operating model with a stated function and posture. Nothing about it is VERIFIED: no tests, no commit anchor, no deployed artifact, no repository is stated. The five verticals below are the stated Neuruh verticals. Each vertical shows only its stated facts. The shared substrate shows only its stated components.</p>
+  </section>
+
+  <section class="card">
+    <h2>1. Conglomerate structure explorer</h2>
+    <p>Click a vertical to open its detail view with sources cited. Every field that no source states reads UNKNOWN.</p>
+    <svg class="hub" viewBox="0 0 960 300" role="img" aria-label="Hub diagram: Sovereign Conglomerate at the center, five verticals around it, shared substrate below">
+      <rect x="330" y="100" width="300" height="70" fill="#1a1815"></rect>
+      <text x="480" y="128" text-anchor="middle" fill="#f4f1ea" font-family="Georgia, serif" font-size="16" font-weight="bold">Sovereign Conglomerate</text>
+      <text x="480" y="150" text-anchor="middle" fill="#c9a86a" font-family="Courier New, monospace" font-size="11">TIER UNKNOWN, POSITIONING FRAMEWORK</text>
+      <g>
+        <rect x="20" y="20" width="180" height="54" fill="#fbf9f4" stroke="#a67c2e" stroke-width="2"></rect>
+        <text x="110" y="42" text-anchor="middle" class="hub-label">Real Estate Intelligence</text>
+        <text x="110" y="60" text-anchor="middle" class="hub-sub">LandOS A, DeedSonar A</text>
+        <rect x="760" y="20" width="180" height="54" fill="#fbf9f4" stroke="#a67c2e" stroke-width="2"></rect>
+        <text x="850" y="42" text-anchor="middle" class="hub-label">Defense Systems</text>
+        <text x="850" y="60" text-anchor="middle" class="hub-sub">GATE, Vol VII</text>
+        <rect x="20" y="210" width="180" height="54" fill="#fbf9f4" stroke="#a67c2e" stroke-width="2"></rect>
+        <text x="110" y="232" text-anchor="middle" class="hub-label">Home Services Automation</text>
+        <text x="110" y="250" text-anchor="middle" class="hub-sub">Baker HVAC LIVE, ROOF-OPS A</text>
+        <rect x="390" y="210" width="180" height="54" fill="#fbf9f4" stroke="#a67c2e" stroke-width="2"></rect>
+        <text x="480" y="232" text-anchor="middle" class="hub-label">Creator Tools</text>
+        <text x="480" y="250" text-anchor="middle" class="hub-sub">UNKNOWN, all fields</text>
+        <rect x="760" y="210" width="180" height="54" fill="#fbf9f4" stroke="#a67c2e" stroke-width="2"></rect>
+        <text x="850" y="232" text-anchor="middle" class="hub-label">Enterprise Automation</text>
+        <text x="850" y="250" text-anchor="middle" class="hub-sub">UNKNOWN, all fields</text>
+        <line x1="200" y1="47" x2="330" y2="120" stroke="#a67c2e" stroke-width="1.5"></line>
+        <line x1="760" y1="47" x2="630" y2="120" stroke="#a67c2e" stroke-width="1.5"></line>
+        <line x1="200" y1="237" x2="330" y2="150" stroke="#a67c2e" stroke-width="1.5"></line>
+        <line x1="480" y1="210" x2="480" y2="170" stroke="#a67c2e" stroke-width="1.5"></line>
+        <line x1="760" y1="237" x2="630" y2="150" stroke="#a67c2e" stroke-width="1.5"></line>
+      </g>
+      <text x="480" y="292" text-anchor="middle" class="hub-sub">Shared substrate below: governance, execution, learning, receipts, custody, promotion, deployment. Lines show membership in the model, not stated dependencies.</text>
+    </svg>
+    <div class="node-grid" id="node-grid"></div>
+    <div id="detail"><p>Select a vertical above.</p></div>
+  </section>
+
+  <section class="card">
+    <h2>2. Shared infrastructure view</h2>
+    <p>The shared substrate, built only from stated components. Custody and promotion have no stated components: they are named steps in the organism loop, and their detail is UNKNOWN.</p>
+    <div id="substrate"></div>
+    <p><strong>Organism loop (standing record).</strong> MISSION, CONDUCTOR, WORKER, ACTION, RECEIPT, SENTINEL, GOVERNANCE, CUSTODY, PROMOTION, DEPLOYMENT, RESULT, INGEST, NEXT MISSION. The loop is the stated organism structure. Sentinel, custody, and promotion are named in the loop; no codex row states their detail.</p>
+  </section>
+
+  <section class="card">
+    <h2>3. Comparison tool</h2>
+    <p>Pick two verticals. The table shows their stated facts side by side, highlights differing fields, and shows UNKNOWNs plainly. Nothing is filled in.</p>
+    <div class="cmp-controls">
+      <label for="cmp-a">First vertical</label>
+      <select id="cmp-a"></select>
+      <label for="cmp-b">Second vertical</label>
+      <select id="cmp-b"></select>
+      <button class="action" id="swap-cmp" type="button">Swap</button>
+      <button class="action" id="run-cmp" type="button">Run comparison</button>
+    </div>
+    <div id="cmp-result"><p>No comparison run yet.</p></div>
+  </section>
+
+  <section class="card">
+    <h2>4. Receipt panel</h2>
+    <p>Each comparison run emits a v1.0 receipt: input hash, output hash, and a prev hash that chains to the previous receipt, or to GENESIS for the first run in the session. The Verify button recomputes the SHA-256 hashes in the browser with the Web Crypto API and shows PASS or FAIL. Receipts live only in this session; closing the page discards the chain. This is a demo receipt format modeled on hash chaining. It is not CRUCIBLE itself.</p>
+    <div id="receipt-list"><p>No comparison run yet this session.</p></div>
+  </section>
+
+  <section class="card">
+    <h2>5. Status board</h2>
+    <div id="status-board"></div>
+  </section>
+
+  <section class="card">
+    <h2>6. Gaps</h2>
+    <ul>
+      <li><strong>Vault gap.</strong> No standalone Sovereign Conglomerate dossier exists in the vault. The only related vault record is AI-FW-029, Transmitted Strategic Competency (TSC), status Draft, which the registry describes as the foundation of the Neuruh Sovereign Conglomerate model.</li>
+      <li><strong>Framework count gap.</strong> The codex verifies 31 named IP frameworks but documents 20 by name in Volume VI. The remaining 11 are not named in the source and are not invented here.</li>
+      <li><strong>Creator Tools and Enterprise Automation.</strong> Named as verticals in the standing verticals record, but no codex volume, atlas framework, or dashboard row states any fact about them. Every field is UNKNOWN.</li>
+      <li><strong>Custody, promotion, Sentinel.</strong> Named in the organism loop. No codex row states their detail. All detail UNKNOWN.</li>
+      <li><strong>Defense detail.</strong> Volume VII is names only, by design of the source. No architecture, capability, or performance detail appears.</li>
+      <li><strong>Page behavior</strong> was tested with Node tests and a local HTTP serve, not by clicking through a live browser.</li>
+    </ul>
+  </section>
+</main>
+<footer>
+  <p>Sources: <a href="https://ecosystem-codex.pages.dev/">Neuruh Ecosystem Codex, NRH-DOC-CODEX-001 rev A</a> (fetched 2026-11-14); <a href="https://neuruhai.github.io/neuruh-demos/framework-atlas/">Framework Atlas</a> and frameworks.json (fetched 2026-11-14); <a href="https://neuruhai.github.io/neuruh-demos/organism-state-dashboard/">Organism State Dashboard</a> (fetched 2026-11-14); vault search of ~/workspace/neuruh-obsidian-vault/ (2026-11-14). SIMULATION. DESIGNED, not VERIFIED. No dollar valuation is claimable pre-MRR.</p>
+</footer>
+<script src="receipt.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
