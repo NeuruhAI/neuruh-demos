@@ -116,7 +116,10 @@
   function renderPromo(promo, preview) {
     var cls = promo.promote ? 'card promote' : 'card stop';
     var title = promo.promote ? 'PROCEED' : 'STOP';
-    $('promoOut').innerHTML = '<div class="' + cls + '">' + title + (preview ? ' (live preview, no receipt sealed yet)' : '') + '. ' +
+    var note = '';
+    if (preview && !lastReceipt) note = ' (live preview, no receipt sealed yet)';
+    if (preview && lastReceipt) note = ' (live preview of current inputs; receipt seq ' + lastReceipt.seq + ' sealed)';
+    $('promoOut').innerHTML = '<div class="' + cls + '">' + title + note + '. ' +
       esc(promo.reasons.join('; ')) + '.' +
       (promo.overrideUsed ? ' Override used and noted.' : '') + '</div>';
   }
