@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estimator Cost Lab (SIMULATION) - LandOS Rehab Estimator</title>
+<style>
+  :root { --bone:#f4f1ea; --paper:#fffdf7; --ink:#1c1a16; --muted:#6b6455; --brass:#9a7b2d; --line:#ddd5c2; --dark:#211d17; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family: Georgia, "Times New Roman", serif; line-height:1.55; }
+  header { background:var(--dark); color:var(--bone); padding:28px 20px 22px; }
+  header .kicker { font-family: "Courier New", monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:#d8c27a; }
+  header h1 { margin:8px 0 4px; font-size:32px; line-height:1.15; }
+  header p { margin:4px 0; color:#cfc8b8; max-width:900px; }
+  .sim { display:inline-block; background:#9a7b2d; color:#fff; font-family:"Courier New",monospace; font-size:12px; font-weight:bold; letter-spacing:2px; padding:4px 10px; margin-top:10px; }
+  main { max-width:1060px; margin:0 auto; padding:24px 20px 60px; }
+  section { background:var(--paper); border:1px solid var(--line); padding:22px 24px; margin-bottom:22px; }
+  h2 { margin:0 0 6px; font-size:22px; border-bottom:2px solid var(--brass); padding-bottom:6px; }
+  h3 { margin:18px 0 6px; font-size:16px; }
+  p.small, .fine { font-size:13px; color:var(--muted); }
+  .warn { border:2px solid var(--brass); background:#fbf6e8; padding:14px 16px; margin-bottom:22px; font-size:14px; }
+  .warn b { color:#7a5f1d; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:760px){ .grid{grid-template-columns:1fr;} }
+  .stat { border:1px solid var(--line); padding:12px 14px; background:var(--bone); }
+  .stat .n { font-size:28px; font-weight:bold; font-family:"Courier New",monospace; }
+  .stat .l { font-size:13px; color:var(--muted); }
+  label { display:block; font-size:13px; font-weight:bold; margin:12px 0 4px; }
+  select, input[type=number], input[type=text] { width:100%; padding:9px 10px; font-size:15px; border:1px solid #b9b09a; background:#fff; font-family:inherit; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:760px){ .row{grid-template-columns:1fr;} }
+  button { margin-top:16px; background:var(--dark); color:var(--bone); border:0; padding:11px 22px; font-size:15px; cursor:pointer; font-family:inherit; }
+  button:hover { background:#3a332a; }
+  .result { margin-top:18px; border-top:2px solid var(--brass); padding-top:12px; display:none; }
+  .result .total { font-size:30px; font-weight:bold; font-family:"Courier New",monospace; }
+  .formula { font-family:"Courier New",monospace; font-size:13px; background:var(--bone); border:1px solid var(--line); padding:10px 12px; overflow-x:auto; white-space:pre-wrap; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin-top:10px; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; }
+  th { background:var(--dark); color:var(--bone); font-family:"Courier New",monospace; font-size:12px; }
+  td.num, th.num { text-align:right; font-family:"Courier New",monospace; }
+  tbody tr:nth-child(even) td { background:#f8f5ee; }
+  .scroll { overflow-x:auto; max-height:520px; overflow-y:auto; }
+  .tag { font-family:"Courier New",monospace; font-size:12px; background:var(--bone); border:1px solid var(--line); padding:1px 6px; }
+  .pill { display:inline-block; font-family:"Courier New",monospace; font-size:11px; padding:2px 7px; border:1px solid var(--brass); color:#7a5f1d; }
+  footer { max-width:1060px; margin:0 auto; padding:0 20px 40px; font-size:13px; color:var(--muted); }
+  code { font-family:"Courier New",monospace; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Neuruh / LandOS / Estimator module / Tier B working demo</div>
+  <h1>Estimator Cost Lab</h1>
+  <p>The LandOS rehab estimator module, as a working browser demo, built only from the Batch 010 dossier and its two seed files.</p>
+  <span class="sim">SIMULATION</span>
+</header>
+<main>
+
+  <div class="warn">
+    <b>Read this first. This page is a SIMULATION.</b>
+    Every price on this page comes from the seed file <code>002_taxonomy_and_seed.sql</code> (Batch 010 upload, shared 2026-11-10), tagged <code>source='seed_v1_calibrate'</code>. Seed values are calibration targets from the upload, not a verified production price book.
+    The <code>est_*</code> apply status inside the upload is <b>CONFLICTS, recorded UNVERIFIED</b> (dossier section 8.1): one file in the upload says the schema is already applied, another says apply status is unconfirmed. Nothing here was executed against any database.
+    A modeled line cost is <b>not a quote, not a bid, not an offer, and not an appraisal</b>. Precision class for component walkthrough math is BUDGET (plus or minus 10 to 15 percent) per the build plan. Triage bands are SCREENING (plus or minus 25 to 40 percent).
+  </div>
+
+  <section id="what">
+    <h2>What this is</h2>
+    <p>The estimator is a module named <code>estimator</code> inside <code>landos-engine</code> (FastAPI, port 8400), backed by Supabase, not a standalone service. Its pipeline, per the dossier: records plus photos, condition model, quantity takeoff, tier by store priced punch list, comp-anchored budget, priority plan, redesign spec, and SHA-256 provenance receipt.</p>
+    <p>It replaces prompt-guessed numbers with deterministic math over a versioned price book. Two lenses: buy-side max-offer validation (ARV minus rehab minus spread) and sell-side prep-to-list work ranked by ARV lift per dollar.</p>
+    <div class="grid" id="counts"></div>
+    <p class="fine">Counts verified by mechanical parse of the seed file in this demo build: 80 taxonomy codes (50 residential COMPONENT, 18 commercial ASSEMBLY, 12 industrial ALLOWANCE), 78 price book rows (26 components times 3 tiers, store BASE), 3 store multipliers, 16 labor rates, 24 unit cost models (8 asset classes times 3 scope bands). Total 201 value rows. Dossier-quoted, file-verified.</p>
+    <p class="fine">Gap the dossier records: 54 of the 80 taxonomy codes have no price book row yet. The Phase 3 research pass that would price them is not evidenced as run. Only the 26 priced components appear in the calculator below.</p>
+  </section>
+
+  <section id="calculator">
+    <h2>Cost calculator (seed price book)</h2>
+    <p class="small">Pick a priced component, a tier, a quantity, and a store. The calculator returns the modeled line cost from the seed price book, with the formula shown. Store multipliers apply to material cost only. Labor is store-independent. That rule is from the seed file itself.</p>
+    <div class="row">
+      <div>
+        <label for="comp">Component (26 priced of 80 taxonomy codes)</label>
+        <select id="comp"></select>
+        <label for="tier">Tier</label>
+        <select id="tier">
+          <option value="BUILDER">BUILDER</option>
+          <option value="STANDARD" selected>STANDARD</option>
+          <option value="PREMIUM">PREMIUM</option>
+        </select>
+      </div>
+      <div>
+        <label for="qty">Quantity</label>
+        <input type="number" id="qty" min="0" step="any" value="10">
+        <label for="store">Store multiplier (region US-MIDWEST-BASE, category ALL)</label>
+        <select id="store"></select>
+      </div>
+    </div>
+    <p class="small" id="unitNote"></p>
+    <button id="calcBtn" type="button">Calculate modeled line cost</button>
+    <div class="result" id="result">
+      <div class="total" id="totalOut"></div>
+      <p id="breakdown"></p>
+      <h3>Formula (shown, not hidden)</h3>
+      <div class="formula" id="formulaOut"></div>
+      <p class="fine">Modeled line cost from seed data only. Not a quote, not a bid, not an offer, not an appraisal. Precision class BUDGET (plus or minus 10 to 15 percent) per the build plan. Book version <code>seed_v1</code>, source <code>seed_v1_calibrate</code>.</p>
+    </div>
+  </section>
+
+  <section id="pricebook">
+    <h2>Price book: 78 rows (seed file)</h2>
+    <p class="small">26 components times 3 tiers, store BASE, region US-MIDWEST-BASE, book version <code>seed_v1</code>. Material and labor are unit costs in dollars. Filter by text or tier.</p>
+    <div class="row">
+      <div><label for="pbSearch">Search component code or label</label><input type="text" id="pbSearch" placeholder="e.g. ROOF, PAINT, KIT"></div>
+      <div><label for="pbTier">Tier filter</label>
+        <select id="pbTier"><option value="">All tiers</option><option>BUILDER</option><option>STANDARD</option><option>PREMIUM</option></select>
+      </div>
+    </div>
+    <div class="scroll"><table id="pbTable">
+      <thead><tr><th>Component</th><th>Label</th><th>Tier</th><th>Unit</th><th class="num">Material $/unit</th><th class="num">Labor $/unit</th><th class="num">Combined $/unit</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="fine" id="pbCount"></p>
+  </section>
+
+  <section id="labor">
+    <h2>Labor rates: 16 trades (seed file)</h2>
+    <p class="small">Hourly, non-union small-contractor Midwest, region US-MIDWEST-BASE. Per the seed file, these feed hourly misc lines only: component rows already carry installed labor in the price book.</p>
+    <div class="scroll"><table id="laborTable">
+      <thead><tr><th>Trade</th><th>Region</th><th>Unit</th><th class="num">Rate $/hr</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section id="bands">
+    <h2>Triage bands: 24 unit cost models (seed file)</h2>
+    <p class="small">Full span on day one: every asset class gets scope bands, so triage works from SFR through industrial. Units are SF_GLA for residential classes and SF for commercial and industrial. Precision class SCREENING (plus or minus 25 to 40 percent). Expected cost for a band is its midpoint times area; the triage engine weights the three scope bands by probability.</p>
+    <div class="scroll"><table id="bandTable">
+      <thead><tr><th>Asset class</th><th>Scope band</th><th>Unit</th><th class="num">Low $/unit</th><th class="num">High $/unit</th><th class="num">Midpoint $/unit</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <section id="schema">
+    <h2>Schema map: 13 est_* tables (001_estimator_schema.sql)</h2>
+    <p class="small">Idempotent schema, targeted at the Supabase SQL Editor. Writes: landos-engine only (service-role key). CRM reads via API, never direct. <b>RLS lockdown: enabled with ZERO policies on all 13 tables.</b> Anon and authenticated keys get nothing; the service-role key bypasses RLS. Deliberate default-deny.</p>
+    <div class="scroll"><table id="schemaTable">
+      <thead><tr><th>#</th><th>Table</th><th>What it stores</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <p class="fine">Audit triggers (<code>est_audit()</code>, SECURITY DEFINER) fire on insert, update, and delete of estimates, line items, price book, and unit cost models. An <code>updated_at</code> touch trigger runs on estimates. Apply status: CONFLICTS, recorded UNVERIFIED (dossier section 8.1). The schema file was read, not executed, from this workspace.</p>
+  </section>
+
+  <section id="honesty">
+    <h2>Honesty labels (from the dossier)</h2>
+    <ul>
+      <li><b>est_* apply status: CONFLICTS, recorded UNVERIFIED.</b> Phase 1 prompt asserts the schema is already applied and seeded. The skill and CLAUDE.md in the same batch say apply status is unconfirmed. Mac and database confirmation required. Do not build on either claim.</li>
+      <li><b>Phase 1 and Phase 2 build status: UNKNOWN.</b> Both Claude Code session files are paste-as-opening-prompt files, not transcripts. No completion record, no test output, no commit hash in the upload.</li>
+      <li><b>Price book completion: OPEN.</b> 54 taxonomy codes times 3 tiers unpriced at seed.</li>
+      <li><b>Comp ceilings: OPEN.</b> Method PSF_PERCENTILE_V1 defined; ceilings for 5 target counties not evidenced as computed.</li>
+      <li><b>est-photos bucket: OPEN.</b> Creation is a one-time dashboard action; no evidence from this workspace that it exists.</li>
+      <li><b>Vision cost: PLAN ESTIMATE, not measured.</b> About $0.40 per walkthrough all-in is arithmetic on published rates at plan time, not an observed run cost.</li>
+      <li><b>49 vs 50 signals: UNVERIFIED.</b> Plan and session prompts say 49-signal registry; estate record says 50.</li>
+      <li><b>Stale framing, recorded not live:</b> the plan's "15% probate/lead-gen scope" and "Bryan/APG contractor quote" calibration attribution predate the 2026-10-22 correction that DeedSonar is solely Jeramie's. The calibration mechanism (quotes vs book) is sound; the attribution is stale.</li>
+    </ul>
+    <p class="fine">Verdict counts from the dossier: 13 verdict statements, DURABLE 6, SUPERSEDED 1 (the 15% scope framing), UNKNOWN 6. Dossier: <code>neuruh-obsidian-vault/_research/estimator/estimator.md</code>, Batch 010, absorbed 2026-11-10.</p>
+  </section>
+
+</main>
+<footer>
+  Estimator Cost Lab (SIMULATION). Data: <code>002_taxonomy_and_seed.sql</code> and <code>001_estimator_schema.sql</code> from files__49.zip, Batch 010, parsed mechanically into <code>seed.json</code> in this directory. No price on this page was invented. Modeled costs are not quotes, bids, offers, or appraisals. Built 2026-11-14 in the overnight Neuruh run.
+</footer>
+<script src="estimator.js"></script>
+</body>
+</html>
