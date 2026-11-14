@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="E10 Short-Term / Mid-Term Rental Underwriting Engine: legality, occupancy and ADR with source, seasonality, furnishing budget, LTR fallback, break-even, cash flow, regulation risk, and STR/MTR/LTR choice. Not an appraisal. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="E10 Short-Term / Mid-Term Rental Engine - Neuruh">
+<meta property="og:description" content="Evidence-first STR/MTR underwriting with gates, kill-switch, and receipt. Not an appraisal. No offer without Jeramie.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>E10 Short-Term / Mid-Term Rental Engine - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.big{font-size:22px}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:170px;flex:none}
+pre#receiptOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.formula{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px}
+figure{margin:14px 0 0;border:1px solid var(--line);background:var(--paper);padding:12px}
+figure figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}header.doc h1{font-size:24px}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut{background:#fff;color:#000;border:1px solid #999}
+#summarySection{border:2px solid #000}
+}
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.tag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass);padding:1px 4px;white-space:nowrap}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E10</div>
+<h1>Short-Term / Mid-Term Rental Engine</h1>
+<p>E10. Legality, occupancy and ADR with source, seasonality, furnishing budget, LTR fallback rent, break-even, cash flow, regulation risk, and STR / MTR / LTR choice with reasoning.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-04</b></div>
+<div>Status<b>Engine E10 of 12 - SIMULATION</b></div>
+<div>Lineage<b>2026-11-04 E10 build + Residential v1.1 gates + E1 land engine</b></div>
+</div>
+</header>
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not a survey, not legal, tax, or lending advice. Short-term rental rules change by jurisdiction and by HOA; verify zoning, HOA rules, and the local short-term rental ordinance with the county, the municipality, and a licensed professional before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: STR wins</button>
+<button id="btnSampleB" type="button">Sample B: MTR wins</button>
+<button id="btnSampleC" type="button">Sample C: PASS</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnCopyPrompt" type="button">Copy system prompt</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<div class="scroll"><table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (seasonality, blended ADR, furnishing, break-even, STR Year 1 and stabilized cash flow, MTR, LTR, choice, gates, kill switch)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e10.js, run 2026-11-14. Sample A hand-computed expectations match: annual STR gross $42,100.00, blended ADR $198.58, stabilized monthly cash flow $611.53, break-even occupancy 43.77 percent, STR wins. Sample B: annual STR gross $19,937.50, STR monthly cash flow -$1,125.52, MTR monthly cash flow $340.00, LTR monthly $140.00, MTR wins. Sample C: two kills fire, recommendation PASS.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e10.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge designed">DESIGNED</span></td><td>Not yet verified live. See build report.</td></tr>
+<tr><td>Market data (ADR, occupancy, rents, rates, prices, comparable rentals)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every ADR, occupancy, rent, price, and cost is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E10 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E10 specification document was found in the vault. The subject (Short-Term / Mid-Term Rental) and its mechanics come from the 2026-11-04 E10 build, itself live at e10-short-term-rental.pages.dev. See section 15 for the gap. Kill conditions and risk flags are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests are the verification for this build. See build report.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>00</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change Peak ADR in section 03.</li>
+<li><b>Step 3:</b> Watch annual gross, break-even occupancy, and monthly cash flow move in the sticky panel and in section 08.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">Annual STR gross (MODELED ESTIMATE)</span><b id="stickyGross">N/A</b></div>
+<div><span class="sr-label">STR monthly cash flow (MODELED ESTIMATE)</span><b id="stickyStrCf">N/A</b></div>
+<div><span class="sr-label">Break-even occupancy</span><b id="stickyBe">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div style="font-size:12px;color:var(--muted);margin-top:4px" id="missingHints">Missing fields are listed in section 11.</div></div>
+</div>
+
+<section class="card" id="s1">
+<h2><span>01</span>Subject property and address / parcel gate</h2>
+<p class="sub">Address and parcel must be verified against at least 2 public sources before any number is used. Unverified means HOLD.</p>
+<div class="grid">
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcelId">Parcel ID</label><input id="parcelId" type="text" placeholder="Parcel ID"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="beds">Beds</label><input id="beds" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="baths">Baths</label><input id="baths" type="number" min="0" step="0.5" placeholder="0"></div>
+<div><label for="sleeps">Sleeps (guests)</label><input id="sleeps" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="propType">Property type</label><select id="propType"><option value="">Select</option><option>Single-family</option><option>Condo</option><option>Townhouse</option><option>Duplex</option><option>Other</option></select></div>
+<div><label for="purchasePrice">Purchase price ($)</label><input id="purchasePrice" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="downPayment">Down payment ($)</label><input id="downPayment" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="closingCosts">Closing costs ($)</label><input id="closingCosts" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+<div><label for="parcelSourceNames">Parcel source names</label><input id="parcelSourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+</div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>02</span>Legality: zoning, HOA, and local ordinance</h2>
+<p class="sub">Legality is checked before revenue. A seller-stated STR permission is a claim, not a fact. Verify from the zoning map, the HOA documents, and the ordinance text.</p>
+<div class="grid">
+<div><label for="zoning">Zoning district</label><input id="zoning" type="text" placeholder="Example: R-1 Residential"></div>
+<div><label for="strLegal">STR legal status</label><select id="strLegal"><option value="">Select</option><option value="legal_by_right">Legal by right</option><option value="legal_with_permit">Legal with permit / registration</option><option value="conditional">Conditional use / special exception</option><option value="illegal">Illegal in this jurisdiction</option><option value="unknown">Unknown - not verified</option></select></div>
+<div><label for="hoaStatus">HOA / condo STR rule</label><select id="hoaStatus"><option value="">Select</option><option value="no_hoa">No HOA / no condo association</option><option value="allows">HOA allows STR</option><option value="prohibits">HOA prohibits STR</option><option value="unknown">Unknown - documents not reviewed</option></select></div>
+<div><label for="ordinanceCite">Ordinance / zoning citation</label><input id="ordinanceCite" type="text" placeholder="Ordinance section and source reference, or N/A"></div>
+<div><label for="permitCost">Permit / registration cost ($/year)</label><input id="permitCost" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="maxNights">Maximum STR nights per year (cap, if any)</label><input id="maxNights" type="number" min="0" step="1" placeholder="Blank = no cap stated"></div>
+<div><label for="minStay">Minimum stay required (nights)</label><input id="minStay" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="ownerOcc">Owner-occupancy required</label><select id="ownerOcc"><option value="">Select</option><option>No</option><option>Yes</option><option>Unknown</option></select></div>
+<div><label for="mtrLegal">MTR (30+ day stays) legal status</label><select id="mtrLegal"><option value="">Select</option><option value="legal">Legal - treated as residential tenancy</option><option value="restricted">Restricted - see notes</option><option value="unknown">Unknown - not verified</option></select></div>
+<div><label for="legalNotes">Legality notes (source each item, or write N/A)</label><textarea id="legalNotes" placeholder="Zoning source, HOA document and date, ordinance source and access date, permit status"></textarea></div>
+</div>
+<div class="warning" id="legalWarning" hidden></div>
+</section>
+
+<section class="card" id="s3">
+<h2><span>03</span>Occupancy and ADR, with source, and seasonality</h2>
+<p class="sub">ADR needs at least 2 independent sources. ADR from a single platform estimate is a kill condition, not a low-confidence number. Occupancy needs a named source too. Seasonality is entered in days so the year sums to 365.</p>
+<div class="grid">
+<div><label for="adrSource1Name">ADR source 1 (name)</label><input id="adrSource1Name" type="text" placeholder="Example: AirDNA market report"></div>
+<div><label for="adrSource1">ADR source 1 ($/night)</label><input id="adrSource1" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="adrSource2Name">ADR source 2 (name, independent)</label><input id="adrSource2Name" type="text" placeholder="Example: Comparable listings, 5 listings"></div>
+<div><label for="adrSource2">ADR source 2 ($/night)</label><input id="adrSource2" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="occSourceName">Occupancy source (name)</label><input id="occSourceName" type="text" placeholder="Example: AirDNA market report"></div>
+<div><label for="occSource1">Occupancy source 1 (%)</label><input id="occSource1" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="occSource2">Occupancy source 2 (%)</label><input id="occSource2" type="number" min="0" max="100" step="0.1" placeholder="Blank = none"></div>
+<div><label for="singlePlatform">ADR is from a single platform estimate only</label><select id="singlePlatform"><option value="no">No - 2 or more independent sources</option><option value="yes">Yes - single platform estimate only</option></select></div>
+<div><label for="avgStay">Average stay (nights)</label><input id="avgStay" type="number" min="0" step="0.1" placeholder="Example: 3"></div>
+</div>
+<div class="result">
+<div class="row"><span>Primary ADR (average of sources present) <span class="tag">MODELED ESTIMATE</span></span><b id="outPrimaryAdr">N/A</b></div>
+<div class="row"><span>Primary occupancy (average of sources present)</span><b id="outPrimaryOcc">N/A</b></div>
+<div class="row"><span>ADR sources counted</span><b id="outAdrCount">0</b></div>
+<div class="row"><span>Annual gross, primary method (ADR x occupancy x 365) <span class="tag">MODELED ESTIMATE</span></span><b id="outPrimaryGross">N/A</b></div>
+</div>
+<table style="margin-top:12px">
+<thead><tr><th>Season</th><th>Days</th><th>Occupancy (%)</th><th>ADR ($/night)</th><th>Booked nights</th><th>Revenue ($) <span class="tag">MODELED ESTIMATE</span></th></tr></thead>
+<tbody>
+<tr><td>Peak</td><td><input id="peakDays" type="number" min="0" step="1" aria-label="Peak days"></td><td><input id="peakOcc" type="number" min="0" max="100" step="0.1" aria-label="Peak occupancy percent"></td><td><input id="peakAdr" type="number" min="0" step="0.01" aria-label="Peak ADR"></td><td id="peakNights">N/A</td><td id="peakRev">N/A</td></tr>
+<tr><td>Shoulder</td><td><input id="shoulderDays" type="number" min="0" step="1" aria-label="Shoulder days"></td><td><input id="shoulderOcc" type="number" min="0" max="100" step="0.1" aria-label="Shoulder occupancy percent"></td><td><input id="shoulderAdr" type="number" min="0" step="0.01" aria-label="Shoulder ADR"></td><td id="shoulderNights">N/A</td><td id="shoulderRev">N/A</td></tr>
+<tr><td>Off-peak</td><td><input id="offDays" type="number" min="0" step="1" aria-label="Off-peak days"></td><td><input id="offOcc" type="number" min="0" max="100" step="0.1" aria-label="Off-peak occupancy percent"></td><td><input id="offAdr" type="number" min="0" step="0.01" aria-label="Off-peak ADR"></td><td id="offNights">N/A</td><td id="offRev">N/A</td></tr>
+</tbody>
+</table>
+<div class="result">
+<div class="row"><span>Season days total (must be 365)</span><b id="outSeasonDays">N/A</b></div>
+<div class="row"><span>Total booked nights (seasonal)</span><b id="outTotalNights">N/A</b></div>
+<div class="row"><span>Annual STR gross (seasonal method) <span class="tag">MODELED ESTIMATE</span></span><b id="outSeasonGross">N/A</b></div>
+<div class="row"><span>Blended ADR (seasonal gross / booked nights) <span class="tag">MODELED ESTIMATE</span></span><b id="outBlendedAdr">N/A</b></div>
+<div class="row"><span>Blended occupancy (booked nights / 365)</span><b id="outBlendedOcc">N/A</b></div>
+<div class="row"><span>Gross method used</span><b id="outGrossMethod">N/A</b></div>
+</div>
+<div class="warning" id="seasonWarning" hidden></div>
+<figure>
+<figcaption>Figure 1. Seasonal revenue split. Bars update from the seasonality table above. Peak, shoulder, and off-peak revenue are shown as dollars, not as a forecast of demand.</figcaption>
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="170" viewBox="0 0 600 170" role="img" aria-label="Seasonal revenue bar chart">
+<rect x="0" y="0" width="600" height="170" fill="#fffdf6"></rect>
+<rect id="figPeakBar" x="80" y="20" width="110" height="10" fill="#9a7b2d"></rect>
+<rect id="figShoulderBar" x="80" y="70" width="110" height="10" fill="#9a7b2d"></rect>
+<rect id="figOffBar" x="80" y="120" width="110" height="10" fill="#9a7b2d"></rect>
+<text x="80" y="15" font-family="monospace" font-size="11" fill="#1d1a16">Peak</text>
+<text x="80" y="65" font-family="monospace" font-size="11" fill="#1d1a16">Shoulder</text>
+<text x="80" y="115" font-family="monospace" font-size="11" fill="#1d1a16">Off-peak</text>
+<text id="figPeakVal" x="200" y="30" font-family="monospace" font-size="11" fill="#1d1a16">N/A</text>
+<text id="figShoulderVal" x="200" y="80" font-family="monospace" font-size="11" fill="#1d1a16">N/A</text>
+<text id="figOffVal" x="200" y="130" font-family="monospace" font-size="11" fill="#1d1a16">N/A</text>
+</svg>
+</figure>
+</section>
+
+<section class="card" id="s4">
+<h2><span>04</span>Furnishing budget</h2>
+<p class="sub">Furnishing is an upfront cash cost, not a monthly rent assumption. Enter each line from a bid, a quote, or a priced list, or mark it N/A. The total is the sum of the lines. Amortisation uses a 60 month useful life, stated as an assumption.</p>
+<div class="grid">
+<div><label for="furnFurniture">Furniture ($)</label><input id="furnFurniture" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnAppliances">Appliances ($)</label><input id="furnAppliances" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnLinens">Linens and towels ($)</label><input id="furnLinens" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnDecor">Decor and housewares ($)</label><input id="furnDecor" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnTech">Smart locks and tech ($)</label><input id="furnTech" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnSupplies">Initial supplies ($)</label><input id="furnSupplies" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnPhoto">Photography and listing setup ($)</label><input id="furnPhoto" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnOther">Other furnishing ($)</label><input id="furnOther" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="furnSource">Furnishing source</label><input id="furnSource" type="text" placeholder="Bid, quote, priced list, or N/A"></div>
+</div>
+<div class="result">
+<div class="row"><span>Furnishing total (upfront) <span class="tag">MODELED ESTIMATE</span></span><b id="outFurnTotal">N/A</b></div>
+<div class="row"><span>Furnishing amortisation ($/month, total / 60) <span class="tag">MODELED ESTIMATE</span></span><b id="outFurnAmort">N/A</b></div>
+<div class="row"><span>Total cash invested (down + closing + furnishing) <span class="tag">MODELED ESTIMATE</span></span><b id="outCashInvested">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s5">
+<h2><span>05</span>Monthly operating costs and STR variable costs</h2>
+<p class="sub">Fixed costs are monthly costs that do not change with bookings. Platform, management, and cleaning are variable and are calculated from revenue and booked nights. PITI is entered as a monthly number; this tool does not compute a mortgage payment.</p>
+<div class="grid">
+<div><label for="costPiti">Mortgage PITI ($/month)</label><input id="costPiti" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="costHoa">HOA dues ($/month)</label><input id="costHoa" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="costUtilities">Utilities ($/month)</label><input id="costUtilities" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="costInternet">Internet ($/month)</label><input id="costInternet" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="costInsurance">STR insurance ($/month)</label><input id="costInsurance" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="costSupplies">Supplies and consumables ($/month)</label><input id="costSupplies" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="costMaint">Maintenance reserve ($/month)</label><input id="costMaint" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="costStrTax">STR tax and fees ($/month)</label><input id="costStrTax" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="platformPct">Platform fees (% of gross)</label><input id="platformPct" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="mgmtPct">Management (% of gross)</label><input id="mgmtPct" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="cleanPerTurn">Cleaning per turnover ($)</label><input id="cleanPerTurn" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="mtrCleanMonthly">MTR cleaning ($/month)</label><input id="mtrCleanMonthly" type="number" min="0" step="0.01" placeholder="0"></div>
+</div>
+<div class="result">
+<div class="row"><span>Fixed monthly costs (incl. furnishing amortisation) <span class="tag">MODELED ESTIMATE</span></span><b id="outFixedMonthly">N/A</b></div>
+<div class="row"><span>Fixed monthly costs, excl. furnishing amortisation <span class="tag">MODELED ESTIMATE</span></span><b id="outFixedExAmort">N/A</b></div>
+<div class="row"><span>Turnovers per year (booked nights / avg stay)</span><b id="outTurnovers">N/A</b></div>
+<div class="row"><span>Annual cleaning cost (STR) <span class="tag">MODELED ESTIMATE</span></span><b id="outCleanAnnual">N/A</b></div>
+<div class="row"><span>Annual platform fees <span class="tag">MODELED ESTIMATE</span></span><b id="outPlatformAnnual">N/A</b></div>
+<div class="row"><span>Annual management fees <span class="tag">MODELED ESTIMATE</span></span><b id="outMgmtAnnual">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s6">
+<h2><span>06</span>LTR fallback rent and MTR rent</h2>
+<p class="sub">The LTR fallback is what the property earns if STR is banned, capped, or underperforms. MTR is 30+ day furnished stays. Both are calculated on their own costs, not on STR costs.</p>
+<div class="grid">
+<div><label for="ltrRent">LTR rent ($/month)</label><input id="ltrRent" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="ltrVacancy">LTR vacancy (%)</label><input id="ltrVacancy" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="ltrRentSource">LTR rent source</label><input id="ltrRentSource" type="text" placeholder="Comparable rentals, lease, or N/A"></div>
+<div><label for="ltrInsurance">LTR insurance ($/month)</label><input id="ltrInsurance" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="mtrRent">MTR rent ($/month)</label><input id="mtrRent" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="mtrOcc">MTR occupancy (%)</label><input id="mtrOcc" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="mtrRentSource">MTR rent source</label><input id="mtrRentSource" type="text" placeholder="Comparable MTR listings, or N/A"></div>
+</div>
+<div class="result">
+<div class="row"><span>LTR annual gross (rent x 12 x (1 - vacancy)) <span class="tag">MODELED ESTIMATE</span></span><b id="outLtrGross">N/A</b></div>
+<div class="row"><span>LTR annual costs (PITI + LTR insurance + maintenance) <span class="tag">MODELED ESTIMATE</span></span><b id="outLtrCosts">N/A</b></div>
+<div class="row"><span>LTR annual cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="outLtrCfAnnual">N/A</b></div>
+<div class="row"><span>LTR monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="outLtrCfMonthly">N/A</b></div>
+<div class="row"><span>MTR annual gross (rent x 12 x occupancy) <span class="tag">MODELED ESTIMATE</span></span><b id="outMtrGross">N/A</b></div>
+<div class="row"><span>MTR annual costs (fixed incl. amortisation + MTR cleaning) <span class="tag">MODELED ESTIMATE</span></span><b id="outMtrCosts">N/A</b></div>
+<div class="row"><span>MTR annual cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="outMtrCfAnnual">N/A</b></div>
+<div class="row"><span>MTR monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="outMtrCfMonthly">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>07</span>Break-even</h2>
+<p class="sub">Break-even is solved from fixed costs and the variable rates, not guessed. Cleaning is a variable cost per booked night through turnovers.</p>
+<div class="formula">Break-even monthly revenue = Fixed monthly / (1 - platform rate - management rate - cleaning factor)<br>Cleaning factor = Cleaning per turnover / (Blended ADR x Average stay)<br>Break-even occupancy = Break-even monthly revenue / (Blended ADR x 30.4167)<br>Break-even nights per month = Break-even monthly revenue / Blended ADR</div>
+<div class="result">
+<div class="row"><span>Variable rate (platform + management)</span><b id="outVarRate">N/A</b></div>
+<div class="row"><span>Cleaning factor</span><b id="outCleanFactor">N/A</b></div>
+<div class="row"><span>Break-even monthly revenue <span class="tag">MODELED ESTIMATE</span></span><b id="outBeRevenue">N/A</b></div>
+<div class="row"><span>Break-even occupancy</span><b id="outBeOcc">N/A</b></div>
+<div class="row"><span>Break-even nights per month</span><b id="outBeNights">N/A</b></div>
+<div class="row"><span>Margin: blended occupancy minus break-even occupancy</span><b id="outBeMargin">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>08</span>Cash flow: STR, Year 1 and stabilized</h2>
+<p class="sub">Stabilized cash flow uses furnishing amortisation. Year 1 cash flow uses the upfront furnishing total instead of amortisation, so Year 1 is lower by design.</p>
+<div class="result">
+<div class="row"><span>Annual STR gross (method in section 03) <span class="tag">MODELED ESTIMATE</span></span><b id="outStrGross">N/A</b></div>
+<div class="row"><span>Annual STR costs, stabilized (fixed x 12 + platform + management + cleaning) <span class="tag">MODELED ESTIMATE</span></span><b id="outStrCostsStab">N/A</b></div>
+<div class="row"><span>Stabilized annual cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="outStrCfStab">N/A</b></div>
+<div class="row big"><span>Stabilized monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="outStrCfMonthly">N/A</b></div>
+<div class="row"><span>Stabilized cash-on-cash (annual cash flow / total cash invested)</span><b id="outStrCocStab">N/A</b></div>
+<div class="row"><span>Year 1 annual cash flow (upfront furnishing, no amortisation) <span class="tag">MODELED ESTIMATE</span></span><b id="outStrCfY1">N/A</b></div>
+<div class="row"><span>Year 1 monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="outStrCfY1Monthly">N/A</b></div>
+<div class="row"><span>Year 1 cash-on-cash</span><b id="outStrCocY1">N/A</b></div>
+</div>
+<figure>
+<figcaption>Figure 2. Monthly cash flow by strategy. Bars update from sections 06 and 08. Negative bars are shown as zero height with the negative value printed beside the label.</figcaption>
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="170" viewBox="0 0 600 170" role="img" aria-label="Monthly cash flow by strategy bar chart">
+<rect x="0" y="0" width="600" height="170" fill="#fffdf6"></rect>
+<rect id="figStrBar" x="80" y="20" width="110" height="10" fill="#9a7b2d"></rect>
+<rect id="figMtrBar" x="80" y="70" width="110" height="10" fill="#9a7b2d"></rect>
+<rect id="figLtrBar" x="80" y="120" width="110" height="10" fill="#9a7b2d"></rect>
+<text x="80" y="15" font-family="monospace" font-size="11" fill="#1d1a16">STR monthly</text>
+<text x="80" y="65" font-family="monospace" font-size="11" fill="#1d1a16">MTR monthly</text>
+<text x="80" y="115" font-family="monospace" font-size="11" fill="#1d1a16">LTR monthly</text>
+<text id="figStrVal" x="200" y="30" font-family="monospace" font-size="11" fill="#1d1a16">N/A</text>
+<text id="figMtrVal" x="200" y="80" font-family="monospace" font-size="11" fill="#1d1a16">N/A</text>
+<text id="figLtrVal" x="200" y="130" font-family="monospace" font-size="11" fill="#1d1a16">N/A</text>
+</svg>
+</figure>
+</section>
+
+<section class="card" id="s9">
+<h2><span>09</span>Regulation risk</h2>
+<p class="sub">Check every risk that applies. Regulation risk does not change the math, it changes whether the math can be relied on.</p>
+<div class="checklist" id="riskList"></div>
+<div class="result">
+<div class="row"><span>Regulation risk flags counted</span><b id="outRiskCount">0</b></div>
+<div class="row"><span>Risk flags</span><b id="outRiskList">None</b></div>
+</div>
+<div style="margin-top:12px"><label for="riskNotes">Regulation notes (source each item, or write N/A)</label><textarea id="riskNotes" placeholder="Pending ordinance, cap history, enforcement notes, insurance carrier, tax registration status"></textarea></div>
+</section>
+
+<section class="card" id="s10">
+<h2><span>10</span>STR / MTR / LTR choice, with reasoning</h2>
+<p class="sub">Choice rule, stated before the result: the winner is the highest stabilized monthly cash flow among STR, MTR, and LTR, unless a kill fires (then PASS, section 13) or STR wins with 3 or more regulation risk flags (then the next best strategy is recommended and the STR win is flagged as high risk). The reasoning below is generated from the numbers, not written by hand.</p>
+<div class="result">
+<div class="row"><span>STR stabilized monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="choiceStr">N/A</b></div>
+<div class="row"><span>MTR monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="choiceMtr">N/A</b></div>
+<div class="row"><span>LTR monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="choiceLtr">N/A</b></div>
+<div class="row big"><span>Recommended strategy</span><b id="choiceWinner">N/A</b></div>
+</div>
+<div id="choiceReason" style="margin-top:12px"></div>
+</section>
+
+<section class="card" id="s11">
+<h2><span>11</span>Gates, fail closed, and completeness</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div style="margin-top:12px"><label>Completeness</label><div class="meter"><div class="meter-fill" id="completeBar"></div></div><div style="font-size:13px;color:var(--muted);margin-top:4px" id="completeText">0 percent complete.</div><div style="font-size:13px;color:var(--muted)" id="completeMissing"></div></div>
+</section>
+
+<section class="card" id="s13">
+<h2><span>13</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. A kill is a successful run, not a failed one. If any kill fires, the recommendation is PASS, explicitly.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill conditions fired (manual + automatic)</span><b id="killFiredList">None</b></div>
+<div class="row"><span>Kill-switch active</span><b id="killActive">No</b></div>
+<div class="row"><span>Risk flags (from section 09)</span><b id="killRiskList">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="recommendation">HOLD</b></div>
+</div>
+<div id="killBox" style="margin-top:12px"></div>
+<div style="margin-top:12px" class="grid2">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>12</span>One-page summary - print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above.</p>
+<div class="result">
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>STR legal status</span><b id="sumLegal">N/A</b></div>
+<div class="row"><span>Annual STR gross <span class="tag">MODELED ESTIMATE</span></span><b id="sumGross">N/A</b></div>
+<div class="row"><span>Blended ADR / occupancy</span><b id="sumBlended">N/A</b></div>
+<div class="row"><span>Break-even occupancy</span><b id="sumBe">N/A</b></div>
+<div class="row"><span>STR monthly cash flow (stabilized) <span class="tag">MODELED ESTIMATE</span></span><b id="sumStrCf">N/A</b></div>
+<div class="row"><span>MTR monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="sumMtrCf">N/A</b></div>
+<div class="row"><span>LTR monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="sumLtrCf">N/A</b></div>
+<div class="row"><span>Furnishing total <span class="tag">MODELED ESTIMATE</span></span><b id="sumFurn">N/A</b></div>
+<div class="row"><span>Recommended strategy</span><b id="sumChoice">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+</section>
+
+<section class="card" id="s14">
+<h2><span>14</span>Receipt</h2>
+<p class="sub">Generated from the inputs above. Matches the e10-str-mtr-receipt v1.0 schema fields. Offer authorized is always false in this tool. The receipt is evidence, not an offer. Chain receipts use the e10-short-term-rental-receipt.v1.0 schema. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy. Grounding gap: no E10 specification was found in the vault; see section 15.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e10-str-mtr-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+<div id="chainStatus" class="hint" style="margin-top:12px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>15</span>How it works / What this is not</h2>
+<p><b>How it works:</b> confirm the parcel from at least 2 public sources, verify STR legality from zoning, HOA documents, and the ordinance, collect ADR from at least 2 independent sources, enter seasonality in days, price furnishing line by line, enter fixed and variable costs, and let the tool compute blended ADR, annual gross, break-even occupancy, STR Year 1 and stabilized cash flow, MTR cash flow, and LTR fallback cash flow from the exact formulas on the page. The choice in section 10 follows the stated rule. A share link encodes the whole deal in the URL hash so someone else can open the same numbers in their own browser. Nothing is uploaded.</p>
+<p><b>What this is not:</b> not an appraisal, not a survey, not legal, tax, or lending advice, and not a guarantee of occupancy, ADR, rent, or a sale. It does not invent comps, zoning, prices, or ordinance text. If a field cannot be verified, it stays N/A. A high STR cash flow does not mean a deal is good, and a PASS does not mean a property is bad. It means the evidence in this run does not support proceeding as an STR on the stated terms. No offer is quoted without Jeramie.</p>
+<p><b>Honest gaps and limits.</b> This tool does not compute a mortgage payment; PITI is entered as a monthly number. It does not pull live platform data, AirDNA data, or county records; every ADR, occupancy, rent, and legality fact is entered by hand with a source. Seasonality uses the entered days and rates only and does not model events, new supply, or platform algorithm changes. Furnishing amortisation uses a flat 60 month life, which is an assumption, not a tax rule. Cleaning cost assumes turnovers equal booked nights divided by average stay. MTR and LTR costs are simplified and do not include vacancy loss beyond the entered LTR vacancy or MTR occupancy, leasing fees, or eviction cost. Layout was not eyeballed in a real browser. Related modules: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a>, <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a>, <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a>.</p>
+
+<p><b>Grounding gap.</b> No E10 specification document was found in the vault, and no Codex V2 Appendix B was located anywhere in the vault. The vault note 02-Real-Estate-Land/UnderwriteX.md line 52 orders E2-E12 as separate modular sites and names no E10 subject and no E10 mechanics. A vault grep for E10 as a whole word in 02-Real-Estate-Land returns nothing. The 2026-11-04 build's own header claims lineage "Codex V2 App. B, E10", but no Codex V2 document was found in the vault to check that claim against. Grounding for the subject (Short-Term / Mid-Term Rental) and every mechanic on this page is therefore the 2026-11-04 E10 build itself, live at https://e10-short-term-rental.pages.dev/, carried here and labeled as such. Nothing on this page should be read as a paper claim.</p>
+<p><b>Builder decisions in this build.</b> These are mine, the builder's, not a paper claim and not Jeramie's order: the receipt chain design (SHA-256, GENESIS first, canonical JSON with the hash stripped, Web Crypto Verify); the SIMULATION banner and status board; the MODELED ESTIMATE labels. No market defaults are baked in: every rate, price, rent, ADR, occupancy, and cost is typed in by the user, and a blank field is N/A or zero as stated on the page, never a hidden market assumption. No kill or flag was added beyond the 2026-11-04 build. The system prompt text and all three sample loaders are carried verbatim from the 2026-11-04 build.</p>
+<p><b>Carried quirks, not silently fixed.</b> (1) The permit kill is a manual checkbox in section 13, but the 2026-11-04 calc() also fires it on the AUTO path when the box is checked, so it is counted as an AUTO kill and never double-counted as a manual kill. This build carries that dual path exactly. (2) The ADR auto kill fires when exactly one ADR source is present regardless of the single-platform select, and does not fire when no ADR source is present even if the select says single platform only. Carried verbatim. (3) When STR wins with 3 or more regulation risk flags, the choice label reads "MTR / LTR - STR win flagged high risk" instead of naming the actual next-best strategy. Carried verbatim. (4) LTR annual costs are null unless at least one of PITI, LTR insurance, or maintenance was entered, while MTR annual costs are always computed because fixed monthly is always a number. Carried verbatim. (5) The source page script contains an unused bar() helper that is never called; it is not carried into this build because it has no behavior. (6) The source break-even formula uses 30.4167 days per month. Carried verbatim.</p>
+<p><b>Source for this build.</b> The 2026-11-04 E10 build: <a href="https://e10-short-term-rental.pages.dev/">e10-short-term-rental.pages.dev</a>. This page is a separate GitHub Pages SIMULATION build of the same engine.</p>
+</section>
+
+<section class="card">
+<h2><span>16</span>System prompt</h2>
+<p class="sub">The E10 system prompt text is embedded in this file for copying. Use the Copy system prompt button above. It is not sent anywhere by this tool.</p>
+<details><summary>Show system prompt text</summary><pre id="promptView"></pre></details>
+</section>
+
+<footer>
+<p>E10 Short-Term / Mid-Term Rental Engine v1.0 - GitHub Pages SIMULATION build, 2026-11-14. Mechanics carried from the 2026-11-04 E10 build at e10-short-term-rental.pages.dev. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. This file works offline with no external dependencies. Print this page for the file copy.</p>
+<p>Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a></p>
+</footer>
+</div>
+
+<script type="text/plain" id="systemPromptText">
+# SYSTEM: E10 SHORT-TERM / MID-TERM RENTAL ENGINE v1.0
+# Architecture: Evidence-first | Deterministic calculations | Non-waivable gates | Receipt required
+# Domain: Short-term rental, mid-term rental (30+ day furnished stays), and long-term rental fallback for the same property
+# Status: Not an appraisal. Not legal, tax, or lending advice. Public-data underwriting only.
+# Lineage: Codex V2 Appendix B, Engine E10 + Residential Underwriting Engine v1.1 core gates + E13 Risk / Kill-Switch
+# Version: v1.0, 2026-11-04.
+You are an STR / MTR underwriter. Follow every rule exactly. Do not guess. Do not invent facts. If information is unavailable after a documented search, retain the field and write "N/A".
+Required outputs: legality (zoning, HOA, local ordinance), occupancy and ADR with source, seasonality, furnishing budget, LTR fallback rent, break-even, cash flow, regulation risk, STR/MTR/LTR choice with reasoning.
+Kill conditions: STR illegal in the jurisdiction, ADR from a single platform estimate. Also kill on HOA prohibits STR, or permit unavailable or denied. Break-even occupancy above 85 percent is a manual kill checkbox in section 13, not an automatic kill, because a high break-even alone does not make STR illegal. A kill means PASS. A PASS is a successful run.
+Gates, fail closed: address / parcel gate (2 public sources), source gate (every ADR, occupancy, rent, zoning, and ordinance fact carries a source reference and date), no-hallucination gate (unverified fields are N/A), authority gate (offer authorized is false, no offer without Jeramie).
+Formulas: Seasonal booked nights = days x occupancy. Seasonal revenue = booked nights x ADR. Blended ADR = seasonal gross / booked nights. Blended occupancy = booked nights / 365. Furnishing amortisation = furnishing total / 60 months. Fixed monthly = PITI + HOA + utilities + internet + insurance + supplies + maintenance + STR tax and fees + furnishing amortisation. Break-even monthly revenue = Fixed monthly / (1 - platform rate - management rate - cleaning factor), cleaning factor = cleaning per turnover / (blended ADR x average stay). Break-even occupancy = break-even monthly revenue / (blended ADR x 30.4167). STR stabilized annual cash flow = annual gross - (fixed monthly x 12 + platform fees + management fees + cleaning). Year 1 cash flow replaces amortisation with the upfront furnishing total. LTR annual gross = LTR rent x 12 x (1 - vacancy). MTR annual gross = MTR rent x 12 x occupancy. Choice rule: highest stabilized monthly cash flow wins, unless a kill fires (PASS) or STR wins with 3 or more regulation risk flags (then the next best strategy is recommended).
+Receipt: run_id, address, parcel_id, legality, adr sources, occupancy, seasonality, furnishing, break-even, cash flows, choice, gates, kills, risk flags, confidence, offer_authorized false.
+</script>
+
+<script src="e10.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var e=$(id);if(!e)return null;var v=parseFloat(e.value);return isFinite(v)?v:null;}
+function numOr0(id){var v=num(id);return v===null?0:v;}
+function money(v){if(v===null||v===undefined||!isFinite(v))return "N/A";if(v<0)return "-$"+Math.abs(v).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function money0(v){if(v===null||v===undefined||!isFinite(v))return "N/A";if(v<0)return "-$"+Math.round(Math.abs(v)).toLocaleString("en-US");return "$"+Math.round(v).toLocaleString("en-US");}
+function pct(v){if(v===null||v===undefined||!isFinite(v))return "N/A";return (v*100).toFixed(2)+"%";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function setText(id,t){var e=$(id);if(e)e.textContent=t;}
+var runId="E10-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: address and parcel confirmed from at least 2 public sources"},
+ {id:"source",label:"Source gate: every ADR, occupancy, rent, zoning, and ordinance fact carries a source reference and date"},
+ {id:"legality",label:"Legality gate: zoning, HOA, and ordinance verified from the map, documents, and ordinance text, not from a seller claim"},
+ {id:"no_hallucination",label:"No-hallucination gate: no invented prices, occupancy, ADR, or ordinance text; unverifiable fields are N/A"},
+ {id:"furnishing",label:"Furnishing gate: furnishing total is the sum of priced lines, or N/A with the missing source named"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no offer without Jeramie; offer authorized is false"}
+];
+var kills=[
+ {id:"k_str_illegal",label:"STR illegal in the jurisdiction"},
+ {id:"k_adr_single",label:"ADR from a single platform estimate"},
+ {id:"k_hoa_prohibits",label:"HOA / condo prohibits STR"},
+ {id:"k_permit_unavailable",label:"Permit / registration unavailable or denied"},
+ {id:"k_be_high",label:"Break-even occupancy above 85 percent"}
+];
+var risks=[
+ {id:"r_pending",label:"Pending ordinance, cap, or ban under discussion"},
+ {id:"r_night_cap",label:"Night cap limits booked nights below the seasonal plan"},
+ {id:"r_owner_occ",label:"Owner-occupancy requirement limits use"},
+ {id:"r_hoa_change",label:"HOA rule change risk: STR rule could change"},
+ {id:"r_insurance",label:"STR insurance unavailable or priced above the entered number"},
+ {id:"r_tax_reg",label:"Tax registration or local STR tax not confirmed"},
+ {id:"r_seasonality",label:"Seasonality concentration: most revenue depends on peak season"},
+ {id:"r_single_platform",label:"Single-platform dependence for bookings"},
+ {id:"r_enforcement",label:"Active enforcement or neighbor complaints on record"},
+ {id:"r_furn_unbid",label:"Furnishing cost unbid: lines are estimates, not quotes"}
+];
+function buildLists(){
+ var gh="";gates.forEach(function(g){gh+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';});
+ $("gateList").innerHTML=gh;
+ var kh="";kills.forEach(function(k){kh+='<div class="item"><input type="checkbox" id="'+k.id+'" data-kill="'+k.id+'"><label for="'+k.id+'">'+esc(k.label)+'</label></div>';});
+ $("killList").innerHTML=kh;
+ var rh="";risks.forEach(function(r){rh+='<div class="item"><input type="checkbox" id="'+r.id+'" data-risk="'+r.id+'"><label for="'+r.id+'">'+esc(r.label)+'</label></div>';});
+ $("riskList").innerHTML=rh;
+ $("promptView").textContent=$("systemPromptText").textContent;
+}
+buildLists();
+function collectData(){
+ var d={};
+ document.querySelectorAll("input,select,textarea").forEach(function(e){
+  if(!e.id)return;
+  if(e.type==="checkbox")d[e.id]=e.checked;
+  else d[e.id]=e.value;
+ });
+ return d;
+}
+function applyData(d){
+ Object.keys(d).forEach(function(k){
+  var e=document.getElementById(k);if(!e)return;
+  if(e.type==="checkbox")e.checked=!!d[k];
+  else e.value=d[k];
+ });
+}
+function shareLink(){
+ var json=JSON.stringify(collectData());
+ var b64=btoa(unescape(encodeURIComponent(json)));
+ return window.location.href.split("#")[0]+"#d="+b64;
+}
+function updateShareUrl(){var e=$("shareUrl");if(e)e.value=shareLink();}
+function loadFromHash(){
+ if(!window.location.hash||window.location.hash.indexOf("#d=")!==0)return false;
+ try{
+  var json=decodeURIComponent(escape(atob(window.location.hash.slice(3))));
+  applyData(JSON.parse(json));return true;
+ }catch(err){return false;}
+}
+function setVal(id,v){var e=$(id);if(e)e.value=v;}
+function setGate(id,v){var e=$("gate_"+id);if(e)e.value=v;}
+function clearAll(){
+ document.querySelectorAll("input,select,textarea").forEach(function(e){
+  if(e.id==="runId"||e.id==="runDate"||e.id==="shareUrl")return;
+  if(e.type==="checkbox")e.checked=false;
+  else if(e.tagName==="SELECT")e.selectedIndex=0;
+  else e.value="";
+ });
+ $("parcelSources").value="0";$("confidence").value="0.50";$("singlePlatform").value="no";
+ $("sampleNote").hidden=true;calc();
+}
+
+function resetGates(){gates.forEach(function(g){setGate(g.id,"pass");});}
+function loadSample(kind){
+ kind=kind||"a";clearAll();resetGates();
+ if(kind==="a"){
+  setVal("address","123 STR Way, Benton Harbor, MI 49022");setVal("parcelId","SAMPLE-E10-A");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","2");setVal("sleeps","6");$("propType").value="Single-family";
+  setVal("purchasePrice","220000");setVal("downPayment","44000");setVal("closingCosts","5000");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("zoning","R-1 Residential");$("strLegal").value="legal_with_permit";$("hoaStatus").value="no_hoa";
+  setVal("ordinanceCite","City STR ordinance Sec. 12.4, source: city ordinance text, accessed 2026-11-04");
+  setVal("permitCost","150");setVal("maxNights","");setVal("minStay","2");$("ownerOcc").value="No";$("mtrLegal").value="legal";
+  setVal("legalNotes","Synthetic sample. STR legal with permit. No HOA. Ordinance citation is a synthetic sample citation, not a real ordinance.");
+  setVal("adrSource1Name","AirDNA market report (synthetic sample)");setVal("adrSource1","195");
+  setVal("adrSource2Name","Comparable listings, 5 listings (synthetic sample)");setVal("adrSource2","202");
+  setVal("occSourceName","AirDNA market report (synthetic sample)");setVal("occSource1","58");setVal("occSource2","59");
+  $("singlePlatform").value="no";setVal("avgStay","3");
+  setVal("peakDays","90");setVal("peakOcc","80");setVal("peakAdr","250");
+  setVal("shoulderDays","150");setVal("shoulderOcc","60");setVal("shoulderAdr","190");
+  setVal("offDays","125");setVal("offOcc","40");setVal("offAdr","140");
+  setVal("furnFurniture","6000");setVal("furnAppliances","2500");setVal("furnLinens","800");setVal("furnDecor","1200");setVal("furnTech","700");setVal("furnSupplies","500");setVal("furnPhoto","300");setVal("furnOther","0");setVal("furnSource","Priced list, synthetic sample");
+  setVal("costPiti","1100");setVal("costHoa","0");setVal("costUtilities","180");setVal("costInternet","70");setVal("costInsurance","120");setVal("costSupplies","60");setVal("costMaint","100");setVal("costStrTax","40");
+  setVal("platformPct","15");setVal("mgmtPct","0");setVal("cleanPerTurn","85");setVal("mtrCleanMonthly","50");
+  setVal("ltrRent","1450");setVal("ltrVacancy","5");setVal("ltrRentSource","Comparable rentals, synthetic sample");setVal("ltrInsurance","80");
+  setVal("mtrRent","2100");setVal("mtrOcc","90");setVal("mtrRentSource","Comparable MTR listings, synthetic sample");
+  $("r_seasonality").checked=true;
+  setVal("confidence","0.70");setVal("assumptions","Synthetic sample deal only, not a real deal. 1. Seasonality totals 365 days. 2. Furnishing total 12000, amortised over 60 months. 3. Self-managed, management 0 percent.");
+  $("sampleNote").hidden=false;$("sampleNote").textContent="Sample A loaded. Synthetic sample, not a real deal. Expected: annual STR gross $42,100.00, blended ADR $198.58, stabilized monthly cash flow $611.53, break-even occupancy 43.77 percent, STR wins.";
+ }else if(kind==="b"){
+  setVal("address","456 MTR Ave, Benton Harbor, MI 49022");setVal("parcelId","SAMPLE-E10-B");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","2");setVal("sleeps","6");$("propType").value="Single-family";
+  setVal("purchasePrice","240000");setVal("downPayment","48000");setVal("closingCosts","6000");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("zoning","R-1 Residential");$("strLegal").value="legal_with_permit";$("hoaStatus").value="no_hoa";
+  setVal("ordinanceCite","City STR ordinance Sec. 12.4, source: city ordinance text, accessed 2026-11-04");
+  setVal("permitCost","150");setVal("minStay","2");$("ownerOcc").value="No";$("mtrLegal").value="legal";
+  setVal("legalNotes","Synthetic sample. STR legal with permit. No HOA.");
+  setVal("adrSource1Name","AirDNA market report (synthetic sample)");setVal("adrSource1","145");
+  setVal("adrSource2Name","Comparable listings, 5 listings (synthetic sample)");setVal("adrSource2","148");
+  setVal("occSourceName","AirDNA market report (synthetic sample)");setVal("occSource1","37");setVal("occSource2","38");
+  $("singlePlatform").value="no";setVal("avgStay","4");
+  setVal("peakDays","90");setVal("peakOcc","50");setVal("peakAdr","180");
+  setVal("shoulderDays","150");setVal("shoulderOcc","40");setVal("shoulderAdr","140");
+  setVal("offDays","125");setVal("offOcc","25");setVal("offAdr","110");
+  setVal("furnFurniture","4500");setVal("furnAppliances","1800");setVal("furnLinens","600");setVal("furnDecor","900");setVal("furnTech","500");setVal("furnSupplies","400");setVal("furnPhoto","300");setVal("furnOther","0");setVal("furnSource","Priced list, synthetic sample");
+  setVal("costPiti","1200");setVal("costHoa","0");setVal("costUtilities","200");setVal("costInternet","70");setVal("costInsurance","130");setVal("costSupplies","60");setVal("costMaint","100");setVal("costStrTax","40");
+  setVal("platformPct","15");setVal("mgmtPct","20");setVal("cleanPerTurn","90");setVal("mtrCleanMonthly","50");
+  setVal("ltrRent","1600");setVal("ltrVacancy","5");setVal("ltrRentSource","Comparable rentals, synthetic sample");setVal("ltrInsurance","80");
+  setVal("mtrRent","2600");setVal("mtrOcc","90");setVal("mtrRentSource","Comparable MTR listings, synthetic sample");
+  $("r_pending").checked=true;$("r_seasonality").checked=true;
+  setVal("confidence","0.65");setVal("assumptions","Synthetic sample deal only, not a real deal. 1. Seasonality totals 365 days. 2. Furnishing total 9000, amortised over 60 months. 3. STR management 20 percent.");
+  $("sampleNote").hidden=false;$("sampleNote").textContent="Sample B loaded. Synthetic sample, not a real deal. Expected: annual STR gross $19,937.50, STR monthly cash flow -$1,125.52, MTR monthly cash flow $340.00, LTR monthly $140.00, MTR wins.";
+ }else{
+  setVal("address","789 Pass Rd, Benton Harbor, MI 49022");setVal("parcelId","SAMPLE-E10-C");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","1");setVal("sleeps","5");$("propType").value="Single-family";
+  setVal("purchasePrice","200000");setVal("downPayment","40000");setVal("closingCosts","5000");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("zoning","R-1 Residential");$("strLegal").value="illegal";$("hoaStatus").value="no_hoa";
+  setVal("ordinanceCite","City STR ordinance Sec. 12.4, source: city ordinance text, accessed 2026-11-04");
+  setVal("permitCost","0");setVal("minStay","2");$("ownerOcc").value="No";$("mtrLegal").value="legal";
+  setVal("legalNotes","Synthetic sample. STR illegal in this jurisdiction. Ordinance citation is a synthetic sample citation, not a real ordinance.");
+  setVal("adrSource1Name","Single platform estimate (synthetic sample)");setVal("adrSource1","160");
+  setVal("adrSource2Name","");setVal("adrSource2","");
+  setVal("occSourceName","Single platform estimate (synthetic sample)");setVal("occSource1","48");setVal("occSource2","");
+  $("singlePlatform").value="yes";setVal("avgStay","3");
+  setVal("peakDays","90");setVal("peakOcc","70");setVal("peakAdr","200");
+  setVal("shoulderDays","150");setVal("shoulderOcc","50");setVal("shoulderAdr","150");
+  setVal("offDays","125");setVal("offOcc","30");setVal("offAdr","100");
+  setVal("furnFurniture","5000");setVal("furnAppliances","2000");setVal("furnLinens","700");setVal("furnDecor","1000");setVal("furnTech","600");setVal("furnSupplies","400");setVal("furnPhoto","300");setVal("furnOther","0");setVal("furnSource","Priced list, synthetic sample");
+  setVal("costPiti","1000");setVal("costHoa","0");setVal("costUtilities","150");setVal("costInternet","60");setVal("costInsurance","100");setVal("costSupplies","50");setVal("costMaint","80");setVal("costStrTax","30");
+  setVal("platformPct","15");setVal("mgmtPct","10");setVal("cleanPerTurn","75");setVal("mtrCleanMonthly","50");
+  setVal("ltrRent","1400");setVal("ltrVacancy","5");setVal("ltrRentSource","Comparable rentals, synthetic sample");setVal("ltrInsurance","70");
+  setVal("mtrRent","2000");setVal("mtrOcc","85");setVal("mtrRentSource","Comparable MTR listings, synthetic sample");
+  setGate("source","fail");setGate("legality","fail");
+  $("k_str_illegal").checked=true;$("k_adr_single").checked=true;
+  $("r_pending").checked=true;$("r_single_platform").checked=true;$("r_enforcement").checked=true;
+  setVal("confidence","0.60");setVal("assumptions","Synthetic sample deal only, not a real deal. PASS sample. STR illegal and ADR from a single platform estimate, so two kill conditions fire. Expected result: recommendation PASS.");
+  $("sampleNote").hidden=false;$("sampleNote").textContent="Sample C loaded. Synthetic sample, not a real deal. PASS sample: STR illegal and ADR from a single platform estimate. Expected result: recommendation PASS.";
+ }
+ calc();
+}
+var lastReceipt=null;
+var chain=[];
+function safeAlert(m){try{alert(m);}catch(e){}}
+function gather(){
+ var g={};
+ g.address=$("address").value.trim();g.parcelId=$("parcelId").value.trim();
+ g.zoning=$("zoning").value.trim();g.ordinanceCite=$("ordinanceCite").value.trim();
+ g.strLegal=$("strLegal").value;g.hoaStatus=$("hoaStatus").value;
+ g.singlePlatform=$("singlePlatform").value;
+ g.adr1=num("adrSource1");g.adr2=num("adrSource2");
+ g.occ1=num("occSource1");g.occ2=num("occSource2");
+ g.avgStay=num("avgStay");
+ g.peakDays=num("peakDays");g.peakOcc=num("peakOcc");g.peakAdr=num("peakAdr");
+ g.shoulderDays=num("shoulderDays");g.shoulderOcc=num("shoulderOcc");g.shoulderAdr=num("shoulderAdr");
+ g.offDays=num("offDays");g.offOcc=num("offOcc");g.offAdr=num("offAdr");
+ g.downPayment=num("downPayment");g.closingCosts=num("closingCosts");
+ g.furnFurniture=num("furnFurniture");g.furnAppliances=num("furnAppliances");
+ g.furnLinens=num("furnLinens");g.furnDecor=num("furnDecor");g.furnTech=num("furnTech");
+ g.furnSupplies=num("furnSupplies");g.furnPhoto=num("furnPhoto");g.furnOther=num("furnOther");
+ g.costPiti=num("costPiti");g.costHoa=num("costHoa");g.costUtilities=num("costUtilities");
+ g.costInternet=num("costInternet");g.costInsurance=num("costInsurance");
+ g.costSupplies=num("costSupplies");g.costMaint=num("costMaint");g.costStrTax=num("costStrTax");
+ g.platformPct=num("platformPct");g.mgmtPct=num("mgmtPct");
+ g.cleanPerTurn=num("cleanPerTurn");g.mtrCleanMonthly=num("mtrCleanMonthly");
+ g.ltrRent=num("ltrRent");g.ltrVacancy=num("ltrVacancy");g.ltrInsurance=num("ltrInsurance");
+ g.mtrRent=num("mtrRent");g.mtrOcc=num("mtrOcc");
+ g.gates={};gates.forEach(function(gt){var e=$("gate_"+gt.id);g.gates[gt.id]=e?e.value:"hold";});
+ g.manualKillIds=[];kills.forEach(function(k){var e=$(k.id);if(e&&e.checked){g.manualKillIds.push(k.id);}});
+ g.riskIds=[];risks.forEach(function(r){var e=$(r.id);if(e&&e.checked){g.riskIds.push(r.id);}});
+ return g;
+}
+function calc(){
+ var g=gather();
+ var r=E10.compute(g);
+ setText("outPrimaryAdr",r.primaryAdr===null?"N/A":money(r.primaryAdr));
+ setText("outPrimaryOcc",r.primaryOcc===null?"N/A":r.primaryOcc.toFixed(2)+"%");
+ setText("outAdrCount",String(r.adrCount));
+ setText("outPrimaryGross",money(r.primaryGross));
+ setText("peakNights",r.peak.nights===null?"N/A":r.peak.nights.toFixed(2));
+ setText("peakRev",money(r.peak.revenue));
+ setText("shoulderNights",r.shoulder.nights===null?"N/A":r.shoulder.nights.toFixed(2));
+ setText("shoulderRev",money(r.shoulder.revenue));
+ setText("offNights",r.off.nights===null?"N/A":r.off.nights.toFixed(2));
+ setText("offRev",money(r.off.revenue));
+ setText("outSeasonDays",r.seasonComplete?String(r.seasonDays):"N/A");
+ setText("outTotalNights",r.totalNights===null?"N/A":r.totalNights.toFixed(2));
+ setText("outSeasonGross",money(r.seasonGross));
+ setText("outBlendedAdr",r.blendedAdr===null?"N/A":money(r.blendedAdr));
+ setText("outBlendedOcc",r.blendedOcc===null?"N/A":pct(r.blendedOcc));
+ setText("outGrossMethod",r.grossMethod);
+ var sw=$("seasonWarning");
+ if(r.seasonWarning){sw.hidden=false;sw.textContent="Warning: season days total "+r.seasonDays+", not 365. Seasonal gross is not used until the days sum to 365.";}
+ else{sw.hidden=true;sw.textContent="";}
+ var lw=$("legalWarning");
+ if(r.legalWarning){lw.hidden=false;lw.textContent=r.legalWarning;}
+ else{lw.hidden=true;lw.textContent="";}
+ setText("outFurnTotal",money(r.furnTotal));
+ setText("outFurnAmort",money(r.furnAmort));
+ setText("outCashInvested",money(r.cashInvested));
+ setText("outFixedMonthly",money(r.fixedMonthly));
+ setText("outFixedExAmort",money(r.fixedEx));
+ setText("outTurnovers",r.turnovers===null?"N/A":r.turnovers.toFixed(2));
+ setText("outCleanAnnual",money(r.cleanAnnual));
+ setText("outPlatformAnnual",money(r.platformAnnual));
+ setText("outMgmtAnnual",money(r.mgmtAnnual));
+ setText("outLtrGross",money(r.ltrGross));
+ setText("outLtrCosts",money(r.ltrCostsAnnual));
+ setText("outLtrCfAnnual",money(r.ltrCf));
+ setText("outLtrCfMonthly",r.ltrCfMonthly===null?"N/A":money(r.ltrCfMonthly));
+ setText("outMtrGross",money(r.mtrGross));
+ setText("outMtrCosts",money(r.mtrCostsAnnual));
+ setText("outMtrCfAnnual",money(r.mtrCf));
+ setText("outMtrCfMonthly",r.mtrCfMonthly===null?"N/A":money(r.mtrCfMonthly));
+ setText("outVarRate",pct(r.varRate));
+ setText("outCleanFactor",r.cleanFactor===null?"N/A":r.cleanFactor.toFixed(5));
+ setText("outBeRevenue",money(r.beRevenue));
+ setText("outBeOcc",r.beOcc===null?"N/A":pct(r.beOcc));
+ setText("outBeNights",r.beNights===null?"N/A":r.beNights.toFixed(2));
+ setText("outBeMargin",r.beMargin===null?"N/A":(r.beMargin*100).toFixed(2)+" pts");
+ setText("outStrGross",money(r.strGross));
+ setText("outStrCostsStab",money(r.strCostsStab));
+ setText("outStrCfStab",money(r.strCfStab));
+ setText("outStrCfMonthly",r.strCfMonthly===null?"N/A":money(r.strCfMonthly));
+ setText("outStrCocStab",r.strCocStab===null?"N/A":pct(r.strCocStab));
+ setText("outStrCfY1",money(r.strCfY1));
+ setText("outStrCfY1Monthly",r.strCfY1Monthly===null?"N/A":money(r.strCfY1Monthly));
+ setText("outStrCocY1",r.strCocY1===null?"N/A":pct(r.strCocY1));
+ setText("outRiskCount",String(r.riskCount));
+ setText("outRiskList",r.riskFired.length?r.riskFired.join("; "):"None");
+ setText("gateStatus",r.gatesFailed.length?"HOLD - gates not verified":"PASS - all gates pass");
+ setText("gatesPassed",r.gatesPassed.length?r.gatesPassed.join(", "):"None");
+ setText("gatesFailed",r.gatesFailed.length?r.gatesFailed.join(", "):"None");
+ setText("killFiredList",r.killFired.length?r.killFired.join("; "):"None");
+ setText("killActive",r.killActive?"Yes":"No");
+ setText("killRiskList",r.riskFired.length?r.riskFired.join("; "):"None");
+ setText("choiceStr",r.choiceStr===null?"N/A":money(r.choiceStr));
+ setText("choiceMtr",r.choiceMtr===null?"N/A":money(r.choiceMtr));
+ setText("choiceLtr",r.choiceLtr===null?"N/A":money(r.choiceLtr));
+ setText("choiceWinner",r.winner);
+ $("choiceReason").innerHTML="<p>"+esc(r.reason)+"</p>";
+ setText("recommendation",r.recommendation);
+ $("killBox").innerHTML=r.killActive?'<div class="warning">Recommendation: PASS. '+esc(r.recDetail)+'</div>':(r.gatesFailed.length?'<div class="hint">Status: HOLD. '+esc(r.recDetail)+'</div>':'<div class="hint">Status: '+esc(r.recDetail)+'</div>');
+ $("stickyCompleteBar").style.width=r.completeness.pct+"%";
+ setText("stickyCompleteText",r.completeness.pct+" percent");
+ setText("missingHints",r.completeness.missing.length?"Missing: "+r.completeness.missing.join(", ")+".":"All required fields are filled.");
+ $("completeBar").style.width=r.completeness.pct+"%";
+ setText("completeText",r.completeness.pct+" percent complete ("+r.completeness.done+" of "+r.completeness.total+" required fields).");
+ setText("completeMissing",r.completeness.missing.length?"Missing: "+r.completeness.missing.join(", ")+".":"All required fields are filled.");
+ setText("stickyGross",money(r.annualGross));
+ setText("stickyStrCf",r.strCfMonthly===null?"N/A":money(r.strCfMonthly));
+ setText("stickyBe",r.beOcc===null?"N/A":pct(r.beOcc));
+ setText("stickyRec",r.recommendation);
+ setText("sumAddress",$("address").value.trim()||"N/A");
+ setText("sumParcel",$("parcelId").value.trim()||"N/A");
+ setText("sumLegal",$("strLegal").value?$("strLegal").selectedOptions[0].text:"N/A");
+ setText("sumGross",money(r.annualGross));
+ setText("sumBlended",(r.blendedAdr===null?"N/A":money(r.blendedAdr))+" / "+(r.blendedOcc===null?"N/A":pct(r.blendedOcc)));
+ setText("sumBe",r.beOcc===null?"N/A":pct(r.beOcc));
+ setText("sumStrCf",r.strCfMonthly===null?"N/A":money(r.strCfMonthly));
+ setText("sumMtrCf",r.mtrCfMonthly===null?"N/A":money(r.mtrCfMonthly));
+ setText("sumLtrCf",r.ltrCfMonthly===null?"N/A":money(r.ltrCfMonthly));
+ setText("sumFurn",money(r.furnTotal));
+ setText("sumChoice",r.winner);
+ var conf=parseFloat($("confidence").value);setText("sumConfidence",isNaN(conf)?"N/A":conf.toFixed(2));
+ setText("sumGates",r.gatesFailed.length?"HOLD":"PASS");
+ setText("sumRec",r.recommendation);
+ if(r.peak.revenue!==null&&r.shoulder.revenue!==null&&r.off.revenue!==null){
+  var smax=Math.max(r.peak.revenue,r.shoulder.revenue,r.off.revenue);
+  $("figPeakBar").setAttribute("width",String(Math.max(10,Math.round(r.peak.revenue/smax*300))));
+  $("figShoulderBar").setAttribute("width",String(Math.max(10,Math.round(r.shoulder.revenue/smax*300))));
+  $("figOffBar").setAttribute("width",String(Math.max(10,Math.round(r.off.revenue/smax*300))));
+  setText("figPeakVal",money0(r.peak.revenue));setText("figShoulderVal",money0(r.shoulder.revenue));setText("figOffVal",money0(r.off.revenue));
+ }
+ var cfMax=Math.max(r.strCfMonthly===null?0:Math.max(0,r.strCfMonthly),r.mtrCfMonthly===null?0:Math.max(0,r.mtrCfMonthly),r.ltrCfMonthly===null?0:Math.max(0,r.ltrCfMonthly));
+ function cfBar(barId,valId,v){var b=$(barId);if(!b)return;if(v===null||v<=0){b.setAttribute("width","10");}else{b.setAttribute("width",String(Math.max(10,Math.round(v/(cfMax||1)*300))));}setText(valId,v===null?"N/A":money(v));}
+ cfBar("figStrBar","figStrVal",r.strCfMonthly);cfBar("figMtrBar","figMtrVal",r.mtrCfMonthly);cfBar("figLtrBar","figLtrVal",r.ltrCfMonthly);
+ var receipt={
+  schema_version:"e10-str-mtr-receipt.v1.0",
+  run_id:runId,
+  run_date:new Date().toISOString().slice(0,10),
+  address:$("address").value.trim()||null,
+  parcel_id:$("parcelId").value.trim()||null,
+  county:$("county").value.trim()||null,
+  legality:{zoning:$("zoning").value.trim()||null,str_legal:$("strLegal").value||null,hoa:$("hoaStatus").value||null,ordinance_cite:$("ordinanceCite").value.trim()||null,permit_cost_year:num("permitCost"),max_nights:num("maxNights"),min_stay:num("minStay"),owner_occupancy:$("ownerOcc").value||null,mtr_legal:$("mtrLegal").value||null},
+  adr:{source1:{name:$("adrSource1Name").value.trim()||null,value:num("adrSource1")},source2:{name:$("adrSource2Name").value.trim()||null,value:num("adrSource2")},sources_counted:r.adrCount,primary_adr:r.primaryAdr,single_platform_estimate:$("singlePlatform").value==="yes"},
+  occupancy:{source_name:$("occSourceName").value.trim()||null,source1:num("occSource1"),source2:num("occSource2"),primary_occupancy:r.primaryOcc,blended_occupancy:r.blendedOcc},
+  seasonality:{peak:{days:num("peakDays"),occupancy:num("peakOcc"),adr:num("peakAdr"),nights:r.peak.nights,revenue:r.peak.revenue},shoulder:{days:num("shoulderDays"),occupancy:num("shoulderOcc"),adr:num("shoulderAdr"),nights:r.shoulder.nights,revenue:r.shoulder.revenue},off_peak:{days:num("offDays"),occupancy:num("offOcc"),adr:num("offAdr"),nights:r.off.nights,revenue:r.off.revenue},total_days:r.seasonDays,total_nights:r.totalNights,annual_gross:r.annualGross,gross_method:r.grossMethod,blended_adr:r.blendedAdr},
+  furnishing:{furniture:num("furnFurniture"),appliances:num("furnAppliances"),linens:num("furnLinens"),decor:num("furnDecor"),tech:num("furnTech"),supplies:num("furnSupplies"),photography:num("furnPhoto"),other:num("furnOther"),total:r.furnTotal,amortisation_monthly:r.furnAmort,source:$("furnSource").value.trim()||null},
+  costs:{fixed_monthly:r.fixedMonthly,fixed_ex_amort_monthly:r.fixedEx,platform_pct:num("platformPct"),management_pct:num("mgmtPct"),cleaning_per_turnover:num("cleanPerTurn"),turnovers_per_year:r.turnovers,cleaning_annual:r.cleanAnnual,platform_annual:r.platformAnnual,management_annual:r.mgmtAnnual},
+  break_even:{variable_rate:r.varRate,cleaning_factor:r.cleanFactor,monthly_revenue:r.beRevenue,occupancy:r.beOcc,nights_per_month:r.beNights,margin_vs_blended:r.beMargin},
+  cash_flow:{str_annual_gross:r.annualGross,str_costs_stabilized:r.strCostsStab,str_annual_stabilized:r.strCfStab,str_monthly_stabilized:r.strCfMonthly,str_coc_stabilized:r.strCocStab,str_annual_year1:r.strCfY1,str_monthly_year1:r.strCfY1Monthly,str_coc_year1:r.strCocY1,mtr_annual_gross:r.mtrGross,mtr_annual_costs:r.mtrCostsAnnual,mtr_annual:r.mtrCf,mtr_monthly:r.mtrCfMonthly,ltr_annual_gross:r.ltrGross,ltr_annual_costs:r.ltrCostsAnnual,ltr_annual:r.ltrCf,ltr_monthly:r.ltrCfMonthly},
+  choice:{recommended:r.winner,reason:r.reason},
+  gates:{passed:r.gatesPassed,failed:r.gatesFailed},
+  kill_switch:{fired:r.killFired,active:r.killActive},
+  risk_flags:r.riskFired,
+  recommendation:r.recommendation,
+  confidence:isNaN(conf)?null:conf,
+  offer_authorized:false,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value
+ };
+ lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ updateShareUrl();
+}
+function loadSample(kind){
+ kind=kind||"a";clearAll();resetGates();
+ if(kind==="a"){
+  setVal("address","123 STR Way, Benton Harbor, MI 49022");setVal("parcelId","SAMPLE-E10-A");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","2");setVal("sleeps","6");$("propType").value="Single-family";
+  setVal("purchasePrice","220000");setVal("downPayment","44000");setVal("closingCosts","5000");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("zoning","R-1 Residential");$("strLegal").value="legal_with_permit";$("hoaStatus").value="no_hoa";
+  setVal("ordinanceCite","City STR ordinance Sec. 12.4, source: city ordinance text, accessed 2026-11-04");
+  setVal("permitCost","150");setVal("maxNights","");setVal("minStay","2");$("ownerOcc").value="No";$("mtrLegal").value="legal";
+  setVal("legalNotes","Synthetic sample. STR legal with permit. No HOA. Ordinance citation is a synthetic sample citation, not a real ordinance.");
+  setVal("adrSource1Name","AirDNA market report (synthetic sample)");setVal("adrSource1","195");
+  setVal("adrSource2Name","Comparable listings, 5 listings (synthetic sample)");setVal("adrSource2","202");
+  setVal("occSourceName","AirDNA market report (synthetic sample)");setVal("occSource1","58");setVal("occSource2","59");
+  $("singlePlatform").value="no";setVal("avgStay","3");
+  setVal("peakDays","90");setVal("peakOcc","80");setVal("peakAdr","250");
+  setVal("shoulderDays","150");setVal("shoulderOcc","60");setVal("shoulderAdr","190");
+  setVal("offDays","125");setVal("offOcc","40");setVal("offAdr","140");
+  setVal("furnFurniture","6000");setVal("furnAppliances","2500");setVal("furnLinens","800");setVal("furnDecor","1200");setVal("furnTech","700");setVal("furnSupplies","500");setVal("furnPhoto","300");setVal("furnOther","0");setVal("furnSource","Priced list, synthetic sample");
+  setVal("costPiti","1100");setVal("costHoa","0");setVal("costUtilities","180");setVal("costInternet","70");setVal("costInsurance","120");setVal("costSupplies","60");setVal("costMaint","100");setVal("costStrTax","40");
+  setVal("platformPct","15");setVal("mgmtPct","0");setVal("cleanPerTurn","85");setVal("mtrCleanMonthly","50");
+  setVal("ltrRent","1450");setVal("ltrVacancy","5");setVal("ltrRentSource","Comparable rentals, synthetic sample");setVal("ltrInsurance","80");
+  setVal("mtrRent","2100");setVal("mtrOcc","90");setVal("mtrRentSource","Comparable MTR listings, synthetic sample");
+  $("r_seasonality").checked=true;
+  setVal("confidence","0.70");setVal("assumptions","Synthetic sample deal only, not a real deal. 1. Seasonality totals 365 days. 2. Furnishing total 12000, amortised over 60 months. 3. Self-managed, management 0 percent.");
+  $("sampleNote").hidden=false;$("sampleNote").textContent="Sample A loaded. Synthetic sample, not a real deal. Expected: annual STR gross $42,100.00, blended ADR $198.58, stabilized monthly cash flow $611.53, break-even occupancy 43.77 percent, STR wins.";
+ }else if(kind==="b"){
+  setVal("address","456 MTR Ave, Benton Harbor, MI 49022");setVal("parcelId","SAMPLE-E10-B");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","2");setVal("sleeps","6");$("propType").value="Single-family";
+  setVal("purchasePrice","240000");setVal("downPayment","48000");setVal("closingCosts","6000");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("zoning","R-1 Residential");$("strLegal").value="legal_with_permit";$("hoaStatus").value="no_hoa";
+  setVal("ordinanceCite","City STR ordinance Sec. 12.4, source: city ordinance text, accessed 2026-11-04");
+  setVal("permitCost","150");setVal("minStay","2");$("ownerOcc").value="No";$("mtrLegal").value="legal";
+  setVal("legalNotes","Synthetic sample. STR legal with permit. No HOA.");
+  setVal("adrSource1Name","AirDNA market report (synthetic sample)");setVal("adrSource1","145");
+  setVal("adrSource2Name","Comparable listings, 5 listings (synthetic sample)");setVal("adrSource2","148");
+  setVal("occSourceName","AirDNA market report (synthetic sample)");setVal("occSource1","37");setVal("occSource2","38");
+  $("singlePlatform").value="no";setVal("avgStay","4");
+  setVal("peakDays","90");setVal("peakOcc","50");setVal("peakAdr","180");
+  setVal("shoulderDays","150");setVal("shoulderOcc","40");setVal("shoulderAdr","140");
+  setVal("offDays","125");setVal("offOcc","25");setVal("offAdr","110");
+  setVal("furnFurniture","4500");setVal("furnAppliances","1800");setVal("furnLinens","600");setVal("furnDecor","900");setVal("furnTech","500");setVal("furnSupplies","400");setVal("furnPhoto","300");setVal("furnOther","0");setVal("furnSource","Priced list, synthetic sample");
+  setVal("costPiti","1200");setVal("costHoa","0");setVal("costUtilities","200");setVal("costInternet","70");setVal("costInsurance","130");setVal("costSupplies","60");setVal("costMaint","100");setVal("costStrTax","40");
+  setVal("platformPct","15");setVal("mgmtPct","20");setVal("cleanPerTurn","90");setVal("mtrCleanMonthly","50");
+  setVal("ltrRent","1600");setVal("ltrVacancy","5");setVal("ltrRentSource","Comparable rentals, synthetic sample");setVal("ltrInsurance","80");
+  setVal("mtrRent","2600");setVal("mtrOcc","90");setVal("mtrRentSource","Comparable MTR listings, synthetic sample");
+  $("r_pending").checked=true;$("r_seasonality").checked=true;
+  setVal("confidence","0.65");setVal("assumptions","Synthetic sample deal only, not a real deal. 1. Seasonality totals 365 days. 2. Furnishing total 9000, amortised over 60 months. 3. STR management 20 percent.");
+  $("sampleNote").hidden=false;$("sampleNote").textContent="Sample B loaded. Synthetic sample, not a real deal. Expected: annual STR gross $19,937.50, STR monthly cash flow -$1,125.52, MTR monthly cash flow $340.00, LTR monthly $140.00, MTR wins.";
+ }else{
+  setVal("address","789 Pass Rd, Benton Harbor, MI 49022");setVal("parcelId","SAMPLE-E10-C");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","1");setVal("sleeps","5");$("propType").value="Single-family";
+  setVal("purchasePrice","200000");setVal("downPayment","40000");setVal("closingCosts","5000");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("zoning","R-1 Residential");$("strLegal").value="illegal";$("hoaStatus").value="no_hoa";
+  setVal("ordinanceCite","City STR ordinance Sec. 12.4, source: city ordinance text, accessed 2026-11-04");
+  setVal("permitCost","0");setVal("minStay","2");$("ownerOcc").value="No";$("mtrLegal").value="legal";
+  setVal("legalNotes","Synthetic sample. STR illegal in this jurisdiction. Ordinance citation is a synthetic sample citation, not a real ordinance.");
+  setVal("adrSource1Name","Single platform estimate (synthetic sample)");setVal("adrSource1","160");
+  setVal("adrSource2Name","");setVal("adrSource2","");
+  setVal("occSourceName","Single platform estimate (synthetic sample)");setVal("occSource1","48");setVal("occSource2","");
+  $("singlePlatform").value="yes";setVal("avgStay","3");
+  setVal("peakDays","90");setVal("peakOcc","70");setVal("peakAdr","200");
+  setVal("shoulderDays","150");setVal("shoulderOcc","50");setVal("shoulderAdr","150");
+  setVal("offDays","125");setVal("offOcc","30");setVal("offAdr","100");
+  setVal("furnFurniture","5000");setVal("furnAppliances","2000");setVal("furnLinens","700");setVal("furnDecor","1000");setVal("furnTech","600");setVal("furnSupplies","400");setVal("furnPhoto","300");setVal("furnOther","0");setVal("furnSource","Priced list, synthetic sample");
+  setVal("costPiti","1000");setVal("costHoa","0");setVal("costUtilities","150");setVal("costInternet","60");setVal("costInsurance","100");setVal("costSupplies","50");setVal("costMaint","80");setVal("costStrTax","30");
+  setVal("platformPct","15");setVal("mgmtPct","10");setVal("cleanPerTurn","75");setVal("mtrCleanMonthly","50");
+  setVal("ltrRent","1400");setVal("ltrVacancy","5");setVal("ltrRentSource","Comparable rentals, synthetic sample");setVal("ltrInsurance","70");
+  setVal("mtrRent","2000");setVal("mtrOcc","85");setVal("mtrRentSource","Comparable MTR listings, synthetic sample");
+  setGate("source","fail");setGate("legality","fail");
+  $("k_str_illegal").checked=true;$("k_adr_single").checked=true;
+  $("r_pending").checked=true;$("r_single_platform").checked=true;$("r_enforcement").checked=true;
+  setVal("confidence","0.60");setVal("assumptions","Synthetic sample deal only, not a real deal. PASS sample. STR illegal and ADR from a single platform estimate, so two kill conditions fire. Expected result: recommendation PASS.");
+  $("sampleNote").hidden=false;$("sampleNote").textContent="Sample C loaded. Synthetic sample, not a real deal. PASS sample: STR illegal and ADR from a single platform estimate. Expected result: recommendation PASS.";
+ }
+ calc();
+}
+
+function copyText(t,msg){
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){alert(msg);},function(){alert("Copy failed. Select and copy manually.");});}
+ else{var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");alert(msg);}catch(e){alert("Copy failed.");}document.body.removeChild(ta);}
+}
+
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!lastReceipt||!lastReceipt.run_id){safeAlert("No receipt to issue yet.");return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E10.buildReceipt(lastReceipt,prev,seq);
+ sha256HexBrowser(E10.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){safeAlert("Could not hash receipt: "+e.message);});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E10.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(rr){return "Receipt "+rr.seq+": "+(rr.ok?"PASS":"FAIL")+" - "+rr.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e10-short-term-rental-chain.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+document.addEventListener("input",calc);
+document.addEventListener("change",calc);
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnClear").addEventListener("click",clearAll);
+$("btnShare").addEventListener("click",function(){copyText(shareLink(),"Share link copied.");});
+$("btnClearShare").addEventListener("click",function(){$("shareUrl").value="";if(window.history&&window.history.replaceState)window.history.replaceState(null,"",window.location.pathname);});
+$("btnCopyReceipt").addEventListener("click",function(){copyText($("receiptOut").textContent,"Receipt JSON copied.");});
+$("btnDownloadReceipt").addEventListener("click",function(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e10-receipt.json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+});
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnCopyPrompt").addEventListener("click",function(){copyText($("systemPromptText").textContent,"System prompt copied.");});
+$("btnPrint").addEventListener("click",function(){window.print();});
+window.loadSample=loadSample;window.calc=calc;window.clearAll=clearAll;
+loadFromHash();
+calc();
+})();
+</script>
+</body>
+</html>
