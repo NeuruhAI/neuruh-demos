@@ -733,10 +733,31 @@ function matchAgents(tone, prompt){
 }
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function setPrompt(t){ document.getElementById('routePrompt').value = t; routeNow(); }
+// Tone sliders are range inputs with step 0.01. Some browsers leave a
+// float32 artifact in the DOM value (for example 0.8700000047683716 for
+// 0.87) even though the display is rounded. Normalize to 2 decimals
+// before routing, and on change (commit), so the stored value stays clean.
+function roundToneValue(v){ return (Math.round(v * 100) / 100).toFixed(2); }
+function normalizeToneInputs(){
+  ['toneA','toneC'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (document.activeElement !== el && el.value !== ''){
+      var v = parseFloat(el.value);
+      if (!isNaN(v)) el.value = roundToneValue(v);
+    }
+  });
+}
+document.addEventListener('change', function(e){
+  if (e.target && (e.target.id === 'toneA' || e.target.id === 'toneC') && e.target.value !== ''){
+    var v = parseFloat(e.target.value);
+    if (!isNaN(v)) e.target.value = roundToneValue(v);
+  }
+});
 function routeNow(){
   var t0 = performance.now();
+  normalizeToneInputs();
   var prompt = document.getElementById('routePrompt').value;
-  var tone = {a:parseFloat(document.getElementById('toneA').value), c:parseFloat(document.getElementById('toneC').value)};
+  var tone = {a:Math.round(parseFloat(document.getElementById('toneA').value) * 100) / 100, c:Math.round(parseFloat(document.getElementById('toneC').value) * 100) / 100};
   var result = matchAgents(tone, prompt);
   var latency = Math.max(1, Math.round(performance.now() - t0));
   var out = document.getElementById('routeOut');
