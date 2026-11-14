@@ -766,14 +766,31 @@ function renderDelivery(){
     '<div class="sblock" style="grid-column:1/-1"><h4>Provenance Receipt</h4><p>Report hash (SHA-256): <span class="mono">'+r.provenance.report_hash_sha256+'</span></p><p>Verdict: '+r.provenance.verdict+' &middot; Timestamp '+r.provenance.timestamp_utc+' &middot; Previous receipt hash: <span class="mono">'+r.provenance.prev_receipt_hash+'</span></p><p>'+r.provenance.verdict_note+' Recompute the hash over the canonical JSON below (hash field stripped) to confirm.</p></div>'+
     '</div></div>';
   html+='<div class="navrow"><button class="btn btn-primary btn-small" id="dlReport">Download report JSON receipt</button>'+
-  '<button class="btn btn-ghost btn-small" id="copyHash">Copy report hash</button></div>'+
+  '<button class="btn btn-ghost btn-small" id="copyHash">Copy report hash</button><span class="hint" id="copyHashStatus" aria-live="polite"></span></div>'+
   '<p class="hint">Report hash: <span class="mono" id="hashEcho">'+r.provenance.report_hash_sha256+'</span></p>';
   $('deliveryBox').innerHTML=html;
   $('dlReport').addEventListener('click',function(){
     download(order.reportId+'.json',JSON.stringify(order.receipt,null,2),'application/json');
   });
   $('copyHash').addEventListener('click',function(){
-    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(r.provenance.report_hash_sha256);}
+    var h=r.provenance.report_hash_sha256;
+    var status=$('copyHashStatus');
+    function done(ok){
+      status.textContent=ok?'Report hash copied to clipboard.':'Copy failed. Select the hash below and copy it manually (Ctrl+C / Cmd+C).';
+    }
+    function fallbackCopy(text){
+      try{
+        var ta=document.createElement('textarea');
+        ta.value=text; ta.setAttribute('readonly','');
+        ta.style.position='fixed'; ta.style.opacity='0';
+        document.body.appendChild(ta); ta.select();
+        var ok=document.execCommand('copy');
+        document.body.removeChild(ta); done(!!ok);
+      }catch(e){ done(false); }
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(h).then(function(){ done(true); },function(){ fallbackCopy(h); });
+    }else{ fallbackCopy(h); }
   });
 }
 
