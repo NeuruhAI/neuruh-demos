@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QECA Lab: 5-Qubit Hybrid Simulator (SIMULATION)</title>
+<meta name="description" content="A working browser lab for Quantum Emergent Consciousness AI: a 5-qubit hybrid simulator with AI feedback, a QCM candidate-collapse walkthrough, and an HKRS/HASI calculator. Simulation only, no quantum hardware.">
+<meta name="theme-color" content="#9a7b2d">
+<style>
+body { font-family: Archivo, Inter, Helvetica, Arial, sans-serif; background: #f5f2ea; color: #17191b; margin: 0; padding: 32px 20px 48px; }
+.wrap { max-width: 920px; margin: 0 auto; }
+.brand { font-size: 11px; letter-spacing: 3px; color: #6b5a2a; }
+h1 { font-size: 30px; line-height: 1.15; margin: 18px 0 8px; }
+h2 { font-size: 20px; margin: 36px 0 8px; border-bottom: 2px solid #9a7b2d; padding-bottom: 5px; }
+h3 { font-size: 16px; margin: 0 0 6px; }
+.sub { color: #4a4640; font-size: 14px; line-height: 1.5; }
+.docctl { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0; border: 1px solid #c9c2ae; margin: 22px 0 0; font-size: 12px; }
+.docctl div { padding: 8px 10px; border-right: 1px solid #c9c2ae; }
+.docctl div:last-child { border-right: none; }
+.docctl .k { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10px; letter-spacing: 1px; color: #6b5a2a; display: block; margin-bottom: 2px; }
+.banner { border: 1.5px solid #9a7b2d; background: #efe9d8; padding: 14px 16px; margin: 22px 0; font-weight: bold; line-height: 1.5; }
+.card { background: #fffdf8; border: 1px solid #d8d2c2; padding: 14px 16px; margin: 10px 0; }
+.card p { color: #4a4640; margin: 6px 0; font-size: 13px; line-height: 1.5; }
+.card .big { font-size: 15px; color: #17191b; }
+.design { border: 1.5px solid #9a7b2d; background: #efe9d8; padding: 10px 12px; margin: 8px 0; font-size: 13px; line-height: 1.5; }
+.design b { letter-spacing: 0.5px; }
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+.formula { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; background: #f5f2ea; border-left: 3px solid #9a7b2d; padding: 8px 10px; margin: 8px 0; line-height: 1.5; overflow-x: auto; }
+.inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 10px 0; }
+.inputs label { font-size: 12px; color: #4a4640; display: block; }
+.inputs input, .inputs select { width: 100%; box-sizing: border-box; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; padding: 5px 7px; border: 1px solid #c9c2ae; background: #fff; color: #17191b; margin-top: 2px; }
+button { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; padding: 8px 14px; border: 1px solid #9a7b2d; background: #9a7b2d; color: #fff; cursor: pointer; margin: 4px 4px 4px 0; }
+button.ghost { background: #fffdf8; color: #6b5a2a; }
+button:disabled { opacity: 0.5; cursor: default; }
+.steps { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; line-height: 1.6; background: #f5f2ea; padding: 8px 10px; margin: 8px 0; white-space: pre-wrap; }
+.out { font-size: 14px; margin: 8px 0; line-height: 1.6; }
+.out b { font-family: "JetBrains Mono", ui-monospace, monospace; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+th, td { border: 1px solid #c9c2ae; padding: 7px 9px; text-align: left; vertical-align: top; line-height: 1.45; }
+th { background: #efe9d8; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.5px; }
+td.num { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; }
+.bar { height: 10px; background: #9a7b2d; display: block; }
+.tag { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; padding: 2px 6px; border: 1px solid #9a7b2d; color: #6b5a2a; white-space: nowrap; }
+.tag.verified { background: #efe9d8; }
+.tag.unknown { border-color: #8a8378; color: #6b655c; }
+.pass { color: #2e6b34; font-weight: bold; }
+.fail { color: #8a1f1f; font-weight: bold; }
+.foot { margin-top: 30px; color: #6b655c; font-size: 12px; line-height: 1.5; border-top: 1px solid #c9c2ae; padding-top: 12px; }
+.foot a { color: #6b5a2a; }
+pre.json { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11px; background: #f5f2ea; padding: 10px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+@media print { body { background: #fff; } .card { break-inside: avoid; } button { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand">NEURUH&reg;</div>
+<h1>QECA Lab: 5-Qubit Hybrid Simulator</h1>
+<p class="sub">Quantum Emergent Consciousness AI as a working browser lab. A 5-qubit hybrid simulation with AI feedback, a QCM candidate-collapse walkthrough, and an HKRS / HASI calculator. Every tool shows its step-by-step working. Nothing leaves the page. No quantum hardware is involved.</p>
+<div class="docctl">
+<div><span class="k">FRAMEWORK</span>QECA, Quantum Emergent Consciousness AI</div>
+<div><span class="k">ATLAS TIER</span>UNKNOWN (as stated)</div>
+<div><span class="k">STATUS</span>SIMULATION, browser only</div>
+<div><span class="k">BUILT</span>2026-11-14</div>
+</div>
+<div class="banner">Read this first. QECA's tier in the Framework Atlas is UNKNOWN: no tier is stated in Codex Volume VI, and there is no matching entry in the 28-entry master asset register. This page assigns no tier. The performance figures below (5x, 4x, 6x) are claims from the source product description, not verified facts. The simulator, the collapse walkthrough, and the HASI arithmetic are classical browser models built from stated mechanics plus labeled builder design choices. They prove the demo runs, not that QECA runs on quantum hardware.</div>
+
+<h2>1. What the sources state</h2>
+<p class="sub">Every fact in this table is copied from the source named in the right column. Anything not in a source is listed under section 8 as UNKNOWN.</p>
+<table>
+<tr><th>Fact</th><th>Source</th></tr>
+<tr><td>QECA is a prompt / cognition framework, posture Independently developed</td><td class="num">Ecosystem Codex, Volume VI, live page ecosystem-codex.pages.dev</td></tr>
+<tr><td>QECA tier: UNKNOWN. No tier stated in Volume VI, no matching entry in the 28-entry master asset register</td><td class="num">Framework Atlas, frameworks.json, id qeca, accessed 2026-11-14</td></tr>
+<tr><td>Vault classification: RESEARCH/VALIDATION LINEAGE (Chapter 36, 2026-09-06)</td><td class="num">Vault dossier TAX-003, verified 2026-11-08</td></tr>
+<tr><td>Earliest source: Drive doc "QECA: The Next Evolution in Artificial Intelligence V1", 2025-03-03</td><td class="num">Vault dossier TAX-003</td></tr>
+<tr><td>Drive QECA folder, 45 files, modified 2025-04-17, parent Neuruh Master</td><td class="num">Drive lane 2026-11-08, folder id 18Wse-csuXZMZc0nsNeHnBVSuMZUbnChd</td></tr>
+<tr><td>Whitepaper: "5-Page White Paper: Quantum Emergent Consciousness AI (QECA) Theory", 2025-03-15</td><td class="num">Drive lane 2026-11-08, doc id 1BdLOkvXuq2g6EIphd0iy7NE27QK50KNH7p_Os0fnQrM</td></tr>
+<tr><td>QECA 3.0 exists in three variants, none a single canonical 3.0; newest variant 2025-06-06</td><td class="num">Drive lane 2026-11-08</td></tr>
+<tr><td>QECA 4.0 exists, 2025-03-17. Newest QECA doc overall: "Neuruh QECA Core", 2026-01-22</td><td class="num">Drive lane 2026-11-08</td></tr>
+<tr><td>Notion IP Registry: 4 rows (AI-FW-034, AI-RES-003, AI-RES-002, CORE-FRAME-QECA-DSA-1.0-BUILT)</td><td class="num">Vault dossier TAX-003; Notion lane 2026-11-08</td></tr>
+<tr><td>GitHub repo NeuruhAI/DFSE-QECA exists (private). Last commit 732165f9d27e68903e07b46348a736bf692d87f5, 2026-04-22, "Created using Colab". Contents only README.md, LICENSE, Seeder_Router.ipynb, dfse_demo.py. Small Colab demo.</td><td class="num">GitHub lane 2026-11-08; vault dossier TAX-003</td></tr>
+<tr><td>Doc title: "The Quantum-Classical Hybrid AI Simulation (5-Qubit System with AI Feedback) has been successfully run and visualized", 2025-03-17</td><td class="num">Drive lane 2026-11-08, doc id 1vpZYFmdeJXBtvXxtZnfI9-8mlOh_1Y2rRV76OwA4GQs</td></tr>
+<tr><td>QCM maintains multiple candidate pathways and collapses them as evidence arrives</td><td class="num">Vault dossier QCM (CORE-007); QCM Simulation doc 2025-03-17, in QECA folder</td></tr>
+<tr><td>HKRS is the Human Knowledge Ranking System; HASI is a function of Creativity, Adaptability, Expertise, Vision, with Difficulty and Scalability multipliers</td><td class="num">Vault dossier HKRS (CORE-008); Collision - HKRS</td></tr>
+<tr><td>HKRS docs and Advanced HKRS Formula, both 2025-03-04, in the QECA folder</td><td class="num">Drive lane 2026-11-08; vault dossier HKRS</td></tr>
+<tr><td>QECA DSA (Deep Signal Architecture): classification COURT REQUIRED, 1 registry row, no Drive hit by name</td><td class="num">Vault dossier EXT-001, verified 2026-11-08</td></tr>
+<tr><td>Quantum-proof encryption asset is recorded as a toy, not real encryption; "Quantum-proof / Palantir-class capability" is SUPERSEDED in the codex</td><td class="num">Vault dossier TAX-003; Codex Appendix D</td></tr>
+<tr><td>No dollar valuation is current or claimable pre-MRR; all legacy valuation figures are SUPERSEDED</td><td class="num">Codex Valuation Honesty Rule, NRH-GV-VHR-POL-001</td></tr>
+</table>
+
+<h2>2. Structure view: what QECA is said to be</h2>
+<h3>2a. The three pillars (source claims, not verified facts)</h3>
+<p class="sub">From the QECA product description as pasted 2026-11-03 (source file qeca-source.md). The companion page QECA Equation Check recomputes the description's seven equations by hand; this lab does not repeat that check. It builds the simulator instead.</p>
+<div class="card"><h3>Pillar 1: Quantum-Driven Reasoning, 5x <span class="tag">SOURCE CLAIM</span></h3><p class="big">Quantum superposition represents 10^5 decision paths in a state |psi&gt; = sum of a_i(t) |i&gt;, processing complex scenarios in 0.06 seconds, 5x faster than SOTA benchmarks (GPT-4's 1-second response). Governed by a system-driven Hamiltonian (H = -sum J_ij s_i s_j), it collapses possibilities into optimal outcomes without reliance on random or observer-based triggers.</p><p>Used in this lab: the superposition form and the 10^5 path count motivate Tool 1, which works the same idea at 5-qubit scale (32 paths) so every step can be shown.</p></div>
+<div class="card"><h3>Pillar 2: Emergent Intelligence, 4x <span class="tag">SOURCE CLAIM</span></h3><p class="big">Layered quantum-classical synergy scales complexity non-linearly, producing self-correcting, adaptive intelligence that mimics emergent consciousness. Reasoning amplifies from 5x to 10x without proportional input, synthesizing disparate data into novel, actionable strategies.</p><p>Used in this lab: the feedback loop idea motivates Tool 1's AI feedback rounds and Tool 2's evidence-driven collapse.</p></div>
+<div class="card"><h3>Pillar 3: Quantum-Enhanced Efficiency, 6x <span class="tag">SOURCE CLAIM</span></h3><p class="big">Data compressed at 6x efficiency (75TB to 12TB) using quantum-inspired semantic encoding, secured by 2^128 quantum key distribution (QKD).</p><p>Used in this lab: not modeled. No compression or key distribution is implemented here; the claim is shown, not executed.</p></div>
+<p class="sub">Deployment claim from the same description: deployable with 20-qubit quantum processors and 300 GPUs. Shown as a claim only. This lab runs on none of that hardware.</p>
+
+<h3>2b. Version lineage (Drive folder contents)</h3>
+<p class="sub">No single canonical 3.0 exists. Three 3.0 variants and a 4.0 share the same March 2025 dates. The lineage below is the folder record, not a release history.</p>
+<table>
+<tr><th>Date</th><th>Version / document</th><th>Note</th></tr>
+<tr><td class="num">2025-03-03</td><td>QECA: The Next Evolution in Artificial Intelligence V1</td><td>Earliest source</td></tr>
+<tr><td class="num">2025-03-04</td><td>QECA: The Next Leap in Artificial Intelligence V2; HKRS; Advanced HKRS Formula</td><td>HKRS enters the folder</td></tr>
+<tr><td class="num">2025-03-06</td><td>Quantum-Evolving Cognitive Architecture (QECA) by Jeramie Hicks</td><td>Alternate expansion of the acronym on record</td></tr>
+<tr><td class="num">2025-03-15</td><td>5-Page White Paper: QECA Theory; QERS (Simulated Theory)</td><td>Whitepaper date</td></tr>
+<tr><td class="num">2025-03-17</td><td>QECA 3.0 (two variants); QECA 3.0 Enhanced; QECA 4.0; QCM Simulation; 5-Qubit Hybrid Simulation; QECA-P Practical; QECA-X</td><td>One-day burst, 30+ files</td></tr>
+<tr><td class="num">2025-06-06</td><td>QECA 3.0 (third variant)</td><td>Newest 3.0 variant</td></tr>
+<tr><td class="num">2025-08-02</td><td>Quantum Emergent Consciousness AI - Practical 2 Simulation</td><td>Latest dated simulation doc in folder</td></tr>
+<tr><td class="num">2026-01-22</td><td>Neuruh QECA Core</td><td>Newest QECA doc overall (My Drive, not in folder)</td></tr>
+<tr><td class="num">2026-04-22</td><td>NeuruhAI/DFSE-QECA, commit 732165f9</td><td>Small Colab demo, not the substantive corpus</td></tr>
+</table>
+
+<h3>2c. Registry rows and related components</h3>
+<table>
+<tr><th>ID</th><th>Row / component</th><th>What the source says</th></tr>
+<tr><td class="num">AI-FW-034</td><td>QECA Quantum Emergent Consciousness AI</td><td>Framework, L0-Foundation, Draft, Built</td></tr>
+<tr><td class="num">AI-RES-003</td><td>QECA Theoretical Framework</td><td>Research, Draft, Built; quantum coherence, annealing, superposition, entanglement-inspired protocols, measurement/collapse as agent commitment</td></tr>
+<tr><td class="num">AI-RES-002</td><td>QECA Full Technical Blueprint v0.3</td><td>Research, Draft, Built; Frequency-Powered Intelligence Framework; Deep Signal Architecture</td></tr>
+<tr><td class="num">CORE-FRAME-QECA-DSA-1.0-BUILT</td><td>QECA DSA Deep Signal Architecture Framework v0.3</td><td>Research, Draft, Built; 75% Expansion Edition, Classified Internal R&amp;D</td></tr>
+<tr><td class="num">CORE-007</td><td>QCM / QCM Simulation</td><td>Candidate pathways, collapse on evidence. Tool 2 models this.</td></tr>
+<tr><td class="num">CORE-008</td><td>HKRS / HASI</td><td>Human knowledge ranking; HASI inputs stated. Tool 3 models this. Naming collision on record.</td></tr>
+<tr><td class="num">-</td><td>QERS (Quantum Emergent Reasoning System)</td><td>Two "Simulated Theory" docs, 2025-03-15 and 2025-03-17, in the QECA folder. Contents not read; see section 8.</td></tr>
+<tr><td class="num">-</td><td>QECA-P Practical, QECA-X</td><td>QECA-P Practical and Practical 2 docs; QECA-X "Iterative Grand Slam Machine". Titles only on record here.</td></tr>
+</table>
+
+<h2>3. Tool 1: 5-Qubit Hybrid Simulator with AI feedback</h2>
+<p class="sub">Stated mechanic: a 5-qubit system with AI feedback, run and visualized (Drive doc title, 2025-03-17). 5 qubits give 2^5 = 32 basis states. The demo starts in uniform superposition, then applies AI feedback rounds that favor one target state, then measures. The same seeded run always gives the same result, so any run can be replayed and checked.</p>
+<div class="design"><b>BUILDER'S DESIGN.</b> The source states the 5-qubit system and AI feedback; it does not state the feedback math. This lab's rule: each round multiplies amplitude a_i by (1 + strength x (1 - Hamming(i, target) / 5)), then renormalizes. States near the target gain share; distant states lose relative share. The seeded PRNG is mulberry32. This rule is the builder's, not a paper claim and not Jeramie's order.</div>
+<div class="card">
+<div class="inputs">
+<label>Seed (integer, replayable)<input id="sim-seed" type="number" value="20260317" step="1"></label>
+<label>Target basis state (0-31)<input id="sim-target" type="number" value="21" min="0" max="31" step="1"></label>
+<label>Feedback strength (0-1)<input id="sim-strength" type="number" value="0.6" min="0" max="1" step="0.05"></label>
+<label>Feedback rounds (1-12)<input id="sim-rounds" type="number" value="3" min="1" max="12" step="1"></label>
+</div>
+<button id="sim-run">Run simulation</button>
+<button id="sim-worked" class="ghost">Worked case: seed 7</button>
+<div id="sim-out"></div>
+</div>
+
+<h2>4. Tool 2: QCM candidate-collapse walkthrough</h2>
+<p class="sub">Stated mechanic (QCM Simulation doc, 2025-03-17, in the QECA folder): maintain multiple candidate pathways and collapse them as evidence arrives. Enter evidence per round (-1 against, 0 neutral, +1 for). The walkthrough applies one round at a time and logs every step until one candidate is committed.</p>
+<div class="design"><b>BUILDER'S DESIGN.</b> The source states the collapse idea, not the update rule. This lab's rule: weight w_i becomes w_i x (1 + 0.5 x evidence_i), then all weights renormalize to sum 1. A live candidate whose weight falls below 0.12 collapses out. Candidate names below (Expand scope, Narrow scope, Defer decision, Ask for evidence) are generic builder placeholders, not QECA doctrine.</div>
+<div class="card">
+<table>
+<tr><th>Candidate</th><th>Weight</th><th>Evidence this round (-1 to 1)</th></tr>
+<tr><td>C1: Expand scope</td><td class="num" id="qcm-w0">0.2500</td><td><input id="qcm-e0" type="number" value="1" min="-1" max="1" step="0.1" style="width:90px"></td></tr>
+<tr><td>C2: Narrow scope</td><td class="num" id="qcm-w1">0.2500</td><td><input id="qcm-e1" type="number" value="-1" min="-1" max="1" step="0.1" style="width:90px"></td></tr>
+<tr><td>C3: Defer decision</td><td class="num" id="qcm-w2">0.2500</td><td><input id="qcm-e2" type="number" value="-1" min="-1" max="1" step="0.1" style="width:90px"></td></tr>
+<tr><td>C4: Ask for evidence</td><td class="num" id="qcm-w3">0.2500</td><td><input id="qcm-e3" type="number" value="-1" min="-1" max="1" step="0.1" style="width:90px"></td></tr>
+</table>
+<button id="qcm-apply">Apply evidence round</button>
+<button id="qcm-reset" class="ghost">Reset to equal weights</button>
+<div id="qcm-out"></div>
+</div>
+
+<h2>5. Tool 3: HKRS / HASI calculator</h2>
+<p class="sub">Stated (Collision - HKRS; HKRS dossier CORE-008): the Human-AI Synergy Index is a function of Creativity, Adaptability, Expertise, Vision, with Difficulty and Scalability multipliers. The source states the inputs, not the arithmetic.</p>
+<div class="design"><b>BUILDER'S DESIGN.</b> This lab's arithmetic: HASI = mean(Creativity, Adaptability, Expertise, Vision) x Difficulty x Scalability. The plain mean is the builder's choice, not a paper formula. A worked case with all 7s and multipliers 1 gives HASI 7. A worked case of 9, 8, 10, 9 with Difficulty 1.5 and Scalability 1.2 gives HASI 16.2. Both are checked in the Node test suite.</div>
+<div class="card">
+<div class="inputs">
+<label>Creativity (0-10)<input id="h-cre" type="number" value="7" min="0" max="10" step="1"></label>
+<label>Adaptability (0-10)<input id="h-ada" type="number" value="7" min="0" max="10" step="1"></label>
+<label>Expertise (0-10)<input id="h-exp" type="number" value="7" min="0" max="10" step="1"></label>
+<label>Vision (0-10)<input id="h-vis" type="number" value="7" min="0" max="10" step="1"></label>
+<label>Difficulty multiplier (0.5-2)<input id="h-dif" type="number" value="1" min="0.5" max="2" step="0.1"></label>
+<label>Scalability multiplier (0.5-2)<input id="h-sca" type="number" value="1" min="0.5" max="2" step="0.1"></label>
+</div>
+<button id="h-run">Compute HASI</button>
+<button id="h-worked" class="ghost">Worked case: 9, 8, 10, 9</button>
+<div id="h-out"></div>
+</div>
+
+<h2>6. Receipt panel (receipt v1.0)</h2>
+<p class="sub">Every tool run above issues a receipt into one hash chain for this session. The first receipt has prev GENESIS. Canonical JSON is computed with the hash field stripped and keys sorted. Verify recomputes each hash in the browser with Web Crypto (SHA-256) and checks the prev links.</p>
+<div class="card">
+<button id="rc-verify">Verify chain</button>
+<button id="rc-copy" class="ghost">Copy latest receipt JSON</button>
+<span id="rc-status" class="mono" style="font-size:13px"></span>
+<div id="rc-list"></div>
+<pre class="json" id="rc-json">No receipts yet. Run a tool above.</pre>
+</div>
+
+<h2>7. Status board: DESIGNED vs VERIFIED</h2>
+<table>
+<tr><th>Item</th><th>Label</th><th>Why</th></tr>
+<tr><td>QECA named in Codex Volume VI as a prompt / cognition framework</td><td><span class="tag">DESIGNED</span></td><td>Stated in the codex; a framework entry is not a running system.</td></tr>
+<tr><td>QECA tier</td><td><span class="tag unknown">UNKNOWN</span></td><td>Atlas: no tier stated in Volume VI, no entry in the 28-entry master asset register.</td></tr>
+<tr><td>Drive QECA folder, 45 files; whitepaper; 3.0 variants; 4.0; Neuruh QECA Core</td><td><span class="tag verified">VERIFIED</span></td><td>Drive lane 2026-11-08 enumerated the folder by file id and date.</td></tr>
+<tr><td>NeuruhAI/DFSE-QECA repo exists; small Colab demo only</td><td><span class="tag verified">VERIFIED</span></td><td>GitHub lane 2026-11-08: 4 files, last commit 2026-04-22.</td></tr>
+<tr><td>5-qubit hybrid simulation "successfully run and visualized"</td><td><span class="tag">DESIGNED</span></td><td>The doc title states it; the doc body was not read here, so the run itself is not verified by this lab.</td></tr>
+<tr><td>Three pillars: 5x reasoning, 4x emergent, 6x efficiency</td><td><span class="tag">DESIGNED</span></td><td>Source claims from the product description, not verified facts.</td></tr>
+<tr><td>Quantum-proof encryption capability</td><td><span class="tag unknown">SUPERSEDED</span></td><td>Recorded as a toy, not real encryption; codex Appendix D withdraws the claim.</td></tr>
+<tr><td>QECA DSA (Deep Signal Architecture)</td><td><span class="tag unknown">COURT REQUIRED</span></td><td>Vault dossier EXT-001: current owner and runtime UNKNOWN.</td></tr>
+<tr><td>This demo page (qeca-lab)</td><td><span class="tag verified">SIMULATION</span></td><td>Working browser code, 23 Node tests passing. It simulates stated mechanics; it is not QECA running on quantum hardware.</td></tr>
+<tr><td>HKRS exact formula</td><td><span class="tag unknown">UNKNOWN</span></td><td>Inputs stated; arithmetic not stated. The lab uses a labeled builder mean.</td></tr>
+<tr><td>QECA ported percent, unique residue, current consumers</td><td><span class="tag unknown">UNKNOWN</span></td><td>Vault dossier TAX-003: court must establish with evidence.</td></tr>
+</table>
+
+<h2>8. Gaps and unknowns</h2>
+<div class="card">
+<p><b>No standalone QECA dossier exists in the vault.</b> The vault holds a census note (TAX-003, QECA) and a related note (EXT-001, QECA DSA). There is no dedicated QECA framework dossier page. That is a gap in the record, not a failure of this build.</p>
+<p><b>Doc bodies were not read.</b> The Drive lane recorded titles, dates, and ids for the 45 folder files. The whitepaper, the 3.0 variants, the 4.0, QERS, QECA-P, QECA-X, and the 5-qubit simulation doc bodies were not opened here, so no claim from inside those documents is stated on this page.</p>
+<p><b>No canonical 3.0.</b> Three variants share the name; the newest is 2025-06-06. Which variant (if any) is canonical is UNKNOWN.</p>
+<p><b>No tier, no register match.</b> The atlas records UNKNOWN and no matching entry in the 28-entry master asset register. The 31-framework count in the codex verifies 31 named frameworks but documents 20 by name; QECA is one of the 20 named, still without a tier.</p>
+<p><b>HKRS formula, QCM update rule, 5-qubit feedback math.</b> None stated in the sources read. The lab supplies labeled builder rules for all three and tests them; the tests prove the demo's arithmetic, not the paper's.</p>
+<p><b>Related prior demo.</b> A separate page, QECA Equation Check (qeca-site, 2026-11-03), recomputes the product description's seven equations by hand. This lab is a different tool: it simulates the 5-qubit system, walks the QCM collapse, and computes HASI. It does not repeat the equation check.</p>
+</div>
+
+<h2>9. Sources</h2>
+<div class="foot">
+<p>Framework Atlas, frameworks.json (source: Neuruh Ecosystem Codex, NRH-DOC-CODEX-001 rev A, accessed 2026-11-14). QECA entry: tier UNKNOWN, domain Prompt and cognition, function Prompt / cognition framework, posture Independently developed, dependencies none stated.</p>
+<p>Ecosystem Codex live page, https://ecosystem-codex.pages.dev/ (NRH-DOC-CODEX-001 rev A, issued 28 July 2026). Volume VI row: "QECA | Prompt / cognition framework | Independently developed". Valuation Honesty Rule: no dollar valuation is current or claimable pre-MRR.</p>
+<p>Vault dossier 07-Tax-Finance-Validation/QECA.md (TAX-003, verified 2026-11-08) and 10-Additional-Systems/QECA DSA.md (EXT-001, verified 2026-11-08). QCM dossier 01-Core-Architecture/QCM.md (CORE-007). HKRS dossier 01-Core-Architecture/HKRS.md (CORE-008). Collision notes: Collision - HKRS, Collision - QCM.</p>
+<p>Research lanes: _research/drive-lane-2026-11-08.md (QECA folder, 45 files), _research/github-lane-2026-11-08.md (NeuruhAI/DFSE-QECA), _research/notion-lane-2026-11-08.md (4 registry rows), _research/court-pass/census-collisions/report.md, _research/owner-hunt-2026-11-09.md.</p>
+<p>Product description as pasted 2026-11-03: ~/workspace/your_files/qeca-source.md. Companion demo: QECA Equation Check, ~/workspace/qeca-site/index.html (2026-11-03).</p>
+<p>QECA Lab built 2026-11-14. Core logic in qeca.js, Node tests in qeca.test.js (23 tests). Static HTML and JS only; nothing leaves the page; no backend; no quantum hardware. SIMULATION throughout.</p>
+</div>
+</div>
+<script src="qeca.js"></script>
+<script>
+(function () {
+  'use strict';
+  var Q = window.QECA;
+  var chain = Q.newChain();
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function num(id) { var v = parseFloat(document.getElementById(id).value); return v; }
+  function fmt(x, d) { return Number(x).toFixed(d === undefined ? 4 : d); }
+
+  function renderReceipts() {
+    var list = document.getElementById('rc-list');
+    if (!chain.length) { list.innerHTML = '<p class="sub">No receipts yet.</p>'; return; }
+    var html = '<table><tr><th>Seq</th><th>Kind</th><th>Hash (first 16)</th><th>Prev (first 16)</th></tr>';
+    chain.forEach(function (r) {
+      html += '<tr><td class="num">' + r.seq + '</td><td>' + esc(r.kind) + '</td><td class="num">' + esc(r.hash.slice(0, 16)) + '</td><td class="num">' + esc(String(r.prev).slice(0, 16)) + '</td></tr>';
+    });
+    html += '</table>';
+    list.innerHTML = html;
+    document.getElementById('rc-json').textContent = JSON.stringify(chain[chain.length - 1], null, 2);
+  }
+
+  function issue(kind, payload) {
+    return Q.issueReceipt(chain, kind, payload).then(function () {
+      renderReceipts();
+      document.getElementById('rc-status').textContent = '';
+    }).catch(function (e) {
+      document.getElementById('rc-status').textContent = 'Receipt failed: ' + e.message;
+    });
+  }
+
+  /* Tool 1 */
+  function runSim() {
+    var seed = parseInt(document.getElementById('sim-seed').value, 10);
+    var target = parseInt(document.getElementById('sim-target').value, 10);
+    var strength = num('sim-strength');
+    var rounds = parseInt(document.getElementById('sim-rounds').value, 10);
+    var out = document.getElementById('sim-out');
+    try {
+      var r = Q.runSimulation({ seed: seed, target: target, strength: strength, rounds: rounds });
+      var steps = 'start: uniform superposition, 32 states, each p = 0.03125, entropy 5.0000 bits\n';
+      r.steps.forEach(function (s) {
+        if (s.round === 0) return;
+        steps += 'round ' + s.round + ': feedback toward |' + Q.bitString(target) + '>, target p = ' + fmt(s.targetProb) + ', entropy = ' + fmt(s.entropy) + ' bits, top state |' + s.top[0].bits + '> p = ' + fmt(s.top[0].p) + '\n';
+      });
+      steps += 'measure: seeded draw ' + r.measured.draw.toFixed(4) + ' collapses to |' + r.measured.bits + '> (state ' + r.measured.state + '), p = ' + fmt(r.measured.p) + '\n';
+      steps += 'final entropy: ' + fmt(r.finalEntropy) + ' bits';
+      var html = '<p class="out">Measured state: <b>|' + r.measured.bits + '&gt;</b> (state ' + r.measured.state + '). Final entropy: <b>' + fmt(r.finalEntropy) + ' bits</b> (uniform start is 5.0000 bits).</p>';
+      html += '<table><tr><th>Basis state</th><th>Probability</th><th>Share</th></tr>';
+      r.finalTop.forEach(function (row) {
+        html += '<tr><td class="num">|' + row.bits + '&gt; (' + row.state + ')</td><td class="num">' + fmt(row.p) + '</td><td><span class="bar" style="width:' + Math.round(row.p * 600) + 'px"></span></td></tr>';
+      });
+      html += '</table><div class="steps">' + esc(steps) + '</div>';
+      out.innerHTML = html;
+      issue('simulator', { seed: seed, target: target, strength: strength, rounds: rounds, measured: r.measured.state, finalEntropy: Number(fmt(r.finalEntropy)) });
+    } catch (e) {
+      out.innerHTML = '<p class="fail">Error: ' + esc(e.message) + '</p>';
+    }
+  }
+  document.getElementById('sim-run').addEventListener('click', runSim);
+  document.getElementById('sim-worked').addEventListener('click', function () {
+    document.getElementById('sim-seed').value = 7;
+    document.getElementById('sim-target').value = 21;
+    document.getElementById('sim-strength').value = 0.6;
+    document.getElementById('sim-rounds').value = 3;
+    runSim();
+  });
+
+  /* Tool 2 */
+  var qcm = Q.qcmInit([0.25, 0.25, 0.25, 0.25]);
+  var qcmLog = ['start: four candidates at equal weight 0.2500'];
+  function renderQcm() {
+    for (var i = 0; i < 4; i++) {
+      document.getElementById('qcm-w' + i).textContent = fmt(qcm.weights[i]);
+    }
+    var html = '<p class="out">Rounds applied: <b>' + qcm.rounds + '</b>. Live candidates: <b>' + qcm.alive.map(function (c) { return 'C' + (c + 1); }).join(', ') + '</b>.';
+    if (qcm.committed !== null) html += ' Committed: <b>C' + (qcm.committed + 1) + '</b>.';
+    html += '</p><div class="steps">' + esc(qcmLog.join('\n')) + '</div>';
+    document.getElementById('qcm-out').innerHTML = html;
+  }
+  document.getElementById('qcm-apply').addEventListener('click', function () {
+    var ev = [num('qcm-e0'), num('qcm-e1'), num('qcm-e2'), num('qcm-e3')];
+    try {
+      qcm = Q.qcmRound(qcm, ev);
+      qcmLog.push('round ' + qcm.rounds + ': evidence [' + ev.join(', ') + ']');
+      qcm.log.forEach(function (l) { qcmLog.push('  ' + l); });
+      renderQcm();
+      issue('qcm-collapse', { round: qcm.rounds, evidence: ev, weights: qcm.weights.map(function (w) { return Number(fmt(w)); }), alive: qcm.alive, committed: qcm.committed });
+    } catch (e) {
+      document.getElementById('qcm-out').innerHTML = '<p class="fail">Error: ' + esc(e.message) + '</p>';
+    }
+  });
+  document.getElementById('qcm-reset').addEventListener('click', function () {
+    qcm = Q.qcmInit([0.25, 0.25, 0.25, 0.25]);
+    qcmLog = ['start: four candidates at equal weight 0.2500'];
+    renderQcm();
+  });
+  renderQcm();
+
+  /* Tool 3 */
+  function runHasi() {
+    var out = document.getElementById('h-out');
+    try {
+      var r = Q.hasiScore({
+        creativity: num('h-cre'), adaptability: num('h-ada'),
+        expertise: num('h-exp'), vision: num('h-vis'),
+        difficulty: num('h-dif'), scalability: num('h-sca')
+      });
+      out.innerHTML = '<p class="out">HASI: <b>' + fmt(r.score) + '</b></p><div class="steps">' + esc(r.steps.join('\n')) + '</div>';
+      issue('hasi', { mean: Number(fmt(r.mean)), difficulty: r.difficulty, scalability: r.scalability, score: Number(fmt(r.score)) });
+    } catch (e) {
+      out.innerHTML = '<p class="fail">Error: ' + esc(e.message) + '</p>';
+    }
+  }
+  document.getElementById('h-run').addEventListener('click', runHasi);
+  document.getElementById('h-worked').addEventListener('click', function () {
+    document.getElementById('h-cre').value = 9;
+    document.getElementById('h-ada').value = 8;
+    document.getElementById('h-exp').value = 10;
+    document.getElementById('h-vis').value = 9;
+    document.getElementById('h-dif').value = 1.5;
+    document.getElementById('h-sca').value = 1.2;
+    runHasi();
+  });
+
+  /* Receipts */
+  document.getElementById('rc-verify').addEventListener('click', function () {
+    var st = document.getElementById('rc-status');
+    if (!chain.length) { st.textContent = 'No receipts to verify.'; return; }
+    st.textContent = 'Verifying...';
+    Q.verifyChain(chain).then(function (res) {
+      st.innerHTML = res.ok ? '<span class="pass">PASS</span> chain of ' + chain.length + ' receipts verifies.' : '<span class="fail">FAIL</span> chain does not verify. See console for per-receipt checks.';
+      console.log('verifyChain', res);
+    });
+  });
+  document.getElementById('rc-copy').addEventListener('click', function () {
+    if (!chain.length) return;
+    var txt = document.getElementById('rc-json').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(txt);
+  });
+  renderReceipts();
+})();
+</script>
+</body>
+</html>
