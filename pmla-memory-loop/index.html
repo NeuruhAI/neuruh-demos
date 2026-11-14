@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PMLA Memory Loop Lab (SIMULATION) - Neuruh Demos</title>
+<style>
+  :root { --bone:#f7f4ec; --paper:#fffdf6; --ink:#1a1a18; --muted:#5c5648; --brass:#9a7b2d; --line:#d8d2c0; --green:#2e6b34; --amber:#8a6d00; --red:#8c2f26; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Archivo, Helvetica, Arial, sans-serif; line-height:1.55; }
+  .wrap { max-width:980px; margin:0 auto; padding:0 20px 80px; }
+  header.doc { border-top:6px solid var(--brass); padding:28px 0 8px; }
+  .kicker { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--brass); }
+  h1 { font-size:34px; line-height:1.15; margin:10px 0 6px; }
+  h2 { font-size:22px; border-bottom:2px solid var(--ink); padding-bottom:6px; margin:44px 0 14px; }
+  h3 { font-size:16px; margin:22px 0 8px; }
+  p, li { font-size:15px; }
+  .sim { display:inline-block; background:var(--ink); color:var(--bone); font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:2px; padding:3px 10px; }
+  .meta { display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; border:1px solid var(--line); background:var(--paper); padding:12px 14px; margin:18px 0; font-size:13px; }
+  .meta b { display:block; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+  section { background:var(--paper); border:1px solid var(--line); padding:20px 22px; margin:18px 0; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:10px 0; }
+  th, td { text-align:left; border-bottom:1px solid var(--line); padding:7px 8px; vertical-align:top; }
+  th { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); }
+  .tag { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; padding:2px 8px; border:1px solid var(--ink); white-space:nowrap; }
+  .tag.write { background:var(--green); color:#fff; border-color:var(--green); }
+  .tag.quar { background:var(--amber); color:#fff; border-color:var(--amber); }
+  .tag.rej { background:var(--red); color:#fff; border-color:var(--red); }
+  .tag.pass { background:var(--green); color:#fff; border-color:var(--green); }
+  .tag.fail { background:var(--red); color:#fff; border-color:var(--red); }
+  textarea, input, select { width:100%; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:13px; padding:9px 10px; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  textarea { min-height:220px; line-height:1.5; }
+  label { display:block; font-size:13px; font-weight:700; margin:12px 0 4px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 18px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 18px; }
+  button { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:13px; padding:10px 18px; border:1px solid var(--ink); background:var(--ink); color:var(--bone); cursor:pointer; margin:14px 8px 0 0; }
+  button.ghost { background:transparent; color:var(--ink); }
+  button:disabled { opacity:0.45; cursor:default; }
+  .steps { display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin:16px 0; }
+  .step { border:1px solid var(--line); background:var(--bone); padding:12px; min-height:150px; }
+  .step h4 { margin:0 0 6px; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--brass); }
+  .step p { font-size:13px; margin:6px 0; }
+  .step .io { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; white-space:pre-wrap; word-break:break-word; }
+  .note { border-left:4px solid var(--brass); background:#f3ecd7; padding:10px 14px; font-size:14px; margin:12px 0; }
+  .warn { border-left:4px solid var(--red); background:#f7e8e5; padding:10px 14px; font-size:14px; margin:12px 0; }
+  pre { background:var(--ink); color:#e8e4d4; padding:14px; overflow:auto; font-size:12px; line-height:1.5; }
+  code { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:13px; background:#efe9d8; padding:1px 5px; }
+  pre code { background:none; padding:0; }
+  .small { font-size:13px; color:var(--muted); }
+  .cite { font-size:13px; color:var(--muted); }
+  footer { margin-top:40px; font-size:13px; color:var(--muted); border-top:1px solid var(--line); padding-top:14px; }
+  @media (max-width:760px) { .steps { grid-template-columns:1fr; } .meta { grid-template-columns:1fr 1fr; } .grid2, .grid3 { grid-template-columns:1fr; } }
+  @media print { body { background:#fff; } section { break-inside:avoid; } button { display:none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Neuruh Demos - Tier B Working Demo</div>
+  <h1>PMLA Memory Loop Lab</h1>
+  <p><span class="sim">SIMULATION</span></p>
+  <p>Prompt-as-Memory Loop Architecture (PMLA) as a working loop in the browser: a prompt runs through the memory write gate, lands in a session store, is recalled on the next turn, and is refined and run again. Every turn seals a hash-chained receipt v1.0. Static HTML and JS only. No backend. No data leaves the page.</p>
+  <div class="meta">
+    <div><b>Document</b>NRH-DEMO-PMLA-LOOP-001</div>
+    <div><b>Date</b>2026-11-14</div>
+    <div><b>State</b>SIMULATION</div>
+    <div><b>Framework tier</b>UNKNOWN (atlas)</div>
+  </div>
+</header>
+
+<section>
+  <h2>1. What PMLA is (stated facts only)</h2>
+  <p><b>PMLA</b> is <b>Prompt-as-Memory Loop Architecture</b>, concept <code>CORE-003</code>, category Core / Architecture. The vault dossier is a census and collision record, verified 2026-11-08, not a design document. What the sources state:</p>
+  <ul>
+    <li><b>Function (Ecosystem Codex, Volume VI):</b> "Prompt engineering framework". <b>Posture:</b> "Independently developed". PMLA appears exactly once on the codex page, in that Volume VI row. No tier is stated there.</li>
+    <li><b>Tier (Framework Atlas):</b> <b>UNKNOWN</b>. Atlas tier source, verbatim: "No tier stated in Volume VI, and no matching entry in the 28-entry master asset register." The atlas defines UNKNOWN as "No tier is stated for this framework on the codex page. Not assigned by this atlas." This demo assigns no tier.</li>
+    <li><b>Dependencies:</b> none stated in the codex. Atlas dependency note: "None stated in the codex." Domain (atlas grouping, derived from the Function text, not a codex field): "Prompt and cognition".</li>
+    <li><b>5-block protocol structure (Notion IP Registry AI-PT-010):</b> Identity, Context, History, Rules, Handoff. The same 5-block structure is used by the AXON Dream Service memory consolidation descendant (AI-CB-DREAM-005).</li>
+    <li><b>Core engine (AI-CB-PMLA-001):</b> "PMLA Core Engine, Reference Implementation v1.0.0", ships ConstraintBlock (MCB), IntentPreservationLayer (IPP), and the PMLAEngine orchestrator. Its registry row carries no GitHub repo URL; its code home beyond the sibling repo is UNKNOWN.</li>
+    <li><b>Repo:</b> <code>NeuruhAI/pmla-constraint-engineering</code> exists. Last commit <code>4767396301d1b56f00c837f0f15c0def48d7bc18</code>, 2026-04-17, "feat: ship PMLA v1.0.0 - README, engine, LICENSE, package config" (verified live 2026-11-14). Whether the PMLA engine runs anywhere live is UNKNOWN. Repo existing is not a live runtime.</li>
+    <li><b>Court verdict (2026-11-09):</b> PMLA is one family with multiple descendants, not a collision between separate concepts. All 10 registry rows are one lineage. Nothing merges into anything outside the family; nothing retires. The PMLA family is a do-not-rebuild conclusion. PMLA stays separate from SAL: SAL is the execution pattern inside AXON Coordinator workers, PMLA is the memory loop.</li>
+  </ul>
+
+  <h3>Status board</h3>
+  <table>
+    <tr><th>Field</th><th>Stated state</th><th>Source</th></tr>
+    <tr><td>Framework</td><td>PMLA, Prompt-as-Memory Loop Architecture, CORE-003</td><td>Vault 01-Core-Architecture/PMLA.md</td></tr>
+    <tr><td>Atlas tier</td><td><b>UNKNOWN</b></td><td>Framework Atlas frameworks.json, id pmla</td></tr>
+    <tr><td>Codex function / posture</td><td>"Prompt engineering framework" / "Independently developed"</td><td>Ecosystem Codex, Volume VI</td></tr>
+    <tr><td>Dependencies</td><td>None stated</td><td>Framework Atlas frameworks.json</td></tr>
+    <tr><td>Repo</td><td>NeuruhAI/pmla-constraint-engineering, REPO EXISTS, last commit 2026-04-17</td><td>Vault collision note; verified live 2026-11-14 via GitHub API</td></tr>
+    <tr><td>Live runtime</td><td>UNKNOWN (no live runtime proven)</td><td>Vault collision note, court verdict 2026-11-09</td></tr>
+    <tr><td>Registry coverage</td><td>10 rows, strongest coverage of any collision name</td><td>Notion IP Registry, via vault dossier</td></tr>
+    <tr><td>Registry rows</td><td>AI-FW-031 (L0-Foundation, Draft, Built); AI-PT-010 (Protocol, Draft, Built, 5-block); AI-CB-PMLA-001 (Core Engine v1.0.0, Draft, Built); AI-FW-PMLA-001 (Constraint Engineering v1.0, Draft, In Progress); AI-FW-PMLA-002 (Expanded Spec, Draft, In Progress); AI-CB-BENCH-001 (Benchmarking Suite, Draft, Not Started); AI-CB-DREAM-005 (AXON Dream Service, Draft, In Progress); RE-CB-009 (RE Valuation Disparity Engine, Draft, Built); AI-FW-BEHAVIORPRED-001 (Consent Wrapper, Draft, In Progress); MEDIA-ART-003 (LinkedIn article, Draft, Built)</td><td>Vault 00-Collisions/Collision - PMLA.md</td></tr>
+    <tr><td>DESIGNED vs VERIFIED</td><td>DESIGNED: the loop architecture, the 5-block protocol, the constraint engine (repo, Draft/Built rows). VERIFIED (this demo only): the browser loop code on this page passes its Node tests (see section 7). NOT VERIFIED: any production PMLA runtime, any live deployment, any claim that this demo is the PMLA engine.</td><td>See sources; demo tests in section 7</td></tr>
+    <tr><td>This demo</td><td>SIMULATION. A reference implementation of the stated loop idea, built from the stated sources. It is not the repo engine and does not claim to be.</td><td>This page</td></tr>
+  </table>
+  <p class="cite">Standalone dossier: YES, one exists. Vault <code>01-Core-Architecture/PMLA.md</code> (CORE-003) plus <code>00-Collisions/Collision - PMLA.md</code> and <code>10-Additional-Systems/PMLA Benchmark Suite.md</code> (EXT-015) were read in full before building. No standalone dossier gap.</p>
+</section>
+
+<section>
+  <h2>2. Memory loop simulator</h2>
+  <p>One turn runs five steps in order: <b>PROMPT</b> (write or load a 5-block prompt) -&gt; <b>WRITE GATE</b> (the eight memory-gate questions, illustrative thresholds) -&gt; <b>MEMORY STORE</b> (session only, in-page) -&gt; <b>RECALL</b> (the stored prompt is retrieved on the next turn) -&gt; <b>REFINE</b> (edit the recalled prompt and run again). Each step shows its input, its decision, and its output.</p>
+
+  <div class="note"><b>Write-gate thresholds are ILLUSTRATIVE.</b> The JGI paper gives no numeric thresholds. This demo reuses the memory-gate demo rule with the same label: evidence below 3 REJECTS, a contradiction QUARANTINES even at high evidence, evidence below 6 QUARANTINES, otherwise WRITE. Never read these numbers as paper rules.</div>
+
+  <label for="librarySelect">Prompt library (stated facts, cited per prompt)</label>
+  <select id="librarySelect">
+    <option value="">-- pick a library prompt, or write your own below --</option>
+    <option value="L1">L1 - Framework catalog (content bank item 19)</option>
+    <option value="L2">L2 - Atomic agent model (content bank item 20)</option>
+    <option value="L3">L3 - Recipe system (content bank item 9)</option>
+    <option value="L4">L4 - LANDOS hunt receipt (content bank item 10)</option>
+  </select>
+  <p class="cite" id="libraryCite">Each library prompt is built in the registry-stated 5-block shape (Identity, Context, History, Rules, Handoff). The Context block carries one content-bank fact verbatim, cited. The other four blocks are assembled for this demo and labeled as such on the page and in the code. No library prompt is quoted from a PMLA paper or repo; none was found in the sources read.</p>
+
+  <label for="promptInput">Prompt (5-block form: ## Identity, ## Context, ## History, ## Rules, ## Handoff)</label>
+  <textarea id="promptInput" spellcheck="false"></textarea>
+
+  <h3>Write-gate inputs (the eight questions, JGI Section 34)</h3>
+  <div class="grid3">
+    <div>
+      <label for="gateClass">Memory class</label>
+      <select id="gateClass">
+        <option>Working</option><option>Episodic</option><option selected>Semantic</option><option>Procedural</option>
+        <option>Negative</option><option>Strategic</option><option>Capability</option><option>Epistemic</option>
+      </select>
+    </div>
+    <div>
+      <label for="gateSource">Source</label>
+      <input id="gateSource" value="PMLA Memory Loop Lab (this demo)">
+    </div>
+    <div>
+      <label for="gateFreshness">Freshness</label>
+      <select id="gateFreshness">
+        <option>Minutes</option><option>Hours</option><option selected>Days</option><option>Weeks</option><option>Months</option><option>Years</option>
+      </select>
+    </div>
+    <div>
+      <label for="gateEvidence">Evidence strength / confidence (0 to 10)</label>
+      <input id="gateEvidence" type="number" min="0" max="10" step="1" value="7">
+    </div>
+    <div>
+      <label for="gateContradiction">Conflict status</label>
+      <select id="gateContradiction">
+        <option value="none" selected>none</option>
+        <option value="contradicts">contradicts</option>
+        <option value="supersedes">supersedes</option>
+      </select>
+    </div>
+    <div>
+      <label for="gateHorizon">Relevance horizon</label>
+      <input id="gateHorizon" value="7 days (lead preset)">
+    </div>
+    <div>
+      <label for="gateKind">Fact or inference</label>
+      <select id="gateKind"><option selected>Fact</option><option>Inference</option></select>
+    </div>
+    <div>
+      <label for="gateMutability">Immutable history or editable current state</label>
+      <select id="gateMutability"><option>Immutable history</option><option selected>Editable current state</option></select>
+    </div>
+    <div>
+      <label>Gate rule in force</label>
+      <p class="small" style="margin:4px 0;">Illustrative only. ev &lt; 3 REJECT, contradicts QUARANTINE, ev &lt; 6 QUARANTINE, else WRITE.</p>
+    </div>
+  </div>
+
+  <button id="runBtn" type="button">Run loop turn</button>
+  <button id="loadRecalledBtn" type="button" class="ghost">Load recalled prompt into editor</button>
+  <button id="resetBtn" type="button" class="ghost">Reset store</button>
+
+  <h3>Turn steps</h3>
+  <div class="steps">
+    <div class="step"><h4>1 - Prompt</h4><p id="stepPrompt">No turn run yet.</p></div>
+    <div class="step"><h4>2 - Write gate</h4><p id="stepGate">No turn run yet.</p></div>
+    <div class="step"><h4>3 - Memory store</h4><p id="stepStore">Store is empty.</p></div>
+    <div class="step"><h4>4 - Recall</h4><p id="stepRecall">Nothing stored yet, so nothing to recall.</p></div>
+    <div class="step"><h4>5 - Refine</h4><p id="stepRefine">After a WRITE, the stored prompt is available to refine: edit it in the editor above and run the next turn.</p></div>
+  </div>
+  <p class="small">Recall freshness (my demo mapping, labeled): a recalled prompt ages 1 day per loop turn. Freshness is computed with the decay formula at the lead preset (h = 7 days). The mapping is mine; no source states a turns-to-days conversion.</p>
+</section>
+
+<section>
+  <h2>3. Loop trace</h2>
+  <p>Every turn is recorded with its gate verdict, its store effect, and its receipt. <b>Verify</b> recomputes the receipt SHA-256 in the browser with the Web Crypto API, independently of the pure-JS SHA-256 that sealed the receipt, and shows PASS or FAIL. The chain check verifies every receipt hash and every prev-hash link (first prev hash must be GENESIS).</p>
+  <table id="traceTable">
+    <thead><tr><th>Turn</th><th>Prompt (first 80 chars)</th><th>Gate</th><th>Store</th><th>Receipt id</th><th>Verify</th></tr></thead>
+    <tbody id="traceBody"><tr><td colspan="6">No turns yet. Run the loop above.</td></tr></tbody>
+  </table>
+  <button id="verifyChainBtn" type="button">Verify whole chain</button>
+  <span id="chainResult" class="small"></span>
+</section>
+
+<section>
+  <h2>4. Latest receipt (v1.0)</h2>
+  <p>Receipt format v1.0 from the governance-loop demo: canonical JSON (keys sorted, arrays in order), <code>provenance.report_hash_sha256</code> stripped before hashing, SHA-256 only, first receipt prev hash GENESIS. Receipt ids are <code>pmla-20261114-0001</code> and up, per session.</p>
+  <pre id="receiptJson">No receipt yet. Run the loop above.</pre>
+  <button id="exportBtn" type="button" class="ghost">Export receipts as JSONL</button>
+</section>
+
+<section>
+  <h2>5. Memory decay calculator (JGI Section 35)</h2>
+  <p>Paper formula: <code>F(t) = 2^(-t/h)</code>, where t is age and h is a domain-specific half-life, both in days. The paper names the domains only by example (runtime minutes, repo hours, lead days, business strategy weeks/months, historical fact years). The half-life values below are the presets from the Memory Workbench demo, as shipped in the memory-gate demo. <b>The calculator itself is this demo's implementation.</b></p>
+  <div class="grid2">
+    <div>
+      <label for="decayPreset">Domain half-life preset</label>
+      <select id="decayPreset">
+        <option value="runtime">Runtime state: minutes (h = 0.0167 days)</option>
+        <option value="repo">Repo state: hours (h = 0.5 days)</option>
+        <option value="lead" selected>Lead state: days (h = 7 days)</option>
+        <option value="strategy">Business strategy: weeks (h = 30 days)</option>
+        <option value="historical">Historical fact: years (h = 365 days)</option>
+      </select>
+    </div>
+    <div>
+      <label for="decayT">Age t (days)</label>
+      <input id="decayT" type="number" min="0" step="any" value="7">
+    </div>
+  </div>
+  <button id="decayBtn" type="button">Compute freshness</button>
+  <h3>Step by step</h3>
+  <div id="decaySteps"><p class="small">No computation yet. Pick a preset and an age, then compute.</p></div>
+  <h3>Retention table for this preset</h3>
+  <table>
+    <thead><tr><th>Age t (days)</th><th>Retention F(t)</th><th>Percent</th></tr></thead>
+    <tbody id="decayTable"><tr><td colspan="3">No computation yet.</td></tr></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Design decisions (mine, labeled as mine)</h2>
+  <p>No source defines a runnable PMLA loop, a prompt library, a session store, or a turns-to-days mapping. Everything in this section is my design, not a paper or registry claim.</p>
+  <ul>
+    <li><b>Five steps, in this order:</b> PROMPT, WRITE GATE, MEMORY STORE, RECALL, REFINE. The order applies the stated loop idea (prompt as memory) to the stated write gate. RECALL reads the store at the start of a turn; REFINE is the user editing the recalled prompt and running again.</li>
+    <li><b>Store rule:</b> only WRITE verdicts store. REJECT and QUARANTINE record a receipt for the decision but store nothing. The store keeps every written prompt as history; the latest written prompt is the current one. Supersede keeps the old record as history, never deletes it.</li>
+    <li><b>5-block parsing:</b> blocks are <code>## Name</code> headings, matched case-insensitively. A prompt with no headings parses to five empty blocks and is reported as unstructured; it can still run the gate, because the gate judges the write, not the block shape.</li>
+    <li><b>Library prompts:</b> facts verbatim from the content bank with the item cited; the other four blocks assembled for this demo. Library prompts are teaching examples, not quoted PMLA source text.</li>
+    <li><b>Recall freshness mapping:</b> 1 loop turn = 1 day of age, computed at the lead preset (h = 7 days). Chosen because the loop has no clock; the mapping is displayed next to every recall so it is never mistaken for a source rule.</li>
+    <li><b>Receipts:</b> one per turn, including REJECT and QUARANTINE turns, so the trace is a complete record of decisions, not only of writes. Sealed with the verbatim pure-JS SHA-256 from the governance-loop demo; verified per receipt with Web Crypto as an independent implementation.</li>
+    <li><b>Decay calculator:</b> step-by-step breakdown (h, exponent -t/h, 2 to that power, percent) plus a five-point table at t = 0, h/2, h, 2h, 4h. Same formula and presets as the memory-gate demo; the breakdown display is new here.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>7. Sources read, tests, gaps</h2>
+  <h3>Sources read in full before building</h3>
+  <ul>
+    <li>Vault <code>01-Core-Architecture/PMLA.md</code> (CORE-003, verified 2026-11-08): census finding, 10 registry rows, repo, court pointer. Standalone dossier EXISTS.</li>
+    <li>Vault <code>00-Collisions/Collision - PMLA.md</code> (verified 2026-11-09): six meanings, court verdict (one family, 10 rows, nothing merges, do-not-rebuild), row map with filing dates and repo commit, UNKNOWN list.</li>
+    <li>Vault <code>10-Additional-Systems/PMLA Benchmark Suite.md</code> (EXT-015): AI-CB-BENCH-001, Draft, Not Started, no repo.</li>
+    <li>Framework Atlas live data, <code>frameworks.json</code> (fetched 2026-11-14): PMLA entry, tier UNKNOWN, function "Prompt engineering framework", domain "Prompt and cognition", posture "Independently developed", no dependencies, no register entry. The atlas page HTML itself carries no PMLA text; the data file is the source.</li>
+    <li>Ecosystem Codex live page, <code>https://ecosystem-codex.pages.dev/</code> (NRH-DOC-CODEX-001 rev A, fetched 2026-11-14, 87,140 B): PMLA appears exactly once, Volume VI row, function "Prompt engineering framework", posture "Independently developed". "Prompt-as-Memory" appears zero times on the page.</li>
+    <li>Memory-gate demo live, <code>https://neuruhai.github.io/neuruh-demos/memory-gate/</code>, plus <code>write-gate.js</code> and <code>decay.js</code> source: eight gate questions, illustrative thresholds, dead-branch fix, decay formula and presets.</li>
+    <li>Governance-loop demo live, <code>https://neuruhai.github.io/neuruh-demos/governance-loop/governance-loop.js</code>: receipt v1.0 format, SHA-256, canonical JSON, GENESIS first, verifyChain.</li>
+    <li>Content bank <code>~/workspace/distribution/content-bank.md</code> (30 items, read in full): library facts drawn from items 9, 10, 19, 20, verbatim with citations. The bank contains no PMLA prompt text.</li>
+    <li>Repo check live via GitHub API 2026-11-14: <code>NeuruhAI/pmla-constraint-engineering</code> exists, last commit 4767396301d1b56f00c837f0f15c0def48d7bc18, 2026-04-17.</li>
+  </ul>
+  <h3>Tests (Node, before push)</h3>
+  <p>Test file <code>test.js</code> ships in the repo dir and loads the shipped <code>pmla-loop.js</code> directly. It covers: loop logic (WRITE stores, REJECT at ev 2 does not store, QUARANTINE at ev 4 does not store, contradicts at ev 9 quarantines, invalid gate input rejects, recall returns the previous written prompt, supersede stores and keeps history), decay math (F(0)=1, F(h)=0.5 at every preset, F(14d lead)=0.25, F(730d historical)=0.25, error cases), and receipt hashing (NIST SHA-256 vectors, canonical key sorting, chain of two receipts with GENESIS first matching independent node crypto recompute, tamper fails, broken link fails). Run <code>node test.js</code>. Full results are in the build report.</p>
+  <h3>Gaps and open items</h3>
+  <ul>
+    <li>No PMLA design document with loop mechanics exists in the sources read. The vault dossier is a census/collision record. The loop steps, the store rule, and the recall mapping on this page are my design, labeled as such.</li>
+    <li>Ported percent, unique residue, and transplant target for every PMLA branch: UNKNOWN (carried from the vault dossier and the court verdict).</li>
+    <li>AI-CB-PMLA-001 (Core Engine Reference Implementation v1.0.0) has no GitHub repo URL in its registry row. Its code home beyond the sibling repo is UNKNOWN.</li>
+    <li>No live PMLA runtime is proven. The repo last commit is 2026-04-17. This demo does not change that.</li>
+    <li>The benchmark suite (AI-CB-BENCH-001) is Draft, Not Started, with no repo. No benchmark comparison is implemented here.</li>
+    <li>The production PMLA engine in the repo was not read, run, or modified by this lane. This demo is a browser simulation of the stated loop idea only.</li>
+  </ul>
+</section>
+
+<footer>
+  PMLA Memory Loop Lab (SIMULATION). Sources: vault PMLA dossier and collision note, Framework Atlas frameworks.json, Ecosystem Codex NRH-DOC-CODEX-001 rev A, memory-gate demo, governance-loop demo, content bank items 9, 10, 19, 20. Static page, no backend, session store only. No dollar valuations. No owner or property PII.
+</footer>
+
+</div>
+<script src="pmla-loop.js"></script>
+<script>
+(function () {
+  "use strict";
+  var store = PmlaLoop.createStore();
+  var lastResult = null;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function short(s, n) {
+    s = String(s || "");
+    return s.length > n ? s.slice(0, n) + "..." : s;
+  }
+  function gateTag(v) {
+    if (v === "WRITE") return '<span class="tag write">WRITE</span>';
+    if (v === "QUARANTINE") return '<span class="tag quar">QUARANTINE</span>';
+    return '<span class="tag rej">REJECT</span>';
+  }
+  function hex(buf) {
+    var bytes = new Uint8Array(buf), out = "";
+    for (var i = 0; i < bytes.length; i++) {
+      out += ("0" + bytes[i].toString(16)).slice(-2);
+    }
+    return out;
+  }
+  async function verifyWithWebCrypto(receipt) {
+    try {
+      var copy = JSON.parse(JSON.stringify(receipt));
+      delete copy.provenance.report_hash_sha256;
+      var data = new TextEncoder().encode(PmlaLoop.canonical(copy));
+      var digest = await crypto.subtle.digest("SHA-256", data);
+      return hex(digest) === receipt.provenance.report_hash_sha256;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  $("librarySelect").addEventListener("change", function () {
+    var id = this.value;
+    if (!id) return;
+    var lib = PmlaLoop.libraryPrompt(id);
+    if (!lib) return;
+    $("promptInput").value = lib.text;
+    $("libraryCite").textContent = "Loaded " + lib.id + " (" + lib.title + "). Context fact verbatim from " + lib.bankRef + ": " + lib.fact;
+  });
+
+  $("loadRecalledBtn").addEventListener("click", function () {
+    if (!store.current) {
+      $("stepRefine").textContent = "Nothing stored yet. Run a turn that WRITEs first.";
+      return;
+    }
+    $("promptInput").value = store.current.prompt;
+    $("stepRefine").textContent = "Loaded turn " + store.current.turn + " prompt into the editor. Edit it, then run the next turn to refine it.";
+  });
+
+  $("resetBtn").addEventListener("click", function () {
+    store = PmlaLoop.createStore();
+    lastResult = null;
+    $("promptInput").value = "";
+    $("librarySelect").value = "";
+    $("stepPrompt").textContent = "No turn run yet.";
+    $("stepGate").textContent = "No turn run yet.";
+    $("stepStore").textContent = "Store is empty.";
+    $("stepRecall").textContent = "Nothing stored yet, so nothing to recall.";
+    $("stepRefine").textContent = "After a WRITE, the stored prompt is available to refine: edit it in the editor above and run the next turn.";
+    $("traceBody").innerHTML = '<tr><td colspan="6">No turns yet. Run the loop above.</td></tr>';
+    $("receiptJson").textContent = "No receipt yet. Run the loop above.";
+    $("chainResult").textContent = "";
+    $("libraryCite").textContent = "Each library prompt is built in the registry-stated 5-block shape (Identity, Context, History, Rules, Handoff). The Context block carries one content-bank fact verbatim, cited. The other four blocks are assembled for this demo and labeled as such on the page and in the code. No library prompt is quoted from a PMLA paper or repo; none was found in the sources read.";
+  });
+
+  $("runBtn").addEventListener("click", function () {
+    var promptText = $("promptInput").value;
+    if (!promptText.trim()) {
+      $("stepPrompt").textContent = "Prompt is empty. Write a prompt or load one from the library first.";
+      return;
+    }
+    var gate = {
+      memoryClass: $("gateClass").value,
+      source: $("gateSource").value,
+      freshness: $("gateFreshness").value,
+      evidence: parseFloat($("gateEvidence").value),
+      contradiction: $("gateContradiction").value,
+      relevanceHorizon: $("gateHorizon").value,
+      kind: $("gateKind").value,
+      mutability: $("gateMutability").value
+    };
+    var result = PmlaLoop.runTurn(store, { prompt: promptText, gate: gate });
+    lastResult = result;
+
+    var blockLines = PmlaLoop.BLOCKS.map(function (b) {
+      var found = result.parsed.found.indexOf(b) !== -1;
+      return (found ? "[x] " : "[ ] ") + b + (found ? ": " + short(result.parsed.blocks[b].replace(/\n/g, " "), 60) : " (missing)");
+    }).join("\n");
+    $("stepPrompt").innerHTML = "Turn " + result.turn + " prompt, " + result.prompt.length + " chars. Blocks found: " + result.parsed.found.length + " of 5." +
+      '<div class="io">' + esc(blockLines) + "</div>";
+
+    $("stepGate").innerHTML = "Verdict: " + gateTag(result.gate.verdict) +
+      '<div class="io">' + esc(result.gate.reasons.join(" ")) + "</div>" +
+      '<p class="small">Illustrative thresholds only: the JGI paper gives no numeric thresholds.</p>';
+
+    $("stepStore").innerHTML = (result.stored ? "STORED as turn " + result.turn + "." : "NOT STORED (" + result.gate.verdict + ").") +
+      "<br>" + esc(result.storeState) + ".";
+
+    var recallHtml;
+    if (result.recalledAtStart) {
+      var ageTurns = result.turn - result.recalledAtStart.turn;
+      var fresh = PmlaLoop.decayWithPreset(ageTurns, "lead");
+      recallHtml = "This turn recalled turn " + result.recalledAtStart.turn + " prompt (" + ageTurns + " turn(s) old, freshness " + (fresh * 100).toFixed(1) + "% at the lead preset, demo mapping 1 turn = 1 day)." +
+        '<div class="io">' + esc(short(result.recalledAtStart.prompt.replace(/\n/g, " "), 200)) + "</div>";
+    } else {
+      recallHtml = "This turn recalled nothing: the store was empty at its start.";
+    }
+    if (result.willRecallNext) {
+      recallHtml += "<br>Next turn will recall this turn " + result.turn + " prompt.";
+    } else {
+      recallHtml += "<br>Next turn will recall nothing new (this turn did not write).";
+    }
+    $("stepRecall").innerHTML = recallHtml;
+
+    $("stepRefine").innerHTML = result.stored
+      ? "Turn " + result.turn + " prompt is stored and ready to refine. Press 'Load recalled prompt into editor', edit it, then run the next turn."
+      : "Nothing new to refine: this turn did not write. Raise the evidence, clear the contradiction, or fix the gate input, then run again.";
+
+    var body = $("traceBody");
+    if (body.querySelector("td[colspan]")) body.innerHTML = "";
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + result.turn + "</td>" +
+      "<td>" + esc(short(promptText.replace(/\n/g, " "), 80)) + "</td>" +
+      "<td>" + gateTag(result.gate.verdict) + "</td>" +
+      "<td>" + (result.stored ? "Stored" : "Not stored") + ", " + result.storeCount + " in store</td>" +
+      "<td>" + esc(result.receiptId) + "</td>" +
+      '<td><button type="button" data-verify="' + (store.receipts.length - 1) + '" style="margin:0;padding:4px 10px;">Verify</button> <span class="vout"></span></td>';
+    body.appendChild(tr);
+    tr.querySelector("[data-verify]").addEventListener("click", function () {
+      var idx = parseInt(this.getAttribute("data-verify"), 10);
+      var out = tr.querySelector(".vout");
+      var btn = this;
+      btn.disabled = true;
+      out.textContent = "checking...";
+      verifyWithWebCrypto(store.receipts[idx]).then(function (ok) {
+        out.innerHTML = ok ? '<span class="tag pass">PASS</span>' : '<span class="tag fail">FAIL</span>';
+        btn.disabled = false;
+      });
+    });
+
+    $("receiptJson").textContent = JSON.stringify(result.receipt, null, 2);
+    $("chainResult").textContent = "";
+  });
+
+  $("verifyChainBtn").addEventListener("click", function () {
+    var check = PmlaLoop.verifyChain(store.receipts);
+    $("chainResult").innerHTML = check.ok
+      ? ' <span class="tag pass">CHAIN PASS</span> ' + store.receipts.length + " receipt(s), all hashes verify, all links intact."
+      : ' <span class="tag fail">CHAIN FAIL</span> ' + esc(check.errors.join("; "));
+  });
+
+  $("exportBtn").addEventListener("click", function () {
+    if (store.receipts.length === 0) return;
+    var lines = store.receipts.map(function (r) { return JSON.stringify(r); }).join("\n") + "\n";
+    var blob = new Blob([lines], { type: "application/jsonl" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "pmla-memory-loop-receipts.jsonl";
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
+
+  $("decayBtn").addEventListener("click", function () {
+    var presetKey = $("decayPreset").value;
+    var t = parseFloat($("decayT").value);
+    try {
+      var steps = PmlaLoop.decaySteps(t, presetKey);
+      $("decaySteps").innerHTML =
+        "<p>Step 1: preset is <b>" + esc(steps.presetLabel) + "</b>, half-life h = <b>" + steps.h + "</b> days.</p>" +
+        "<p>Step 2: age t = <b>" + steps.t + "</b> days. Exponent -t/h = -" + steps.t + " / " + steps.h + " = <b>" + steps.exponent.toFixed(6) + "</b>.</p>" +
+        "<p>Step 3: F(t) = 2^(" + steps.exponent.toFixed(6) + ") = <b>" + steps.f.toFixed(6) + "</b>.</p>" +
+        "<p>Step 4: remaining freshness = <b>" + steps.percent.toFixed(2) + "%</b>.</p>";
+      $("decayTable").innerHTML = steps.table.map(function (row) {
+        return "<tr><td>" + row.t + "</td><td>" + row.f.toFixed(6) + "</td><td>" + (row.f * 100).toFixed(2) + "%</td></tr>";
+      }).join("");
+    } catch (e) {
+      $("decaySteps").innerHTML = '<p class="warn">' + esc(e.message) + "</p>";
+      $("decayTable").innerHTML = '<tr><td colspan="3">No computation yet.</td></tr>';
+    }
+  });
+})();
+</script>
+</body>
+</html>
