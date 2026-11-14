@@ -1,6 +1,7 @@
 /* Node test suite for E11 Agricultural / Timber / Recreation.
    Hand-computed expectations re-proved independently from the
-   2026-11-04 E11 build samples. Run: node --test tests/test-e11.js */
+   2026-11-04 E11 build samples. All figures are MODELED ESTIMATES,
+   NOT A VALUATION, NOT AN APPRAISAL. Run: node --test tests/test-e11.js */
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -341,6 +342,14 @@ test("Receipt chain tamper detection: tampered field fails, tampered prev_hash f
   bad2.prev_hash = "WRONG";
   assert.equal(E11.verifyChain([bad2], sha256Hex).ok, false);
   assert.equal(E11.verifyChain([], sha256Hex).ok, true);
+});
+
+test("Page labeling strings are present in the shipped index.html", function () {
+  const dir = path.resolve(__dirname, "..");
+  const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
+  assert.ok(html.indexOf("MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL") !== -1);
+  assert.ok(html.indexOf("NOT A VALUATION") !== -1);
+  assert.ok(html.indexOf("NOT AN APPRAISAL") !== -1);
 });
 
 test("Shipped files: no em dash in any file, index references e11.js and carries required labels", () => {
