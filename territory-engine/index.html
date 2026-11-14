@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Territory Engine: Territory Scoring Demo (SIMULATION)</title>
+<style>
+  :root { --paper:#f7f3ea; --bone:#efe9da; --ink:#1c1a16; --brass:#8a6d2b; --line:#d8d0bd; --warn:#8a2b1d; --ok:#2e5d3a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Inter, system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.55; }
+  .wrap { max-width:1020px; margin:0 auto; padding:28px 20px 60px; }
+  .banner { background:#1c1a16; color:#f7f3ea; padding:12px 16px; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:13px; letter-spacing:.04em; }
+  .banner b { color:#e8c874; }
+  header.doc { border-bottom:3px solid var(--ink); padding:22px 0 14px; }
+  header.doc h1 { font-family:Archivo, Inter, sans-serif; font-size:32px; line-height:1.1; margin:0 0 8px; }
+  header.doc .sub { font-size:15px; color:#4c4636; max-width:760px; }
+  .meta { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:16px 0 8px; font-size:13px; }
+  .meta div { border:1px solid var(--line); background:var(--bone); padding:8px 10px; }
+  .meta b { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--brass); }
+  h2 { font-family:Archivo, Inter, sans-serif; font-size:22px; border-bottom:2px solid var(--ink); padding-bottom:6px; margin:38px 0 12px; }
+  h3 { font-family:Archivo, Inter, sans-serif; font-size:17px; margin:24px 0 8px; }
+  p { margin:8px 0; }
+  .callout { border:1px solid var(--line); border-left:5px solid var(--brass); background:#fffdf6; padding:12px 14px; margin:14px 0; }
+  .callout.warn { border-left-color:var(--warn); }
+  .callout.ok { border-left-color:var(--ok); }
+  .callout b.t { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:4px; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; background:#fffdf6; }
+  th, td { border:1px solid var(--line); padding:8px 9px; text-align:left; vertical-align:top; }
+  th { background:var(--bone); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+  td.num, th.num { text-align:right; font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .unk { color:var(--warn); font-weight:700; }
+  .stated { color:var(--ok); font-weight:700; }
+  .tag { display:inline-block; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; border:1px solid var(--line); padding:1px 6px; background:var(--bone); }
+  .formula { font-family:"JetBrains Mono", ui-monospace, monospace; background:#1c1a16; color:#f7f3ea; padding:14px 16px; font-size:14px; line-height:1.7; overflow-x:auto; }
+  .formula .c { color:#e8c874; }
+  .controls { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:14px 0; }
+  .controls label { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--brass); font-weight:700; }
+  .controls input[type=range] { width:100%; }
+  .controls .val { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:15px; }
+  .calc { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0; }
+  .calc .panel { border:1px solid var(--line); background:#fffdf6; padding:12px 14px; }
+  .calc label { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--brass); font-weight:700; margin-top:8px; }
+  .calc input, .calc select { width:100%; padding:7px 8px; font-size:15px; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  .steps { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:13px; line-height:1.8; white-space:pre-wrap; background:#1c1a16; color:#f7f3ea; padding:12px 14px; margin-top:10px; }
+  button { background:var(--ink); color:#f7f3ea; border:0; padding:10px 18px; font-size:14px; cursor:pointer; margin-top:12px; }
+  button:hover { background:var(--brass); }
+  figure { margin:16px 0; border:1px solid var(--line); background:#fffdf6; padding:14px; }
+  figcaption { font-size:13px; color:#4c4636; margin-top:10px; }
+  .src { font-size:13px; color:#4c4636; }
+  .expired { background:#fbe9e5; }
+  footer { border-top:2px solid var(--ink); margin-top:40px; padding-top:12px; font-size:13px; color:#4c4636; }
+  @media (max-width:720px){ .meta, .controls, .calc { grid-template-columns:1fr; } header.doc h1 { font-size:25px; } }
+  @media print { .banner { background:#fff; color:#000; border:2px solid #000; } button { display:none; } body { background:#fff; } }
+</style>
+</head>
+<body>
+<div class="banner">SIMULATION. This page scores nothing live. It runs a demo formula, written for this demo, over stated facts only. No county data is fetched. No parcel is scored. No lead is contacted.</div>
+<div class="wrap">
+
+<header class="doc">
+  <h1>Territory Engine: Territory Scoring Demo</h1>
+  <p class="sub">A Tier C concept (the territory scoring engine) as a Tier B working demo: a territory table, a scorer with its formula shown, a hunt-recipe coverage matrix, and an expiry ledger. Every number traces to a named source. Anything unstated reads UNKNOWN, never invented.</p>
+  <div class="meta">
+    <div><b>Built</b>2026-11-14, overnight Neuruh run</div>
+    <div><b>State</b>Tier C concept to Tier B demo (SIMULATION)</div>
+    <div><b>Repo</b>NeuruhAI/territory-engine, created 2026-06-10, last push 2026-10-07</div>
+    <div><b>Stack</b>County records to LANDOS to Territory Engine to recipes to DeedSonar CRM</div>
+  </div>
+</header>
+
+<section>
+<h2>1. Read this first: DESIGNED vs VERIFIED</h2>
+<div class="callout warn"><b class="t">What is designed here</b>
+<p>The scorer formula in section 3 is <b>my design decision</b>, written for this demo on 2026-11-14. It is not a paper formula, not a LANDOS formula, and not a codex formula. No source states how territories should be weighted against each other, so this demo invents the weighting openly, labels it, and shows every step. Change the weights and the ranking changes; that is the point of the calculator.</p></div>
+<div class="callout"><b class="t">What is verified</b>
+<p>Only three things on this page were verified live by a run this week: the St. Joseph County ArcGIS endpoint and its counts (pipeline first run, 2026-11-14, 5 signals pulled, 3 verified against county record cards), the NeuruhAI/territory-engine repo contents (checked 2026-11-14), and the live Ecosystem Codex page (fetched 2026-11-14). Everything else is a dated snapshot from a named dossier, labeled HISTORICAL with its date.</p></div>
+<div class="callout"><b class="t">Tier definitions (Ecosystem Codex, live page)</b>
+<p>Tier A: code-verified, claimable. Tier B: built and inspectable, describable but not claimable as proof. Tier C: specced, scoped, or aspirational, design or scope document only, does not execute, never surfaced externally. The Territory Engine concept sits in Tier C in the codex sense. This demo is a Tier B artifact about it: built and inspectable, not proof the engine runs.</p></div>
+<div class="callout"><b class="t">Valuation Honesty Rule (Codex, governing constraint)</b>
+<p>No dollar valuation is current or claimable pre-MRR. This page carries no dollar figures at all.</p></div>
+<p class="src">Territory Engine as a component: repo NeuruhAI/territory-engine (created 2026-06-10, last push 2026-10-07, size 591). Contents checked 2026-11-14: <span class="tag">db</span> <span class="tag">docs</span> <span class="tag">mappers</span> <span class="tag">web</span>. The web app is Next.js (create-next-app scaffold README). The mappers hold a LANDOS parcel mapper and an estate loader template. The docs hold HANDOFF.md (TERRITORY W1 Phase A, Schema plus Ingest, dated 2026-06-10), whose canon is the Notion spec "TERRITORY, Acquisition Metaverse: Production Spec v0.1". Its stated Phase A inviolables include: LANDOS access read-only, never write the skip-trace column owned by landos-engine, and no invented data (if a required source column such as lat/lng does not exist, stop and report, do not approximate parcel coordinates). That last rule is the same rule this demo follows.</p>
+</section>
+
+<section>
+<h2>2. Figure 1. Where the Territory Engine sits</h2>
+<figure>
+<svg viewBox="0 0 960 150" width="100%" role="img" aria-label="Stack diagram: county records feed LANDOS ingest and engine, which feed the Territory Engine, which feeds hunt recipes, which feed DeedSonar CRM.">
+  <rect x="10" y="45" width="150" height="60" fill="#efe9da" stroke="#1c1a16" stroke-width="2"/>
+  <text x="85" y="72" text-anchor="middle" font-size="13" font-weight="bold">County records</text>
+  <text x="85" y="90" text-anchor="middle" font-size="11">ArcGIS, assessor</text>
+  <rect x="200" y="45" width="150" height="60" fill="#efe9da" stroke="#1c1a16" stroke-width="2"/>
+  <text x="275" y="72" text-anchor="middle" font-size="13" font-weight="bold">LANDOS</text>
+  <text x="275" y="90" text-anchor="middle" font-size="11">ingest + engine</text>
+  <rect x="390" y="30" width="180" height="90" fill="#8a6d2b" stroke="#1c1a16" stroke-width="2"/>
+  <text x="480" y="66" text-anchor="middle" font-size="14" font-weight="bold" fill="#f7f3ea">TERRITORY ENGINE</text>
+  <text x="480" y="86" text-anchor="middle" font-size="11" fill="#f7f3ea">this demo: scoring only</text>
+  <text x="480" y="103" text-anchor="middle" font-size="11" fill="#f7f3ea">SIMULATION</text>
+  <rect x="610" y="45" width="150" height="60" fill="#efe9da" stroke="#1c1a16" stroke-width="2"/>
+  <text x="685" y="72" text-anchor="middle" font-size="13" font-weight="bold">Hunt recipes</text>
+  <text x="685" y="90" text-anchor="middle" font-size="11">4 active (Sep 22)</text>
+  <rect x="800" y="45" width="150" height="60" fill="#efe9da" stroke="#1c1a16" stroke-width="2"/>
+  <text x="875" y="72" text-anchor="middle" font-size="13" font-weight="bold">DeedSonar CRM</text>
+  <text x="875" y="90" text-anchor="middle" font-size="11">153 synced Sep 16</text>
+  <line x1="160" y1="75" x2="200" y2="75" stroke="#1c1a16" stroke-width="2"/><line x1="350" y1="75" x2="390" y2="75" stroke="#1c1a16" stroke-width="2"/><line x1="570" y1="75" x2="610" y2="75" stroke="#1c1a16" stroke-width="2"/><line x1="760" y1="75" x2="800" y2="75" stroke="#1c1a16" stroke-width="2"/>
+</svg>
+<figcaption><b>Figure 1.</b> The stated stack, from the September 22, 2026 estate inventory dossier: DeedSonar (customer surface), LANDOS ingest plus engine, Recipe Engine / Lead Recipe OS, Territory Engine, with APG Land CRM as the superseded founding implementation. The "153 synced Sep 16" label is the LANDOS hunt job 6071b7ad (2026-09-16): 153 leads scored, 153 synchronized to CRM. This diagram shows stated relationships only. It is not a live data flow; this page makes no live calls.</figcaption>
+</figure>
+</section>
+
+<section>
+<h2>3. Table 1. Territory table: stated facts only</h2>
+<p>Owner-lead rows are the September 22, 2026 snapshot from the estate inventory dossier (HISTORICAL). The September 22 dossier also records the production database scale that day: landos.owner_leads 33,250 rows and public.acquisition_leads 33,077 rows. Doctrine territories are the Michiana set (Berrien, St. Joseph IN, LaPorte, Elkhart). The production estate is Davidson County NC, the largest concentration.</p>
+<table id="territory-table">
+<thead><tr><th>Territory</th><th>State</th><th>FIPS</th><th>Role</th><th class="num">Owner-lead rows (Sep 22)</th><th class="num">Scored rows</th><th>Hunt recipes (stated)</th><th>Endpoint / verification</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td><b>Berrien County</b></td><td>MI</td><td>26021</td><td>Doctrine territory (Michiana)</td><td class="num">247</td><td class="num">247 (all scored)</td><td>1: Berrien90+ LIVE_PROVEN tax lien hunt</td><td>6 of 40 LandOS signals computed real values against a Berrien County point in the source session test table. No live endpoint pull in the 2026-11-14 pipeline run.</td><td>Sep 22, 2026 estate inventory; LandOS codex dossier §6 live test table</td></tr>
+<tr><td><b>St. Joseph County</b></td><td>IN</td><td>18141</td><td>Doctrine territory (Michiana)</td><td class="num">244</td><td class="num">162 (94 explicitly non-seed; see Gap 2)</td><td>0 stated</td><td><span class="stated">LIVE, verified 2026-11-14.</span> ArcGIS endpoint, 119,780 parcels. Pipeline first run: 5 signals pulled, 3 verified against county record cards.</td><td>Sep 22, 2026 estate inventory; pipeline first run 2026-11-14</td></tr>
+<tr><td><b>LaPorte County</b></td><td>IN</td><td>18091</td><td>Doctrine territory (Michiana)</td><td class="num">1,098</td><td class="num"><span class="unk">UNKNOWN</span></td><td>0 stated</td><td><span class="unk">NOT LOCATED.</span> Free ArcGIS endpoint not found in the 2026-11-14 run. Dossier states a SEH-hosted endpoint with 64,775 parcels pulled previously; the URL is not recorded in any workspace file.</td><td>Sep 22, 2026 estate inventory; pipeline first run gaps</td></tr>
+<tr><td><b>Elkhart County</b></td><td>IN</td><td>18039</td><td>Doctrine territory (Michiana)</td><td class="num"><span class="unk">UNKNOWN</span></td><td class="num"><span class="unk">UNKNOWN</span></td><td>0 stated</td><td><span class="unk">UNKNOWN.</span> A pinned county adapter exists for FIPS 18039 (recipe registry sources). No owner-lead rows, no scored count, no endpoint state in sources read.</td><td>Recipe-ingredient-registry build report 2026-11-14</td></tr>
+<tr><td><b>Davidson County</b></td><td>NC</td><td><span class="unk">UNKNOWN</span></td><td>Production estate, largest concentration</td><td class="num">27,343</td><td class="num"><span class="unk">UNKNOWN</span></td><td>0 stated</td><td><span class="unk">UNKNOWN.</span> No scored count, no recipe coverage, no verification stated in sources read.</td><td>Sep 22, 2026 estate inventory</td></tr>
+</tbody>
+</table>
+<p class="src">Other geography in the same September 22 snapshot, for context and not ranked here: Orange County NC 1,792 owner-lead rows; Mecklenburg County NC 1,005; Union County NC 100; other Michigan FIPS 1,600+ combined; other NC FIPS 100+ combined; Texas FIPS 48491, 34 rows. Those counties are outside the doctrine set and the production estate named in the brief, so they appear here as context only and are not scored.</p>
+
+<h3>St. Joseph County live counts, 2026-11-14 (verified live queries, HTTP 200)</h3>
+<table>
+<thead><tr><th>County-wide query</th><th class="num">Count</th><th>Share of 119,780 parcels</th></tr></thead>
+<tbody>
+<tr><td>Total parcels</td><td class="num">119,780</td><td class="num">100%</td></tr>
+<tr><td>Past-due tax balance</td><td class="num">1,105</td><td class="num">0.92%</td></tr>
+<tr><td>Out-of-state mailing address</td><td class="num">8,812</td><td class="num">7.36%</td></tr>
+<tr><td>Out-of-state residential (class 5xx)</td><td class="num">6,481</td><td class="num">5.41%</td></tr>
+<tr><td>Vacant-type property</td><td class="num">13,979</td><td class="num">11.67%</td></tr>
+<tr><td>Transfer recorded in 2026</td><td class="num">7</td><td class="num">0.01%</td></tr>
+<tr><td>Residential at 2% deduction (no homestead)</td><td class="num">36,900</td><td class="num">30.80%</td></tr>
+</tbody>
+</table>
+<p class="src">Source: pipeline first run 2026-11-14, City of South Bend GIS, LandRecords Parcels_County MapServer layer 0. The 2026 transfer population (7 parcels) is thin; the dossier flags TRANSFERDA as possibly stale for most of the roll. Reported as found, not inflated.</p>
+</section>
+
+<section>
+<h2>4. Territory scorer (interactive calculator)</h2>
+<p><b>Design decision, labeled as mine.</b> No source states how to weight territories against each other, so this demo defines its own formula. It is a demonstration of scoring mechanics, not a LANDOS formula and not a paper formula. Every input below is a stated fact from Table 1 or UNKNOWN. A missing input contributes 0 to its term and is flagged, never silently filled.</p>
+<div class="formula">score = Ws x (rows / 27,343) + Wc x (scored / rows) + Wr x (recipes / 4) + Wv x verifyFactor
+<span class="c">Defaults: Ws 40, Wc 25, Wr 20, Wv 15 (sum 100). Weights are normalized to sum 100 if you move the sliders.</span>
+rows         = owner-lead rows, Sep 22, 2026 snapshot. Denominator 27,343 is the largest stated count (Davidson).
+scored/rows  = scored share where both numbers are stated; UNKNOWN where either is missing (term 0, flagged).
+recipes / 4  = hunt recipes with STATED coverage of the territory, out of the 4 active recipes.
+verifyFactor = 1.0 St. Joseph (live endpoint plus 3 of 5 signals verified 2026-11-14)
+               0.5 Berrien (6 of 40 signals verified live at a county point in the source session)
+               0.0 everywhere else (nothing stated; LaPorte endpoint not located)</div>
+
+<h3>Adjust the weights</h3>
+<div class="controls">
+  <div><label for="w-scale">Scale weight (rows)</label><input type="range" id="w-scale" min="0" max="100" value="40"><span class="val" id="v-scale">40</span></div>
+  <div><label for="w-cover">Coverage weight (scored share)</label><input type="range" id="w-cover" min="0" max="100" value="25"><span class="val" id="v-cover">25</span></div>
+  <div><label for="w-recipe">Recipe weight (coverage)</label><input type="range" id="w-recipe" min="0" max="100" value="20"><span class="val" id="v-recipe">20</span></div>
+  <div><label for="w-verify">Verification weight</label><input type="range" id="w-verify" min="0" max="100" value="15"><span class="val" id="v-verify">15</span></div>
+</div>
+<p class="src" id="weight-note">Weights sum to 100 at the defaults. If you move a slider, the four weights are normalized to sum 100 and the normalized values are shown here.</p>
+
+<h3>Ranked results (live from the formula above)</h3>
+<table id="rank-table">
+<thead><tr><th>Rank</th><th>Territory</th><th class="num">Scale term</th><th class="num">Coverage term</th><th class="num">Recipe term</th><th class="num">Verify term</th><th class="num">Score (0-100)</th><th>Flags</th></tr></thead>
+<tbody id="rank-body"></tbody>
+</table>
+<p class="src">Read the ranking with the flags, not without them. Davidson ranks first on scale alone (27,343 rows) with zero stated verification and zero stated recipe coverage. Elkhart scores 0.00 because no stated inputs exist for it, which means unscorable, not worst. A territory with UNKNOWN inputs is not a bad territory; it is an unmeasured one.</p>
+
+<h3>Worked calculator: score one territory step by step</h3>
+<div class="calc">
+  <div class="panel">
+    <label for="calc-territory">Territory (prefills stated inputs)</label>
+    <select id="calc-territory"></select>
+    <label for="calc-rows">Owner-lead rows</label>
+    <input type="number" id="calc-rows" min="0" step="1">
+    <label for="calc-scored">Scored rows (leave blank if UNKNOWN)</label>
+    <input type="number" id="calc-scored" min="0" step="1">
+    <label for="calc-recipes">Hunt recipes with stated coverage (0-4)</label>
+    <input type="number" id="calc-recipes" min="0" max="4" step="1">
+    <label for="calc-verify">Verification factor (0, 0.5, or 1)</label>
+    <select id="calc-verify"><option value="0">0, nothing stated</option><option value="0.5">0.5, signals verified at a county point</option><option value="1">1, live endpoint plus verified signals</option></select>
+    <button id="calc-run" type="button">Compute score</button>
+  </div>
+  <div class="panel">
+    <b>Steps (every term shown)</b>
+    <div class="steps" id="calc-steps">Pick a territory and press Compute score. The four terms and the total appear here, with UNKNOWN inputs flagged.</div>
+  </div>
+</div>
+</section>
+
+<section>
+<h2>5. Table 2. Hunt-recipe coverage matrix</h2>
+<p>The 4 active hunt recipes are the September 22, 2026 state (HISTORICAL). Coverage is shown only where the source states it. "LIVE_PROVEN" is the status tag on the Berrien90+ recipe in the source ("Berrien90+ LIVE_PROVEN, Berrien tax lien hunt"), not a separate fifth recipe. The FLOW_C multi-territory recipes name no territories in the sources read, so their cells read UNSTATED even where the name implies a region.</p>
+<table>
+<thead><tr><th>Hunt recipe (Sep 22, 2026)</th><th>Berrien MI</th><th>St. Joseph IN</th><th>LaPorte IN</th><th>Elkhart IN</th><th>Davidson NC</th></tr></thead>
+<tbody>
+<tr><td><b>Berrien90+</b> LIVE_PROVEN, Berrien tax lien hunt</td><td><span class="stated">STATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td></tr>
+<tr><td><b>FLOW_C multi-territory taxsale 20260916</b></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td></tr>
+<tr><td><b>FLOW_C probate/estate</b></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td></tr>
+<tr><td><b>FLOW_C multi-territory MI taxsale 20260916</b></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td><td><span class="unk">UNSTATED</span></td></tr>
+</tbody>
+</table>
+<p class="src">The Michigan tag on the fourth recipe implies Michigan territories but names none, so Berrien is not assumed covered by it. Only 1 of 20 matrix cells is STATED. The other 19 are gaps in the record, not absences of coverage. Recipe catalog context, reused from the recipe registry build (not re-derived): 30 canonical recipe families R1-R30 (only R1-R7 named: tax, probate, estate, heir, lien, code, absentee; R8-R30 undocumented), live Supabase registry 36 rows including aliases and variants.</p>
+</section>
+
+<section>
+<h2>6. TTL and expiry ledger: what is live, what is expired</h2>
+<p>The 7-day signal TTL is a pipeline applied default (pipeline first run record). A signal detected on a date is fresh until 7 days later, then expired. Expired material is never presented as actionable.</p>
+<table>
+<thead><tr><th>Item</th><th>Detected / queued</th><th>Fresh until</th><th>Status on 2026-11-14</th><th>What it means</th></tr></thead>
+<tbody>
+<tr class="expired"><td><b>5 Berrien leads</b> (Oct 15 queue)</td><td>Pulled 2026-10-14 about 20:23 ET; queued for 2026-10-15</td><td>2026-10-22</td><td><span class="unk">EXPIRED, 23 days past expiry.</span> HELD the whole time; nothing sent, 0 outbound sends under the Oct 1 stop order.</td><td>Not actionable. Do not contact, do not pitch, do not treat as a live queue. A fresh pull is required before any use. No owner names, addresses, or parcel IDs are reproduced here.</td></tr>
+<tr><td><b>5 St. Joseph signals</b> (pipeline first run)</td><td>2026-11-14 00:50 EST</td><td>2026-11-21 00:50 EST</td><td><span class="stated">FRESH.</span> 3 of 5 verified against county record cards; 2 single-source.</td><td>Signals, not leads. Fresh for analysis until Nov 21. The composed BiggerPockets draft from the strongest signal is QUEUED-NOT-SENT, awaiting per-draft approval. Nothing was sent.</td></tr>
+<tr><td><b>LANDOS hunt job 6071b7ad</b></td><td>2026-09-16</td><td>Not applicable (historical job record)</td><td>HISTORICAL. 153 leads scored, 153 synced to CRM.</td><td>A completed job, not a live queue. Cited as the last proven end-to-end hunt run in the sources read.</td></tr>
+</tbody>
+</table>
+<p class="src">Berrien queue detail (from the Oct 15 lead-drafts file, PII withheld): the five were the only Berrien FIPS 26021 rows still status NEW at a 42.4 threshold in the Oct 14 pull, uncontacted, no phone on record, and the same five carried forward for the 13th straight day. The queue was HELD, nothing sent.</p>
+</section>
+
+<section>
+<h2>7. The 49-signal model behind the scorer (reused, not re-derived)</h2>
+<p>From the live recipe-ingredient-registry demo and the LandOS codex dossier, reused verbatim in summary:</p>
+<ul>
+<li>LandOS scoring model: <b>49 signals</b> (Ecosystem Codex, Tier A as a model), split 15 structure / 14 land / 14 owner-event / 6 market, family weights sum to 1.0.</li>
+<li><b>40 named, 9 unknown.</b> The 9 unnamed signals (1 structure, 2 land, 6 market by arithmetic) are a gap, not rows. The 49 vs 50 count dispute is unresolved across batches 003, 004, 007, 008, 009, 013.</li>
+<li><b>6 of 40</b> computed real values against a Berrien County point in the source session: flood zone, slope, water adjacency, road access, tree canopy, vegetation overgrowth. 14 run on precomputed fields only. 13 return MISSING until trained CV weights land. 7 are passthrough.</li>
+<li>Family C weights stated in the dossier: tax delinquency 0.95, pre-foreclosure 1.0, probate 0.95.</li>
+<li>Amber tier (eviction history, bankruptcy linkage, divorce-related filings): built as captures, parked, unscored, legal sign-off required. Never active scoring. This demo scores no parcel and touches none of them.</li>
+<li>The 49-ingredient Recipe Engine inventory is a <b>different 49</b> and stays UNVERIFIED (open item Q-SWEEP-4, upload sweep 2026-11-10). The two 49s are never merged here.</li>
+</ul>
+</section>
+
+<section>
+<h2>8. Gaps, stated plainly</h2>
+<ul>
+<li><b>Gap 1: 19 of 20 coverage cells UNSTATED.</b> Only the Berrien90+ recipe states a territory. The FLOW_C recipes may cover several territories, but no source read names them.</li>
+<li><b>Gap 2: St. Joseph arithmetic does not reconcile.</b> The September 22 snapshot says 244 owner-lead rows, 162 scored, 94 explicitly non-seed. 162 plus 94 is 256, which exceeds 244. Both numbers are reported as stated; the scorer uses 162/244 for the scored share and flags the tension here.</li>
+<li><b>Gap 3: Elkhart has no stated counts.</b> Elkhart is a doctrine territory with a pinned adapter (FIPS 18039) and no owner-lead rows, scored count, or endpoint state in the sources read. It scores 0.00, which means unmeasured.</li>
+<li><b>Gap 4: Davidson has scale and nothing else.</b> 27,343 rows, the largest concentration, but no scored count, no recipe coverage, and no verification stated. It ranks first on scale alone; that is a property of the demo weights, not a finding about the county.</li>
+<li><b>Gap 5: LaPorte endpoint not located.</b> The 2026-11-14 pipeline run could not find a free LaPorte ArcGIS endpoint. The dossier states an SEH-hosted endpoint with 64,775 parcels pulled previously, but no URL is recorded in any workspace file. The LaPorte leg of the pull route is unverified from here.</li>
+<li><b>Gap 6: All September 22 counts are HISTORICAL.</b> Owner-lead rows, scored rows, and the 4 active hunt recipes are a September 22 snapshot. Only the St. Joseph endpoint counts are live (November 14). States may have changed.</li>
+<li><b>Gap 7: The live codex text fetch does not name the Territory Engine.</b> The Ecosystem Codex page (fetched 2026-11-14, crawled 06:46 UTC) names LandOS (Tier A, 49 signals, 148 tests, 43,897 records scored) and defines the tiers, but its 28-entry register is rendered by script and the Territory Engine row does not appear in the fetched text. The engine's attestation here comes from the vault sources (IP registry, GitHub census, estate inventory, its own repo), not from the codex text.</li>
+<li><b>Gap 8: No standalone territory-engine dossier exists.</b> No standalone dossier file was found under _research. This build uses the Ecosystem Codex territory entries, the estate inventory, the IP registry, the GitHub census, and the repo itself, as the brief directed.</li>
+</ul>
+</section>
+
+<section>
+<h2>9. Sources</h2>
+<ul class="src">
+<li>Live Ecosystem Codex, https://ecosystem-codex.pages.dev/ (NRH-DOC-CODEX-001 rev A, issued 28 Jul 2026 on the 30 Jun 2026 audit), fetched 2026-11-14: tier definitions, Valuation Honesty Rule, LandOS Tier A 49 signals / 148 tests / 43,897 records scored, DeedSonar ownership correction (22 Oct 2026, solely the founder's).</li>
+<li>Live recipe-ingredient-registry demo, https://neuruhai.github.io/neuruh-demos/recipe-ingredient-registry/ (read 2026-11-14): the two 49s, 40 named signals, 6 verified live at a Berrien point, 49 vs 50 dispute, amber tier, Q-SWEEP-4. Build report: ~/workspace/research-drift-2026-11-14/build-recipe-registry.md.</li>
+<li>September forensic dossiers, ~/workspace/neuruh-obsidian-vault/_research/upload-sweep-2026-11-10/september-forensic-dossiers.md §8 (NEURUH_REAL_ESTATE_ESTATE_INVENTORY_2026-09-22_FINAL.pdf): stack membership, lead geography by FIPS, 4 active hunt recipes, database scale.</li>
+<li>IP registry, ~/workspace/neuruh-obsidian-vault/_research/ip_registry_all.json: Territory Engine, repo NeuruhAI/territory-engine, Framework, Off-Market Intel, filed 2026-06-11; Acquisition Metaverse entry.</li>
+<li>GitHub census, ~/workspace/neuruh-obsidian-vault/_research/github-lane-2026-11-08.md §6: territory-engine repo exists, dated 2026-07-23.</li>
+<li>NeuruhAI/territory-engine repo, checked 2026-11-14 via API: created 2026-06-10, last push 2026-10-07; contents db, docs, mappers, web; web is a Next.js app; docs/HANDOFF.md (TERRITORY W1 Phase A, 2026-06-10, canon Notion spec "TERRITORY, Acquisition Metaverse: Production Spec v0.1").</li>
+<li>Pipeline first run, ~/workspace/goals/start-50-qualified-sales-conversations-from-outbound/hidden_files/pipeline-signals.md (run pipeline-first-run-20261114, 2026-11-14 00:43 to 00:50 EST): St. Joseph ArcGIS counts, 5 signals pulled, 3 verified, LaPorte endpoint not located, receipt rcpt-20261114-0001, QUEUED-NOT-SENT.</li>
+<li>Berrien queue, ~/workspace/goals/start-50-qualified-sales-conversations-from-outbound/hidden_files/lead-drafts-2026-10-15.md: 5 leads pulled 2026-10-14, queued for Oct 15, HELD, nothing sent. Owner names, addresses, and parcel IDs deliberately not reproduced.</li>
+<li>Lead Recipe OS vault page, ~/workspace/neuruh-obsidian-vault/01-Core-Architecture/Lead Recipe OS.md: 30 canonical families R1-R30, 36 registry rows, 4 active hunt recipes, hunt job 6071b7ad.</li>
+</ul>
+</section>
+
+<section>
+<h2>10. What this is not</h2>
+<ul>
+<li>Not a live scoring engine. No county data, no Supabase, no LANDOS calls, no parcel is scored here. The St. Joseph counts are quoted from the pipeline run, not re-queried by this page.</li>
+<li>Not the Territory Engine repo. The repo is a separate Next.js app with its own mappers and schema work; this demo simulates only the territory-ranking idea, in one static file.</li>
+<li>Not a verified territory ranking. The formula is mine, the inputs are a September 22 snapshot plus one November 14 run, and 19 of 20 coverage cells are UNSTATED.</li>
+<li>Not a lead list. The 5 Berrien leads are expired and unnamed here. Nothing on this page is contactable material.</li>
+<li>Not legal, title, or Fair Housing advice. Amber-tier signals stay parked.</li>
+<li>Not a valuation. No dollar figures appear anywhere on this page, per the Valuation Honesty Rule.</li>
+</ul>
+</section>
+
+<footer>
+Territory Engine demo (SIMULATION). Built 2026-11-14 in the overnight Neuruh run. Single self-contained file: no external calls, no data leaves the page. Formula in section 4 is the builder's design decision, not a source formula. Counts carry their source and audit date; anything unstated reads UNKNOWN.
+</footer>
+
+</div>
+<script>
+"use strict";
+var MAX_ROWS = 27343;
+var TERRITORIES = [
+  { name: "Berrien County, MI", rows: 247, scored: 247, recipes: 1, verify: 0.5,
+    flags: ["6 of 40 signals verified live at a Berrien point (source session)"] },
+  { name: "St. Joseph County, IN", rows: 244, scored: 162, recipes: 0, verify: 1.0,
+    flags: ["Live endpoint verified 2026-11-14", "St. Joseph scored-share tension: 162 + 94 non-seed = 256 vs 244 rows (Gap 2)"] },
+  { name: "LaPorte County, IN", rows: 1098, scored: null, recipes: 0, verify: 0,
+    flags: ["Scored count UNKNOWN", "Endpoint NOT LOCATED 2026-11-14"] },
+  { name: "Elkhart County, IN", rows: null, scored: null, recipes: 0, verify: 0,
+    flags: ["Owner-lead rows UNKNOWN", "Scored count UNKNOWN", "Endpoint UNKNOWN", "Unscorable, not worst"] },
+  { name: "Davidson County, NC", rows: 27343, scored: null, recipes: 0, verify: 0,
+    flags: ["Scored count UNKNOWN", "Recipe coverage UNKNOWN (0 stated)", "Verification UNKNOWN", "Ranks first on scale alone"] }
+];
+
+function normalizeWeights(w) {
+  var sum = w.scale + w.cover + w.recipe + w.verify;
+  if (sum <= 0) { return { scale: 25, cover: 25, recipe: 25, verify: 25 }; }
+  return {
+    scale: w.scale / sum * 100,
+    cover: w.cover / sum * 100,
+    recipe: w.recipe / sum * 100,
+    verify: w.verify / sum * 100
+  };
+}
+
+function scoreTerritory(t, w) {
+  var nw = normalizeWeights(w);
+  var scaleTerm = (t.rows === null) ? 0 : nw.scale * (t.rows / MAX_ROWS);
+  var coverTerm = (t.rows === null || t.scored === null) ? 0 : nw.cover * (t.scored / t.rows);
+  var recipeTerm = nw.recipe * (t.recipes / 4);
+  var verifyTerm = nw.verify * t.verify;
+  return {
+    scale: scaleTerm, cover: coverTerm, recipe: recipeTerm, verify: verifyTerm,
+    total: scaleTerm + coverTerm + recipeTerm + verifyTerm, weights: nw
+  };
+}
+
+function fmt(n) { return (Math.round(n * 100) / 100).toFixed(2); }
+
+function currentWeights() {
+  return {
+    scale: parseFloat(document.getElementById("w-scale").value),
+    cover: parseFloat(document.getElementById("w-cover").value),
+    recipe: parseFloat(document.getElementById("w-recipe").value),
+    verify: parseFloat(document.getElementById("w-verify").value)
+  };
+}
+
+function renderRank() {
+  var w = normalizeWeights(currentWeights());
+  document.getElementById("v-scale").textContent = fmt(w.scale);
+  document.getElementById("v-cover").textContent = fmt(w.cover);
+  document.getElementById("v-recipe").textContent = fmt(w.recipe);
+  document.getElementById("v-verify").textContent = fmt(w.verify);
+  document.getElementById("weight-note").textContent =
+    "Normalized weights (sum 100): scale " + fmt(w.scale) + ", coverage " + fmt(w.cover) +
+    ", recipe " + fmt(w.recipe) + ", verification " + fmt(w.verify) + ".";
+  var rows = TERRITORIES.map(function (t) {
+    return { t: t, s: scoreTerritory(t, currentWeights()) };
+  });
+  rows.sort(function (a, b) { return b.s.total - a.s.total; });
+  var body = document.getElementById("rank-body");
+  body.innerHTML = "";
+  rows.forEach(function (r, i) {
+    var tr = document.createElement("tr");
+    var cells = [
+      i + 1, r.t.name, fmt(r.s.scale), fmt(r.s.cover), fmt(r.s.recipe), fmt(r.s.verify),
+      fmt(r.s.total), r.t.flags.join("; ")
+    ];
+    cells.forEach(function (c, j) {
+      var td = document.createElement("td");
+      td.textContent = c;
+      if (j >= 2 && j <= 6) { td.className = "num"; }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+function fillCalc(t) {
+  document.getElementById("calc-rows").value = (t.rows === null) ? "" : t.rows;
+  document.getElementById("calc-scored").value = (t.scored === null) ? "" : t.scored;
+  document.getElementById("calc-recipes").value = t.recipes;
+  document.getElementById("calc-verify").value = String(t.verify);
+}
+
+function runCalc() {
+  var w = normalizeWeights(currentWeights());
+  var rowsRaw = document.getElementById("calc-rows").value;
+  var scoredRaw = document.getElementById("calc-scored").value;
+  var recipes = parseInt(document.getElementById("calc-recipes").value, 10);
+  var verify = parseFloat(document.getElementById("calc-verify").value);
+  var rows = (rowsRaw === "" || rowsRaw === null) ? null : parseFloat(rowsRaw);
+  var scored = (scoredRaw === "" || scoredRaw === null) ? null : parseFloat(scoredRaw);
+  if (isNaN(recipes)) { recipes = 0; }
+  if (isNaN(verify)) { verify = 0; }
+  var t = { rows: rows, scored: scored, recipes: recipes, verify: verify };
+  var s = scoreTerritory(t, currentWeights());
+  var lines = [];
+  lines.push("Weights (normalized): scale " + fmt(w.scale) + ", coverage " + fmt(w.cover) + ", recipe " + fmt(w.recipe) + ", verify " + fmt(w.verify));
+  lines.push("Scale term: " + fmt(w.scale) + " x (" + (rows === null ? "UNKNOWN" : rows) + " / 27343) = " + fmt(s.scale) + (rows === null ? "  [UNKNOWN rows, term 0]" : ""));
+  var share = (rows === null || scored === null) ? "UNKNOWN" : fmt(scored / rows);
+  lines.push("Coverage term: " + fmt(w.cover) + " x (" + share + ") = " + fmt(s.cover) + ((rows === null || scored === null) ? "  [UNKNOWN scored share, term 0]" : ""));
+  lines.push("Recipe term: " + fmt(w.recipe) + " x (" + recipes + " / 4) = " + fmt(s.recipe));
+  lines.push("Verify term: " + fmt(w.verify) + " x " + verify + " = " + fmt(s.verify));
+  lines.push("TOTAL = " + fmt(s.scale) + " + " + fmt(s.cover) + " + " + fmt(s.recipe) + " + " + fmt(s.verify) + " = " + fmt(s.total));
+  document.getElementById("calc-steps").textContent = lines.join("\n");
+}
+
+(function init() {
+  var sel = document.getElementById("calc-territory");
+  TERRITORIES.forEach(function (t, i) {
+    var opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = t.name;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener("change", function () { fillCalc(TERRITORIES[parseInt(sel.value, 10)]); });
+  ["w-scale", "w-cover", "w-recipe", "w-verify"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () { renderRank(); });
+  });
+  document.getElementById("calc-run").addEventListener("click", runCalc);
+  fillCalc(TERRITORIES[0]);
+  renderRank();
+})();
+</script>
+</body>
+</html>
