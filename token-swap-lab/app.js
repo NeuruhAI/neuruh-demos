@@ -443,8 +443,22 @@ document.addEventListener('DOMContentLoaded', function () {
   });
   $('replacement').addEventListener('input', updateReplacementHint);
   $('run-swap').addEventListener('click', runSwap);
+  function copyAfterDone() { $('copyAfterStatus').textContent = 'After prompt copied.'; }
+  function copyAfterFallback(txt) {
+    var ta = document.createElement('textarea');
+    ta.value = txt;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); copyAfterDone(); }
+    catch (e) { $('copyAfterStatus').textContent = 'Copy failed. Select the after prompt and copy it manually.'; }
+    document.body.removeChild(ta);
+  }
   $('copy-after').addEventListener('click', function () {
     var txt = $('after-pane').textContent;
-    if (navigator.clipboard) { navigator.clipboard.writeText(txt); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(copyAfterDone, function () { copyAfterFallback(txt); });
+    } else {
+      copyAfterFallback(txt);
+    }
   });
 });
