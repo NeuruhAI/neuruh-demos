@@ -2,7 +2,8 @@
    Run: node --test tests/test-e6.js from ~/workspace/e6-self-storage/
    Every money expectation below was hand-computed from the 2026-11-04
    E6 build samples (~/workspace/e6-self-storage-site/index.html) and
-   re-proved independently here. All figures are MODELED ESTIMATES. */
+   re-proved independently here. All figures are MODELED ESTIMATES,
+   NOT A VALUATION, NOT AN APPRAISAL. */
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
@@ -424,6 +425,14 @@ test("Shipped files exist, reference the module, and carry the labels", function
   assert.ok(html.indexOf("Sample A loaded") !== -1);
   assert.ok(js.indexOf("MODELED ESTIMATE") !== -1);
   assert.ok(tests.indexOf("Sample A") !== -1);
+});
+
+test("Page labeling strings are present in the shipped index.html", function () {
+  const dir = path.resolve(__dirname, "..");
+  const html = fs.readFileSync(path.join(dir, "index.html"), "utf8");
+  assert.ok(html.indexOf("MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL") !== -1);
+  assert.ok(html.indexOf("NOT A VALUATION") !== -1);
+  assert.ok(html.indexOf("NOT AN APPRAISAL") !== -1);
 });
 
 test("No em dash in any shipped file", function () {
