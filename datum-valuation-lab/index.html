@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DATUM Valuation Label Lab (SIMULATION)</title>
+<style>
+  :root{
+    --bone:#f4efe6; --paper:#fbf8f1; --ink:#1c1a16; --ink-soft:#4a463d;
+    --brass:#9a7b2d; --brass-light:#c8a95c; --line:#d8d0bd; --red:#8c2f26; --green:#2e5d3a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bone);color:var(--ink);
+    font-family:"Archivo","Helvetica Neue",Arial,sans-serif;line-height:1.55}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px 64px}
+  header{border-bottom:3px solid var(--ink);padding:28px 0 18px}
+  .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+  h1{font-size:34px;line-height:1.15;margin:10px 0 8px}
+  h2{font-size:22px;border-bottom:2px solid var(--ink);padding-bottom:6px;margin:44px 0 14px}
+  h3{font-size:16px;margin:22px 0 8px}
+  p,li{font-size:15px}
+  .sim-banner{background:var(--ink);color:var(--bone);padding:12px 16px;margin:18px 0;
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;line-height:1.6}
+  .sim-banner b{color:var(--brass-light)}
+  .card{background:var(--paper);border:1px solid var(--line);padding:18px 20px;margin:16px 0}
+  .meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px;margin:14px 0}
+  .meta-grid div{border:1px solid var(--line);padding:8px 10px;background:var(--paper)}
+  .meta-grid span{display:block;color:var(--ink-soft);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;background:var(--paper)}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--ink);color:var(--bone);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  td.num,th.num{text-align:right;font-family:"JetBrains Mono",ui-monospace,monospace}
+  .flag{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;
+    padding:2px 7px;border:1px solid currentColor;border-radius:2px;text-transform:uppercase;letter-spacing:.06em}
+  .flag.quar{color:var(--red);border-color:var(--red)}
+  .flag.ok{color:var(--green);border-color:var(--green)}
+  .flag.warn{color:var(--brass);border-color:var(--brass)}
+  .callout{border-left:4px solid var(--brass);background:var(--paper);padding:12px 16px;margin:16px 0}
+  .callout.red{border-left-color:var(--red)}
+  .callout.green{border-left-color:var(--green)}
+  label{display:block;font-size:14px;margin:10px 0 4px}
+  input[type="number"],select{font:inherit;padding:8px 10px;border:1px solid var(--ink-soft);
+    background:#fff;width:100%;max-width:340px}
+  input[type="checkbox"]{width:18px;height:18px;accent-color:var(--brass)}
+  .check{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:15px}
+  .check input{margin-top:3px;flex:none}
+  button{font:inherit;background:var(--ink);color:var(--bone);border:0;padding:11px 20px;
+    cursor:pointer;margin-top:14px}
+  button:hover{background:var(--brass)}
+  .result{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:14px;line-height:1.7;
+    background:var(--ink);color:var(--bone);padding:16px 18px;margin-top:16px;white-space:pre-wrap}
+  .result b{color:var(--brass-light)}
+  .rule{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:var(--paper);
+    border:1px solid var(--line);padding:12px 14px;line-height:1.7;white-space:pre-wrap}
+  .small{font-size:13px;color:var(--ink-soft)}
+  footer{border-top:2px solid var(--ink);margin-top:48px;padding-top:16px;font-size:13px;color:var(--ink-soft)}
+  code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:#efe9db;padding:1px 5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Neuruh &middot; DATUM &middot; Label Lab &middot; Tier C concept to Tier B working demo</div>
+  <h1>DATUM Valuation Label Lab</h1>
+  <p>What a parcel is worth, with a distribution, not a point. This lab shows the label
+  hierarchy that calibrates DATUM, the honest statistics measured so far, and the loss
+  function that scores an estimate. It values nothing.</p>
+</header>
+
+<div class="sim-banner"><b>SIMULATION.</b> Every number on this page comes from the DATUM dossier
+(absorbed 2026-11-10, source transcript 2026-07-25/26). Nothing here is a production
+coefficient. Nothing here emits a dollar valuation for any parcel. The St. Joseph 2024
+figures pool all property classes and must be stratified before any use.</div>
+
+<div class="meta-grid">
+  <div><span>Source dossier</span>datum-valuation.md, 15 verdicts</div>
+  <div><span>Repo</span>NeuruhAI/datum (private), head 07184f5f</div>
+  <div><span>Label source</span>Indiana SDF Form 46021, free at stats.indiana.edu</div>
+  <div><span>Phase 0 status</span>70% at end of transcript (2026-07-26, HISTORICAL)</div>
+  <div><span>Verdicts</span>DURABLE 7 / STILL TRUE 4 / HISTORICAL 3 / SUPERSEDED 1</div>
+  <div><span>This page</span>SIMULATION, values nothing</div>
+</div>
+
+<h2>1. What DATUM is</h2>
+<p>DATUM is a valuation product beside LandOS, not a rebuild of the LandOS model. LandOS
+scores acquisition likelihood. DATUM values a parcel: what is this dirt worth, with a
+distribution, not a point. Codename <b>datum</b>: a datum is the fixed survey reference
+point every other measurement derives from. Tracked as Q-007 in the repo.</p>
+<p>The architecture is a DAG, not eight independent specialists. Fan-out happens exactly
+once, at Layer 1 (fact extraction). Everything downstream has explicit dependencies, and
+there is a single writer per adjustment: no two modules may touch the same dollar.</p>
+<table>
+  <tr><th>Layer</th><th>Name</th><th>Function</th></tr>
+  <tr><td class="num">0</td><td>Subject resolution</td><td>Parcel ID, geometry, acreage, use code, improvement record. Deterministic. Code, not prompt.</td></tr>
+  <tr><td class="num">1</td><td>Fact extraction</td><td>The only genuinely parallel layer. Regulatory, infrastructure, physical, market pullers.</td></tr>
+  <tr><td class="num">2</td><td>Feasibility solver</td><td>Emits the feasible use set. Only this layer may state what is buildable.</td></tr>
+  <tr><td class="num">3</td><td>Subtype router</td><td>Feasible use set plus improvement record selects the pricing engine.</td></tr>
+  <tr><td class="num">4</td><td>Valuation engines</td><td>Pure Python. No LLM arithmetic, ever. Takes calibration coefficients as an argument.</td></tr>
+  <tr><td class="num">5</td><td>Calibration</td><td>Versioned JSON artifact of fitted coefficients, keyed by geography x subtype, hash-stamped.</td></tr>
+  <tr><td class="num">6</td><td>Reconciler</td><td>Fires only when engines disagree beyond a threshold. LLM judgment, disagreement made explicit.</td></tr>
+</table>
+
+<h2>2. The label tiers 0 to 4</h2>
+<p>Calibration is the oven thermometer, not an ingredient. It is measured, not seasoned.
+It has a ground truth, and it gets recalibrated when the oven drifts. The label hierarchy
+has different latencies, volumes, and trust weights. Most of it is observable, free, and
+already exists.</p>
+<table>
+  <tr><th>Tier</th><th>Name</th><th>What it is</th><th>Trust role</th></tr>
+  <tr><td class="num">0</td><td>Hard labels</td><td>Recorded arm&rsquo;s-length sales. Indiana Sales Disclosure Form (Form 46021): price, date, conditions of sale, explicit arm&rsquo;s-length flags. Field <code>P2_16_Valid_Trending</code> is the county assessor&rsquo;s own adjudication that a sale is valid for trending, a professionally determined arm&rsquo;s-length flag, not a filer self-report. Free direct download at stats.indiana.edu, back to July 2008, refreshed weekly.</td><td>Highest. Drives the fit. The target variable.</td></tr>
+  <tr><td class="num">1</td><td>Weak labels at scale</td><td>Assessed values, used as a ratio. Never fit to assessed value. Fit the ratio of sale price to assessed value (sales-ratio study, IAAO standards: COD for uniformity, PRD for regressivity). Field <code>P2_5_Total_AV</code> is assessed value at time of sale, so the ratio study needs no second dataset.</td><td>Supplies the geography multiplier.</td></tr>
+  <tr><td class="num">2</td><td>Market signals</td><td>List price, days on market, list-to-sale ratio, withdrawn/expired, price cuts. Noisier than sales, but abundant and 3 to 12 months ahead of recorded sales.</td><td>Corrects for recency.</td></tr>
+  <tr><td class="num">3</td><td>Operation outcomes</td><td>Offer $X. Accepted or rejected. A censored observation: accepted at $X means true value is at or below $X; rejected means true value is above $X. Censored regression / survival analysis.</td><td>Accumulates and eventually dominates. The only tier measuring decision quality.</td></tr>
+  <tr><td class="num">4</td><td>Judgment</td><td>Two legitimate roles only: (a) define the feature space, not the coefficients; (b) pairwise preference labels, never &ldquo;what is this worth,&rdquo; ask &ldquo;which of these two is worth more, and roughly by how much.&rdquo; Bradley-Terry / learning-to-rank. 200 pairwise comparisons is an afternoon of work.</td><td>Shapes the feature space, supplies the ranking scaffold, then decays as Tiers 0 and 3 accumulate.</td></tr>
+</table>
+<div class="callout"><b>Hard rule.</b> Any evaluation run whose test set contains a label you
+produced is not an evaluation. Holdout must be Tier 0 / Tier 3 only. Your labels train;
+the world scores. A model fit only to one expert&rsquo;s labels converges to that expert,
+can never exceed them, and cannot tell when they are wrong.</div>
+
+<h2>3. Interactive: tier classifier</h2>
+<p>Describe a record. The classifier assigns the highest-trust tier the record supports,
+and shows the rule it applied. The quarantine check runs first: an assessor-valid flag
+is not a data-quality guarantee.</p>
+<div class="card">
+  <div class="check"><input type="checkbox" id="c-sale"><label for="c-sale" style="margin:0">Recorded sale price present (Indiana SDF Form 46021)</label></div>
+  <div class="check"><input type="checkbox" id="c-valid"><label for="c-valid" style="margin:0">Assessor marked the sale valid for trending, arm&rsquo;s-length (<code>P2_16_Valid_Trending = Y</code>)</label></div>
+  <div class="check"><input type="checkbox" id="c-av"><label for="c-av" style="margin:0">Assessed value at time of sale available (<code>P2_5_Total_AV</code>)</label></div>
+  <div class="check"><input type="checkbox" id="c-market"><label for="c-market" style="margin:0">Market signals present (list price, days on market, list-to-sale ratio, price cuts, withdrawn/expired)</label></div>
+  <div class="check"><input type="checkbox" id="c-offer"><label for="c-offer" style="margin:0">Offer outcome recorded (offer accepted or rejected, with realized disposition)</label></div>
+  <div class="check"><input type="checkbox" id="c-judge"><label for="c-judge" style="margin:0">Expert judgment only (feature-space note, or a pairwise preference: which of two is worth more)</label></div>
+  <label for="c-price">Sale price, if present (your number, used only for the quarantine ratio check)</label>
+  <input type="number" id="c-price" min="0" step="any" placeholder="e.g. 225000">
+  <label for="c-avval">Assessed value at time of sale, if present</label>
+  <input type="number" id="c-avval" min="0" step="any" placeholder="e.g. 191000">
+  <br>
+  <button id="classify-btn" type="button">Classify this record</button>
+  <div class="result" id="classify-out" hidden></div>
+</div>
+<div class="rule">RULE (applied top to bottom, first match wins):
+1. QUARANTINE: sale price / assessed value ratio at or above 20x, or below 0.05x
+   -&gt; QUARANTINED, never Tier 0. An assessor-valid flag checks market conditions,
+      not whether the number was typed correctly.
+2. Sale price present AND assessor-valid arm&rsquo;s-length AND ratio inside sane bounds
+   -&gt; TIER 0 (hard label).
+3. Sale price present AND assessed value present, but not assessor-validated
+   -&gt; TIER 1 (ratio label: sale price / assessed value).
+4. Market signals present -&gt; TIER 2.
+5. Offer outcome recorded -&gt; TIER 3.
+6. Expert judgment only -&gt; TIER 4.
+7. None of the above -&gt; NO TIER. Abstention is a first-class return: null plus an
+   evidence gap, never a guess.</div>
+
+<h2>4. Measured: St. Joseph County, Indiana, 2024</h2>
+<p>Source: Indiana SDF 2024 file, 42 MB, 211,188 statewide records, pulled in session and
+read against the official metadata file. Three traps confirmed: UTF-16LE encoding, not
+UTF-8; scaling (<code>E1_Sales_Price</code> divide by 100, <code>P2_9_Acreage</code>
+divide by 10,000); cardinality (SALEPARCEL is one row per parcel, so AV and acreage must
+be summed per <code>SDF_ID</code> before any ratio). The first ratio computed in session
+came out at 120.3, plausible-looking and silently wrong by 100x.</p>
+<table>
+  <tr><th>Measure</th><th class="num">Value</th><th>Note</th></tr>
+  <tr><td>Total SDF records, St. Joseph 2024</td><td class="num">5,841</td><td>All records in file</td></tr>
+  <tr><td>Tier 0 (arm&rsquo;s-length)</td><td class="num">2,262</td><td>38.7% of records</td></tr>
+  <tr><td>Vacant land, Tier 0</td><td class="num">48</td><td>The thin slice. 48 vacant-land arm&rsquo;s-length sales in a year.</td></tr>
+  <tr><td>Buyer owns adjacent parcel</td><td class="num">107</td><td>Assemblage signal (<code>B2_Buyer_Adjacent</code>)</td></tr>
+  <tr><td>Multi-parcel sales</td><td class="num">789</td><td>Assemblage signal (shared <code>SDF_ID</code>)</td></tr>
+  <tr><td>Median sale price</td><td class="num">$225,000</td><td>Median across Tier 0</td></tr>
+  <tr><td>Median ratio (sale price / assessed value)</td><td class="num">1.176</td><td>Pooled, all property classes</td></tr>
+  <tr><td>COD (coefficient of dispersion)</td><td class="num">68.8</td><td>Pooled, all property classes</td></tr>
+  <tr><td>PRD (price-related differential)</td><td class="num">1.534</td><td>Pooled, all property classes</td></tr>
+</table>
+<div class="callout red"><b>NOT production coefficients.</b> COD 68.8 and PRD 1.534 pool all
+property classes. Stratify by <code>P2_6_Prop_Class_Code</code> and
+<code>P2_7_Neighborhood_Code</code> first. Pull all 18 years, run multi-county, and let the
+Tier 1 ratio carry geography. The Tier 1 coefficient is per geography x subtype x YEAR,
+not a single number: St. Joseph ratios by year were 1.255 / 1.240 / 0.802 / 1.176 / 1.051,
+and 2023 is a reassessment reset year.</div>
+
+<h3>The quarantine case <span class="flag quar">Quarantined</span></h3>
+<table>
+  <tr><th>Field</th><th>Value</th></tr>
+  <tr><td>SDF_ID</td><td><code>C46-2023-0077229</code></td></tr>
+  <tr><td>Recorded sale price</td><td>$7,400,074,000</td></tr>
+  <tr><td>Assessed value</td><td>$67,200</td></tr>
+  <tr><td>Assessor valid-for-trending flag</td><td>Y (marked VALID FOR TRENDING)</td></tr>
+  <tr><td>County / year</td><td>LaPorte County, 2023</td></tr>
+  <tr><td>Effect</td><td>One record out of 797 moved 2023 COD from 12.8 to 11,771.7. Pooled across five years it diluted to 2,117. After quarantine, LaPorte reads 19.8 / 14.4 / 12.8 / 21.2 / 29.6, inside IAAO acceptable range.</td></tr>
+  <tr><td>Disposition</td><td>Kept in <code>labels_quarantined.jsonl</code>, not deleted. St. Joseph has its own quarantine list: 62 records at 20x to 1,847x ratio. Some are typos. Some are parcels whose assessed value predates development, raw land bought and built on. Those are not noise; they are a signal about where assessment badly lags reality.</td></tr>
+</table>
+<div class="callout"><b>Lessons enforced in code (<code>scripts/qa_labels.py</code>).</b>
+(1) An assessor-validated flag is not a data-quality guarantee. You need both filters.
+(2) Pooling masked it. Pooled: 2,117, bad but arguable. Per year: 11,771, unmistakable.
+Never pool. (3) The ratio is time-varying, so the coefficient is per geography x subtype
+x year.</div>
+
+<h2>5. Interactive: pinball-loss calculator</h2>
+<p>Not squared error on price. Overestimating by $20k and underestimating by $20k are not
+equally bad in acquisition. Overpay: you lose real money, unbounded downside on a
+specific deal. Underpay: you lose the deal, opportunity cost, bounded, you will find
+another parcel. The loss is asymmetric: penalize overestimation harder than
+underestimation. Ratio starts around 3:1 (Q-003, a config value, not a constant). Fit
+three quantiles, P10 / P50 / P90, rather than a point estimate. The output is a
+distribution; the acquisition decision keys on P10 (what if I am wrong), not P50.</p>
+<p class="small">This calculator scores an estimate you supply. It values no parcel. Enter your
+own numbers; the output is a loss score in the same units, not a valuation.</p>
+<div class="card">
+  <label for="p-actual">Realized value (your number, e.g. a recorded sale price)</label>
+  <input type="number" id="p-actual" min="0" step="any" placeholder="e.g. 225000">
+  <label for="p-pred">Model quantile estimate (your number)</label>
+  <input type="number" id="p-pred" min="0" step="any" placeholder="e.g. 245000">
+  <label for="p-tau">Quantile</label>
+  <select id="p-tau">
+    <option value="0.1">P10 (decision quantile: what if I am wrong)</option>
+    <option value="0.5" selected>P50 (median)</option>
+    <option value="0.9">P90</option>
+  </select>
+  <label for="p-ratio">Overestimation penalty ratio (Q-003 config, default 3:1)</label>
+  <input type="number" id="p-ratio" min="1" step="0.5" value="3">
+  <br>
+  <button id="pinball-btn" type="button">Compute pinball loss</button>
+  <div class="result" id="pinball-out" hidden></div>
+</div>
+<div class="rule">PINBALL LOSS at quantile tau:
+  if actual &gt;= estimate: loss = tau x (actual - estimate)
+  if actual &lt;  estimate: loss = (1 - tau) x (estimate - actual)
+BUSINESS-WEIGHTED LOSS (this lab): overestimate branch x penalty ratio,
+underestimate branch x 1. Overpaying loses real money; underpaying loses the deal.
+Scored separately from accuracy: calibration (when the model says 70% confident, is it
+right 70% of the time) is measured with Brier score and reliability diagrams.
+The metric that actually matters is decision quality: of parcels passed on, what fraction
+later sold above P50; of parcels pursued, realized margin versus predicted.</div>
+
+<h2>6. The LLM / Python seam</h2>
+<p>The rule is not &ldquo;the LLM writes code that does the math.&rdquo; That is still
+LLM-determined math. The actual rule: <b>the LLM emits a feature vector. A versioned,
+tested, deterministic function maps that vector to dollars.</b> The model&rsquo;s output
+schema has no dollar field. It structurally cannot emit a price.</p>
+<table>
+  <tr><th>LLM output type</th><th>Example</th><th>Constraint</th></tr>
+  <tr><td>Extracted fact</td><td><code>zoning_district: "AG-1"</code></td><td>Must carry evidence_ref (source doc + page/line)</td></tr>
+  <tr><td>Categorical judgment</td><td><code>road_frontage_quality: "paved_public_two_lane"</code></td><td>Closed enum, no free text</td></tr>
+  <tr><td>Ordinal judgment</td><td><code>site_visibility: 3</code></td><td>Bounded scale, anchored definitions per rung</td></tr>
+  <tr><td>Probability</td><td><code>p_rezone_granted: 0.34</code></td><td>0 to 1, separately calibrated against outcomes</td></tr>
+  <tr><td>Abstention</td><td><code>null + evidence_gap: "no_ordinance_found"</code></td><td>First-class, never a guess</td></tr>
+</table>
+<p>Enforced in code: <code>contracts.py</code>, invariant I-1 enforced at import. Add a price
+field to an LLM-facing contract and the process refuses to start. Reproducibility test:
+re-run last month&rsquo;s valuation and get the identical number. Replay the cached feature
+vector through pinned code and get a byte-identical answer. Every module returns
+{value, confidence, evidence_refs[], module_version, input_hash}.</p>
+<div class="callout green"><b>The abstention set is the product, not the defect.</b> When the
+system returns &ldquo;cannot value, no zoning record found, evidence gap,&rdquo; that is where
+mispricing concentrates and competition is thinnest. The gap flag is a prioritized
+research queue with an estimable payoff. Rank it, work it, exploit the set everyone
+else&rsquo;s automation discards.</div>
+
+<h2>7. Authority is time-varying: South Bend left the APC</h2>
+<p>St. Joseph County runs under <b>area</b> planning law: one Area Plan Commission for the
+county. But the APC does not serve every municipality. The APC&rsquo;s own staff directory:
+&ldquo;Serving St. Joseph County (unincorporated) and the Towns of Lakeville, New Carlisle,
+North Liberty, Osceola, and Roseland.&rdquo; The county&rsquo;s comprehensive-plan RFP is
+explicit: &ldquo;The APC does not serve the City of Mishawaka, City of South Bend, Town of
+Indian Village, or Town of Walkerton.&rdquo;</p>
+<p>An older source (2017 agenda) lists South Bend as APC-served. Both are correct for
+their date. <b>South Bend left the APC between 2017 and 2023.</b> The exact exit date is
+open (Q-013). Four independent municipalities need their own ordinance extractions
+(Q-014): South Bend, Mishawaka, Indian Village, Walkerton.</p>
+<p>ADR-0009: jurisdictional authority is time-varying. The label set spans 2008 to 2026.
+A South Bend sale from 2015 was under APC jurisdiction and the county ordinance; one
+from 2025 is not. Attaching present-day authority to a historical sale attaches the
+wrong lot minimums inside the training data, which is worse than being wrong at
+inference. Michigan has the same exposure: a township can adopt its own ordinance and
+exit residual county zoning at any time.</p>
+<p>Indiana first is confirmed on the label side too: Indiana&rsquo;s Form 46021 has an
+arm&rsquo;s-length flag; Michigan&rsquo;s Form 2766 has none and the flag must be inferred.
+Michigan needs a model before it has a label. That is backwards.</p>
+
+<h2>8. The five SKUs</h2>
+<table>
+  <tr><th>SKU</th><th>What it is</th><th>Buyer</th></tr>
+  <tr><td>Fact layer / constraint DB</td><td>Layer 1 output: structured, evidence-linked zoning, infrastructure, soils, hydrology per parcel. The fact layer outlives the model and is separately salable. The negative data is the moat: structured &ldquo;this parcel cannot be developed, and here is the citation.&rdquo;</td><td>Brokers, engineers, municipalities, title</td></tr>
+  <tr><td>Valuation + distribution</td><td>Core product: value with a distribution, not a point.</td><td>Investors, lenders</td></tr>
+  <tr><td>dv/dt signal feed</td><td>Predict the derivative, not the value: rezoning applications, sewer/water capital plans, DOT let schedules, large adjacent acquisitions, easement filings, school boundary changes.</td><td>Developers, land funds</td></tr>
+  <tr><td>Assemblage engine</td><td>Value combinations, not singletons: standalone value, assemblage value, keystone premium, sequencing. Keep internal longest. Highest margin, hardest to replicate.</td><td>You first, then license</td></tr>
+  <tr><td>County calibration sets</td><td>Tier 1 ratio sets per geography x subtype x year. Effectively a private equalization study.</td><td>Assessors, equalization boards, funds</td></tr>
+</table>
+<p class="small">Also in the dossier, not demoed here: sell the disagreement (Layer 6 reconciler
+spread is a first-class signal), and the cold-start rule (the logging schema is the
+product on day one: log the full feature vector at prediction time, or you can never fit
+anything later).</p>
+
+<footer>
+  <p><b>Honesty labels.</b> This page presents only what the dossier establishes, with the
+  dossier&rsquo;s own verdicts: DURABLE 7, STILL TRUE 4, HISTORICAL 3, SUPERSEDED 1, across
+  15 verdict statements. The codex (§9), bootstrap saga (§10), and Phase 0 (§14) are
+  HISTORICAL as of 2026-07-26. The DeedSonar lock-in transcript (§15) is SUPERSEDED as
+  current state. Count discrepancies in the dossier (49 vs 50 LandOS signals; 43,897 vs
+  119,780 plus 64,775 scored parcels) are UNVERIFIED either way and are not asserted here.</p>
+  <p><b>What this page never does.</b> It never emits a dollar valuation for any input
+  parcel. It never presents COD 68.8 or PRD 1.534 as production coefficients. It never
+  treats an assessor-valid flag as a data-quality guarantee. It never attaches present-day
+  authority to a historical sale.</p>
+  <p>Source: ~/workspace/neuruh-obsidian-vault/_research/datum-valuation/datum-valuation.md
+  (absorbed 2026-11-10). Repo: NeuruhAI/datum, private, head 07184f5f (2026-07-26).
+  Status: SIMULATION.</p>
+</footer>
+
+</div>
+<script>
+(function(){
+  "use strict";
+  function $(id){ return document.getElementById(id); }
+  function fmt(n){
+    if(!isFinite(n)) return "n/a";
+    return n.toLocaleString("en-US",{maximumFractionDigits:2});
+  }
+
+  $("classify-btn").addEventListener("click", function(){
+    var sale = $("c-sale").checked;
+    var valid = $("c-valid").checked;
+    var av = $("c-av").checked;
+    var market = $("c-market").checked;
+    var offer = $("c-offer").checked;
+    var judge = $("c-judge").checked;
+    var price = parseFloat($("c-price").value);
+    var avval = parseFloat($("c-avval").value);
+    var out = $("classify-out");
+    var lines = [];
+    var ratio = null;
+    if(isFinite(price) && isFinite(avval) && avval > 0){ ratio = price / avval; }
+    if(ratio !== null){
+      lines.push("sale price / assessed value ratio = " + fmt(ratio) + "x");
+    } else if(sale || av){
+      lines.push("ratio check skipped: enter both a sale price and an assessed value to run it.");
+    }
+    var tier = null, why = "";
+    if(ratio !== null && (ratio >= 20 || ratio < 0.05)){
+      tier = "QUARANTINED";
+      why = "Ratio " + fmt(ratio) + "x is outside sane bounds (at or above 20x, or below 0.05x). "
+        + "An assessor-valid flag checks market conditions, not whether the number was typed correctly. "
+        + "Compare SDF_ID C46-2023-0077229: $7,400,074,000 against $67,200 assessed, flagged VALID FOR TRENDING. "
+        + "Quarantined records are kept in labels_quarantined.jsonl, not deleted.";
+    } else if(sale && valid){
+      tier = "TIER 0 (hard label)";
+      why = "Recorded arm's-length sale, assessor-validated for trending. This is the target variable and drives the fit.";
+    } else if(sale && av){
+      tier = "TIER 1 (ratio label)";
+      why = "Sale price plus assessed value gives a sale/assessment ratio, but the sale is not assessor-validated as arm's-length. "
+        + "Usable as a weak label at scale, never fit to assessed value directly.";
+    } else if(market){
+      tier = "TIER 2 (market signal)";
+      why = "List price, days on market, list-to-sale ratio, price cuts, or withdrawn/expired. Noisy, abundant, and 3 to 12 months ahead of recorded sales. Corrects for recency.";
+    } else if(offer){
+      tier = "TIER 3 (operation outcome)";
+      why = "Offer accepted or rejected is a censored observation. The only tier measuring decision quality. Nobody else has it.";
+    } else if(judge){
+      tier = "TIER 4 (judgment)";
+      why = "Expert judgment only. Legitimate as feature-space definition or pairwise preference labels, never as the target. Decays in influence as Tiers 0 and 3 accumulate.";
+    } else {
+      tier = "NO TIER (abstain)";
+      why = "No label-bearing evidence present. Abstention is a first-class return: null plus an evidence gap, never a guess. This record joins the abstention set, which is the product, not the defect.";
+    }
+    lines.push("VERDICT: " + tier);
+    lines.push(why);
+    lines.push("Rule applied: quarantine check first, then Tier 0, Tier 1, Tier 2, Tier 3, Tier 4, else abstain. Highest-trust tier wins.");
+    out.textContent = lines.join("\n\n");
+    out.hidden = false;
+  });
+
+  $("pinball-btn").addEventListener("click", function(){
+    var actual = parseFloat($("p-actual").value);
+    var pred = parseFloat($("p-pred").value);
+    var tau = parseFloat($("p-tau").value);
+    var ratio = parseFloat($("p-ratio").value);
+    var out = $("pinball-out");
+    if(!isFinite(actual) || !isFinite(pred)){
+      out.textContent = "Enter both a realized value and a quantile estimate (your numbers). The calculator scores an estimate; it values no parcel.";
+      out.hidden = false;
+      return;
+    }
+    if(!isFinite(ratio) || ratio < 1){ ratio = 3; }
+    var diff = actual - pred;
+    var over = pred > actual;
+    var raw, branch;
+    if(diff >= 0){ raw = tau * diff; branch = "underestimate (estimate below realized)"; }
+    else { raw = (1 - tau) * (-diff); branch = "overestimate (estimate above realized)"; }
+    var weighted = over ? raw * ratio : raw * 1;
+    var lines = [];
+    lines.push("quantile tau = " + tau + "  |  realized = " + fmt(actual) + "  |  estimate = " + fmt(pred));
+    lines.push("direction: " + branch + " by " + fmt(Math.abs(diff)));
+    lines.push("raw pinball loss = " + fmt(raw));
+    if(over){
+      lines.push("business-weighted loss = " + fmt(raw) + " x " + ratio + " (overestimation penalty) = " + fmt(weighted));
+      lines.push("Overpaying loses real money, unbounded downside on a specific deal. That is why the overestimate branch carries the penalty.");
+    } else {
+      lines.push("business-weighted loss = " + fmt(raw) + " x 1 (underestimation, no penalty) = " + fmt(weighted));
+      lines.push("Underpaying loses the deal, opportunity cost, bounded. You will find another parcel.");
+    }
+    lines.push("Note: this is a loss score in your units, not a valuation. The acquisition decision keys on P10, not P50.");
+    out.textContent = lines.join("\n\n");
+    out.hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
