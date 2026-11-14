@@ -460,7 +460,7 @@ pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}
 <p class="sub">What this tool does not do, stated plainly.</p>
 <ul>
 <li>This engine does not pull live county data: every rule, bid, and lien must be typed in from a source you checked. It does not model bidding competition, so a max bid is a ceiling, not a prediction of the winning bid. It does not model senior lien priority beyond the dollar amount you enter; lien priority is a title question. It does not model eviction cost or timeline beyond the possession plan note. Redemption probability is your estimate, not a measured rate; expected value moves with it, so state the basis. Layout was not eyeballed in a real browser. Sample deals are synthetic and labeled as such; they use example county names and example source references, not real records.</li>
-<li>Fixes over the 2026-11-04 page script, recorded here: (1) The auto kill checkboxes (title uninsurable, max bid below minimum) are now checked by the page when their conditions are met. In the 2026-11-04 build the labels said "(checked automatically when the condition is met)" but calc() never set the boxes, so the kill fired in the recommendation while its box stayed unchecked. The recommendation logic is unchanged; only the displayed checkbox state now matches it. (2) A dead line referencing a nonexistent element id "promptView" was removed from the 2026-11-04 script; it was a harmless no-op. The system prompt is now shown in the section 15 details block instead.</li>
+<li>Fixes over the 2026-11-04 page script, recorded here: (1) The auto kill checkboxes (redemption period unknown, title uninsurable, max bid below minimum) are now checked by the page when their conditions are met. In the 2026-11-04 build the labels said "(checked automatically when the condition is met)" but calc() never set the boxes, so the kill fired in the recommendation while its box stayed unchecked. The recommendation logic is unchanged; only the displayed checkbox state now matches it. (2) A dead line referencing a nonexistent element id "promptView" was removed from the 2026-11-04 script; it was a harmless no-op. The system prompt is now shown in the section 15 details block instead.</li>
 <li>Quirk carried verbatim: monthly holding is always a number, even $0.00 on an empty form, because a blank monthly line counts as 0 in the 2026-11-04 formula. Holding total is still N/A until redemption months are entered, and max bid is still N/A until every one of its six inputs is entered, including blank repairs. A farm of blank lines does not produce a max bid.</li>
 <li>Sample C fires three kill reasons, not two: the two contract kills (redemption period unknown, title uninsurable with no quiet-title budget) plus the operator-checked rules kill (auction rules unverified). The 2026-11-04 sample note says "both contract kills fire", which is true for the two contract kills; the third reason is the checked rules box firing as written.</li>
 <li>Title total is N/A only when all four title parts are blank, and costs at purchase is N/A only when search, recording, and closing are all blank. A blank quiet-title budget counts as no budget for the title kill, so an uninsurable title with a blank quiet-title budget is a kill, not a hold.</li>
@@ -559,7 +559,7 @@ var gates=[
  {id:"authority",label:"Authority gate: underwriting opinion only; no bid is placed without Jeramie; offer authorized is false"}
 ];
 var kills=[
- {id:"k_redemption_unknown",label:E12.KILLS[0],auto:false},
+ {id:"k_redemption_unknown",label:E12.KILLS[0],auto:true},
  {id:"k_title",label:E12.KILLS[1],auto:true},
  {id:"k_maxbid",label:E12.KILLS[2],auto:true},
  {id:"k_rules",label:E12.KILLS[3],auto:false},
@@ -647,6 +647,7 @@ function calc(){
  var mk=E12.maxBidKill({maxBid:mb.maxBid,minBid:minBid});
  $("k_title").checked=tk;
  $("k_maxbid").checked=mk;
+ $("k_redemption_unknown").checked=redemptionUnknown;
  $("titleWarning").hidden=!tk;
  $("redemptionWarning").hidden=!redemptionUnknown;
  var lienNote=$("valueNotes").value.trim();
@@ -1073,7 +1074,7 @@ $("btnCopyPrompt").addEventListener("click",copyPrompt);
 $("btnPrint").addEventListener("click",function(){window.print();});
 
 window.__e12={calc:calc,loadSampleA:loadSampleA,loadSampleB:loadSampleB,loadSampleC:loadSampleC,clearAll:clearAll,collectState:collectState,restoreState:restoreState,encodeState:encodeState,loadFromHash:loadFromHash,issueReceipt:issueReceipt,verifyChain:verifyChain,getChain:function(){return chain;},getLastReceipt:function(){return lastReceipt;}};
-if(!loadFromHash()){calc();}
+loadFromHash();calc();
 renderChain();
 })();
 </script>
