@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Master Command Protocol Lab: hub-and-spoke command simulator</title>
+<style>
+  :root { --bone: #f4f1ea; --paper: #fbf9f4; --ink: #1c1a17; --muted: #6b655c; --brass: #9a7418; --line: #d8d2c4; --pass: #1e6b34; --fail: #a11f1f; --warn-bg: #f6e8c8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bone); color: var(--ink); font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; line-height: 1.55; }
+  header { background: var(--ink); color: var(--bone); padding: 28px 20px 22px; }
+  header h1 { font-family: Archivo, Inter, system-ui, sans-serif; font-size: 30px; margin: 0 0 6px; letter-spacing: -0.5px; }
+  header h1 .mcp { color: #d9b45b; }
+  header p { margin: 4px 0; max-width: 860px; }
+  header .kicker { color: #d9b45b; text-transform: uppercase; letter-spacing: 2px; font-size: 12px; font-weight: 700; }
+  main { max-width: 920px; margin: 0 auto; padding: 20px; }
+  section { background: var(--paper); border: 1px solid var(--line); border-top: 3px solid var(--brass); padding: 18px 20px; margin: 18px 0; }
+  h2 { font-family: Archivo, Inter, system-ui, sans-serif; font-size: 20px; margin: 0 0 10px; }
+  h3 { font-size: 16px; margin: 16px 0 6px; }
+  p { margin: 8px 0; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .sim { background: var(--warn-bg); border: 1px solid var(--brass); padding: 10px 12px; font-weight: 600; }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--brass); padding: 8px 10px; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #ece7db; }
+  code { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; background: #efece3; padding: 1px 4px; }
+  pre { background: #efece3; border: 1px solid var(--line); padding: 10px; overflow-x: auto; font-size: 12.5px; }
+  label { display: block; margin: 8px 0 2px; font-weight: 600; font-size: 14px; }
+  input[type="number"], input[type="text"], select { width: 100%; max-width: 420px; padding: 7px 9px; border: 1px solid var(--line); background: #fff; font-size: 15px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 18px; }
+  button { background: var(--ink); color: var(--bone); border: 0; padding: 9px 16px; font-size: 14px; cursor: pointer; margin: 8px 6px 0 0; }
+  button:hover { background: #3a352e; }
+  button.preset { background: var(--brass); }
+  .pass { color: var(--pass); font-weight: 700; }
+  .fail { color: var(--fail); font-weight: 700; }
+  .verdict { font-size: 13px; font-weight: 700; }
+  .verdict.pass { color: var(--pass); }
+  .verdict.fail { color: var(--fail); }
+  .rcard { border: 1px solid var(--line); padding: 12px; margin: 12px 0; background: #fff; overflow-wrap: anywhere; }
+  .tag { display: inline-block; background: var(--ink); color: var(--bone); font-size: 11px; padding: 2px 7px; text-transform: uppercase; letter-spacing: 1px; }
+  .tag.sourced { background: var(--pass); }
+  .tag.design { background: var(--brass); }
+  .tag.unknown { background: var(--fail); }
+  footer { max-width: 920px; margin: 0 auto; padding: 0 20px 30px; color: var(--muted); font-size: 13px; }
+  .docctl { font-size: 13px; color: var(--muted); }
+  .docctl td:first-child { font-weight: 700; width: 160px; }
+  .diagram { border: 1px solid var(--line); padding: 14px; margin: 10px 0; background: #fff; text-align: center; }
+  .diagram .hub { display: inline-block; background: var(--ink); color: var(--bone); padding: 10px 18px; font-weight: 700; }
+  .diagram .spokes { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px; }
+  .diagram .spoke { border: 1px solid var(--brass); padding: 8px 10px; font-size: 13px; background: var(--paper); }
+  .diagram .arrow { color: var(--brass); font-weight: 700; }
+</style>
+</head>
+<body>
+<header>
+  <p class="kicker">Neuruh Framework Demo Lab</p>
+  <h1><span class="mcp">Master Command Protocol</span> Lab: hub-and-spoke command simulator</h1>
+  <p>A working in-browser demo of the Master Command Protocol (MCP) as the sources state it: a central hub that routes, holds state, and decides, with specialized spokes that each do one function. Static HTML and JS only. No backend. Nothing leaves this page.</p>
+  <p><strong>SIMULATION throughout.</strong> This page re-implements the sourced pattern rules in your browser. It does not run any Neuruh system, does not route to a real agent, and does not connect to any repo, database, or live system.</p>
+</header>
+<main>
+
+<section>
+  <h2>Document control</h2>
+  <table class="docctl">
+    <tr><td>Built</td><td>2026-11-14, overnight Neuruh run</td></tr>
+    <tr><td>Framework</td><td>Master Command Protocol (aliases: MCP; registry title "MCP, Master Command Protocol"; vault concept CORE-001 "Neuruh Master Command Protocol")</td></tr>
+    <tr><td>Atlas tier</td><td>NOT STATED. MCP is absent from the Framework Atlas (see grounding table). The page assigns no tier.</td></tr>
+    <tr><td>Demo status</td><td>Working demo, built and inspectable in this page. The framework itself stays tier NOT STATED per the atlas; the demo is Tier B in the brief's sense only (built and inspectable), not a framework tier claim.</td></tr>
+    <tr><td>Live page</td><td>https://neuruhai.github.io/neuruh-demos/master-command-lab/</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>1. Grounding: what the sources actually say</h2>
+  <p>Read in full before building. Every stated fact below cites its source. Anything not in a source is labeled UNKNOWN or as a builder design decision.</p>
+  <table>
+    <tr><th>Claim</th><th>Source</th><th>Status</th></tr>
+    <tr><td>Neuruh Master Command Protocol, concept CORE-001, aliases Master Command Protocol and MCP. Classification: HISTORICAL/CURRENT DOCTRINE (Chapter 36, 2026-09-06).</td><td>Vault dossier 01-Core-Architecture/Neuruh Master Command Protocol.md, verified 2026-11-08</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Current owner: UNKNOWN. Current runtime: NO REPO. No repo by that exact name in the GitHub lane. No row checked in the 20-name Notion IP Registry pull. No hit by name in the Drive lane scope.</td><td>Vault dossier CORE-001, evidence section, verified 2026-11-08</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Atlas tier for Master Command Protocol: NOT STATED. MCP does not appear among the 20 frameworks in frameworks.json at all. The atlas sources 20 of 31 claimed frameworks and records 11 gaps; MCP is one of the unnamed ones.</td><td>Framework Atlas frameworks.json (local copy, source Ecosystem Codex NRH-DOC-CODEX-001 rev A, accessed 2026-11-14)</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Hub-and-spoke pattern: hub is the MCP, central router, state machine, and decision authority. Spokes are specialized agents, each a microservice with a single function. Four pattern rules R1 to R4 (see section 2).</td><td>IP Registry row AI-FW-018, "Neuruh Hub and Spoke Architecture, Master Agent Orchestration Pattern"</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Applied across: DISPATCH-IQ pipeline, VLA Arbitrage Engine, Baker HVAC dispatcher, Pulsar DC, GeoIntel Command Center, ROOF-OPS.</td><td>IP Registry row AI-FW-018</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Execution fabric: the missing layer between AI reasoning and real-world execution. Platform strategy: serverless execution with built-in safety constraints, rollback mechanisms, and error handling. Architecture: API integrations, workflow orchestration, automatic retry logic, state management.</td><td>IP Registry row AI-FW-002, "Execution Fabric, AI Action Layer Infrastructure Thesis"</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Registry row CORE-FW-MCP-2.0-GA, "MCP, Master Command Protocol": "Recursive AI execution cortex for routing multi-agent stacks across verticals. Core Neuruh infrastructure layer." Type: Protocol. Sub-Category: MCP Gateway. Status: Draft. Build State: Built (the registry's own word, not verified here).</td><td>IP Registry, row CORE-FW-MCP-2.0-GA</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Five layers (NUOL): L1 Truth Layer, L2 Framework Layer (AXON Gateway), L3 Agent Layer, L4 Revenue Layer, L5 Command Layer. L2 components named: SAL, PMLA, Model Router plus Adapter Interface, Permission Guard, Prompt Composer, Cost Tracker. L2 needs: Universal API Gateway, Shared Auth Layer, Agent Memory Bus.</td><td>Notion execution plan "NEURUH MCP, MASTER ARCHITECTURE and EXECUTION PLAN", page 31fa981d, last edited 2026-04-19, migrated 2026-11-09</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>The plan's layer status words (L1 LIVE, L2 NOW BUILDING, L3 IN PROGRESS, L4 PENDING, L5 LIVE) are the plan's April 2026 claims, not verified from here. The vault dossier (Nov 2026) says current runtime NO REPO. Both statements are shown; they are not reconciled.</td><td>Execution plan 31fa981d; vault dossier CORE-001</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Ecosystem Codex: Volume VI is the IP Framework Register. MCP is not among the 20 frameworks the atlas names from Volume VI. The local codex site copy contains no "Master Command Protocol" string.</td><td>Ecosystem Codex NRH-DOC-CODEX-001 rev A, live page and local copy ecosystem-codex-site/index.html, checked 2026-11-14</td><td><span class="tag sourced">Sourced</span></td></tr>
+    <tr><td>Whether the hub-and-spoke pattern runs anywhere today, in any repo or deployment.</td><td>No source states it; dossier says NO REPO</td><td><span class="tag unknown">UNKNOWN</span></td></tr>
+    <tr><td>Current owner, ported percent, unique residue, transplant target, merge safety.</td><td>Vault dossier CORE-001, Court section</td><td><span class="tag unknown">UNKNOWN</span></td></tr>
+    <tr><td>No standalone MCP dossier beyond CORE-001. No collision record for MCP in 00-Collisions. No MCP row in the 20-name registry pull. The codex names 31 frameworks but Volume VI names 20; MCP is among the 11 unnamed.</td><td>Vault search, 2026-11-14</td><td><span class="tag unknown">Gap, not a failure</span></td></tr>
+  </table>
+  <p class="muted">Sources read in full: vault dossier 01-Core-Architecture/Neuruh Master Command Protocol.md; vault note 11-Notion/Pool-Only/No-Path/pool-np-neuruh-mcp-master-architecture-execution-plan.md (190 lines); IP Registry rows AI-FW-002, AI-FW-018, CORE-FW-MCP-2.0-GA in _research/ip_registry_all.json; Chapter 36 census (CH36-anti-loss-census.md, line 43); Framework Atlas frameworks.json (local copy, accessed 2026-11-14); Ecosystem Codex live page https://ecosystem-codex.pages.dev/ and local copy. Credentials and host identifiers that appear in the execution plan are not reproduced on this page.</p>
+</section>
+
+<section>
+  <h2>2. Structure: the hub, the spokes, the four rules</h2>
+  <p>Sourced from AI-FW-018. The hub is the MCP: central router, state machine, and decision authority. Spokes are specialized agents, each a microservice with a single function. The six spokes below are the six systems AI-FW-018 lists under "Applied across". Their single-function labels are builder labels (mine), derived from the system names only.</p>
+  <div class="diagram">
+    <div class="hub">HUB: MCP, central router, state machine, decision authority</div>
+    <div class="arrow">routes every message, holds all session state</div>
+    <div class="spokes">
+      <div class="spoke"><strong>DISPATCH-IQ</strong><br>dispatch routing</div>
+      <div class="spoke"><strong>VLA Arbitrage Engine</strong><br>arbitrage scanning</div>
+      <div class="spoke"><strong>Baker HVAC dispatcher</strong><br>HVAC dispatch</div>
+      <div class="spoke"><strong>Pulsar DC</strong><br>contract lead generation</div>
+      <div class="spoke"><strong>GeoIntel Command Center</strong><br>geospatial intelligence</div>
+      <div class="spoke"><strong>ROOF-OPS</strong><br>roofing operations</div>
+    </div>
+    <p class="muted">No line connects any two spokes. Every path runs through the hub. That is rule R1, drawn literally.</p>
+  </div>
+  <table>
+    <tr><th>Rule</th><th>Sourced text (short form)</th><th>What the simulator enforces</th></tr>
+    <tr><td>R1</td><td>No spoke communicates with another spoke directly. All routing through hub.</td><td>Section 4: a DIRECT attempt is BLOCKED and rerouted through the hub.</td></tr>
+    <tr><td>R2</td><td>Each spoke is stateless. Hub holds all session state.</td><td>Section 3: task records live in hub session state. Spokes hold none. Failover resumes from hub state.</td></tr>
+    <tr><td>R3</td><td>Failover: if a spoke fails, hub reroutes to backup spoke in under 200ms.</td><td>Section 5: failover to a standby twin, simulated elapsed time inside the budget.</td></tr>
+    <tr><td>R4</td><td>Role-switching: hub dynamically assigns spoke roles based on task queue and capacity.</td><td>Section 6: role assignment from queue depth and capacity.</td></tr>
+  </table>
+  <h3>The five layers (NUOL), from the execution plan</h3>
+  <table>
+    <tr><th>Layer</th><th>Name</th><th>Plan status (Apr 2026 claim)</th><th>Contents (sourced)</th></tr>
+    <tr><td>L1</td><td>Truth Layer</td><td>LIVE (plan claim)</td><td>Registry of assets, clients, deployments, executions.</td></tr>
+    <tr><td>L2</td><td>Framework Layer</td><td>NOW BUILDING (plan claim)</td><td>AXON Gateway. SAL, PMLA, Model Router plus Adapter Interface, Permission Guard, Prompt Composer, Cost Tracker.</td></tr>
+    <tr><td>L3</td><td>Agent Layer</td><td>IN PROGRESS (plan claim)</td><td>Vertical agents. Registered in L1 and routed through L2.</td></tr>
+    <tr><td>L4</td><td>Revenue Layer</td><td>PENDING (plan claim)</td><td>Usage metering, white-label licensing, subscription tier enforcement.</td></tr>
+    <tr><td>L5</td><td>Command Layer</td><td>LIVE (plan claim)</td><td>Command dashboard showing assets, clients, revenue state.</td></tr>
+  </table>
+  <p class="warn">Plan status words are April 2026 claims from the execution plan, not verified here. The November 2026 dossier says current runtime NO REPO. Treat the layer table as the plan's own statement, not as current state.</p>
+</section>
+
+<section>
+  <h2>3. Command parser: talk to the hub</h2>
+  <p>The command grammar is a builder design decision (mine). The sources state the hub is the central router and decision authority but give no command syntax. The parser shows every step: tokenize, verb, arity, authority class, dispatch.</p>
+  <p>Verbs: <code>ROUTE &lt;spoke&gt; &lt;task&gt;</code>, <code>STATUS [HUB | &lt;spoke&gt;]</code>, <code>FAILOVER &lt;spoke&gt;</code>, <code>ASSIGN &lt;spoke&gt; &lt;role&gt;</code>, <code>RETRY &lt;task-id&gt;</code>, <code>DIRECT &lt;spoke-a&gt; &lt;spoke-b&gt; &lt;message&gt;</code>. Spoke ids: <code>dispatch-iq</code>, <code>vla-arbitrage</code>, <code>baker-hvac</code>, <code>pulsar-dc</code>, <code>geointel</code>, <code>roof-ops</code>.</p>
+  <label for="cmd-input">Command</label>
+  <input id="cmd-input" type="text" value="ROUTE roof-ops inspect-job-12">
+  <p>
+    <button type="button" id="run-cmd">Run command</button>
+    <button type="button" class="preset" id="preset-route">Preset: ROUTE</button>
+    <button type="button" class="preset" id="preset-direct">Preset: DIRECT (blocked)</button>
+    <button type="button" class="preset" id="preset-failover">Preset: FAILOVER</button>
+    <button type="button" class="preset" id="preset-status">Preset: STATUS HUB</button>
+  </p>
+  <div id="cmd-output"><p class="muted">No command run yet this session.</p></div>
+  <p class="muted">Authority classes are builder design (mine): STATUS and ROUTE are AUTO, FAILOVER and ASSIGN are HUB-DECISION, RETRY is GUARD under the Permission Guard name from L2 with the retry cap from AI-FW-002, DIRECT is BLOCKED by R1. No authority or gating mechanics are stated for MCP in the sources.</p>
+</section>
+
+<section>
+  <h2>4. Router simulator: R1 and R2 in action</h2>
+  <p>Route a task through the hub to a spoke. Then try the forbidden thing: a direct spoke-to-spoke message.</p>
+  <div class="grid">
+    <div>
+      <label for="route-spoke">Spoke</label>
+      <select id="route-spoke">
+        <option value="dispatch-iq">DISPATCH-IQ</option>
+        <option value="vla-arbitrage">VLA Arbitrage Engine</option>
+        <option value="baker-hvac">Baker HVAC dispatcher</option>
+        <option value="pulsar-dc">Pulsar DC</option>
+        <option value="geointel">GeoIntel Command Center</option>
+        <option value="roof-ops" selected>ROOF-OPS</option>
+      </select>
+    </div>
+    <div>
+      <label for="route-task">Task</label>
+      <input id="route-task" type="text" value="inspect-job-12">
+    </div>
+  </div>
+  <p><button type="button" id="run-route">Route through hub</button></p>
+  <div id="route-output"><p class="muted">No route yet this session.</p></div>
+  <h3>Try the forbidden path: direct spoke-to-spoke</h3>
+  <div class="grid">
+    <div>
+      <label for="direct-a">From spoke</label>
+      <select id="direct-a">
+        <option value="roof-ops" selected>ROOF-OPS</option>
+        <option value="dispatch-iq">DISPATCH-IQ</option>
+        <option value="vla-arbitrage">VLA Arbitrage Engine</option>
+        <option value="baker-hvac">Baker HVAC dispatcher</option>
+        <option value="pulsar-dc">Pulsar DC</option>
+        <option value="geointel">GeoIntel Command Center</option>
+      </select>
+    </div>
+    <div>
+      <label for="direct-b">To spoke</label>
+      <select id="direct-b">
+        <option value="baker-hvac" selected>Baker HVAC dispatcher</option>
+        <option value="dispatch-iq">DISPATCH-IQ</option>
+        <option value="vla-arbitrage">VLA Arbitrage Engine</option>
+        <option value="pulsar-dc">Pulsar DC</option>
+        <option value="geointel">GeoIntel Command Center</option>
+        <option value="roof-ops">ROOF-OPS</option>
+      </select>
+    </div>
+    <div>
+      <label for="direct-msg">Message</label>
+      <input id="direct-msg" type="text" value="handover-job-12">
+    </div>
+  </div>
+  <p><button type="button" id="run-direct">Attempt direct send</button></p>
+  <div id="direct-output"><p class="muted">No direct attempt yet this session.</p></div>
+</section>
+
+<section>
+  <h2>5. Failover simulator: R3</h2>
+  <p>Mark a spoke failed. The hub reroutes to a standby twin. The source states rerouting completes in under 200ms but names no backups, so the standby twin is a builder design (mine) and the elapsed time is simulated, computed from queue depth, and labeled simulated.</p>
+  <label for="failover-spoke">Spoke to fail</label>
+  <select id="failover-spoke">
+    <option value="dispatch-iq">DISPATCH-IQ</option>
+    <option value="vla-arbitrage">VLA Arbitrage Engine</option>
+    <option value="baker-hvac" selected>Baker HVAC dispatcher</option>
+    <option value="pulsar-dc">Pulsar DC</option>
+    <option value="geointel">GeoIntel Command Center</option>
+    <option value="roof-ops">ROOF-OPS</option>
+  </select>
+  <p><button type="button" id="run-failover">Fail spoke, run failover</button></p>
+  <div id="failover-output"><p class="muted">No failover yet this session. A failed spoke refuses new routes until failover runs; try routing to it first.</p></div>
+</section>
+
+<section>
+  <h2>6. Role-switching simulator: R4</h2>
+  <p>The hub assigns a spoke role from task queue depth and capacity. The source states the hub assigns roles based on task queue and capacity but gives no rule, so the decision rule is a builder design (mine): load above 1 is OVERLOAD, at or above 0.5 is BUSY, below 0.5 is IDLE.</p>
+  <div class="grid">
+    <div>
+      <label for="assign-spoke">Spoke</label>
+      <select id="assign-spoke">
+        <option value="dispatch-iq">DISPATCH-IQ</option>
+        <option value="vla-arbitrage">VLA Arbitrage Engine</option>
+        <option value="baker-hvac">Baker HVAC dispatcher</option>
+        <option value="pulsar-dc">Pulsar DC</option>
+        <option value="geointel" selected>GeoIntel Command Center</option>
+        <option value="roof-ops">ROOF-OPS</option>
+      </select>
+    </div>
+    <div>
+      <label for="assign-role">Role to assign</label>
+      <input id="assign-role" type="text" value="scout">
+    </div>
+    <div>
+      <label for="assign-queue">Task queue depth (count, 0 or more)</label>
+      <input id="assign-queue" type="number" min="0" step="1" value="6">
+    </div>
+    <div>
+      <label for="assign-cap">Capacity (count, 1 or more)</label>
+      <input id="assign-cap" type="number" min="1" step="1" value="4">
+    </div>
+  </div>
+  <p><button type="button" id="run-assign">Assign role</button></p>
+  <div id="assign-output"><p class="muted">No assignment yet this session.</p></div>
+</section>
+
+<section>
+  <h2>7. Execution fabric walkthrough</h2>
+  <p>Sourced stages from AI-FW-002, in source order: API integrations, workflow orchestration, automatic retry, state management, with safety constraints and rollback as the platform safety list. Inject a failure at any stage to watch retry hit its cap and rollback undo the completed stages in reverse order.</p>
+  <div class="grid">
+    <div>
+      <label for="fabric-task">Task</label>
+      <input id="fabric-task" type="text" value="book-roof-inspection">
+    </div>
+    <div>
+      <label for="fabric-fail">Inject failure at stage</label>
+      <select id="fabric-fail">
+        <option value="none" selected>None: clean run</option>
+        <option value="api-integrations">API integrations</option>
+        <option value="workflow-orchestration">Workflow orchestration</option>
+        <option value="automatic-retry">Automatic retry (retry itself fails)</option>
+        <option value="state-management">State management</option>
+        <option value="safety-constraints">Safety constraints</option>
+        <option value="rollback">Rollback</option>
+      </select>
+    </div>
+  </div>
+  <p><button type="button" id="run-fabric">Run fabric</button></p>
+  <div id="fabric-output"><p class="muted">No fabric run yet this session.</p></div>
+  <p class="muted">Retry cap is 3, a builder design decision (mine). AI-FW-002 states automatic retry logic exists but gives no count.</p>
+</section>
+
+<section>
+  <h2>8. Hub status</h2>
+  <p>Ask the hub what it holds. R2: all session state lives on the hub. Spokes hold none.</p>
+  <label for="status-target">Target</label>
+  <select id="status-target">
+    <option value="HUB" selected>HUB (all session state)</option>
+    <option value="dispatch-iq">DISPATCH-IQ</option>
+    <option value="vla-arbitrage">VLA Arbitrage Engine</option>
+    <option value="baker-hvac">Baker HVAC dispatcher</option>
+    <option value="pulsar-dc">Pulsar DC</option>
+    <option value="geointel">GeoIntel Command Center</option>
+    <option value="roof-ops">ROOF-OPS</option>
+  </select>
+  <p><button type="button" id="run-status">Show status</button></p>
+  <div id="status-output"><p class="muted">No status check yet this session.</p></div>
+</section>
+
+<section>
+  <h2>9. Receipt panel: receipt v1.0</h2>
+  <p>Every action on this page emits a receipt. Format: receipt-v1.0. Hash: SHA-256 over canonical JSON with the hash field stripped, so the hash never influences itself. First receipt chains from GENESIS. The Verify button recomputes every hash in the browser with Web Crypto and reports PASS or FAIL per receipt and for the whole chain.</p>
+  <p><button type="button" id="verify-all">Verify all receipts</button></p>
+  <div id="verify-output"><p class="muted">Not verified yet.</p></div>
+  <div id="receipt-list"><p class="muted">No receipts yet this session. Run the parser, the router, failover, role-switching, or the fabric walkthrough to emit one.</p></div>
+</section>
+
+<section>
+  <h2>10. Status board: DESIGNED vs VERIFIED</h2>
+  <table>
+    <tr><th>Item</th><th>Status</th><th>Meaning</th></tr>
+    <tr><td>Master Command Protocol as a named framework</td><td>DESIGNED</td><td>HISTORICAL/CURRENT DOCTRINE per the Chapter 36 census. Named, classified, not running code verified from here.</td></tr>
+    <tr><td>Hub-and-spoke pattern rules R1 to R4</td><td>DESIGNED</td><td>Stated in registry row AI-FW-018. No running implementation verified from here.</td></tr>
+    <tr><td>Execution fabric</td><td>DESIGNED</td><td>Stated in registry row AI-FW-002. No running implementation verified from here.</td></tr>
+    <tr><td>Five layers (NUOL)</td><td>DESIGNED</td><td>Stated in the April 2026 execution plan. Layer LIVE claims are the plan's own words, not verified here.</td></tr>
+    <tr><td>Atlas tier for MCP</td><td>UNKNOWN</td><td>Not stated. MCP is absent from the atlas's 20 named frameworks.</td></tr>
+    <tr><td>Live MCP runtime, owner, ported percent</td><td>UNKNOWN</td><td>Dossier court items, open. Current runtime NO REPO.</td></tr>
+    <tr><td>This demo page</td><td>VERIFIED</td><td>Node test suite passes (see section 11). Live page checked for HTTP 200 and byte identity. The demo is verified; the framework is not.</td></tr>
+  </table>
+  <p class="sim">SIMULATION throughout. Nothing on this page routes to a real agent or touches a live system.</p>
+</section>
+
+<section>
+  <h2>11. Builder design decisions (mine, not paper claims, not Jeramie's order)</h2>
+  <p>The sources state the pattern and the layers but leave every operational detail open. Where a gap forced a choice, I chose, and I label it here.</p>
+  <table>
+    <tr><th>Decision</th><th>Choice</th><th>Why</th></tr>
+    <tr><td>Command grammar</td><td>ROUTE, STATUS, FAILOVER, ASSIGN, RETRY, DIRECT</td><td>No command syntax is stated anywhere. A hub needs a way to be addressed, so I invented a minimal verb set.</td></tr>
+    <tr><td>Spoke single-function labels</td><td>Labels derived from system names (for example, ROOF-OPS does roofing operations)</td><td>AI-FW-018 states each spoke has a single function but names none of them.</td></tr>
+    <tr><td>Standby twins</td><td>Each spoke has a standby twin named NAME-B</td><td>R3 states rerouting to a backup spoke but names no backups.</td></tr>
+    <tr><td>Failover elapsed time</td><td>Simulated: 40ms plus 10ms per queued task, capped inside the under-200ms budget</td><td>R3 states under 200ms but gives no measurement. The number is computed, deterministic, and labeled simulated.</td></tr>
+    <tr><td>Role-switching rule</td><td>Load above 1 OVERLOAD, at or above 0.5 BUSY, below 0.5 IDLE</td><td>R4 states assignment from queue and capacity but gives no rule.</td></tr>
+    <tr><td>Retry cap</td><td>3</td><td>AI-FW-002 states automatic retry logic but gives no count.</td></tr>
+    <tr><td>Authority classes</td><td>AUTO, HUB-DECISION, GUARD, BLOCKED</td><td>No authority or gating mechanics are stated for MCP. The Permission Guard name comes from L2; the classes are mine.</td></tr>
+    <tr><td>Receipt ids</td><td>mcp-20261114-NNNN, first chains from GENESIS</td><td>Receipt v1.0 convention shared with the sibling framework labs.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>12. Sources and gaps</h2>
+  <ul>
+    <li>Vault dossier: 01-Core-Architecture/Neuruh Master Command Protocol.md (CORE-001), verified 2026-11-08.</li>
+    <li>Execution plan: 11-Notion/Pool-Only/No-Path/pool-np-neuruh-mcp-master-architecture-execution-plan.md, Notion 31fa981d, last edited 2026-04-19, migrated 2026-11-09. Credentials and host identifiers in that source are not reproduced here.</li>
+    <li>IP Registry rows in _research/ip_registry_all.json: AI-FW-002 (Execution Fabric), AI-FW-018 (Hub and Spoke Architecture), CORE-FW-MCP-2.0-GA (MCP, Master Command Protocol).</li>
+    <li>Census: 11-Notion/Topology-Notebook/CH36-anti-loss-census.md, line 43, HISTORICAL/CURRENT DOCTRINE.</li>
+    <li>Framework Atlas: frameworks.json, local copy, source Ecosystem Codex NRH-DOC-CODEX-001 rev A, accessed 2026-11-14. MCP absent from the 20 named frameworks; 11 gaps recorded by the atlas.</li>
+    <li>Ecosystem Codex: live page https://ecosystem-codex.pages.dev/ and local copy ecosystem-codex-site/index.html, checked 2026-11-14. No "Master Command Protocol" string in the local copy.</li>
+  </ul>
+  <p><strong>Gaps (not failures).</strong> No standalone MCP dossier beyond CORE-001. No collision record for MCP. No MCP row in the 20-name registry pull. No repo, no owner, no runtime. The codex verifies 31 named IP frameworks but Volume VI names 20; MCP is among the 11 unnamed. The plan's April 2026 LIVE claims for L1 and L5 stand unreconciled against the November 2026 dossier's NO REPO finding.</p>
+</section>
+
+</main>
+<footer>
+  <p>Master Command Protocol Lab. Built 2026-11-14 in the overnight Neuruh run. Static HTML and JS, no backend, nothing leaves the page. SIMULATION throughout. Framework tier NOT STATED per the Framework Atlas; this page assigns no tier. No monetary figures appear on this page by operating rule.</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
