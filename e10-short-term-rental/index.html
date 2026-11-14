@@ -555,6 +555,7 @@ function collectData(){
  var d={};
  document.querySelectorAll("input,select,textarea").forEach(function(e){
   if(e.id==="shareUrl")return;
+  if(e.id==="runId"||e.id==="runDate")return;
   if(!e.id)return;
   if(e.type==="checkbox")d[e.id]=e.checked;
   else d[e.id]=e.value;
@@ -563,6 +564,7 @@ function collectData(){
 }
 function applyData(d){
  Object.keys(d).forEach(function(k){
+  if(k==="runId"||k==="runDate")return;
   var e=document.getElementById(k);if(!e)return;
   if(e.type==="checkbox")e.checked=!!d[k];
   else e.value=d[k];
@@ -841,9 +843,10 @@ function loadSample(kind){
  calc();
 }
 
+function showSampleNote(txt){var n=$("sampleNote");n.hidden=false;n.textContent=txt;}
 function copyText(t,msg){
- if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){alert(msg);},function(){alert("Copy failed. Select and copy manually.");});}
- else{var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");alert(msg);}catch(e){alert("Copy failed.");}document.body.removeChild(ta);}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){showSampleNote(msg);},function(){showSampleNote("Copy failed. Select and copy manually.");});}
+ else{var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");showSampleNote(msg);}catch(e){showSampleNote("Copy failed.");}document.body.removeChild(ta);}
 }
 
 function sha256HexBrowser(str){
