@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Creative Finance Underwriting Engine E9: subject-to, seller finance, wrap, lease-option, and hybrid terms with loan-fact gates, cash flow, exit math, and a kill-switch. Not an appraisal. Not legal advice. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="Creative Finance Underwriting Engine E9 - Neuruh">
+<meta property="og:description" content="Evidence-first creative finance underwriting: loan facts first, deterministic cash flow and exit math, HOLD on unknown loans, PASS on kill conditions.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>Creative Finance Underwriting Engine E9 - Neuruh</title>
+<style>
+
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.big{font-size:22px}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px;flex:none}
+.checklist select{width:150px;flex:none}
+pre#receiptOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+@media (max-width:760px){.grid,.grid2,.meta{grid-template-columns:1fr}header.doc h1{font-size:24px}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut{background:#fff;color:#000;border:1px solid #999}
+}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.formula{font-family:"JetBrains Mono",ui-monospace,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{#summarySection{border:2px solid #000}#summarySection .result{font-size:13px}}
+figure{margin:14px 0;border:1px solid var(--line);background:var(--paper);padding:12px}
+figure svg{max-width:100%;height:auto;display:block}
+figcaption{font-size:12px;color:var(--muted);margin-top:8px}
+
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.tag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass);padding:1px 4px;white-space:nowrap}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+.scroll{overflow-x:auto}
+pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E9</div>
+<h1>Creative Finance Underwriting Engine</h1>
+<p>Subject-to, seller finance, wrap, lease-option, and hybrid terms. Loan facts first. Unknown loan means HOLD, never a creative structure.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine E9 of 12 - SIMULATION</b></div>
+<div>Lineage<b>2026-11-04 E9 build + Residential v1.1 gates + E1 land engine</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not a survey, not legal, tax, or lending advice. Creative finance carries due-on-sale risk, title risk, and servicing risk. Verify every loan fact with the lender statement, the note, and the title commitment before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: subject-to works</button>
+<button id="btnSampleB" type="button">Sample B: PASS</button>
+<button id="btnSampleC" type="button">Sample C: HOLD, unknown loan</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnCopyPrompt" type="button">Copy system prompt</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<div class="scroll"><table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (subject-to, seller finance, wrap, lease-option, hybrid, gates, kill switch)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e9.js, run 2026-11-14. Sample A hand-computed expectations match: subject-to $280.00 per month, seller finance payment $1,319.01, wrap payment $1,596.73, best structure subject-to. Sample B: four AUTO kills fire, recommendation PASS. Sample C: HOLD, hard gate fires.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e9.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge designed">DESIGNED</span></td><td>Not yet verified live at neuruhai.github.io/neuruh-demos/e9-creative-finance/. Push pending; see build report.</td></tr>
+<tr><td>Market data (rents, rates, prices, comparable sales)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every rent, rate, price, and cost is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E9 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E9 specification document was found in the vault. The subject (Creative Finance) and its mechanics come from the 2026-11-04 E9 build, itself live at e9-creative-finance.pages.dev. See section 14 for the gap. Kill conditions and risk flags are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests are the verification for this build. See build report.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>00</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button above.</li>
+<li><b>Step 2:</b> Change the loan balance in section 02.</li>
+<li><b>Step 3:</b> Watch subject-to cash flow, equity, and the recommendation move in the sticky panel and in section 08.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+<p class="sub" style="margin-top:10px">Then load Sample C and watch the hard gate fire: with loan facts unknown, every creative structure is held and the recommendation is HOLD.</p>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">Best monthly cash flow (MODELED ESTIMATE)</span><b id="stickyBest">N/A</b></div>
+<div><span class="sr-label">Best structure</span><b id="stickyStructure">N/A</b></div>
+<div><span class="sr-label">Equity (ARV minus loan) (MODELED ESTIMATE)</span><b id="stickyEquity">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div class="sub" id="missingHints" style="margin-top:6px">Missing: address, parcel, ARV, market rent, loan facts, seller asking price.</div></div>
+</div>
+
+<section class="card" id="s1">
+<h2><span>01</span>Subject property and income</h2>
+<p class="sub">Address / parcel gate. Confirm the parcel from at least 2 public sources before any structure is priced. Rent is graded the same way as Residential v1.1: a seller claim is a proxy, never proven income.</p>
+<div class="grid">
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcel">Parcel ID</label><input id="parcel" type="text" placeholder="Parcel ID"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="arv">Value / ARV ($)</label><input id="arv" type="number" min="0" step="1" placeholder="e.g. 250000"></div>
+<div><label for="marketRent">Market rent ($/mo)</label><input id="marketRent" type="number" min="0" step="1" placeholder="e.g. 1900"></div>
+<div><label for="rentGrade">Rent truth grade</label><select id="rentGrade"><option value="">Select</option><option value="A">A, signed lease</option><option value="B">B, listed rent</option><option value="C">C, market estimate</option><option value="D">D, seller claim only</option></select></div>
+<div><label for="taxMo">Taxes ($/mo)</label><input id="taxMo" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="insMo">Insurance ($/mo)</label><input id="insMo" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="hoaMo">HOA ($/mo)</label><input id="hoaMo" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="maintMo">Maintenance, vacancy, capex reserve ($/mo)</label><input id="maintMo" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="resaleCostPct">Resale closing costs (%)</label><input id="resaleCostPct" type="number" min="0" step="0.1" value="8"></div>
+<div><label for="sourcesCount">Public sources checked (count)</label><input id="sourcesCount" type="number" min="0" step="1" value="0"></div>
+<div><label for="sourceNames">Source names</label><input id="sourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+</div>
+<div class="result">
+<div class="row"><span>Other monthly costs (taxes + insurance + HOA + reserves) <span class="tag">MODELED ESTIMATE</span></span><b id="outOtherCosts">N/A</b></div>
+<div class="row"><span>Rent grade note</span><b id="outRentNote">Enter a rent grade.</b></div>
+</div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>02</span>Loan facts, the hard gate</h2>
+<p class="sub">HARD RULE: no subject-to or seller-finance recommendation without known loan facts. Unknown loan means HOLD, not a creative structure. Loan facts come from the lender statement and the note, never from a seller memory. If the property is free and clear, check that box and attach the title evidence note; a free-and-clear claim without title evidence is still HOLD.</p>
+<div class="grid">
+<div><label for="loanKnown">Underlying loan facts status</label><select id="loanKnown"><option value="unknown">Unknown</option><option value="partial">Partial, some facts missing</option><option value="known">Known, from lender statement and note</option></select></div>
+<div><label for="loanBalance">Loan balance ($)</label><input id="loanBalance" type="number" min="0" step="0.01" placeholder="Blank = unknown"></div>
+<div><label for="loanRate">Loan rate (% annual)</label><input id="loanRate" type="number" min="0" step="0.01" placeholder="e.g. 4.5"></div>
+<div><label for="loanPayment">Loan payment, P and I ($/mo)</label><input id="loanPayment" type="number" min="0" step="0.01" placeholder="e.g. 1100"></div>
+<div><label for="loanTermRemain">Remaining term (months)</label><input id="loanTermRemain" type="number" min="0" step="1" placeholder="e.g. 300"></div>
+<div><label for="loanType">Loan type</label><select id="loanType"><option value="">Select</option><option>Conventional</option><option>FHA</option><option>VA</option><option>USDA</option><option>Private / seller note</option><option>Unknown</option></select></div>
+<div><label for="dueOnSale">Due-on-sale clause in the note</label><select id="dueOnSale"><option value="unknown">Unknown</option><option value="yes">Yes, present</option><option value="no">No, none in the note</option></select></div>
+<div><label for="loanEscrow">Taxes and insurance escrowed in the payment</label><select id="loanEscrow"><option value="unknown">Unknown</option><option value="yes">Yes, escrowed</option><option value="no">No, paid separately</option></select></div>
+<div><label for="loanSource">Loan fact source</label><input id="loanSource" type="text" placeholder="Example: Lender payoff statement dated 2026-11-01"></div>
+</div>
+<div class="grid2" style="margin-top:12px">
+<div class="checklist"><div class="item"><input type="checkbox" id="freeClear"><label for="freeClear">Property is free and clear (no underlying loan). Title evidence noted in section 09.</label></div></div>
+<div class="checklist"><div class="item"><input type="checkbox" id="dosMitigation"><label for="dosMitigation">Due-on-sale mitigation plan written (attorney review, lender contact plan, or insurance and servicing plan). Unchecked means the risk is unmitigated.</label></div></div>
+</div>
+<div class="result">
+<div class="row"><span>Loan facts complete</span><b id="outLoanComplete">No</b></div>
+<div class="row"><span>Due-on-sale risk</span><b id="outDosRisk">Unknown</b></div>
+<div class="row"><span>Equity (ARV minus loan balance) <span class="tag">MODELED ESTIMATE</span></span><b id="outEquity">N/A</b></div>
+<div class="row"><span>Hard gate</span><b id="outHardGate">HELD, loan facts unknown</b></div>
+</div>
+<div class="warning" id="loanWarning">HARD GATE ACTIVE: loan facts are unknown. Subject-to, wrap, and seller finance on an encumbered property are HELD. Do not price a creative structure on an unknown loan.</div>
+</section>
+
+<section class="card" id="s3">
+<h2><span>03</span>Seller terms</h2>
+<p class="sub">What the seller is actually asking for, in writing. A verbal price is a claim, not a term. Every structure below prices off these numbers.</p>
+<div class="grid">
+<div><label for="sellerAsk">Seller asking price ($)</label><input id="sellerAsk" type="number" min="0" step="1" placeholder="e.g. 240000"></div>
+<div><label for="cashToSeller">Cash to seller at close, subject-to ($)</label><input id="cashToSeller" type="number" min="0" step="1" placeholder="e.g. 5000"></div>
+<div><label for="sellerDown">Down payment, seller finance / wrap ($)</label><input id="sellerDown" type="number" min="0" step="1" placeholder="e.g. 20000"></div>
+<div><label for="sellerNoteRate">Seller note rate (% annual)</label><input id="sellerNoteRate" type="number" min="0" step="0.01" placeholder="e.g. 6"></div>
+<div><label for="sellerNoteTerm">Seller note term (months)</label><input id="sellerNoteTerm" type="number" min="0" step="1" placeholder="e.g. 360"></div>
+<div><label for="sellerBalloonMo">Balloon due after (months, 0 = none)</label><input id="sellerBalloonMo" type="number" min="0" step="1" value="0"></div>
+<div><label for="sellerTermsSource">Seller terms source</label><input id="sellerTermsSource" type="text" placeholder="Example: Written seller term sheet dated 2026-11-01"></div>
+</div>
+<div class="formula">Amortizing payment: P = PV x r / (1 - (1 + r)^-n), where r = annual rate / 12 and n = term in months. Zero rate means P = PV / n. Every payment on this page uses this formula.</div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>04</span>Structure A: Subject-to</h2>
+<p class="sub">Buyer takes title, loan stays in the seller name, buyer makes the existing payments. Requires known loan facts. Due-on-sale risk applies in full.</p>
+<div class="result">
+<div class="row"><span>Payment taken over (existing P and I) <span class="tag">MODELED ESTIMATE</span></span><b id="stPayment">N/A</b></div>
+<div class="row"><span>Other monthly costs <span class="tag">MODELED ESTIMATE</span></span><b id="stOther">N/A</b></div>
+<div class="row"><span>Monthly cash flow (rent minus payment minus other costs) <span class="tag">MODELED ESTIMATE</span></span><b id="stCashFlow">N/A</b></div>
+<div class="row"><span>Annual cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="stAnnual">N/A</b></div>
+<div class="row"><span>Cash to seller at close <span class="tag">MODELED ESTIMATE</span></span><b id="stEntry">N/A</b></div>
+<div class="row"><span>Equity at close (ARV minus loan balance minus cash to seller) <span class="tag">MODELED ESTIMATE</span></span><b id="stEquity">N/A</b></div>
+<div class="row"><span>Exit: resale proceeds (ARV minus loan balance minus resale costs) <span class="tag">MODELED ESTIMATE</span></span><b id="stExit">N/A</b></div>
+<div class="row"><span>Status</span><b id="stStatus">HELD</b></div>
+</div>
+</section>
+
+<section class="card" id="s5">
+<h2><span>05</span>Structure B: Seller finance</h2>
+<p class="sub">Seller carries a new note. Note amount is asking price minus down payment. If an underlying loan exists, its facts must be known and the note must state whether the underlying loan is paid off at close or stays in place (see wrap, section 06). A seller-finance note on an encumbered property with unknown underlying loan facts is HELD.</p>
+<div class="result">
+<div class="row"><span>Seller note amount (asking price minus down) <span class="tag">MODELED ESTIMATE</span></span><b id="sfNote">N/A</b></div>
+<div class="row"><span>Seller note payment (amortizing, from section 03 rate and term) <span class="tag">MODELED ESTIMATE</span></span><b id="sfPayment">N/A</b></div>
+<div class="row"><span>Monthly cash flow (rent minus note payment minus other costs) <span class="tag">MODELED ESTIMATE</span></span><b id="sfCashFlow">N/A</b></div>
+<div class="row"><span>Annual cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="sfAnnual">N/A</b></div>
+<div class="row"><span>Balloon balance at balloon month <span class="tag">MODELED ESTIMATE</span></span><b id="sfBalloon">N/A</b></div>
+<div class="row"><span>Exit: resale proceeds (ARV minus note balance at exit minus resale costs) <span class="tag">MODELED ESTIMATE</span></span><b id="sfExit">N/A</b></div>
+<div class="row"><span>Status</span><b id="sfStatus">HELD</b></div>
+</div>
+</section>
+
+<section class="card" id="s6">
+<h2><span>06</span>Structure C: Wrap (all-inclusive trust deed / wrap mortgage)</h2>
+<p class="sub">Buyer pays the seller on a new wrap note; the seller keeps paying the underlying loan. The spread is wrap payment minus underlying payment. Requires known underlying loan facts. The wrap note must be serviced by a third-party servicer; an unserviced wrap is a risk flag in section 10.</p>
+<figure>
+<svg viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Wrap structure diagram">
+<rect x="8" y="8" width="624" height="194" fill="#fffdf6" stroke="#1d1a16" stroke-width="2"/>
+<rect x="30" y="30" width="150" height="52" fill="#f6f1e6" stroke="#1d1a16"/><text x="105" y="52" text-anchor="middle" font-family="monospace" font-size="13">BUYER</text><text x="105" y="70" text-anchor="middle" font-family="monospace" font-size="11">pays wrap note</text>
+<rect x="245" y="30" width="150" height="52" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="320" y="52" text-anchor="middle" font-family="monospace" font-size="13">SELLER</text><text x="320" y="70" text-anchor="middle" font-family="monospace" font-size="11">keeps spread</text>
+<rect x="460" y="30" width="150" height="52" fill="#f6f1e6" stroke="#1d1a16"/><text x="535" y="52" text-anchor="middle" font-family="monospace" font-size="13">LENDER</text><text x="535" y="70" text-anchor="middle" font-family="monospace" font-size="11">paid on old loan</text>
+<line x1="180" y1="56" x2="245" y2="56" stroke="#9a7b2d" stroke-width="2"/><text x="212" y="46" text-anchor="middle" font-family="monospace" font-size="11">wrap pmt</text>
+<line x1="395" y1="56" x2="460" y2="56" stroke="#1d1a16" stroke-width="2"/><text x="427" y="46" text-anchor="middle" font-family="monospace" font-size="11">old pmt</text>
+<rect x="30" y="120" width="580" height="56" fill="#e8ddba" stroke="#1d1a16"/><text x="320" y="143" text-anchor="middle" font-family="monospace" font-size="12">SPREAD = wrap payment - underlying payment</text><text x="320" y="163" text-anchor="middle" font-family="monospace" font-size="12">Due-on-sale risk stays with the underlying loan. Servicer required.</text>
+</svg>
+<figcaption>Figure 1. Wrap structure. The buyer never pays the lender directly; the seller keeps the spread and must keep paying the underlying loan.</figcaption>
+</figure>
+<div class="grid">
+<div><label for="wrapBalance">Wrap note balance ($)</label><input id="wrapBalance" type="number" min="0" step="1" placeholder="e.g. 240000"></div>
+<div><label for="wrapRate">Wrap note rate (% annual)</label><input id="wrapRate" type="number" min="0" step="0.01" placeholder="e.g. 7"></div>
+<div><label for="wrapTerm">Wrap note term (months)</label><input id="wrapTerm" type="number" min="0" step="1" placeholder="e.g. 360"></div>
+</div>
+<div class="result">
+<div class="row"><span>Wrap payment (amortizing) <span class="tag">MODELED ESTIMATE</span></span><b id="wrPayment">N/A</b></div>
+<div class="row"><span>Underlying payment <span class="tag">MODELED ESTIMATE</span></span><b id="wrUnderlying">N/A</b></div>
+<div class="row"><span>Monthly spread to seller (wrap minus underlying) <span class="tag">MODELED ESTIMATE</span></span><b id="wrSpread">N/A</b></div>
+<div class="row"><span>Buyer monthly cash flow (rent minus wrap payment minus other costs) <span class="tag">MODELED ESTIMATE</span></span><b id="wrCashFlow">N/A</b></div>
+<div class="row"><span>Buyer annual cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="wrAnnual">N/A</b></div>
+<div class="row"><span>Exit: resale proceeds (ARV minus wrap balance minus resale costs) <span class="tag">MODELED ESTIMATE</span></span><b id="wrExit">N/A</b></div>
+<div class="row"><span>Status</span><b id="wrStatus">HELD</b></div>
+</div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>07</span>Structure D: Lease-option</h2>
+<p class="sub">Buyer leases with an option to buy at a strike price. No title transfer until exercise. Rent credit reduces the effective purchase price only if the option agreement says so in writing. The underlying loan, if any, still needs known facts before the lease-option is recommended, because the buyer is paying rent that must cover it.</p>
+<div class="grid">
+<div><label for="loRent">Monthly rent paid under the option ($/mo)</label><input id="loRent" type="number" min="0" step="1" placeholder="e.g. 1900"></div>
+<div><label for="loOptionFee">Option fee, paid up front ($)</label><input id="loOptionFee" type="number" min="0" step="1" placeholder="e.g. 5000"></div>
+<div><label for="loRentCredit">Rent credit per month ($)</label><input id="loRentCredit" type="number" min="0" step="1" placeholder="e.g. 200"></div>
+<div><label for="loTermMo">Option term (months)</label><input id="loTermMo" type="number" min="0" step="1" placeholder="e.g. 24"></div>
+<div><label for="loStrike">Strike price ($)</label><input id="loStrike" type="number" min="0" step="1" placeholder="e.g. 250000"></div>
+<div><label for="loSubleaseRent">Rent collected if subleased ($/mo, blank = same as market rent)</label><input id="loSubleaseRent" type="number" min="0" step="1" placeholder="Blank = market rent"></div>
+</div>
+<div class="result">
+<div class="row"><span>Monthly cash flow while option is open (rent collected minus option rent minus other costs, less underlying payment if buyer pays it) <span class="tag">MODELED ESTIMATE</span></span><b id="loCashFlow">N/A</b></div>
+<div class="row"><span>Total rent credit over the option term <span class="tag">MODELED ESTIMATE</span></span><b id="loCreditTotal">N/A</b></div>
+<div class="row"><span>Effective purchase price (strike minus rent credit) <span class="tag">MODELED ESTIMATE</span></span><b id="loEffective">N/A</b></div>
+<div class="row"><span>Option fee at risk if the option is not exercised <span class="tag">MODELED ESTIMATE</span></span><b id="loFeeRisk">N/A</b></div>
+<div class="row"><span>Exit: exercise gain (ARV minus effective purchase price minus resale costs) <span class="tag">MODELED ESTIMATE</span></span><b id="loExit">N/A</b></div>
+<div class="row"><span>Status</span><b id="loStatus">HELD</b></div>
+</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>08</span>Structure E: Hybrid terms</h2>
+<p class="sub">Subject-to on the first loan plus a seller second note for the seller equity. Both notes must be priced. The hybrid only works when the subject-to payment plus the second-note payment still leaves positive cash flow.</p>
+<div class="grid">
+<div><label for="hybSecondAmt">Seller second note amount ($)</label><input id="hybSecondAmt" type="number" min="0" step="1" placeholder="e.g. 20000"></div>
+<div><label for="hybSecondRate">Seller second rate (% annual)</label><input id="hybSecondRate" type="number" min="0" step="0.01" placeholder="e.g. 8"></div>
+<div><label for="hybSecondTerm">Seller second term (months)</label><input id="hybSecondTerm" type="number" min="0" step="1" placeholder="e.g. 60"></div>
+</div>
+<div class="result">
+<div class="row"><span>Subject-to payment <span class="tag">MODELED ESTIMATE</span></span><b id="hyFirst">N/A</b></div>
+<div class="row"><span>Seller second payment (amortizing) <span class="tag">MODELED ESTIMATE</span></span><b id="hySecond">N/A</b></div>
+<div class="row"><span>Combined monthly payment <span class="tag">MODELED ESTIMATE</span></span><b id="hyPayment">N/A</b></div>
+<div class="row"><span>Monthly cash flow (rent minus combined payment minus other costs) <span class="tag">MODELED ESTIMATE</span></span><b id="hyCashFlow">N/A</b></div>
+<div class="row"><span>Annual cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="hyAnnual">N/A</b></div>
+<div class="row"><span>Exit: resale proceeds (ARV minus loan balance minus second note minus resale costs) <span class="tag">MODELED ESTIMATE</span></span><b id="hyExit">N/A</b></div>
+<div class="row"><span>Status</span><b id="hyStatus">HELD</b></div>
+</div>
+<figure>
+<svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cash flow waterfall diagram">
+<rect x="8" y="8" width="624" height="174" fill="#fffdf6" stroke="#1d1a16" stroke-width="2"/>
+<text x="320" y="34" text-anchor="middle" font-family="monospace" font-size="13">CASH FLOW WATERFALL (per month)</text>
+<rect x="30" y="55" width="110" height="40" fill="#e8ddba" stroke="#1d1a16"/><text x="85" y="79" text-anchor="middle" font-family="monospace" font-size="12">MARKET RENT</text>
+<text x="150" y="80" text-anchor="middle" font-family="monospace" font-size="16">-</text>
+<rect x="165" y="55" width="110" height="40" fill="#f6f1e6" stroke="#1d1a16"/><text x="220" y="79" text-anchor="middle" font-family="monospace" font-size="12">DEBT PAYMENT</text>
+<text x="285" y="80" text-anchor="middle" font-family="monospace" font-size="16">-</text>
+<rect x="300" y="55" width="110" height="40" fill="#f6f1e6" stroke="#1d1a16"/><text x="355" y="79" text-anchor="middle" font-family="monospace" font-size="12">TAX / INS / HOA</text>
+<text x="420" y="80" text-anchor="middle" font-family="monospace" font-size="16">-</text>
+<rect x="435" y="55" width="110" height="40" fill="#f6f1e6" stroke="#1d1a16"/><text x="490" y="79" text-anchor="middle" font-family="monospace" font-size="12">RESERVES</text>
+<text x="555" y="80" text-anchor="middle" font-family="monospace" font-size="16">=</text>
+<rect x="570" y="55" width="52" height="40" fill="#9a7b2d" stroke="#1d1a16"/><text x="596" y="79" text-anchor="middle" font-family="monospace" font-size="12" fill="#fff">NET</text>
+<text x="320" y="125" text-anchor="middle" font-family="monospace" font-size="12">Net must be positive on the chosen structure. A negative net on every structure is a kill.</text>
+<text x="320" y="150" text-anchor="middle" font-family="monospace" font-size="12">Debt payment is the structure payment: subject-to, seller note, wrap, or hybrid combined.</text>
+</svg>
+<figcaption>Figure 2. Monthly cash flow waterfall. The same waterfall applies to every structure; only the debt payment line changes.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s9">
+<h2><span>09</span>Comparison, exit, and assumptions</h2>
+<p class="sub">All five structures on one table. A structure with a negative monthly cash flow is not viable on a hold exit; it can only work on a resale exit if the exit proceeds cover the bleed, and that must be stated, not assumed.</p>
+<table>
+<thead><tr><th>Structure</th><th>Monthly payment</th><th>Monthly cash flow</th><th>Entry cash</th><th>Exit proceeds</th><th>Status</th></tr></thead>
+<tbody id="compareBody"></tbody>
+</table>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="exitPlan">Exit plan (refinance, resale, assign, exercise, or hold)</label><input id="exitPlan" type="text" placeholder="Example: Hold 24 months, refinance at term"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+<div><label for="titleNotes">Title evidence notes (free-and-clear proof, lien check, servicer)</label><textarea id="titleNotes" placeholder="Title commitment date, liens found, servicer name, or N/A"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="s10">
+<h2><span>10</span>Gates, fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. The loan-facts gate is the E9 hard gate and cannot be overridden in this tool.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+</section>
+
+<section class="card" id="s11">
+<h2><span>11</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. A kill means the recommendation is PASS. A PASS is a successful run, not a failed one. Unknown loan facts are a HOLD, listed here as a hold condition, not a kill.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill conditions fired (manual)</span><b id="killManual">None</b></div>
+<div class="row"><span>Kill conditions fired (automatic)</span><b id="killAuto">None</b></div>
+<div class="row"><span>Risk flags</span><b id="riskFlags">None</b></div>
+<div class="row"><span>Hold conditions fired</span><b id="holdConditions">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="recommendation">HOLD</b></div>
+</div>
+<div id="recBox" style="margin-top:12px"></div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>12</span>One-page summary, print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above.</p>
+<div class="result">
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Value / ARV <span class="tag">MODELED ESTIMATE</span></span><b id="sumArv">N/A</b></div>
+<div class="row"><span>Loan facts</span><b id="sumLoan">Unknown</b></div>
+<div class="row"><span>Due-on-sale risk</span><b id="sumDos">Unknown</b></div>
+<div class="row"><span>Best structure</span><b id="sumBest">N/A</b></div>
+<div class="row"><span>Best monthly cash flow <span class="tag">MODELED ESTIMATE</span></span><b id="sumBestCf">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+</section>
+
+<section class="card" id="s12">
+<h2><span>13</span>Receipt</h2>
+<p class="sub">Generated from the inputs above. Matches the creative-finance-receipt v1.0 schema fields. Offer authorized is always false in this tool. The receipt is evidence, not an offer. Chain receipts use the e9-creative-finance-receipt.v1.0 schema. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="creative-finance-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+<div id="chainStatus" class="hint" style="margin-top:12px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>14</span>How it works / What this is not</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the parcel from at least 2 public sources, get the loan facts from the lender statement and the note, enter the seller terms in writing, then let the tool price subject-to, seller finance, wrap, lease-option, and hybrid terms from the same rent and cost waterfall. The amortizing payment formula is shown in section 03 and used for every note. A share link encodes the whole deal in the URL so someone else can open the same numbers. Nothing is uploaded.</p>
+<p><b>What this is not:</b> not an appraisal, not legal, tax, or lending advice, not a title opinion, and not a replacement for an attorney, a title commitment, a loan servicer, or lender verification. It does not invent loan balances, rates, payments, or due-on-sale clauses. If a loan fact cannot be verified, it stays unknown and the run is HOLD. A positive cash flow does not mean a deal is good, and a PASS does not mean a property is bad. It means the evidence in this run does not support proceeding on a creative structure. No offer is quoted without Jeramie.</p>
+<p><b>Honest gaps and limits.</b> This tool does not verify a loan balance, rate, or due-on-sale clause against a lender; it only records what was entered and gates on it. It does not model taxes, depreciation, or insurance claims. It does not check state law on wraps, lease-options, or land contracts; those vary by state and need attorney review. Balloon balances assume the note amortizes on schedule with no missed or extra payments. Rent is a single monthly number, not a rent roll. The tool does not check whether a seller is legally able to sell subject-to or whether a loan is assumable. Layout has not been eyeballed in a real browser.</p>
+<p><b>Related engines.</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a></p>
+
+<p><b>Grounding gap.</b> No E9 specification document was found in the vault, and no Codex V2 Appendix B was located anywhere in the vault. The vault note 02-Real-Estate-Land/UnderwriteX.md line 52 orders E2-E12 as separate modular sites and names no E9 subject and no E9 mechanics. The only vault mention of Creative Finance is a taxonomy line in the Topology Notebook (CH15, line 31): "Creative Finance, seller finance / subject-to / structured scenarios within policy." That is a category label, not a spec. The 2026-11-04 build's own header claims lineage "Codex V2 App. B, E9", but no Codex V2 document was found in the vault to check that claim against. Grounding for the subject (Creative Finance) and every mechanic on this page is therefore the 2026-11-04 E9 build itself, live at https://e9-creative-finance.pages.dev/, carried here and labeled as such. Nothing on this page should be read as a paper claim.</p>
+<p><b>Builder decisions in this build.</b> These are mine, the builder's, not a paper claim and not Jeramie's order: the receipt chain design (SHA-256, GENESIS first, canonical JSON with the hash stripped, Web Crypto Verify); the SIMULATION banner and status board; the MODELED ESTIMATE labels. No market defaults are baked in: every rate, price, rent, and cost is typed in by the user, and a blank field is N/A or zero as stated on the page, never a hidden market assumption. No kill or flag was added beyond the 2026-11-04 build. The system prompt text and all three sample loaders are carried verbatim from the 2026-11-04 build.</p>
+<p><b>Carried quirks, not silently fixed.</b> (1) Section 07 labels lease-option cash flow as "less underlying payment if buyer pays it", but the 2026-11-04 code never subtracts the underlying payment, and no input records whether the buyer pays it. This build carries the code as written; the label wording is a known mismatch, documented here rather than silently changed, because no stated rule says when the subtraction applies. (2) AUTO kills 1 and 2 (negative cash flow on every structure, negative equity) only run when loan facts are known and the property is not free and clear, so a free-and-clear deal with negative cash flow on every structure fires no AUTO kill. Carried verbatim from the source. (3) Wrap exit uses the wrap note balance, not an amortized balance at exit; seller-finance exit uses the balloon balance only when a balloon month is set. Carried verbatim. (4) The comparison table "Entry cash" for the wrap row shows the seller-finance down payment, as in the source. Carried verbatim.</p>
+<p><b>Source for this build.</b> The 2026-11-04 E9 build: <a href="https://e9-creative-finance.pages.dev/">e9-creative-finance.pages.dev</a>. This page is a separate GitHub Pages SIMULATION build of the same engine.</p>
+</section>
+
+<footer>
+<p>Creative Finance Underwriting Engine E9 v1.0 - GitHub Pages SIMULATION build, 2026-11-14. Mechanics carried from the 2026-11-04 E9 build at e9-creative-finance.pages.dev. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. This file works offline with no external dependencies. Print this page for the file copy.</p>
+</footer>
+
+</div>
+
+
+</div>
+
+<script type="text/plain" id="systemPromptText">
+# SYSTEM: CREATIVE FINANCE UNDERWRITING ENGINE E9 v1.0
+
+# Architecture: Evidence-first | Deterministic calculations | Non-waivable gates | Receipt required
+# Domain: Subject-to, seller finance, wrap, lease-option, hybrid terms
+# Status: Not an appraisal. Not legal, tax, or lending advice. Public-data underwriting only.
+# Lineage: Codex V2 Appendix B, Engine E9 Creative Finance + Residential Underwriting Engine v1.1 core gates + E1 pattern
+# Version: v1.0, 2026-11-04.
+
+You are a creative finance underwriter. Follow every rule exactly. Do not guess. Do not invent facts. If information is unavailable after a documented search, retain the field and write "N/A" or "Unknown".
+
+## 0. HARD RULE
+
+No subject-to or seller-finance recommendation without known loan facts. Unknown loan = HOLD, not a creative structure. Loan facts are balance, rate, payment, remaining term, loan type, and due-on-sale status, from the lender statement and the note. A free-and-clear claim needs title evidence. A seller memory is a claim, not a fact.
+
+## 1. NON-NEGOTIABLE GATES (fail closed)
+
+- ADDRESS / PARCEL GATE: Confirm exact address and parcel identity from at least 2 public sources.
+- SOURCE GATE: Every loan fact, rent, value, and seller term carries a source name and date. No source, no use.
+- NO HALLUCINATION GATE: Unverifiable fields are N/A or Unknown. An invented number is a failed run.
+- LOAN FACTS GATE: Subject-to, wrap, and seller finance on an encumbered property require known loan facts. Unknown means HOLD.
+- AUTHORITY GATE: Underwriting opinion only. No offer without Jeramie. Offer authorized = false on every run unless a human approval record is attached.
+
+## 2. MATH (deterministic)
+
+- Amortizing payment: P = PV x r / (1 - (1 + r)^-n), r = annual rate / 12, n = term in months. Zero rate means P = PV / n.
+- Balloon balance at month k: B = PV x (1 + r)^k - P x ((1 + r)^k - 1) / r.
+- Monthly cash flow = rent - structure payment - taxes - insurance - HOA - reserves.
+- Equity = ARV - loan balance. Wrap spread = wrap payment - underlying payment. Rent credit total = monthly credit x option term. Effective purchase = strike - rent credit total.
+- Exit proceeds = ARV - payoff at exit - resale closing costs.
+
+## 3. OUTPUT CONTRACT
+
+1. Subject verified facts and income. 2. Loan facts with hard gate. 3. Seller terms. 4. Subject-to. 5. Seller finance. 6. Wrap. 7. Lease-option. 8. Hybrid. 9. Comparison and exit. 10. Gates. 11. E13 Risk / Kill-Switch. 12. One-page summary. 13. Receipt.
+
+## 4. RISK / KILL-SWITCH (E13)
+
+Recommend PASS on: negative cash flow on every viable structure, negative equity, option strike above ARV, balloon exceeding projected equity at the balloon date, seller asking price above ARV, or any checked manual kill condition. HOLD on: unknown loan facts, failed gates, or incomplete math inputs. A PASS is a successful run.
+</script>
+
+<script src="e9.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var v=parseFloat($(id).value);return isFinite(v)?v:null;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+var runId="E9-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: address and parcel confirmed from at least 2 public sources"},
+ {id:"source",label:"Source gate: every loan fact, rent, value, and seller term carries a source name and date"},
+ {id:"loan_facts",label:"Loan facts gate (HARD): balance, rate, payment, term, type, and due-on-sale status known from lender statement and note, or free-and-clear proven by title evidence"},
+ {id:"no_hallucination",label:"No-hallucination gate: no invented loan balances, rates, payments, or due-on-sale clauses; unverifiable fields are Unknown or N/A"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no offer without Jeramie; offer authorized is false"}
+];
+var kills=[
+ {id:"k_neg_cf",label:"Negative cash flow on every viable structure (auto-checked below when true)"},
+ {id:"k_neg_equity",label:"Negative equity: ARV below loan balance plus cash to seller (auto-checked below when true)"},
+ {id:"k_strike",label:"Lease-option strike price above ARV (auto-checked below when true)"},
+ {id:"k_balloon",label:"Balloon balance exceeds projected equity at the balloon date (auto-checked below when true)"},
+ {id:"k_ask_arv",label:"Seller asking price above ARV (auto-checked below when true)"},
+ {id:"k_dos",label:"Due-on-sale clause present with no written mitigation plan"},
+ {id:"k_title",label:"Title defect, lien, or heir issue with no cure cost"},
+ {id:"k_servicer",label:"Wrap with no third-party servicer"},
+ {id:"k_illegal",label:"Structure illegal or unpermitted in this jurisdiction per attorney or county review"},
+ {id:"k_seller",label:"Seller cannot document authority to sell or to leave the loan in place"}
+];
+
+function buildLists(){
+ var html="";
+ gates.forEach(function(g){
+  html+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ $("gateList").innerHTML=html;
+ var kh="";
+ kills.forEach(function(k){
+  kh+='<div class="item"><input type="checkbox" id="'+k.id+'" data-kill="'+k.id+'"><label for="'+k.id+'">'+esc(k.label)+'</label></div>';
+ });
+ $("killList").innerHTML=kh;
+}
+buildLists();
+
+var FIELD_IDS=["address","parcel","county","arv","marketRent","rentGrade","taxMo","insMo","hoaMo","maintMo","resaleCostPct","sourcesCount","sourceNames","loanKnown","loanBalance","loanRate","loanPayment","loanTermRemain","loanType","dueOnSale","loanEscrow","loanSource","sellerAsk","cashToSeller","sellerDown","sellerNoteRate","sellerNoteTerm","sellerBalloonMo","sellerTermsSource","wrapBalance","wrapRate","wrapTerm","loRent","loOptionFee","loRentCredit","loTermMo","loStrike","loSubleaseRent","hybSecondAmt","hybSecondRate","hybSecondTerm","confidence","exitPlan","assumptions","missingData","conflicts","titleNotes"];
+var CHECK_IDS=["freeClear","dosMitigation"];
+
+function collect(){
+ var d={};
+ FIELD_IDS.forEach(function(id){var e=$(id);d[id]=e?e.value:"";});
+ CHECK_IDS.forEach(function(id){var e=$(id);d[id]=e?e.checked:false;});
+ d.gates={};gates.forEach(function(g){var e=$("gate_"+g.id);d.gates[g.id]=e?e.value:"hold";});
+ d.kills={};kills.forEach(function(k){var e=$(k.id);d.kills[k.id]=e?e.checked:false;});
+ return d;
+}
+function applyData(d){
+ FIELD_IDS.forEach(function(id){if(d[id]!==undefined&&$(id)){$(id).value=d[id];}});
+ CHECK_IDS.forEach(function(id){if(d[id]!==undefined&&$(id)){$(id).checked=!!d[id];}});
+ if(d.gates){gates.forEach(function(g){if(d.gates[g.id]&&$("gate_"+g.id)){$("gate_"+g.id).value=d.gates[g.id];}});}
+ if(d.kills){kills.forEach(function(k){if(d.kills[k.id]!==undefined&&$(k.id)){$(k.id).checked=!!d.kills[k.id];}});}
+}
+function encodeShare(){
+ var json=JSON.stringify(collect());
+ var b64=btoa(unescape(encodeURIComponent(json)));
+ return location.href.split("#")[0]+"#d="+b64;
+}
+function decodeShare(){
+ if(!location.hash||location.hash.indexOf("#d=")!==0){return false;}
+ try{
+  var json=decodeURIComponent(escape(atob(location.hash.slice(3))));
+  applyData(JSON.parse(json));
+  return true;
+ }catch(e){return false;}
+}
+
+
+var lastReceipt=null;
+var chain=[];
+function safeAlert(m){try{alert(m);}catch(e){}}
+
+function gather(){
+ var g={};
+ g.address=$("address").value;g.parcel=$("parcel").value;
+ g.arv=num("arv");g.rent=num("marketRent");
+ g.tax=num("taxMo");g.ins=num("insMo");g.hoa=num("hoaMo");g.maint=num("maintMo");
+ g.resalePct=num("resaleCostPct");g.grade=$("rentGrade").value;g.sourcesCount=num("sourcesCount");
+ g.loanKnown=$("loanKnown").value;g.loanBalance=num("loanBalance");g.loanRate=num("loanRate");
+ g.loanPayment=num("loanPayment");g.loanTermRemain=num("loanTermRemain");g.loanType=$("loanType").value;
+ g.dueOnSale=$("dueOnSale").value;g.freeClear=$("freeClear").checked;g.dosMitigation=$("dosMitigation").checked;
+ g.ask=num("sellerAsk");g.cashToSeller=num("cashToSeller");g.down=num("sellerDown");
+ g.sellerNoteRate=num("sellerNoteRate");g.sellerNoteTerm=num("sellerNoteTerm");g.sellerBalloonMo=num("sellerBalloonMo");
+ g.wrapBalance=num("wrapBalance");g.wrapRate=num("wrapRate");g.wrapTerm=num("wrapTerm");
+ g.loRent=num("loRent");g.loOptionFee=num("loOptionFee");g.loRentCredit=num("loRentCredit");
+ g.loTermMo=num("loTermMo");g.loStrike=num("loStrike");g.loSubleaseRent=num("loSubleaseRent");
+ g.hybSecondAmt=num("hybSecondAmt");g.hybSecondRate=num("hybSecondRate");g.hybSecondTerm=num("hybSecondTerm");
+ g.gates={};gates.forEach(function(gt){var e=$("gate_"+gt.id);g.gates[gt.id]=e?e.value:"hold";});
+ g.manualKillIds=[];kills.forEach(function(k){var e=$(k.id);if(e&&e.checked){g.manualKillIds.push(k.id);}});
+ return g;
+}
+
+function calc(){
+ var g=gather();
+ var r=E9.compute(g);
+ var pay=g.loanPayment, freeClear=g.freeClear;
+
+ $("outOtherCosts").textContent=money(r.other);
+ $("outRentNote").textContent=r.gradeNote;
+ $("outLoanComplete").textContent=r.loanFactsComplete?"Yes":"No";
+ $("outDosRisk").textContent=r.dosRisk;
+ $("outEquity").textContent=money(r.equity);
+ $("outHardGate").textContent=r.hardHeld?"HELD, loan facts unknown":"PASS, loan facts known";
+ $("loanWarning").hidden=!r.hardHeld;
+
+ $("stPayment").textContent=(r.hardHeld||freeClear)?(freeClear?"N/A, free and clear":"HELD, loan facts unknown"):money(pay);
+ $("stOther").textContent=money(r.other);
+ $("stCashFlow").textContent=money(r.st.cashFlow);
+ $("stAnnual").textContent=money(r.st.annual);
+ $("stEntry").textContent=money(r.st.entry);
+ $("stEquity").textContent=money(r.st.equity);
+ $("stExit").textContent=money(r.st.exit);
+ $("stStatus").textContent=r.st.status;
+
+ $("sfNote").textContent=money(r.sf.note);
+ $("sfPayment").textContent=r.sf.held?"HELD, loan facts unknown":money(r.sf.payment);
+ $("sfCashFlow").textContent=r.sf.held?"HELD, loan facts unknown":money(r.sf.cashFlow);
+ $("sfAnnual").textContent=(r.sf.held||r.sf.cashFlow===null)?"N/A":money(r.sf.annual);
+ $("sfBalloon").textContent=(g.sellerBalloonMo>0)?money(r.sf.balloon):"No balloon";
+ $("sfExit").textContent=r.sf.held?"HELD, loan facts unknown":money(r.sf.exit);
+ $("sfStatus").textContent=r.sf.status;
+
+ $("wrPayment").textContent=r.wr.held?"HELD, loan facts unknown":money(r.wr.payment);
+ $("wrUnderlying").textContent=r.wr.held?"HELD, loan facts unknown":money(pay);
+ $("wrSpread").textContent=(r.wr.held||r.wr.spread===null)?(r.wr.held?"HELD, loan facts unknown":"N/A"):money(r.wr.spread);
+ $("wrCashFlow").textContent=r.wr.held?"HELD, loan facts unknown":money(r.wr.cashFlow);
+ $("wrAnnual").textContent=(r.wr.held||r.wr.cashFlow===null)?"N/A":money(r.wr.annual);
+ $("wrExit").textContent=r.wr.held?"HELD, loan facts unknown":money(r.wr.exit);
+ $("wrStatus").textContent=r.wr.status;
+
+ $("loCashFlow").textContent=r.lo.held?"HELD, loan facts unknown":money(r.lo.cashFlow);
+ $("loCreditTotal").textContent=money(r.lo.creditTotal);
+ $("loEffective").textContent=money(r.lo.effective);
+ $("loFeeRisk").textContent=money(r.lo.feeRisk);
+ $("loExit").textContent=r.lo.held?"HELD, loan facts unknown":money(r.lo.exit);
+ $("loStatus").textContent=r.lo.status;
+
+ $("hyFirst").textContent=r.hy.held?(freeClear?"N/A, free and clear":"HELD, loan facts unknown"):money(pay);
+ $("hySecond").textContent=money(r.hy.second);
+ $("hyPayment").textContent=r.hy.held?(freeClear?"N/A, free and clear":"HELD, loan facts unknown"):money(r.hy.payment);
+ $("hyCashFlow").textContent=r.hy.held?(freeClear?"N/A, free and clear":"HELD, loan facts unknown"):money(r.hy.cashFlow);
+ $("hyAnnual").textContent=(r.hy.held||r.hy.cashFlow===null)?"N/A":money(r.hy.annual);
+ $("hyExit").textContent=r.hy.held?(freeClear?"N/A, free and clear":"HELD, loan facts unknown"):money(r.hy.exit);
+ $("hyStatus").textContent=r.hy.status;
+
+ var cb=$("compareBody");cb.innerHTML="";
+ r.compare.forEach(function(row){
+  var tr=document.createElement("tr");
+  tr.innerHTML="<td>"+row[0]+"</td><td>"+money(row[1])+"</td><td>"+money(row[2])+"</td><td>"+money(row[3])+"</td><td>"+money(row[4])+"</td><td>"+esc(row[5])+"</td>";
+  cb.appendChild(tr);
+ });
+
+ ["k_neg_cf","k_neg_equity","k_strike","k_balloon","k_ask_arv"].forEach(function(id){
+  if($(id)){$(id).checked=r.autoKillIds.indexOf(id)!==-1;}
+ });
+
+ $("gateStatus").textContent=r.gatesFailed.length===0?"PASS, all gates verified":"HOLD, gates not verified";
+ $("gatesPassed").textContent=r.gatesPassed.length?r.gatesPassed.join(", "):"None";
+ $("gatesFailed").textContent=r.gatesFailed.length?r.gatesFailed.join(", "):"None";
+
+ var status=r.recommendation, recHtml="";
+ if(r.recKind==="pass"){
+  recHtml='<div class="warning">Recommendation: PASS. Kill condition fired: '+esc(r.autoKills.concat(r.manualKills).join("; "))+'</div>';
+ }else if(r.recKind==="hold"){
+  var reasons=[];
+  if(r.hardHeld){reasons.push("loan facts unknown, HARD GATE");}
+  if(r.gatesFailed.length){reasons.push("failed or held gates: "+r.gatesFailed.join(", "));}
+  if(reasons.length===0){reasons.push("no structure has a positive cash flow on the numbers entered. Enter complete rent, cost, and term inputs.");}
+  recHtml='<div class="hint">Status: HOLD. '+esc(reasons.join("; ")) +'. No creative structure is recommended on this run. No offer without Jeramie.</div>';
+ }else{
+  recHtml='<div class="hint" style="background:#e6efe6;border-color:var(--green)">Status: READY FOR REVIEW. Best structure on cash flow: '+esc(r.best)+' at '+money(r.bestCf)+' per month. This is an underwriting opinion only, not an offer. No offer without Jeramie.</div>';
+ }
+ $("recommendation").textContent=status;
+ $("killManual").textContent=r.manualKills.length?r.manualKills.join("; "):"None";
+ $("killAuto").textContent=r.autoKills.length?r.autoKills.join("; "):"None";
+ $("riskFlags").textContent=r.riskFlags.length?r.riskFlags.join("; "):"None";
+ $("holdConditions").textContent=r.holdConds.length?r.holdConds.join("; "):"None";
+ $("recBox").innerHTML=recHtml;
+
+ $("stickyCompleteBar").style.width=r.completeness.pct+"%";
+ $("stickyCompleteText").textContent=r.completeness.pct+" percent";
+ $("missingHints").textContent=r.completeness.missing.length?"Missing: "+r.completeness.missing.join(", ")+".":"All required fields are filled.";
+ $("stickyBest").textContent=money(r.bestCf);
+ $("stickyStructure").textContent=r.best===null?"N/A":r.best;
+ $("stickyEquity").textContent=money(r.equity);
+ $("stickyRec").textContent=status;
+ $("sumAddress").textContent=$("address").value.trim()||"N/A";
+ $("sumParcel").textContent=$("parcel").value.trim()||"N/A";
+ $("sumArv").textContent=money(g.arv);
+ $("sumLoan").textContent=r.loanFactsComplete?(freeClear?"Free and clear":"Known"):"Unknown";
+ $("sumDos").textContent=r.dosRisk;
+ $("sumBest").textContent=r.best===null?"N/A":r.best;
+ $("sumBestCf").textContent=money(r.bestCf);
+ var conf=parseFloat($("confidence").value);if(isNaN(conf)){conf=null;}
+ $("sumConfidence").textContent=conf===null?"N/A":conf.toFixed(2);
+ $("sumGates").textContent=r.gatesFailed.length===0?"PASS":"HOLD";
+ $("sumRec").textContent=status;
+
+ var receipt={
+  schema_version:"creative-finance-receipt.v1.0",
+  run_id:runId,
+  run_date:new Date().toISOString().slice(0,10),
+  address:$("address").value.trim()||null,
+  parcel_id:$("parcel").value.trim()||null,
+  county:$("county").value.trim()||null,
+  arv:g.arv,
+  market_rent:g.rent,
+  rent_grade:g.grade||null,
+  other_monthly_costs:r.other,
+  loan:{status:g.loanKnown,free_and_clear:freeClear,balance:g.loanBalance,rate:g.loanRate,payment:pay,remaining_term_months:g.loanTermRemain,type:g.loanType||null,due_on_sale:g.dueOnSale,escrow:$("loanEscrow").value||null,source:$("loanSource").value.trim()||null, facts_complete:r.loanFactsComplete},
+  due_on_sale_risk:r.dosRisk,
+  equity:r.equity,
+  seller:{asking_price:g.ask,cash_to_seller:g.cashToSeller,down_payment:g.down,note_rate:g.sellerNoteRate,note_term_months:g.sellerNoteTerm,balloon_months:g.sellerBalloonMo||0,terms_source:$("sellerTermsSource").value.trim()||null},
+  structures:{
+   subject_to:{payment:pay,cash_flow:r.st.cashFlow,annual_cash_flow:r.st.annual,equity_at_close:r.st.equity,exit_proceeds:r.st.exit,status:r.st.status},
+   seller_finance:{note_amount:r.sf.note,payment:r.sf.payment,cash_flow:r.sf.cashFlow,annual_cash_flow:r.sf.annual,balloon_balance:r.sf.balloon,exit_proceeds:r.sf.exit,status:r.sf.status},
+   wrap:{note_balance:g.wrapBalance,note_rate:g.wrapRate,note_term_months:g.wrapTerm,payment:r.wr.payment,spread:r.wr.spread,cash_flow:r.wr.cashFlow,annual_cash_flow:r.wr.annual,exit_proceeds:r.wr.exit,status:r.wr.status},
+   lease_option:{monthly_rent:g.loRent,option_fee:g.loOptionFee,rent_credit_per_month:g.loRentCredit,option_term_months:g.loTermMo,strike_price:g.loStrike,total_rent_credit:r.lo.creditTotal,effective_purchase_price:r.lo.effective,cash_flow:r.lo.cashFlow,exit_proceeds:r.lo.exit,status:r.lo.status},
+   hybrid:{second_note_amount:g.hybSecondAmt,second_note_payment:r.hy.second,combined_payment:r.hy.payment,cash_flow:r.hy.cashFlow,annual_cash_flow:r.hy.annual,exit_proceeds:r.hy.exit,status:r.hy.status}
+  },
+  best_structure:r.best,
+  best_monthly_cash_flow:r.bestCf,
+  exit_plan:$("exitPlan").value.trim()||null,
+  gates:{passed:r.gatesPassed,failed:r.gatesFailed},
+  kill_switch:{manual:r.manualKills,automatic:r.autoKills},
+  risk_flags:r.riskFlags,
+  hold_conditions:r.holdConds,
+  recommendation:status,
+  confidence:conf,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value,
+  title_notes:$("titleNotes").value,
+  offer_authorized:false,
+  sources_checked:g.sourcesCount||0,
+  source_names:$("sourceNames").value.trim()||null
+ };
+ lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ try{history.replaceState(null,"",encodeShare());}catch(e){}
+}
+
+/* Receipt chain v1.0: SHA-256, GENESIS first, canonical JSON with the
+   hash field stripped, Verify via Web Crypto with PASS/FAIL per receipt. */
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!lastReceipt||!lastReceipt.run_id){safeAlert("No receipt to issue yet.");return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E9.buildReceipt(lastReceipt,prev,seq);
+ sha256HexBrowser(E9.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){safeAlert("Could not hash receipt: "+e.message);});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E9.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e9-creative-finance-chain.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+function showSampleNote(txt){var n=$("sampleNote");n.hidden=false;n.textContent=txt;}
+function setVal(id,v){$(id).value=v;}
+function resetAll(){
+ FIELD_IDS.forEach(function(id){var e=$(id);if(e){e.value=(id==="resaleCostPct")?"8":(id==="sellerBalloonMo")?"0":(id==="sourcesCount")?"0":(id==="confidence")?"0.50":"";}});
+ CHECK_IDS.forEach(function(id){$(id).checked=false;});
+ gates.forEach(function(g){$("gate_"+g.id).value="hold";});
+ kills.forEach(function(k){$(k.id).checked=false;});
+ $("sampleNote").hidden=true;
+}
+function setGatesPass(){gates.forEach(function(g){$("gate_"+g.id).value="pass";});}
+function loadSample(kind){
+ resetAll();
+ if(kind==="a"){
+  setVal("address","123 Creative Ln, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-PARCEL-E9A");setVal("county","Berrien County, MI");
+  setVal("arv","250000");setVal("marketRent","1900");setVal("rentGrade","B");
+  setVal("taxMo","250");setVal("insMo","120");setVal("hoaMo","0");setVal("maintMo","150");
+  setVal("sourcesCount","2");setVal("sourceNames","County assessor, County GIS");
+  setVal("loanKnown","known");setVal("loanBalance","180000");setVal("loanRate","4.5");setVal("loanPayment","1100");setVal("loanTermRemain","300");setVal("loanType","Conventional");setVal("dueOnSale","yes");setVal("loanEscrow","no");setVal("loanSource","Lender payoff statement dated 2026-11-01");
+  setVal("sellerAsk","240000");setVal("cashToSeller","5000");setVal("sellerDown","20000");setVal("sellerNoteRate","6");setVal("sellerNoteTerm","360");setVal("sellerBalloonMo","0");setVal("sellerTermsSource","Written seller term sheet dated 2026-11-01");
+  setVal("wrapBalance","240000");setVal("wrapRate","7");setVal("wrapTerm","360");
+  setVal("loRent","1900");setVal("loOptionFee","5000");setVal("loRentCredit","200");setVal("loTermMo","24");setVal("loStrike","250000");setVal("loSubleaseRent","");
+  setVal("hybSecondAmt","20000");setVal("hybSecondRate","8");setVal("hybSecondTerm","60");
+  setVal("confidence","0.75");setVal("exitPlan","Hold 24 months, refinance at term");
+  $("dosMitigation").checked=true;
+  setVal("assumptions","Sample deal only, not a real deal. 1. Loan facts from a sample payoff statement. 2. Rent is grade B, listed rent. 3. Other costs are 250 tax + 120 insurance + 0 HOA + 150 reserves = 520 per month.");
+  setGatesPass();
+  showSampleNote("Sample A loaded. This is a sample, not a real deal. Expected: subject-to cash flow $280.00 per month, seller finance payment $1,319.01, wrap payment $1,596.73, hybrid cash flow negative. Best structure: subject-to.");
+ }else if(kind==="b"){
+  setVal("address","456 Pass Rd, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-PARCEL-E9B");setVal("county","Berrien County, MI");
+  setVal("arv","200000");setVal("marketRent","1200");setVal("rentGrade","C");
+  setVal("taxMo","200");setVal("insMo","100");setVal("hoaMo","0");setVal("maintMo","100");
+  setVal("sourcesCount","2");setVal("sourceNames","County assessor, County GIS");
+  setVal("loanKnown","known");setVal("loanBalance","210000");setVal("loanRate","6");setVal("loanPayment","1400");setVal("loanTermRemain","300");setVal("loanType","Conventional");setVal("dueOnSale","yes");setVal("loanEscrow","no");setVal("loanSource","Lender payoff statement dated 2026-11-01");
+  setVal("sellerAsk","210000");setVal("cashToSeller","0");setVal("sellerDown","10000");setVal("sellerNoteRate","7");setVal("sellerNoteTerm","360");setVal("sellerBalloonMo","0");setVal("sellerTermsSource","Written seller term sheet dated 2026-11-01");
+  setVal("wrapBalance","210000");setVal("wrapRate","8");setVal("wrapTerm","360");
+  setVal("loRent","1200");setVal("loOptionFee","2000");setVal("loRentCredit","100");setVal("loTermMo","24");setVal("loStrike","220000");setVal("loSubleaseRent","");
+  setVal("hybSecondAmt","10000");setVal("hybSecondRate","8");setVal("hybSecondTerm","60");
+  setVal("confidence","0.60");setVal("exitPlan","None, PASS");
+  setVal("assumptions","Sample deal only, not a real deal. PASS sample: negative equity and negative cash flow on every structure.");
+  setGatesPass();
+  showSampleNote("Sample B loaded. This is a sample, not a real deal. PASS sample: loan balance $210,000 exceeds ARV $200,000, and every structure cash flow is negative. Expected result: recommendation PASS.");
+ }else{
+  setVal("address","789 Unknown Ln, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-PARCEL-E9C");setVal("county","Berrien County, MI");
+  setVal("arv","240000");setVal("marketRent","1800");setVal("rentGrade","D");
+  setVal("taxMo","220");setVal("insMo","110");setVal("hoaMo","0");setVal("maintMo","120");
+  setVal("sourcesCount","2");setVal("sourceNames","County assessor, County GIS");
+  setVal("loanKnown","unknown");setVal("loanBalance","");setVal("loanRate","");setVal("loanPayment","");setVal("loanTermRemain","");setVal("loanType","");setVal("dueOnSale","unknown");setVal("loanEscrow","unknown");setVal("loanSource","");
+  setVal("sellerAsk","230000");setVal("cashToSeller","10000");setVal("sellerDown","15000");setVal("sellerNoteRate","6");setVal("sellerNoteTerm","360");setVal("sellerBalloonMo","0");setVal("sellerTermsSource","Seller verbal terms only, not in writing");
+  setVal("wrapBalance","230000");setVal("wrapRate","7");setVal("wrapTerm","360");
+  setVal("loRent","1800");setVal("loOptionFee","3000");setVal("loRentCredit","150");setVal("loTermMo","24");setVal("loStrike","240000");setVal("loSubleaseRent","");
+  setVal("hybSecondAmt","15000");setVal("hybSecondRate","8");setVal("hybSecondTerm","60");
+  setVal("confidence","0.40");setVal("exitPlan","None, HOLD until loan facts are known");
+  setVal("assumptions","Sample deal only, not a real deal. HOLD sample: seller says there is a loan but no balance, rate, payment, or due-on-sale status is known. Unknown loan = HOLD, not a creative structure.");
+  showSampleNote("Sample C loaded. This is a sample, not a real deal. HOLD sample: loan facts unknown. Expected result: HARD GATE fires, all creative structures HELD, recommendation HOLD.");
+ }
+ calc();
+}
+
+function copyText(txt,msg){
+ function done(){alert(msg);}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallback();});}
+ else{fallback();}
+ function fallback(){var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(ta);done();}
+}
+function downloadReceipt(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e9-creative-finance-receipt.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnCopyPrompt").addEventListener("click",function(){copyText($("systemPromptText").textContent,"System prompt copied.");});
+document.addEventListener("input",calc);
+document.addEventListener("change",calc);
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnClear").addEventListener("click",function(){resetAll();calc();});
+$("btnShare").addEventListener("click",function(){var u=encodeShare();$("shareUrl").value=u;copyText(u,"Share link copied. It encodes this deal in the URL hash.");});
+$("btnClearShare").addEventListener("click",function(){$("shareUrl").value="";try{history.replaceState(null,"",location.pathname);}catch(e){}});
+$("btnCopyReceipt").addEventListener("click",function(){copyText($("receiptOut").textContent,"Receipt JSON copied.");});
+$("btnDownloadReceipt").addEventListener("click",downloadReceipt);
+$("btnPrint").addEventListener("click",function(){window.print();});
+var restored=decodeShare();
+if(!restored){calc();}else{calc();}
+})();
+</script>
+</body>
+</html>
