@@ -752,7 +752,7 @@ function renderDagView(){
   var d = dagDepths();
   if (!d){
     var v = validateDag();
-    var cycNames = v.cycle.map(function(id){ var s = stepById(id); return s ? s.name : id; }).join(' -&gt; ');
+    var cycNames = v.cycle.map(function(id){ var s = stepById(id); return s ? s.name : id; }).join(' -> ');
     wrap.innerHTML = '<div class="callout bad"><b>DAG cannot be drawn: cycle detected.</b><br>Cycle: ' + esc(cycNames) + '</div>';
     return;
   }
@@ -970,6 +970,7 @@ function loadSample(kind){
   $('worldSelect').value = state.world;
   resetSimulation(true);
   renderAll();
+  $('validateOut').innerHTML = '';
 }
 
 /* ---------- Simulator ---------- */
@@ -1221,12 +1222,12 @@ function wire(){
     var out = $('validateOut');
     if (v.ok){
       var names = v.order.map(function(id){ var s = stepById(id); return s ? s.name : id; });
-      out.innerHTML = '<div class="callout ok"><b>Validation PASSED.</b> No cycles, every dependency exists. Topological order: ' + esc(names.join(' -&gt; ')) + '</div>';
+      out.innerHTML = '<div class="callout ok"><b>Validation PASSED.</b> No cycles, every dependency exists. Topological order: ' + esc(names.join(' -> ')) + '</div>';
     } else {
       var cycNames = v.cycle.map(function(id){ var s = stepById(id); return s ? s.name : id; });
       var msg = '<div class="callout bad"><b>Validation FAILED.</b><br>';
       if (v.missing.length) msg += 'Missing dependencies: ' + esc(v.missing.join('; ')) + '<br>';
-      if (v.cycle.length) msg += 'Cycle detected: ' + esc(cycNames.join(' -&gt; ')) + '<br>';
+      if (v.cycle.length) msg += 'Cycle detected: ' + esc(cycNames.join(' -> ')) + '<br>';
       msg += 'Fix the cycle before simulating. The simulator refuses to run on an invalid DAG.</div>';
       out.innerHTML = msg;
     }
@@ -1237,7 +1238,7 @@ function wire(){
     var out = $('validateOut');
     if (v.ok){
       var names = v.order.map(function(id){ var s = stepById(id); return s ? s.name : id; });
-      out.innerHTML = '<div class="callout"><b>Execution order (topological sort):</b> ' + esc(names.join(' -&gt; ')) + '</div>';
+      out.innerHTML = '<div class="callout"><b>Execution order (topological sort):</b> ' + esc(names.join(' -> ')) + '</div>';
     } else {
       out.innerHTML = '<div class="callout bad"><b>No execution order: the DAG is invalid.</b> Run Validate DAG for the cycle report.</div>';
     }
