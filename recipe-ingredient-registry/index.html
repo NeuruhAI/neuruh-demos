@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recipe Ingredient Registry: The Two 49s (SIMULATION)</title>
+<style>
+  :root{ --bone:#f4f1ea; --paper:#fffdf7; --ink:#1c1a16; --muted:#6b655a; --brass:#9a7b2d;
+    --line:#d8d2c4; --red:#8c2f26; --amber:#8a6d1a; --green:#2f6b3a; --grey:#5c5c5c; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bone); color:var(--ink);
+    font-family:"Inter","Archivo",system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.55; }
+  .wrap{ max-width:1060px; margin:0 auto; padding:28px 20px 64px; }
+  header.doc{ background:var(--paper); border:1px solid var(--line); border-top:5px solid var(--brass);
+    padding:22px 26px; }
+  .kicker{ font-family:"JetBrains Mono",ui-monospace,Menlo,monospace; font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--brass); }
+  h1{ font-family:"Archivo",system-ui,sans-serif; font-size:30px; line-height:1.15; margin:8px 0 6px; }
+  h2{ font-family:"Archivo",system-ui,sans-serif; font-size:21px; margin:34px 0 8px;
+    border-bottom:2px solid var(--brass); padding-bottom:6px; }
+  h3{ font-size:16px; margin:22px 0 6px; }
+  p{ margin:8px 0; }
+  .meta{ display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px 22px;
+    font-size:13px; color:var(--muted); margin-top:14px; border-top:1px solid var(--line); padding-top:12px; }
+  .meta b{ color:var(--ink); font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12px; }
+  .badge{ display:inline-block; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px;
+    letter-spacing:.08em; padding:3px 8px; border:1px solid currentColor; border-radius:2px;
+    text-transform:uppercase; vertical-align:middle; }
+  .badge.sim{ color:var(--amber); border-color:var(--amber); }
+  .badge.unver{ color:var(--red); border-color:var(--red); }
+  .badge.ver{ color:var(--green); border-color:var(--green); }
+  .badge.grey{ color:var(--grey); border-color:var(--grey); }
+  .honesty{ background:#fdf3f2; border:2px solid var(--red); padding:18px 22px; margin-top:22px; }
+  .honesty h2{ border:none; margin:0 0 8px; color:var(--red); }
+  .honesty ul{ margin:8px 0 4px 20px; }
+  .honesty li{ margin:6px 0; }
+  .twocol{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+  @media (max-width:720px){ .twocol{ grid-template-columns:1fr; } }
+  .card{ background:var(--paper); border:1px solid var(--line); padding:16px 18px; }
+  .card h3{ margin-top:0; }
+  .card .big{ font-family:"Archivo",system-ui,sans-serif; font-size:34px; line-height:1; margin:6px 0; }
+  .card .big small{ font-size:15px; color:var(--muted); }
+  table{ width:100%; border-collapse:collapse; background:var(--paper); font-size:13.5px; margin-top:10px; }
+  th,td{ border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th{ background:#ece7da; font-family:"Archivo",system-ui,sans-serif; font-size:12px;
+    letter-spacing:.04em; text-transform:uppercase; }
+  td.mono, .mono{ font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12px; }
+  .filters{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px; }
+  .filters input[type="search"]{ flex:1 1 240px; padding:9px 12px; font-size:14px;
+    border:1px solid var(--line); background:var(--paper); color:var(--ink); }
+  .filters select{ padding:9px 10px; font-size:14px; border:1px solid var(--line);
+    background:var(--paper); color:var(--ink); }
+  .count{ font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12.5px; color:var(--muted); margin-top:10px; }
+  .note{ background:var(--paper); border-left:4px solid var(--brass); padding:12px 16px; margin-top:14px; font-size:14px; }
+  .gap{ background:#fdf6e3; border:1px solid var(--amber); padding:14px 18px; margin-top:14px; }
+  .gap h3{ margin-top:0; color:var(--amber); }
+  footer{ margin-top:40px; border-top:1px solid var(--line); padding-top:14px; font-size:12.5px; color:var(--muted); }
+  a{ color:var(--brass); }
+  .src{ font-size:13px; }
+  .src li{ margin:5px 0; }
+  tr.hidden{ display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+  <div class="kicker">Neuruh &middot; Document-class build &middot; Tier B working demo</div>
+  <h1>Recipe Ingredient Registry: The Two 49s <span class="badge sim">Simulation</span></h1>
+  <p>One page, two inventories that share only the number 49. The ingredient side is summarized here and
+  lives in full on its own page. The signal side is the new interactive registry below, with a per-row
+  verification status and a source for every status where one is known.</p>
+  <div class="meta">
+    <div>Built<br><b>2026-11-14</b></div>
+    <div>Finding<br><b>Q-SWEEP-4</b></div>
+    <div>Registry format<br><b>NRH v0.1</b></div>
+    <div>Live status<br><b>SIMULATION, not a live engine</b></div>
+    <div>Rows named<br><b>40 of 49 signals</b></div>
+    <div>Rows invented<br><b>0</b></div>
+  </div>
+</header>
+
+<section class="honesty" aria-label="Honesty notice">
+  <h2>Read this first: what is NOT verified</h2>
+  <ul>
+    <li><b>The 49-ingredient Recipe Engine inventory is UNVERIFIED.</b> Two independent documents dated
+    August 1, 2026 say it explicitly: file 05, <i>Modular Agentic Cockpit and Swarm Orchestration Codex v1</i>,
+    and file 08, <i>Neuruh Unified Ontology and World Landing Codex v1</i>. Both state the founder-referenced
+    49-ingredient real-estate Recipe Engine set "was not found as a verified list". Open item Q-SWEEP-4,
+    upload sweep 2026-11-10. Still open. Nothing on this page upgrades that verdict.</li>
+    <li><b>The 49-signal LandOS model is a DIFFERENT object.</b> It is a scoring-signal registry for LandOS
+    (Ecosystem Codex, Tier A, verified as a model), not the Recipe Engine ingredient set. The two 49s share
+    only the number 49. They are never merged on this page: two separate tables, separate IDs, separate counts.</li>
+    <li><b>Even the LandOS 49 count is disputed.</b> The registry says 49 signals; the estate record says 50.
+    The discrepancy recurs across batches 003, 004, 007, 008, 009 and 013 and is UNVERIFIED. This page names
+    the 40 signals its sources actually list, and marks the other 9 as UNKNOWN rather than inventing them.</li>
+    <li><b>Row IDs are demo-assigned.</b> IDs below use the NRH format
+    (<span class="mono">NRH-RE-LOSE-SIG-NNN-hash8</span>, hash = first 8 hex of SHA-256 of the signal name).
+    They are not records in the canonical NRH Registry, which lives on the Mac. This demo writes nothing to it.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Figure 1. The two 49s, side by side</h2>
+  <div class="twocol">
+    <div class="card">
+      <h3>49 A: Recipe Engine ingredients</h3>
+      <div class="big">49 <small>distinct ingredients</small></div>
+      <p><span class="badge unver">Inventory unverified</span></p>
+      <p>Registry file holds 50 rows; row I-ES-01 is an alias pointer to I-SUC-03, leaving 49 distinct
+      ingredients. Full per-row registry, search, filters, recipe composer and probate calculator live at
+      <a href="https://recipe-engine-49.pages.dev/">recipe-engine-49.pages.dev</a>. This page does not re-list
+      those 49 rows.</p>
+      <p>Hunter coverage on that page: <b>22 of 49 have no hunter</b>, 11 partial, 16 with a producer.
+      9 of 49 are classified PROBABLE, not PROVEN, in the registry itself.</p>
+    </div>
+    <div class="card">
+      <h3>49 B: LandOS signals</h3>
+      <div class="big">40 <small>named in sources; 9 unknown</small></div>
+      <p><span class="badge unver">Count disputed: 49 vs 50</span></p>
+      <p>LandOS scoring registry: 15 structure, 14 land, 14 owner-event, 6 market, family weights sum to 1.0.
+      37 of 49 are claimed to have a real extractor. The interactive registry below lists the 40 signals the
+      sources name, each with its live status. The 9 unnamed signals are a gap, not rows.</p>
+      <p>Live-tested in the source session: <b>6 of 40</b> computed real values against a Berrien County point.
+      13 more return MISSING until a trained CV model exists. 14 run on precomputed fields only.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Table 1. Ingredient side: family roll-up (summary, not a duplicate)</h2>
+  <p>The full 49-row ingredient registry already exists at
+  <a href="https://recipe-engine-49.pages.dev/">recipe-engine-49.pages.dev</a> with search, family, hunter and
+  classification filters, a recipe composer and a probate calculator. Re-listing all 49 rows here would duplicate
+  it. What this table adds is the roll-up: 33 families counted from that page on 2026-11-14, so the two 49s can
+  be compared without opening a second tab. Counts below are derived from the live page; the inventory verdict
+  stays UNVERIFIED per Q-SWEEP-4.</p>
+  <table>
+    <thead><tr><th>Family</th><th>Ingredients</th><th>IDs on the ingredient page</th></tr></thead>
+    <tbody>
+      <tr><td>Property identity</td><td>3</td><td class="mono">I-PID-01 to I-PID-03</td></tr>
+      <tr><td>Owner identity</td><td>4</td><td class="mono">I-OID-01 to I-OID-04</td></tr>
+      <tr><td>Party identity</td><td>1</td><td class="mono">I-PTY-01</td></tr>
+      <tr><td>Entity</td><td>1</td><td class="mono">I-ENT-01</td></tr>
+      <tr><td>Succession</td><td>4</td><td class="mono">I-SUC-01 to I-SUC-04</td></tr>
+      <tr><td>Title</td><td>2</td><td class="mono">I-TTL-01, I-TTL-02</td></tr>
+      <tr><td>Tax</td><td>2</td><td class="mono">I-TAX-01, I-TAX-02</td></tr>
+      <tr><td>Foreclosure</td><td>3</td><td class="mono">I-FC-01 to I-FC-03</td></tr>
+      <tr><td>Lien</td><td>1</td><td class="mono">I-LIEN-01</td></tr>
+      <tr><td>Debt</td><td>1</td><td class="mono">I-DEBT-01</td></tr>
+      <tr><td>Equity</td><td>1</td><td class="mono">I-EQ-01</td></tr>
+      <tr><td>Valuation</td><td>1</td><td class="mono">I-VAL-01</td></tr>
+      <tr><td>Tenure</td><td>1</td><td class="mono">I-TEN-01</td></tr>
+      <tr><td>Occupancy</td><td>1</td><td class="mono">I-OCC-01</td></tr>
+      <tr><td>Absentee</td><td>1</td><td class="mono">I-ABS-01</td></tr>
+      <tr><td>Vacancy</td><td>1</td><td class="mono">I-VAC-01</td></tr>
+      <tr><td>Code</td><td>1</td><td class="mono">I-CODE-01</td></tr>
+      <tr><td>Condition</td><td>1</td><td class="mono">I-COND-01</td></tr>
+      <tr><td>Listing</td><td>1</td><td class="mono">I-LST-01</td></tr>
+      <tr><td>Disaster</td><td>2</td><td class="mono">I-DIS-01, I-DIS-02</td></tr>
+      <tr><td>Permit</td><td>1</td><td class="mono">I-PRM-01</td></tr>
+      <tr><td>Land</td><td>2</td><td class="mono">I-LAND-01, I-LAND-02</td></tr>
+      <tr><td>Zoning</td><td>1</td><td class="mono">I-ZON-01</td></tr>
+      <tr><td>Utility</td><td>1</td><td class="mono">I-UTL-01</td></tr>
+      <tr><td>Environmental</td><td>1</td><td class="mono">I-ENV-01</td></tr>
+      <tr><td>Market</td><td>1</td><td class="mono">I-MKT-01</td></tr>
+      <tr><td>Demographic</td><td>1</td><td class="mono">I-DEM-01</td></tr>
+      <tr><td>Adjacency</td><td>1</td><td class="mono">I-ADJ-01</td></tr>
+      <tr><td>Development</td><td>1</td><td class="mono">I-DEV-01</td></tr>
+      <tr><td>Contact</td><td>3</td><td class="mono">I-CON-01 to I-CON-03</td></tr>
+      <tr><td>Process clock</td><td>1</td><td class="mono">I-CLK-01</td></tr>
+      <tr><td>Source quality</td><td>1</td><td class="mono">I-SQ-01</td></tr>
+      <tr><td>Information gap</td><td>1</td><td class="mono">I-GAP-01</td></tr>
+      <tr><td><b>Total</b></td><td><b>49</b></td><td class="mono">33 families</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Hunter totals, as stated on the ingredient page itself: 22 HUNTER_MISSING, 11 HUNTER_PARTIAL,
+  16 HUNTER_EXISTS (16 computed as 49 minus 22 minus 11). The largest honest gap on that page is the 22
+  ingredients with no producer, including owner age, SOS entity status, verified death event, chain of title,
+  liens, mortgage status and equity estimation. Source: NeuruhAI/lead-recipe-os,
+  artifacts/OPPORTUNITY_INGREDIENT_REGISTRY.tsv (50 rows, 49 distinct), as read 2026-11-04.</div>
+</section>
+
+<section>
+  <h2>Table 2. LandOS signal registry: the 40 named signals</h2>
+  <p>The new registry. Each row carries its family, its source, its extractor/live status, and a verification
+  status. Statuses: <span class="badge ver">Verified live</span> means the source session computed a real value
+  against a real Berrien County point. <span class="badge grey">Precomputed only</span> means the signal runs
+  today on supplied fields, not live data. <span class="badge unver">Detector untrained</span> means the fetch
+  and harness exist but the signal returns MISSING until trained weights land in LANDOS_VISION_MODEL.
+  <span class="badge grey">Passthrough</span> means the signal is registered but still on passthrough, next round.
+  Nothing here scores a real parcel; this is a registry, not the engine.</p>
+  <div class="filters">
+    <input type="search" id="q" placeholder="Search signals, sources, notes" aria-label="Search signals">
+    <select id="fam" aria-label="Family filter">
+      <option value="">Family: all</option>
+      <option value="A">A: structure (14)</option>
+      <option value="B">B: land (12)</option>
+      <option value="C">C: owner-event (14)</option>
+    </select>
+    <select id="st" aria-label="Status filter">
+      <option value="">Status: all</option>
+      <option value="verified">Verified live</option>
+      <option value="precomputed">Precomputed only</option>
+      <option value="untrained">Detector untrained</option>
+      <option value="passthrough">Passthrough</option>
+    </select>
+  </div>
+  <div class="count" id="count">Showing 40 of 40 named signals</div>
+  <table id="sigtable">
+    <thead><tr><th>NRH ID</th><th>Signal</th><th>Family</th><th>Source</th><th>Status</th><th>Evidence / note</th></tr></thead>
+    <tbody id="sigbody"></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>The gaps, stated plainly</h2>
+  <div class="gap">
+    <h3>Gap 1: 9 LandOS signals are unnamed in the sources read</h3>
+    <p>The +40 signals in the LandOS codex dossier (§5) land on a 49-signal registry split 15 structure / 14 land /
+    14 owner-event / 6 market. That arithmetic leaves 9 original signals (1 structure, 2 land, 6 market) whose names
+    were not recovered in the sources read for this build. They are listed here as UNKNOWN, not invented. Inventing
+    9 names to reach 49 would fabricate the inventory, which is the exact failure Q-SWEEP-4 warns about.</p>
+  </div>
+  <div class="gap">
+    <h3>Gap 2: 49 vs 50 signals is unresolved</h3>
+    <p>The registry says 49 active clean signals. The estate record says 50. The discrepancy recurs across batches
+    003, 004, 007, 008, 009 and 013. Do not resolve it by inventing a 50th signal; it needs one authoritative count.
+    Until then, every count on this page is labeled with which source it came from.</p>
+  </div>
+  <div class="gap">
+    <h3>Gap 3: the extractor arithmetic does not reconcile</h3>
+    <p>The source states 37 of 49 active signals have a real extractor. Its own breakdown is 16 CV detectors plus
+    14 record signals plus 12 GIS / market signals, which sums to 42, not 37. This page reports both numbers and
+    does not reconcile them. The 16 CV detectors are fetch plus harness only: each returns MISSING until trained
+    weights are dropped into LANDOS_VISION_MODEL. Zero detections were invented.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Table 3. Amber tier: parked, unscored, never active</h2>
+  <p>Three signals were built as property-event captures but held out of scoring on purpose. They are shown here so
+  nobody mistakes absence for oversight, and so nobody presents them as active scoring. Flipping any of them into
+  scoring is one registry edit, gated behind legal sign-off and a disparate-impact review. That switch is Jeramie's,
+  not this demo's.</p>
+  <table>
+    <thead><tr><th>Signal</th><th>Status</th><th>Why parked</th></tr></thead>
+    <tbody>
+      <tr><td>Eviction history</td><td><span class="badge unver">Parked / unscored</span></td>
+        <td>Public record, used in REI, but edges toward sensitive / protected territory. Legal sign-off required.</td></tr>
+      <tr><td>Bankruptcy linkage</td><td><span class="badge unver">Parked / unscored</span></td>
+        <td>Public record, used in REI, but edges toward sensitive / protected territory. Legal sign-off required.</td></tr>
+      <tr><td>Divorce-related filings</td><td><span class="badge unver">Parked / unscored</span></td>
+        <td>Public record, used in REI, but edges toward sensitive / protected territory. Legal sign-off required.</td></tr>
+    </tbody>
+  </table>
+  <div class="note">Clean-signals-only posture is locked in the source: property condition, market position,
+  public-record events. Zero protected-class proxies. No income, occupation, education, heir age, family status,
+  no "vulnerable seller" weighting. The engine enforces clean posture at load and refuses to start if a non-clean
+  signal is active.</div>
+</section>
+
+<section>
+  <h2>Sources</h2>
+  <ul class="src">
+    <li>Q-SWEEP-4 and the two Aug 1, 2026 documents: upload sweep dossiers,
+    <span class="mono">_research/upload-sweep-2026-11-10/codex-pdfs.md</span> (file 05 Cockpit/Swarm Codex and
+    file 08 Unified Ontology Codex) and <span class="mono">coverage-table.md</span>. Verdict on the ingredient
+    inventory: UNVERIFIED, two independent sources, still open.</li>
+    <li>LandOS signal names, families, sources and extractor states:
+    <span class="mono">_research/landos-codex-build/landos-codex-build.md</span> §5 (the +40 signals), §6 (registry
+    and engine), §7 (37 of 49 extractors; 16 CV detectors; 14 record signals; 12 GIS/market passthrough; the
+    six-row live test table), §8 (Family C weights: tax delinquency 0.95, pre-foreclosure 1.0, probate 0.95).
+    The 49 vs 50 discrepancy is flagged UNVERIFIED in the same dossier.</li>
+    <li>Ingredient page facts (50 rows, 1 alias, 22 missing hunters, 11 partial, 9 PROBABLE):
+    <a href="https://recipe-engine-49.pages.dev/">recipe-engine-49.pages.dev</a>, read 2026-11-14. Source files
+    named there: NeuruhAI/lead-recipe-os, artifacts/OPPORTUNITY_INGREDIENT_REGISTRY.tsv and
+    lead_recipe_os/registry/seed/ingredients.py.</li>
+    <li>Registry format: <span class="mono">_research/nrh-registry/nrh-registry.md</span>, NRH Universal
+    Addressing Spec v0.1 (<span class="mono">NRH-[DD]-[ENT]-[TTT]-[NNN]-[hash8]</span>). Domain RE is Real
+    Estate Intelligence; entity LOSE is landos-engine; type SIG is the demo's signal slot. Demo-assigned IDs only.</li>
+    <li>Amber tier and clean-signals-only posture: landos-codex-build §5 and §7. Eviction, bankruptcy and
+    divorce-related signals are built as captures, unscored, gated behind legal sign-off.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>What this is not</h2>
+  <ul class="src">
+    <li>Not a verified ingredient list. The 49-ingredient inventory stays UNVERIFIED until the source artifact
+    surfaces. This page does not repair Q-SWEEP-4; it displays it.</li>
+    <li>Not a live scoring engine. No county data, no Supabase, no LANDOS calls, no parcel is scored here.
+    The six "verified live" rows are session test results from the source dossier, not live calls from this page.</li>
+    <li>Not a merged registry. The two 49s are kept in separate tables with separate IDs because they are
+    separate objects that happen to share a number.</li>
+    <li>Not a complete LandOS registry. 9 of 49 signals are unnamed in the sources read; they appear as a gap,
+    not as invented rows. The 49 vs 50 count dispute is unresolved.</li>
+    <li>Not legal, title, or Fair Housing advice. Amber-tier signals stay parked for exactly that reason.</li>
+  </ul>
+</section>
+
+<footer>
+  Recipe Ingredient Registry (SIMULATION) &middot; Built 2026-11-14 in the overnight Neuruh run &middot;
+  Finding Q-SWEEP-4 stays open &middot; No external calls, no data leaves this page, no sends &middot;
+  Hub card pending (hub not edited by this build)
+</footer>
+
+</div>
+<script>
+var PRE = "Runs today on precomputed fields. Live data needs RECORD_SOURCE=attom_regrid + key, or the pinned county adapters (Berrien 26021, St. Joseph 18141, Elkhart 18039).";
+var UNT = "CV fetch and inference harness exist; the signal returns MISSING until trained weights are dropped into LANDOS_VISION_MODEL. No detections invented.";
+var PASS = "Registered but still on passthrough. Next round per the source dossier.";
+var SIGNALS = [
+["NRH-RE-LOSE-SIG-001-7668f86a","roof degradation grade","A","CV", "untrained","Roof staining / moss / wear, distinct from material. " + UNT],
+["NRH-RE-LOSE-SIG-002-8c7d94a3","roof tarp / visible damage","A","CV", "untrained","Acute distress marker. " + UNT],
+["NRH-RE-LOSE-SIG-003-48e23b99","roof geometry complexity","A","CV", "untrained","Reroof-cost proxy. " + UNT],
+["NRH-RE-LOSE-SIG-004-2c5d6bc8","solar array presence","A","CV", "untrained","Recent-capex marker. " + UNT],
+["NRH-RE-LOSE-SIG-005-15ada94b","pool presence + state","A","CV", "untrained","Green / neglected pool reads as vacancy. " + UNT],
+["NRH-RE-LOSE-SIG-006-18e0b6c4","outbuilding count","A","CV / NAIP", "untrained","Multi-structure reads as farm / estate. " + UNT],
+["NRH-RE-LOSE-SIG-007-aa81949f","outbuilding-vs-main condition gradient","A","CV", "untrained","Deferred maintenance signal. " + UNT],
+["NRH-RE-LOSE-SIG-008-b8fb5718","yard debris / junk density","A","CV", "untrained","Cleanout-volume proxy. " + UNT],
+["NRH-RE-LOSE-SIG-009-2c6361b9","vehicle count in yard / drive","A","CV", "untrained","Occupancy plus accumulation. " + UNT],
+["NRH-RE-LOSE-SIG-010-1e781568","RV / boat / trailer presence","A","CV", "untrained","High-value cleanout items. " + UNT],
+["NRH-RE-LOSE-SIG-011-6bd698a0","footprint addition / irregularity","A","CV + assessor", "untrained","Unpermitted-add flag or value-add. " + UNT],
+["NRH-RE-LOSE-SIG-012-91fbcf25","driveway surface class","A","CV", "untrained","Paved / gravel / dirt investment proxy. " + UNT],
+["NRH-RE-LOSE-SIG-013-a050a155","basement / foundation inference","A","CV + assessor", "untrained","Grade plus footprint inference. " + UNT],
+["NRH-RE-LOSE-SIG-014-099aabf6","vegetation overgrowth / unmaintained lawn","A","CV / NAIP", "verified","NAIP tile plus veg index computed from real pixels; urban test point returned 0.01. The trained-detector path for this signal still returns missing."],
+["NRH-RE-LOSE-SIG-015-71aedbc8","lot acreage","B","assessor", "passthrough","Base land quantity. " + PASS],
+["NRH-RE-LOSE-SIG-016-d80bb8ba","lot-shape irregularity / split potential","B","GIS", "passthrough","Subdivision upside. " + PASS],
+["NRH-RE-LOSE-SIG-017-ea4d2609","road frontage width","B","GIS", "passthrough","Access / development value. " + PASS],
+["NRH-RE-LOSE-SIG-018-0d33c430","slope / topography","B","USGS DEM", "verified","USGS EPQS 3-pt gradient; test point about 1% slope returned 0.04."],
+["NRH-RE-LOSE-SIG-019-2e09c21e","FEMA flood-zone status","B","FEMA NFHL", "verified","Test point Zone X returned 0.1."],
+["NRH-RE-LOSE-SIG-020-f0b6079b","tree-canopy coverage %","B","NAIP NIR", "verified","NAIP tile plus veg index; urban test point returned 0.04."],
+["NRH-RE-LOSE-SIG-021-952a23c0","adjacent land use","B","GIS / zoning", "passthrough","Industrial / commercial / ag neighbor effect. " + PASS],
+["NRH-RE-LOSE-SIG-022-fd52393d","distance to nearest paved road + road class","B","OSM / GIS", "verified","OSM Overpass; major road under 400m returned 0.8."],
+["NRH-RE-LOSE-SIG-023-bd0be001","utility access proximity","B","GIS", "passthrough","Power / water lines proximity. " + PASS],
+["NRH-RE-LOSE-SIG-024-d0a4b2c6","structure count on parcel","B","CV / footprints", "untrained","In the 16 CV detector set. " + UNT],
+["NRH-RE-LOSE-SIG-025-4ee79086","proximity to active nearby permits / new construction","B","permit data", "passthrough","Gentrification front. " + PASS],
+["NRH-RE-LOSE-SIG-026-89687644","parcel-split feasibility vs zoning minimum","B","zoning + assessor", "passthrough","Split feasibility against zoning minimum. " + PASS],
+["NRH-RE-LOSE-SIG-027-232ff79f","tenure length / years since last sale","C","assessor", "precomputed", PRE],
+["NRH-RE-LOSE-SIG-028-0d3fc3b3","equity estimate","C","assessor + AVM", "precomputed","Last-sale price vs current AVM. Pure math, not an owner trait. " + PRE],
+["NRH-RE-LOSE-SIG-029-3cf9179a","free-and-clear / mortgage age","C","recorded liens", "precomputed", PRE],
+["NRH-RE-LOSE-SIG-030-d6184be2","property-tax delinquency","C","county treasurer", "precomputed","Family C weight 0.95. Free county layers do not light this signal up; the aggregator does. " + PRE],
+["NRH-RE-LOSE-SIG-031-83edc0c8","pre-foreclosure / lis pendens","C","public filing", "precomputed","Family C weight 1.0. " + PRE],
+["NRH-RE-LOSE-SIG-032-dd2e98e7","code-enforcement case","C","municipal", "precomputed", PRE],
+["NRH-RE-LOSE-SIG-033-0d9c247e","building-permit recency + type","C","permit data", "precomputed","Active-repair signal. " + PRE],
+["NRH-RE-LOSE-SIG-034-972ecc60","expired / abandoned permit","C","permit data", "precomputed","Stalled project reads as distress. " + PRE],
+["NRH-RE-LOSE-SIG-035-e7474104","USPS vacancy / utility-inactive indicator","C","USPS / utility", "precomputed", PRE],
+["NRH-RE-LOSE-SIG-036-b15b6af7","multi-property owner flag","C","assessor", "precomputed","Portfolio motivation; behavioral, not demographic. " + PRE],
+["NRH-RE-LOSE-SIG-037-93c3074c","ownership vehicle","C","deed / SOS", "precomputed","LLC / trust / individual; approach calibration. " + PRE],
+["NRH-RE-LOSE-SIG-038-7a0a99f4","quitclaim / non-arms-length last transfer","C","deed", "precomputed","Family / distress transfer. " + PRE],
+["NRH-RE-LOSE-SIG-039-2dcb84a4","probate case stage granularity","C","probate court", "precomputed","Family C weight 0.95. " + PRE],
+["NRH-RE-LOSE-SIG-040-a01f6a6c","mechanic's lien / contractor-dispute filing","C","public filing", "precomputed", PRE]
+];
+var FAMNAME = {A:"A: structure", B:"B: land", C:"C: owner-event"};
+var ST = {
+  verified:["Verified live","ver"],
+  precomputed:["Precomputed only","grey"],
+  untrained:["Detector untrained","unver"],
+  passthrough:["Passthrough","grey"]
+};
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function render(){
+  var q = (document.getElementById("q").value || "").toLowerCase();
+  var fam = document.getElementById("fam").value;
+  var st = document.getElementById("st").value;
+  var body = document.getElementById("sigbody");
+  var html = "", shown = 0;
+  SIGNALS.forEach(function(r){
+    var hay = (r[0]+" "+r[1]+" "+r[3]+" "+r[5]).toLowerCase();
+    if (q && hay.indexOf(q) === -1) return;
+    if (fam && r[2] !== fam) return;
+    if (st && r[4] !== st) return;
+    shown++;
+    var badge = ST[r[4]];
+    html += "<tr><td class=\"mono\">" + esc(r[0]) + "</td><td><b>" + esc(r[1]) + "</b></td><td>" +
+      esc(FAMNAME[r[2]]) + "</td><td>" + esc(r[3]) + "</td><td><span class=\"badge " + badge[1] +
+      "\">" + badge[0] + "</span></td><td>" + esc(r[5]) + "</td></tr>";
+  });
+  body.innerHTML = html || "<tr><td colspan=\"6\">No signals match the current filters.</td></tr>";
+  document.getElementById("count").textContent = "Showing " + shown + " of 40 named signals (9 of 49 unnamed, see Gap 1)";
+}
+["q","fam","st"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", render);
+  document.getElementById(id).addEventListener("change", render);
+});
+render();
+</script>
+</body>
+</html>
