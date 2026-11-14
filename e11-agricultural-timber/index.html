@@ -756,9 +756,12 @@ function calc(){
  var gates=E11.evaluateGates(gateValues);
  var gatesPassed=gates.passed,gatesFailed=gates.failed;
  var manualKills=[];
- KILLS.forEach(function(txt,i){if(el("kill_"+i).checked)manualKills.push(txt);});
+ KILLS.forEach(function(txt,i){if(i!==1&&i!==2&&i!==3&&el("kill_"+i).checked)manualKills.push(txt);});
  var kills=E11.evaluateKills({manualKills:manualKills,access:access,priced:priced,mineral:mineral,water:water});
  var killsFired=kills.fired,killActive=kills.killActive;
+ el("kill_1").checked=(priced==="yes"&&mineral==="unknown");
+ el("kill_2").checked=(priced==="yes"&&water==="unknown");
+ el("kill_3").checked=(access==="none");
  var flags=[];
  FLAGS.forEach(function(txt,i){if(el("flag_"+i).checked)flags.push(txt);});
  var compShort=usable.length<3;
@@ -895,9 +898,16 @@ function resetGatesKills(){
  KILLS.forEach(function(txt,i){el("kill_"+i).checked=false;});
  FLAGS.forEach(function(txt,i){el("flag_"+i).checked=false;});
 }
+function resetCompRows(){
+ var cb=el("compsBody");
+ while(cb&&document.querySelectorAll("#compsBody tr").length>3){cb.removeChild(cb.lastChild);}
+ document.querySelectorAll("#compsBody tr").forEach(function(tr){tr.querySelectorAll("input").forEach(function(i){i.value="";});});
+ document.querySelectorAll("#rentBody tr").forEach(function(tr){tr.querySelectorAll("input").forEach(function(i){i.value="";});});
+}
 function loadSample(kind){
  kind=kind||"a";
  resetGatesKills();
+ resetCompRows();
  if(kind==="b"){
   setVal("address","789 Timber Ridge, Buchanan, MI 49107");
   setVal("parcel","SAMPLE-PARCEL-E11-B");
