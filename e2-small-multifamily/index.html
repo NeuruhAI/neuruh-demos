@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="E2 Small Multifamily Underwriting Engine v1.0: 2 to 4 units, rent roll, NOI actual and stabilized, cap-rate-implied value range, DSCR, cash flow, with a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<title>E2 Small Multifamily Underwriting Engine v1.0 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-dark:#7a611f;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--ink);background:var(--ink);color:#f6f1e6;padding:12px 14px;font-weight:700;text-align:center;letter-spacing:.06em}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace;text-align:right}
+.result .row .tag{font-size:11px;color:var(--muted);font-weight:400}
+.big{font-size:22px}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+tr.inactive td{opacity:.45}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:170px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+figure{margin:14px 0;border:1px solid var(--line);background:var(--bone);padding:12px}
+figcaption{font-size:12px;color:var(--muted);margin-top:8px}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.kill-box{background:#fdf3ef;border:2px solid var(--red);padding:12px 14px;margin-top:12px}
+.pass-box{background:#eaf2ea;border:2px solid var(--green);padding:12px 14px;margin-top:12px}
+.working{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin-top:12px;white-space:pre-wrap}
+.badge{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 8px;border:1px solid var(--ink);margin-left:6px}
+.badge.designed{background:#fdf6d8;border-color:var(--brass);color:var(--brass-dark)}
+.badge.verified{background:#eaf2ea;border-color:var(--green);color:var(--green)}
+.badge.sim{background:var(--ink);color:#f6f1e6}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{body{background:#fff}.toolbar,.no-print{display:none!important}.wrap{max-width:100%;padding:0}section.card{break-inside:avoid;border:1px solid #999}pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}#summarySection{border:2px solid #000}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E2</div>
+<h1>E2 Small Multifamily Underwriting Engine</h1>
+<p>Small multifamily, 2 to 4 units. Rent roll, NOI actual and stabilized, cap-rate-implied value range, DSCR, cash flow, and a SHA-256 receipt chain. Nothing leaves this page.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine 2 of 12 - SIMULATION</b></div>
+<div>Lineage<b>E1 v1.0 + Residential v1.1 + 2026-11-04 E2 build</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not legal, tax, or lending advice. Verify the rent roll, leases, expenses, and title with the owner, the county, and a licensed professional before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<table>
+<thead><tr><th>Item</th><th>State</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (NOI, value range, DSCR, cash flow)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e2.js, run 2026-11-14. Sample A hand-computed expectations match: NOI actual $28,904.80, NOI stabilized $31,002.40, value $442,891.43, DSCR stabilized 1.294.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e2.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge verified">VERIFIED</span></td><td>HTTP 200 at neuruhai.github.io/neuruh-demos/e2-small-multifamily/, live MD5 matches staged file. See build report.</td></tr>
+<tr><td>Market data (rents, cap rates, expenses)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every rent, expense, cap rate, and debt term is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E2 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E2 spec was found in the vault. See section 12 for the gap. Scope and defaults are the builder's design, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests plus code inspection are the verification for this build. See build report.</td></tr>
+</tbody>
+</table>
+</section>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: 4-unit, clean</button>
+<button id="btnSampleB" type="button">Sample B: 4-unit, thin DSCR</button>
+<button id="btnSampleC" type="button">Sample C: PASS, kill</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change any rent in the rent roll in section 03.</li>
+<li><b>Step 3:</b> Watch NOI, value range, and DSCR move in the sticky results panel and in section 09, then issue a receipt in section 11 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">NOI stabilized (MODELED ESTIMATE)</span><b id="stickyNoi">N/A</b></div>
+<div><span class="sr-label">Value range (MODELED ESTIMATE)</span><b id="stickyValue">N/A</b></div>
+<div><span class="sr-label">DSCR stabilized</span><b id="stickyDscr">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div class="small" id="missingHints" style="font-size:12px;color:var(--muted);margin-top:4px"></div></div>
+</div>
+
+<section class="card" id="s2">
+<h2><span>02</span>Subject property and evidence gates</h2>
+<p class="sub">Address / parcel gate. Confirm the property from at least 2 public sources before any rent is used. A rent roll that cannot be verified is a kill condition, not a discount.</p>
+<div class="grid">
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcelId">Parcel ID</label><input id="parcelId" type="text" placeholder="Parcel ID"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="unitCount">Total units (2 to 4)</label><input id="unitCount" type="number" min="2" max="4" step="1" value="4"></div>
+<div><label for="yearBuilt">Year built</label><input id="yearBuilt" type="number" min="1800" max="2026" step="1" placeholder="e.g. 1965"></div>
+<div><label for="buildingType">Building type</label><select id="buildingType"><option value="">Select</option><option>Duplex</option><option>Triplex</option><option>Fourplex</option></select></div>
+<div><label for="purchasePrice">Purchase price / asking price ($) - MODELED ESTIMATE input</label><input id="purchasePrice" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="rentRollVerifiable">Rent roll verifiable?</label><select id="rentRollVerifiable"><option value="">Select</option><option value="yes">Yes, leases and bank deposits checked</option><option value="partial">Partial, some leases missing</option><option value="no">No, seller statement only</option></select></div>
+<div><label for="rentRollSource">Rent roll source</label><input id="rentRollSource" type="text" placeholder="Example: leases in hand, bank deposits, owner rent roll dated"></div>
+<div><label for="leaseUpPlan">Lease-up plan (required if vacancy over 30 percent)</label><textarea id="leaseUpPlan" placeholder="Marketing, rent, timeline, budget, or N/A if vacancy is 30 percent or less"></textarea></div>
+<div><label for="exitFit">Exit fit</label><select id="exitFit"><option value="">Select</option><option>Buy and hold</option><option>Value-add / lease-up</option><option>Wholesale</option><option>Pass</option></select></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+</div>
+<p class="small" style="color:var(--muted);font-size:13px">Rent grades, same as Residential v1.1: A is a signed lease in hand. B is a listed rent with a verifiable listing. C is a market rent estimate from a named source. D is a seller claim only, labelled lease proxy, never used as proven income.</p>
+</section>
+
+<section class="card" id="s3">
+<h2><span>03</span>Rent roll, per unit with A-D grades</h2>
+<p class="sub">One row per unit, 2 to 4 units. Actual rent is what is collected now. Market rent is the stabilized rent for that unit from a named source. A vacant unit has actual rent 0 and a market rent. Rows past the unit count are ignored. Deferred maintenance is priced per unit in section 07, and the per-unit amounts below must match it.</p>
+<table>
+<thead><tr><th>Unit</th><th>Tenant</th><th>Actual rent ($/mo)</th><th>Market rent ($/mo)</th><th>Lease end</th><th>Grade</th><th>Status</th><th>Deferred maint. ($)</th></tr></thead>
+<tbody id="rentBody"></tbody>
+</table>
+<div class="result">
+<div class="row"><span>Units in rent roll</span><b id="rrUnits">0</b></div>
+<div class="row"><span>Occupied units</span><b id="rrOccupied">0</b></div>
+<div class="row"><span>Vacant units</span><b id="rrVacant">0</b></div>
+<div class="row"><span>Vacancy rate (vacant / total)</span><b id="rrVacancy">N/A</b></div>
+<div class="row"><span>Scheduled gross rent, actual ($/mo) <span class="tag">MODELED ESTIMATE</span></span><b id="rrGrossActualMo">N/A</b></div>
+<div class="row"><span>Scheduled gross rent, stabilized ($/mo) <span class="tag">MODELED ESTIMATE</span></span><b id="rrGrossStabMo">N/A</b></div>
+<div class="row"><span>Grade D units (seller claim only)</span><b id="rrGradeD">0</b></div>
+<div class="row"><span>Deferred maintenance, rent roll total <span class="tag">MODELED ESTIMATE</span></span><b id="rrDeferred">N/A</b></div>
+</div>
+<div class="warning" id="vacancyWarning" hidden></div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>04</span>Income and expenses, actual and stabilized</h2>
+<p class="sub">Stabilized means the property at market rents, at the stated vacancy allowance, with expenses at normal run-rate. Actual means today, on the rent roll as it stands. Management is a percent of effective gross income. Every expense line is sourced or marked N/A in the notes. Builder defaults, editable: vacancy allowance 5 percent, management 8 percent of EGI. These are the builder's defaults, not market facts.</p>
+<div class="grid">
+<div><label for="otherIncomeActual">Other income, actual ($/yr)</label><input id="otherIncomeActual" type="number" min="0" step="1" value="0"></div>
+<div><label for="otherIncomeStab">Other income, stabilized ($/yr)</label><input id="otherIncomeStab" type="number" min="0" step="1" value="0"></div>
+<div><label for="vacancyActualPct">Vacancy allowance, actual (%) - builder default 5</label><input id="vacancyActualPct" type="number" min="0" max="100" step="0.1" value="5"></div>
+<div><label for="vacancyStabPct">Vacancy allowance, stabilized (%) - builder default 5</label><input id="vacancyStabPct" type="number" min="0" max="100" step="0.1" value="5"></div>
+<div><label for="taxes">Real estate taxes ($/yr)</label><input id="taxes" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="insurance">Insurance ($/yr)</label><input id="insurance" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="maintenance">Repairs and maintenance ($/yr)</label><input id="maintenance" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="mgmtPct">Management (% of EGI) - builder default 8</label><input id="mgmtPct" type="number" min="0" max="100" step="0.1" value="8"></div>
+<div><label for="utilities">Utilities, owner-paid ($/yr)</label><input id="utilities" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="reserves">Reserves / capex ($/yr)</label><input id="reserves" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="otherExpense">Other operating expense ($/yr)</label><input id="otherExpense" type="number" min="0" step="1" value="0"></div>
+<div><label for="expenseSource">Expense source</label><input id="expenseSource" type="text" placeholder="Example: owner T12, tax bill, insurance quote"></div>
+</div>
+<div class="result">
+<div class="row"><span>Gross scheduled rent, actual ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="incGrossActual">N/A</b></div>
+<div class="row"><span>Less vacancy loss, actual <span class="tag">MODELED ESTIMATE</span></span><b id="incVacActual">N/A</b></div>
+<div class="row"><span>Plus other income, actual <span class="tag">MODELED ESTIMATE</span></span><b id="incOtherActual">N/A</b></div>
+<div class="row"><span>Effective gross income, actual (EGI) <span class="tag">MODELED ESTIMATE</span></span><b id="incEgiActual">N/A</b></div>
+<div class="row"><span>Total operating expenses, actual <span class="tag">MODELED ESTIMATE</span></span><b id="incExpActual">N/A</b></div>
+<div class="row big"><span>NOI, actual <span class="tag">MODELED ESTIMATE</span></span><b id="incNoiActual">N/A</b></div>
+<div class="row"><span>Gross scheduled rent, stabilized ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="incGrossStab">N/A</b></div>
+<div class="row"><span>Less vacancy loss, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="incVacStab">N/A</b></div>
+<div class="row"><span>Plus other income, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="incOtherStab">N/A</b></div>
+<div class="row"><span>Effective gross income, stabilized (EGI) <span class="tag">MODELED ESTIMATE</span></span><b id="incEgiStab">N/A</b></div>
+<div class="row"><span>Total operating expenses, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="incExpStab">N/A</b></div>
+<div class="row big"><span>NOI, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="incNoiStab">N/A</b></div>
+</div>
+<div class="working" id="workingActual">Working, actual: enter rents to see the arithmetic.</div>
+<div class="working" id="workingStab">Working, stabilized: enter rents to see the arithmetic.</div>
+<figure>
+<svg viewBox="0 0 640 150" width="100%" height="150" role="img" aria-label="NOI bridge diagram: gross rent minus vacancy plus other income equals effective gross income, minus operating expenses equals NOI">
+<rect x="10" y="20" width="120" height="50" fill="#fffdf6" stroke="#1d1a16"/><text x="70" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Gross rent</text><text x="70" y="56" text-anchor="middle" font-size="11" fill="#6b6257">scheduled</text>
+<text x="140" y="50" text-anchor="middle" font-size="16" fill="#9a7b2d">-</text>
+<rect x="155" y="20" width="120" height="50" fill="#fffdf6" stroke="#1d1a16"/><text x="215" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Vacancy loss</text><text x="215" y="56" text-anchor="middle" font-size="11" fill="#6b6257">allowance</text>
+<text x="285" y="50" text-anchor="middle" font-size="16" fill="#9a7b2d">+</text>
+<rect x="300" y="20" width="120" height="50" fill="#fffdf6" stroke="#1d1a16"/><text x="360" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Other income</text><text x="360" y="56" text-anchor="middle" font-size="11" fill="#6b6257">per year</text>
+<text x="430" y="50" text-anchor="middle" font-size="16" fill="#9a7b2d">=</text>
+<rect x="445" y="20" width="80" height="50" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="485" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">EGI</text><text x="485" y="56" text-anchor="middle" font-size="11" fill="#6b6257">effective</text>
+<text x="535" y="50" text-anchor="middle" font-size="16" fill="#9a7b2d">-</text>
+<rect x="550" y="20" width="80" height="50" fill="#fffdf6" stroke="#1d1a16"/><text x="590" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Expenses</text><text x="590" y="56" text-anchor="middle" font-size="11" fill="#6b6257">operating</text>
+<rect x="10" y="95" width="620" height="40" fill="#9a7b2d"/><text x="320" y="120" text-anchor="middle" font-size="13" fill="#ffffff">NOI = Effective Gross Income - Operating Expenses (actual and stabilized, computed separately)</text>
+</svg>
+<figcaption>Figure 1. NOI bridge. The same bridge runs twice: once on actual rents and once on stabilized market rents. Debt service is never an operating expense.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s5">
+<h2><span>05</span>Cap rate and value range</h2>
+<p class="sub">Cap rate needs a source. A cap rate with no source still computes, but the run is flagged. Stabilized value is stabilized NOI divided by the cap rate. The range uses the cap rate plus and minus 0.5 percentage points, a builder default, editable in the code, not a market fact. Value per unit is stabilized value divided by total units.</p>
+<div class="grid">
+<div><label for="capRatePct">Cap rate (%) - builder default 7.00</label><input id="capRatePct" type="number" min="0" max="20" step="0.01" placeholder="e.g. 7"></div>
+<div><label for="capSource">Cap rate source</label><input id="capSource" type="text" placeholder="Example: broker OM, 3 local sales, appraiser"></div>
+<div><label for="capActualPct">Cap rate on actual NOI, at purchase price (%)</label><input id="capActualPct" type="text" readonly></div>
+</div>
+<div class="result">
+<div class="row"><span>NOI, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="valNoiStab">N/A</b></div>
+<div class="row"><span>Cap rate used</span><b id="valCap">N/A</b></div>
+<div class="row big"><span>Stabilized value, at cap rate <span class="tag">MODELED ESTIMATE</span></span><b id="valStab">N/A</b></div>
+<div class="row"><span>Value range, low (cap rate + 0.5pp) <span class="tag">MODELED ESTIMATE</span></span><b id="valRangeLow">N/A</b></div>
+<div class="row"><span>Value range, high (cap rate - 0.5pp) <span class="tag">MODELED ESTIMATE</span></span><b id="valRangeHigh">N/A</b></div>
+<div class="row"><span>Value per unit <span class="tag">MODELED ESTIMATE</span></span><b id="valPerUnit">N/A</b></div>
+<div class="row"><span>Purchase price <span class="tag">MODELED ESTIMATE input</span></span><b id="valPrice">N/A</b></div>
+<div class="row"><span>Stabilized value minus purchase price <span class="tag">MODELED ESTIMATE</span></span><b id="valSpread">N/A</b></div>
+<div class="row"><span>Value per unit, at purchase price <span class="tag">MODELED ESTIMATE</span></span><b id="valPricePerUnit">N/A</b></div>
+</div>
+<div class="working" id="workingValue">Working, value: enter NOI and a cap rate to see the arithmetic.</div>
+</section>
+
+<section class="card" id="s6">
+<h2><span>06</span>Debt terms, DSCR, and cash flow</h2>
+<p class="sub">DSCR is NOI divided by annual debt service. Monthly payment uses the standard amortizing formula. Cash flow is NOI minus annual debt service. Cash-on-cash is annual cash flow divided by down payment (purchase price minus loan). State the debt terms exactly; a DSCR on unstated terms is N/A. DSCR bands are the builder's design: below 1.00 is a kill, 1.00 to 1.25 is thin, 1.25 and above is the lender comfort zone.</p>
+<div class="grid">
+<div><label for="loanAmount">Loan amount ($)</label><input id="loanAmount" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="loanRatePct">Interest rate, annual (%)</label><input id="loanRatePct" type="number" min="0" max="30" step="0.01" placeholder="e.g. 7"></div>
+<div><label for="amortYears">Amortization (years)</label><input id="amortYears" type="number" min="1" max="40" step="1" placeholder="e.g. 30"></div>
+<div><label for="loanTermYears">Loan term (years, if different)</label><input id="loanTermYears" type="number" min="0" max="40" step="1" placeholder="Optional"></div>
+<div><label for="debtSource">Debt terms source</label><input id="debtSource" type="text" placeholder="Example: lender term sheet dated, quote"></div>
+</div>
+<div class="result">
+<div class="row"><span>Monthly payment <span class="tag">MODELED ESTIMATE</span></span><b id="debtMonthly">N/A</b></div>
+<div class="row"><span>Annual debt service <span class="tag">MODELED ESTIMATE</span></span><b id="debtAnnual">N/A</b></div>
+<div class="row"><span>Down payment (price minus loan) <span class="tag">MODELED ESTIMATE</span></span><b id="debtDown">N/A</b></div>
+<div class="row"><span>Loan to value (loan / purchase price)</span><b id="debtLtv">N/A</b></div>
+<div class="row big"><span>DSCR, actual NOI</span><b id="debtDscrActual">N/A</b></div>
+<div class="row big"><span>DSCR, stabilized NOI</span><b id="debtDscrStab">N/A</b></div>
+<div class="row"><span>DSCR band, stabilized</span><b id="debtDscrBand">N/A</b></div>
+<div class="row big"><span>Cash flow, actual (NOI minus debt service) <span class="tag">MODELED ESTIMATE</span></span><b id="cfActual">N/A</b></div>
+<div class="row big"><span>Cash flow, stabilized (NOI minus debt service) <span class="tag">MODELED ESTIMATE</span></span><b id="cfStab">N/A</b></div>
+<div class="row"><span>Cash-on-cash, stabilized</span><b id="cfCoc">N/A</b></div>
+<div class="row"><span>Break-even occupancy (debt service + expenses, at stabilized gross)</span><b id="debtBreakEven">N/A</b></div>
+</div>
+<div class="working" id="workingDebt">Working, debt: enter loan terms to see the arithmetic.</div>
+<figure>
+<svg viewBox="0 0 640 150" width="100%" height="150" role="img" aria-label="DSCR diagram: NOI divided by annual debt service. Above 1.0 the property covers its debt, below 1.0 it does not">
+<rect x="10" y="20" width="180" height="50" fill="#fffdf6" stroke="#1d1a16"/><text x="100" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">NOI (actual or</text><text x="100" y="56" text-anchor="middle" font-size="11" fill="#1d1a16">stabilized)</text>
+<text x="205" y="50" text-anchor="middle" font-size="16" fill="#9a7b2d">/</text>
+<rect x="220" y="20" width="180" height="50" fill="#fffdf6" stroke="#1d1a16"/><text x="310" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Annual debt</text><text x="310" y="56" text-anchor="middle" font-size="11" fill="#1d1a16">service</text>
+<text x="415" y="50" text-anchor="middle" font-size="16" fill="#9a7b2d">=</text>
+<rect x="430" y="20" width="200" height="50" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="530" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">DSCR</text><text x="530" y="56" text-anchor="middle" font-size="11" fill="#6b6257">1.00 is break-even</text>
+<rect x="10" y="95" width="300" height="40" fill="#8a2f24"/><text x="160" y="120" text-anchor="middle" font-size="12" fill="#ffffff">DSCR below 1.00: NOI does not cover debt</text>
+<rect x="330" y="95" width="300" height="40" fill="#2e5e3a"/><text x="480" y="120" text-anchor="middle" font-size="12" fill="#ffffff">DSCR 1.25 or above: lender comfort zone</text>
+</svg>
+<figcaption>Figure 2. DSCR. The kill condition uses stabilized DSCR: below 1.00 on stabilized NOI is a kill. A DSCR between 1.00 and 1.25 is thin, not comfortable. Bands are the builder's design.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s7">
+<h2><span>07</span>Deferred maintenance by unit</h2>
+<p class="sub">Price deferred maintenance per unit, with the item and the source for each price. The total must match the rent roll total in section 03. Unpriced deferred maintenance is listed as N/A with the missing source named, not as zero.</p>
+<table>
+<thead><tr><th>Unit</th><th>Item</th><th>Cost ($) - MODELED ESTIMATE</th><th>Source</th></tr></thead>
+<tbody id="defBody"></tbody>
+</table>
+<div class="result">
+<div class="row"><span>Deferred maintenance total <span class="tag">MODELED ESTIMATE</span></span><b id="defTotal">N/A</b></div>
+<div class="row"><span>Deferred maintenance per unit (total / units) <span class="tag">MODELED ESTIMATE</span></span><b id="defPerUnit">N/A</b></div>
+<div class="row"><span>Rent roll deferred total (section 03) <span class="tag">MODELED ESTIMATE</span></span><b id="defRentRoll">N/A</b></div>
+<div class="row"><span>Totals match?</span><b id="defMatch">N/A</b></div>
+</div>
+<div class="warning" id="defWarning" hidden>Warning: deferred maintenance totals do not match between the rent roll and this section. Fix one of them before relying on the total.</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>08</span>Gates, fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div class="hint" id="missingHints2">Missing for a GO: address, parcel, total units, rent roll with at least 2 units, cap rate with source, debt terms.</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span>09</span>Results</h2>
+<p class="sub">Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. This section states no offer and no recommendation to buy or sell.</p>
+<div class="result">
+<div class="row"><span>NOI, actual <span class="tag">MODELED ESTIMATE</span></span><b id="resNoiActual">N/A</b></div>
+<div class="row"><span>NOI, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="resNoiStab">N/A</b></div>
+<div class="row"><span>Cap rate (with source)</span><b id="resCap">N/A</b></div>
+<div class="row"><span>DSCR, actual</span><b id="resDscrActual">N/A</b></div>
+<div class="row"><span>DSCR, stabilized</span><b id="resDscrStab">N/A</b></div>
+<div class="row big"><span>Stabilized value, at cap rate <span class="tag">MODELED ESTIMATE</span></span><b id="resValue">N/A</b></div>
+<div class="row"><span>Value range, low to high <span class="tag">MODELED ESTIMATE</span></span><b id="resRange">N/A</b></div>
+<div class="row"><span>Value per unit <span class="tag">MODELED ESTIMATE</span></span><b id="resPerUnit">N/A</b></div>
+<div class="row"><span>Cash flow, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="resCashFlow">N/A</b></div>
+<div class="row"><span>Cash-on-cash, stabilized</span><b id="resCoc">N/A</b></div>
+<div class="row"><span>Deferred maintenance total <span class="tag">MODELED ESTIMATE</span></span><b id="resDeferred">N/A</b></div>
+<div class="row"><span>Vacancy rate</span><b id="resVacancy">N/A</b></div>
+<div class="row big"><span>Recommendation</span><b id="resRec">HOLD</b></div>
+</div>
+<div id="decisionBox" style="margin-top:12px"></div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>10</span>One-page summary, print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above. Dollar figures are MODELED ESTIMATES, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="result">
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Units</span><b id="sumUnits">N/A</b></div>
+<div class="row"><span>Vacancy rate</span><b id="sumVacancy">N/A</b></div>
+<div class="row"><span>NOI, actual <span class="tag">MODELED ESTIMATE</span></span><b id="sumNoiActual">N/A</b></div>
+<div class="row"><span>NOI, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="sumNoiStab">N/A</b></div>
+<div class="row"><span>Cap rate</span><b id="sumCap">N/A</b></div>
+<div class="row"><span>DSCR, stabilized</span><b id="sumDscr">N/A</b></div>
+<div class="row"><span>Stabilized value <span class="tag">MODELED ESTIMATE</span></span><b id="sumValue">N/A</b></div>
+<div class="row"><span>Value range <span class="tag">MODELED ESTIMATE</span></span><b id="sumRange">N/A</b></div>
+<div class="row"><span>Value per unit <span class="tag">MODELED ESTIMATE</span></span><b id="sumPerUnit">N/A</b></div>
+<div class="row"><span>Cash flow, stabilized <span class="tag">MODELED ESTIMATE</span></span><b id="sumCashFlow">N/A</b></div>
+<div class="row"><span>Deferred maintenance <span class="tag">MODELED ESTIMATE</span></span><b id="sumDeferred">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+</section>
+
+<section class="card" id="s11">
+<h2><span>11</span>Receipt v1.0, SHA-256 chain <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">Receipts are issued in this session only. The first receipt in a session has prev_hash GENESIS. Each receipt stores the SHA-256 hash of its canonical JSON with the hash field stripped. Press Verify chain to recompute every hash in the browser with Web Crypto. Offer authorized is always false in this tool. The receipt is evidence, not an offer.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e2-small-multifamily-receipt.v1.0" readonly class="mono"></div>
+</div>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+<div class="toolbar" style="position:static;border-bottom:0">
+<button class="primary" id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnClearChain" type="button">Clear chain</button>
+</div>
+<div id="verifyOut" style="margin-top:12px"></div>
+<pre id="receiptOut">{}</pre>
+<pre id="chainOut" style="margin-top:12px">[]</pre>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>12</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the address and parcel from at least 2 public sources, enter the rent roll unit by unit with a grade per unit, enter actual and stabilized income and expenses, enter a sourced cap rate and stated debt terms. The tool computes NOI actual and stabilized, stabilized value and a cap-rate value range, value per unit, DSCR at the stated debt terms, cash flow and cash-on-cash, and deferred maintenance by unit. Gates fail closed. A kill means PASS. The receipt records what was entered, what passed, and what was N/A. A share link encodes the whole deal in the URL so someone else can open the same numbers.</p>
+<p><b>What this is not:</b> not an appraisal, not a valuation, not a survey, not legal, tax, or lending advice, and not a replacement for lease review, bank deposit verification, a title commitment, an inspection, or a licensed professional. It does not invent rents, leases, expenses, cap rates, or prices. If a field cannot be verified, it stays N/A. No offer is quoted without Jeramie. It presents no recommendation to buy or sell.</p>
+<p><b>Sources read in full for this build:</b></p>
+<ul>
+<li>E1 Land and Zoning Unlock Engine v1.0, 2026-11-02, local file land-zoning-unlock-engine-site/index.html, live at land-zoning-unlock-engine.pages.dev, HTTP 200. Pattern followed: evidence-first, gates fail closed, receipt JSON, share link, samples, print, Not an appraisal, No offer without Jeramie.</li>
+<li>Residential Underwriting Engine v1.1, 2026-11-02, local file residential-underwriting-engine-site/index.html, live at residential-underwriting-engine.pages.dev, HTTP 200. Pattern followed: A-D rent grades, comp and source gates, kill switch PASS, receipt schema underwriting-receipt.v1.1.</li>
+<li>E2 Small Multifamily Underwriting Engine v1.0, 2026-11-04, local file e2-small-multifamily-site/index.html, live at e2-small-multifamily.pages.dev, HTTP 200, 69,593 bytes. Math and contract kills carried from it: rent roll per unit, NOI actual and stabilized, cap rate, DSCR, value per unit, deferred maintenance, kill on rent roll unverifiable, vacancy over 30 percent with no lease-up plan, DSCR below 1.0 on stabilized NOI. Sample A expectations verified against it and re-proved in the Node tests.</li>
+<li>Vault note 02-Real-Estate-Land/UnderwriteX.md, line 52: Residential v1.1 and E1 v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending.</li>
+<li>Hub v2.43, 2026-11-14, neuruh-hub.pages.dev: section A lists E2 Small Multifamily at e2-small-multifamily.pages.dev, added 2026-11-04; section B lists Residential v1.1 and E1 v1.0.</li>
+<li>Land Intelligence Report generator, land-intelligence-report/index.html: labeling precedent MODELED ESTIMATE, NOT A VALUATION.</li>
+</ul>
+<p><b>Builder design decisions (mine, not paper claims, not Jeramie's order):</b></p>
+<ul>
+<li>Scope is 2 to 4 units (duplex, triplex, fourplex). The 2026-11-04 E2 build scoped 2 to about 20 units. This build follows the E-series 2 to 4 unit definition in the build order. The difference is stated here, not hidden.</li>
+<li>Builder defaults, all editable: vacancy allowance 5 percent, management 8 percent of EGI, cap rate 7.00 percent, value range spread 0.5 percentage points around the cap rate, DSCR thin band 1.00 to 1.25, comfort at 1.25 and above. None of these is a market fact.</li>
+<li>Receipt v1.0 uses a SHA-256 chain with GENESIS as the first prev_hash, canonical JSON with sorted keys and the hash field stripped, and an in-browser Verify button using Web Crypto. The E1, Residential, and 2026-11-04 E2 receipts had no hash chain; the chain is new in this build.</li>
+<li>Cap-rate-implied value is shown as a range (cap rate plus and minus 0.5pp) in addition to the point value, so a small cap rate error is visible instead of hidden.</li>
+</ul>
+<p><b>UNKNOWN, stated plainly:</b></p>
+<ul>
+<li>No E2 specification was found in the vault. Greps for E2, small multifamily, and underwriting across the vault returned only the UnderwriteX.md line cited above and the 2026-11-04 E2 build itself. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault.</li>
+<li>No market rents, cap rates, or expense ratios are known from any source read for this build. Every such number is user input or a labeled builder default.</li>
+<li>Whether the 2 to 4 unit scope or the 2 to about 20 unit scope is the intended E-series definition is UNKNOWN. This build uses 2 to 4 and says so.</li>
+</ul>
+<p><b>Related modules:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://e2-small-multifamily.pages.dev/">E2 Small Multifamily, 2026-11-04 Cloudflare build</a>. A deal with title, lien, or heir problems routes to E8 Distressed Title when that engine is built. A land deal routes to E1.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>13</span>Honest gaps and limits</h2>
+<p class="sub">What this engine does not do, stated plainly.</p>
+<ul>
+<li>No live data connection. Rents, leases, expenses, cap rates, and debt terms are entered by hand and are only as good as their sources.</li>
+<li>No lease review. Grades are self-reported. A grade A unit still needs the signed lease read, and bank deposits checked against the rent roll.</li>
+<li>No expense audit. Owner T12s can understate expenses. Taxes, insurance, and utilities should be verified against bills, not the seller summary.</li>
+<li>No market rent verification. Market rents need named rent comps with sources. This engine does not fetch them.</li>
+<li>No title, lien, or heir check. Title risk is a gate flag here only. Distressed title needs E8.</li>
+<li>No physical inspection. Deferred maintenance is an entered estimate, not an inspection report.</li>
+<li>Cap rate is an input, not a computed market fact. A wrong cap rate moves value more than any other single input. The value range shows that sensitivity; it does not fix it.</li>
+<li>Break-even occupancy is a simple arithmetic check at stabilized gross rent. It does not model lease-up timing or rent concessions.</li>
+<li>Cash flow is before tax and before reserves timing. It is not a tax or investment return claim.</li>
+<li>Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</li>
+<li>Layout was not eyeballed in a real browser. The page was tested with Node tests plus code inspection only.</li>
+</ul>
+</section>
+
+<section class="card" id="s14">
+<h2><span>14</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. A kill is a successful run, not a failed one. If any kill condition fired, the recommendation is PASS.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill-switch active</span><b id="killActive">No</b></div>
+<div class="row"><span>Kill conditions fired</span><b id="killReasons">None</b></div>
+<div class="row"><span>Risk flags (not kills)</span><b id="riskFlags">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="killRec">HOLD</b></div>
+</div>
+<div id="killBox"></div>
+<p style="font-size:13px;color:var(--muted);margin-top:12px">E2 kill conditions, from the 2026-11-04 E2 build: rent roll unverifiable; vacancy over 30 percent with no lease-up plan; DSCR below 1.0 on stabilized NOI. Additional manual kills are listed above and fire the same way. A PASS recommendation means do not proceed on the stated terms with the evidence in this run. It does not mean the property is bad. It means the evidence does not support proceeding. PASS is not a recommendation to sell, and READY FOR REVIEW is not a recommendation to buy.</p>
+</section>
+
+<footer>
+<p>E2 Small Multifamily Underwriting Engine v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. Offer authorized: false. This file works offline with no external dependencies except e2.js in the same directory. Print this page for the file copy.</p>
+<p>Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://e2-small-multifamily.pages.dev/">E2, 2026-11-04 Cloudflare build</a></p>
+</footer>
+</div>
+
+<script src="e2.js"></script>
+<script>
+(function(){
+"use strict";
+var E2 = window.E2;
+function $(id){return document.getElementById(id);}
+function num(id){var v=parseFloat($(id).value);return isFinite(v)?v:null;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function money0(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+Math.round(v).toLocaleString("en-US");}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fmt(n,d){if(n===null||n===undefined||!isFinite(n)){return "N/A";}return n.toFixed(d===undefined?2:d);}
+function pctFmt(n){if(n===null||n===undefined||!isFinite(n)){return "N/A";}return (n*100).toFixed(1)+"%";}
+
+var runId="E2-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: address and parcel confirmed from at least 2 public sources"},
+ {id:"rent_roll",label:"Rent roll gate: leases and bank deposits checked, or the gap is stated and graded"},
+ {id:"source",label:"Source gate: every rent, expense, cap rate, and debt term carries a source or is N/A"},
+ {id:"no_hallucination",label:"No-hallucination gate: no invented rents, leases, expenses, cap rates, or prices; unverifiable fields are N/A"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no offer without Jeramie; offer authorized is false"}
+];
+var kills=[
+ {id:"k_rent_roll",label:"Rent roll unverifiable (contract kill)",auto:"rentRoll"},
+ {id:"k_vacancy",label:"Vacancy over 30 percent with no lease-up plan (contract kill)",auto:"vacancy"},
+ {id:"k_dscr",label:"DSCR below 1.0 on stabilized NOI (contract kill)",auto:"dscr"},
+ {id:"k_title",label:"Title defect with no cure cost"},
+ {id:"k_structural",label:"Structural failure with no bid"},
+ {id:"k_flood",label:"Flood / environmental flag with no professional report"}
+];
+
+function buildGates(){
+ var html="";
+ gates.forEach(function(g){
+  html+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ $("gateList").innerHTML=html;
+ var kh="";
+ kills.forEach(function(k){
+  kh+='<div class="item"><input type="checkbox" id="'+k.id+'" data-kill="'+k.id+'"><label for="'+k.id+'">'+esc(k.label)+'</label></div>';
+ });
+ $("killList").innerHTML=kh;
+}
+buildGates();
+
+var unitIndex=0;
+function unitRow(c){
+ unitIndex++;
+ var tr=document.createElement("tr");
+ tr.setAttribute("data-unit",unitIndex);
+ function gradeSel(v){var opts=["","A","B","C","D"];var h="";opts.forEach(function(o){h+='<option value="'+o+'"'+(v===o?" selected":"")+'>'+(o===""?"Select":o)+"</option>";});return '<select aria-label="Rent grade" data-f="grade">'+h+"</select>";}
+ function statusSel(v){var opts=["Occupied","Vacant"];var h="";opts.forEach(function(o){h+='<option'+(v===o?" selected":"")+">"+o+"</option>";});return '<select aria-label="Unit status" data-f="status">'+h+"</select>";}
+ tr.innerHTML=
+  '<td><input type="text" aria-label="Unit" data-f="unit" value="'+esc((c&&c.unit)||"")+'" placeholder="1"></td>'+
+  '<td><input type="text" aria-label="Tenant" data-f="tenant" value="'+esc((c&&c.tenant)||"")+'" placeholder="Tenant or Vacant"></td>'+
+  '<td><input type="number" aria-label="Actual rent per month" data-f="rent" min="0" step="1" value="'+((c&&c.rent!==undefined&&c.rent!==null)?c.rent:"")+'"></td>'+
+  '<td><input type="number" aria-label="Market rent per month" data-f="market" min="0" step="1" value="'+((c&&c.market!==undefined&&c.market!==null)?c.market:"")+'"></td>'+
+  '<td><input type="date" aria-label="Lease end" data-f="leaseEnd" value="'+esc((c&&c.leaseEnd)||"")+'"></td>'+
+  '<td>'+gradeSel(c&&c.grade)+'</td>'+
+  '<td>'+statusSel((c&&c.status)||"Occupied")+'</td>'+
+  '<td><input type="number" aria-label="Deferred maintenance in dollars" data-f="deferred" min="0" step="1" value="'+((c&&c.deferred!==undefined&&c.deferred!==null)?c.deferred:"")+'"></td>';
+ return tr;
+}
+function addUnit(c){$("rentBody").appendChild(unitRow(c||{}));}
+for(var i=0;i<4;i++){addUnit({unit:String(i+1)});}
+
+var defIndex=0;
+function defRow(c){
+ defIndex++;
+ var tr=document.createElement("tr");
+ tr.setAttribute("data-def",defIndex);
+ tr.innerHTML=
+  '<td><input type="text" aria-label="Deferred unit" data-f="unit" value="'+esc((c&&c.unit)||"")+'" placeholder="1"></td>'+
+  '<td><input type="text" aria-label="Deferred item" data-f="item" value="'+esc((c&&c.item)||"")+'" placeholder="Roof, HVAC, etc."></td>'+
+  '<td><input type="number" aria-label="Deferred cost in dollars" data-f="cost" min="0" step="1" value="'+((c&&c.cost!==undefined&&c.cost!==null)?c.cost:"")+'"></td>'+
+  '<td><input type="text" aria-label="Deferred cost source" data-f="source" value="'+esc((c&&c.source)||"")+'" placeholder="Bid, quote, or N/A"></td>';
+ return tr;
+}
+function addDef(c){$("defBody").appendChild(defRow(c||{}));}
+addDef({});addDef({});addDef({});addDef({});
+
+function getUnits(){
+ var out=[];
+ var rows=document.querySelectorAll("#rentBody tr");
+ var count=num("unitCount");
+ if(count===null||count<2){count=2;}
+ if(count>4){count=4;}
+ rows.forEach(function(tr,idx){
+  function v(f){var el=tr.querySelector('[data-f="'+f+'"]');return el?el.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  tr.classList.toggle("inactive", idx>=count);
+  if(idx<count){
+   out.push({unit:v("unit"),tenant:v("tenant"),rent:n("rent"),market:n("market"),leaseEnd:v("leaseEnd"),grade:v("grade"),status:v("status"),deferred:n("deferred")});
+  }
+ });
+ return out;
+}
+function getDefs(){
+ var out=[];
+ document.querySelectorAll("#defBody tr").forEach(function(tr){
+  function v(f){var el=tr.querySelector('[data-f="'+f+'"]');return el?el.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  out.push({unit:v("unit"),item:v("item"),cost:n("cost"),source:v("source")});
+ });
+ return out;
+}
+
+var lastReceipt={};
+var chain=[];
+var suppressHash=false;
+
+function calc(){
+ var units=getUnits();
+ var totalUnits=num("unitCount");
+ if(totalUnits===null||totalUnits<2){totalUnits=2;}
+ if(totalUnits>4){totalUnits=4;}
+ var rr=E2.computeRentRoll(units);
+ var vacancyRate=rr.vacancyRate;
+ $("rrUnits").textContent=String(rr.count);
+ $("rrOccupied").textContent=String(rr.occupied);
+ $("rrVacant").textContent=String(rr.vacant);
+ $("rrVacancy").textContent=pctFmt(vacancyRate);
+ $("rrGrossActualMo").textContent=money(rr.grossActualMo);
+ $("rrGrossStabMo").textContent=money(rr.grossStabMo);
+ $("rrGradeD").textContent=String(rr.gradeD);
+ $("rrDeferred").textContent=money(rr.deferredRoll);
+ var leaseUp=$("leaseUpPlan").value.trim();
+ var vacKill=vacancyRate!==null&&vacancyRate>0.30&&leaseUp==="";
+ $("vacancyWarning").hidden=!(vacancyRate!==null&&vacancyRate>0.30);
+ if(vacancyRate!==null&&vacancyRate>0.30){
+  $("vacancyWarning").textContent=vacKill?"Warning: vacancy "+pctFmt(vacancyRate)+" is over 30 percent with no lease-up plan. This is a kill condition.":"Vacancy "+pctFmt(vacancyRate)+" is over 30 percent, but a lease-up plan is recorded. The kill does not fire on vacancy alone.";
+ }
+
+ var vacA=num("vacancyActualPct"), vacS=num("vacancyStabPct");
+ if(vacA===null){vacA=0;} if(vacS===null){vacS=0;}
+ var otherA=num("otherIncomeActual")||0, otherS=num("otherIncomeStab")||0;
+ var grossActualYr=rr.grossActualMo===null?null:rr.grossActualMo*12;
+ var grossStabYr=rr.grossStabMo===null?null:rr.grossStabMo*12;
+ var expIn={taxes:num("taxes")||0,insurance:num("insurance")||0,maintenance:num("maintenance")||0,utilities:num("utilities")||0,reserves:num("reserves")||0,otherExpense:num("otherExpense")||0,mgmtPct:num("mgmtPct")===null?0:num("mgmtPct")};
+ var noiA=E2.computeNOI({grossAnnual:grossActualYr,vacancyPct:vacA,otherIncome:otherA,taxes:expIn.taxes,insurance:expIn.insurance,maintenance:expIn.maintenance,utilities:expIn.utilities,reserves:expIn.reserves,otherExpense:expIn.otherExpense,mgmtPct:expIn.mgmtPct});
+ var noiS=E2.computeNOI({grossAnnual:grossStabYr,vacancyPct:vacS,otherIncome:otherS,taxes:expIn.taxes,insurance:expIn.insurance,maintenance:expIn.maintenance,utilities:expIn.utilities,reserves:expIn.reserves,otherExpense:expIn.otherExpense,mgmtPct:expIn.mgmtPct});
+ $("incGrossActual").textContent=money(noiA.grossAnnual);
+ $("incVacActual").textContent=money(noiA.vacancyLoss);
+ $("incOtherActual").textContent=money(noiA.otherIncome);
+ $("incEgiActual").textContent=money(noiA.egi);
+ $("incExpActual").textContent=money(noiA.totalExpenses);
+ $("incNoiActual").textContent=money(noiA.noi);
+ $("incGrossStab").textContent=money(noiS.grossAnnual);
+ $("incVacStab").textContent=money(noiS.vacancyLoss);
+ $("incOtherStab").textContent=money(noiS.otherIncome);
+ $("incEgiStab").textContent=money(noiS.egi);
+ $("incExpStab").textContent=money(noiS.totalExpenses);
+ $("incNoiStab").textContent=money(noiS.noi);
+ $("workingActual").textContent="Working, actual:\n"+noiA.steps.join("\n");
+ $("workingStab").textContent="Working, stabilized:\n"+noiS.steps.join("\n");
+
+ var capPct=num("capRatePct");
+ var capSource=$("capSource").value.trim();
+ var capRate=(capPct===null||capPct<=0)?null:capPct/100;
+ var price=num("purchasePrice");
+ var stabValue=E2.stabilizedValue(noiS.noi,capPct);
+ var range=E2.valueRange(noiS.noi,capPct,0.5);
+ var perUnit=(stabValue===null||!totalUnits||totalUnits<=0)?null:stabValue/totalUnits;
+ var spread=(stabValue===null||price===null)?null:stabValue-price;
+ var pricePerUnit=(price===null||!totalUnits||totalUnits<=0)?null:price/totalUnits;
+ var capActual=(noiA.noi===null||price===null||price<=0)?null:noiA.noi/price*100;
+ $("capActualPct").value=capActual===null?"":capActual.toFixed(2);
+ $("valNoiStab").textContent=money(noiS.noi);
+ $("valCap").textContent=capRate===null?"N/A":capPct.toFixed(2)+"%"+(capSource?" ("+capSource+")":" (no source)");
+ $("valStab").textContent=money(stabValue);
+ $("valRangeLow").textContent=money(range.low)+(range.lowCap!==null?" (at "+range.lowCap.toFixed(2)+"%)":"");
+ $("valRangeHigh").textContent=money(range.high)+(range.highCap!==null?" (at "+range.highCap.toFixed(2)+"%)":"");
+ $("valPerUnit").textContent=money(perUnit);
+ $("valPrice").textContent=money(price);
+ $("valSpread").textContent=money(spread);
+ $("valPricePerUnit").textContent=money(pricePerUnit);
+ $("workingValue").textContent=noiS.noi===null||capPct===null?"Working, value: enter NOI and a cap rate to see the arithmetic.":"Working, value:\nStabilized value = "+E2.fmt2(noiS.noi)+" / "+capPct.toFixed(2)+"% = "+money(stabValue)+"\nRange low = "+E2.fmt2(noiS.noi)+" / "+range.lowCap.toFixed(2)+"% = "+money(range.low)+"\nRange high = "+E2.fmt2(noiS.noi)+" / "+range.highCap.toFixed(2)+"% = "+money(range.high)+"\nValue per unit = "+money(stabValue)+" / "+totalUnits+" = "+money(perUnit);
+
+ var loan=num("loanAmount"), rate=num("loanRatePct"), amort=num("amortYears");
+ var pmt=E2.monthlyPayment(loan,rate,amort);
+ var ads=pmt===null?null:pmt*12;
+ var dscrA=E2.dscr(noiA.noi,ads);
+ var dscrS=E2.dscr(noiS.noi,ads);
+ var down=(price===null||loan===null)?null:price-loan;
+ var ltv=(loan===null||price===null||price<=0)?null:loan/price*100;
+ var cfA=E2.cashFlow(noiA.noi,ads);
+ var cfS=E2.cashFlow(noiS.noi,ads);
+ var coc=E2.cashOnCash(cfS,down);
+ var breakEven=E2.breakEvenOccupancy(noiS.totalExpenses,ads,grossStabYr);
+ $("debtMonthly").textContent=money(pmt);
+ $("debtAnnual").textContent=money(ads);
+ $("debtDown").textContent=money(down);
+ $("debtLtv").textContent=ltv===null?"N/A":ltv.toFixed(2)+"%";
+ $("debtDscrActual").textContent=dscrA===null?"N/A":dscrA.toFixed(3);
+ $("debtDscrStab").textContent=dscrS===null?"N/A":dscrS.toFixed(3);
+ $("debtDscrBand").textContent=dscrS===null?"N/A":E2.dscrBand(dscrS);
+ $("cfActual").textContent=money(cfA);
+ $("cfStab").textContent=money(cfS);
+ $("cfCoc").textContent=coc===null?"N/A":(coc*100).toFixed(2)+"%";
+ $("debtBreakEven").textContent=breakEven===null?"N/A":breakEven.toFixed(1)+"%";
+ $("workingDebt").textContent=pmt===null?"Working, debt: enter loan terms to see the arithmetic.":"Working, debt:\nMonthly payment = amortizing formula on "+money(loan)+" at "+(rate===null?"N/A":rate.toFixed(2)+"%")+" over "+(amort===null?"N/A":amort+" years")+" = "+money(pmt)+"\nAnnual debt service = "+money(pmt)+" x 12 = "+money(ads)+"\nDSCR stabilized = "+E2.fmt2(noiS.noi)+" / "+E2.fmt2(ads)+" = "+(dscrS===null?"N/A":dscrS.toFixed(3))+"\nCash flow stabilized = "+E2.fmt2(noiS.noi)+" - "+E2.fmt2(ads)+" = "+money(cfS)+"\nCash-on-cash = "+money(cfS)+" / "+money(down)+" = "+(coc===null?"N/A":(coc*100).toFixed(2)+"%");
+
+ var defs=getDefs();
+ var defTotal=0, hasDef=false;
+ defs.forEach(function(d){if(d.cost!==null){defTotal+=d.cost;hasDef=true;}});
+ if(!hasDef){defTotal=null;}
+ var defPerUnit=(defTotal===null||!totalUnits||totalUnits<=0)?null:defTotal/totalUnits;
+ var defMatch=(defTotal===null)?null:(Math.abs(defTotal-rr.deferredRoll)<0.01);
+ $("defTotal").textContent=money(defTotal);
+ $("defPerUnit").textContent=money(defPerUnit);
+ $("defRentRoll").textContent=money(rr.deferredRoll);
+ $("defMatch").textContent=defMatch===null?"N/A":(defMatch?"Yes":"No");
+ $("defWarning").hidden=!(defMatch===false);
+
+ var gatesPassed=[],gatesFailed=[];
+ gates.forEach(function(g){
+  var v=$("gate_"+g.id).value;
+  if(v==="pass"){gatesPassed.push(g.id);}else{gatesFailed.push(g.id);}
+ });
+ $("gateStatus").textContent=gatesFailed.length?"HOLD - gates not verified":"All gates pass";
+ $("gateStatus").className=gatesFailed.length?"hold":"ok";
+ $("gatesPassed").textContent=gatesPassed.length?gatesPassed.join(", "):"None";
+ $("gatesFailed").textContent=gatesFailed.length?gatesFailed.join(", "):"None";
+
+ var rentVerifiable=$("rentRollVerifiable").value;
+ var manualKills=[];
+ kills.forEach(function(k){if(!k.auto&&$(k.id).checked){manualKills.push(k.label);}});
+ var killEval=E2.evaluateKills({rentVerifiable:rentVerifiable,vacancyRate:vacancyRate,leaseUpPlan:leaseUp,dscrStab:dscrS,manualKills:manualKills});
+ var allKills=killEval.fired;
+ var killActive=killEval.killActive;
+ if(rentVerifiable==="no"){$("k_rent_roll").checked=true;}else if(!$("k_rent_roll").checked){$("k_rent_roll").checked=false;}
+ if(vacKill){$("k_vacancy").checked=true;}else{$("k_vacancy").checked=false;}
+ if(dscrS!==null&&dscrS<1.0){$("k_dscr").checked=true;}else{$("k_dscr").checked=false;}
+ $("killActive").textContent=killActive?"Yes":"No";
+ $("killReasons").textContent=killActive?allKills.join("; "):"None";
+ var riskFlags=[];
+ if(rr.gradeD>0){riskFlags.push(rr.gradeD+" grade D unit(s), seller claim only");}
+ if(dscrS!==null&&dscrS>=1.0&&dscrS<1.25){riskFlags.push("DSCR stabilized "+dscrS.toFixed(3)+" is thin, below 1.25");}
+ if(vacancyRate!==null&&vacancyRate>0.30&&!vacKill){riskFlags.push("Vacancy over 30 percent with a lease-up plan recorded");}
+ if(defMatch===false){riskFlags.push("Deferred maintenance totals do not match between rent roll and section 07");}
+ if(capSource===""){riskFlags.push("Cap rate source missing");}
+ if(rentVerifiable==="partial"){riskFlags.push("Rent roll only partially verifiable");}
+ if(rr.grossActualMo===null||rr.grossStabMo===null){riskFlags.push("Rent roll incomplete");}
+ $("riskFlags").textContent=riskFlags.length?riskFlags.join("; "):"None";
+
+ var status="", rec="";
+ if(killActive){status="KILL";rec="PASS";}
+ else if(gatesFailed.length>0||rr.grossActualMo===null||capRate===null||ads===null){status="HOLD";rec="HOLD";}
+ else{status="READY FOR REVIEW";rec="READY FOR REVIEW";}
+ $("killRec").textContent=rec;
+ $("killBox").innerHTML=killActive?'<div class="kill-box"><b>Recommendation: PASS.</b> Kill-switch fired: '+esc(allKills.join("; ")) +'. A PASS is a successful run. Do not proceed on the stated terms with the evidence in this run. No offer without Jeramie. PASS is not a recommendation to sell.</div>':(status==="HOLD"?'<div class="hint">Status: HOLD. Complete the gates and the missing inputs in section 08. No offer without Jeramie.</div>':'<div class="pass-box">Status: READY FOR REVIEW. All gates pass and no kill fired. This is still an underwriting opinion only, not an offer and not a recommendation to buy. No offer without Jeramie.</div>');
+ $("decisionBox").innerHTML=$("killBox").innerHTML;
+
+ $("resNoiActual").textContent=money(noiA.noi);
+ $("resNoiStab").textContent=money(noiS.noi);
+ $("resCap").textContent=capRate===null?"N/A":capPct.toFixed(2)+"%"+(capSource?" ("+capSource+")":" (no source)");
+ $("resDscrActual").textContent=dscrA===null?"N/A":dscrA.toFixed(3);
+ $("resDscrStab").textContent=dscrS===null?"N/A":dscrS.toFixed(3);
+ $("resValue").textContent=money(stabValue);
+ $("resRange").textContent=(range.low===null||range.high===null)?"N/A":money(range.low)+" to "+money(range.high);
+ $("resPerUnit").textContent=money(perUnit);
+ $("resCashFlow").textContent=money(cfS);
+ $("resCoc").textContent=coc===null?"N/A":(coc*100).toFixed(2)+"%";
+ $("resDeferred").textContent=money(defTotal);
+ $("resVacancy").textContent=pctFmt(vacancyRate);
+ $("resRec").textContent=rec;
+
+ $("stickyNoi").textContent=money(noiS.noi);
+ $("stickyValue").textContent=(range.low===null||range.high===null)?money(stabValue):money(range.low)+" to "+money(range.high);
+ $("stickyDscr").textContent=dscrS===null?"N/A":dscrS.toFixed(3);
+ $("stickyRec").textContent=rec;
+
+ var items=[
+  ["Street address",!!$("address").value.trim()],
+  ["Parcel ID",!!$("parcelId").value.trim()],
+  ["Total units (2 to 4)",totalUnits!==null&&totalUnits>=2&&totalUnits<=4],
+  ["Rent roll, at least 2 units with rent",units.filter(function(u){return u.rent!==null;}).length>=2],
+  ["Market rent on every unit",units.length>0&&units.every(function(u){return u.market!==null;})],
+  ["Cap rate with source",capRate!==null&&capSource!==""],
+  ["Debt terms (loan, rate, amortization)",loan!==null&&rate!==null&&amort!==null],
+  ["Expenses entered (taxes, insurance)",num("taxes")!==null&&num("insurance")!==null]
+ ];
+ var done=items.filter(function(x){return x[1];}).length;
+ var pct=Math.round(done/items.length*100);
+ $("stickyCompleteBar").style.width=pct+"%";
+ $("stickyCompleteText").textContent=pct+" percent";
+ var missing=items.filter(function(x){return !x[1];}).map(function(x){return x[0];});
+ $("missingHints").textContent=missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.";
+ $("missingHints2").textContent=missing.length?"Missing for a GO: "+missing.join(", ")+".":"All required fields are filled.";
+
+ $("sumAddress").textContent=$("address").value.trim()||"N/A";
+ $("sumParcel").textContent=$("parcelId").value.trim()||"N/A";
+ $("sumUnits").textContent=totalUnits===null?"N/A":String(totalUnits);
+ $("sumVacancy").textContent=pctFmt(vacancyRate);
+ $("sumNoiActual").textContent=money(noiA.noi);
+ $("sumNoiStab").textContent=money(noiS.noi);
+ $("sumCap").textContent=capRate===null?"N/A":capPct.toFixed(2)+"%";
+ $("sumDscr").textContent=dscrS===null?"N/A":dscrS.toFixed(3);
+ $("sumValue").textContent=money(stabValue);
+ $("sumRange").textContent=(range.low===null||range.high===null)?"N/A":money(range.low)+" to "+money(range.high);
+ $("sumPerUnit").textContent=money(perUnit);
+ $("sumCashFlow").textContent=money(cfS);
+ $("sumDeferred").textContent=money(defTotal);
+ var conf=parseFloat($("confidence").value); if(!isFinite(conf)){conf=null;}
+ $("sumConfidence").textContent=conf===null?"N/A":conf.toFixed(2);
+ $("sumGates").textContent=gatesFailed.length?"HOLD":"PASS";
+ $("sumRec").textContent=rec;
+
+ lastReceipt={
+  schema_version:"e2-small-multifamily-receipt.v1.0",
+  run_id:runId,
+  run_date:new Date().toISOString().slice(0,10),
+  simulation:true,
+  address:$("address").value.trim()||null,
+  parcel_id:$("parcelId").value.trim()||null,
+  county:$("county").value.trim()||null,
+  total_units:totalUnits,
+  year_built:num("yearBuilt"),
+  building_type:$("buildingType").value||null,
+  purchase_price:price,
+  rent_roll_verifiable:rentVerifiable||null,
+  rent_roll_source:$("rentRollSource").value.trim()||null,
+  lease_up_plan:leaseUp||null,
+  rent_roll:units,
+  vacancy_rate:vacancyRate,
+  occupied_units:rr.occupied,
+  vacant_units:rr.vacant,
+  income_actual:{gross_scheduled_rent:noiA.grossAnnual, vacancy_loss:noiA.vacancyLoss, other_income:noiA.otherIncome, effective_gross_income:noiA.egi, operating_expenses:noiA.totalExpenses, noi:noiA.noi},
+  income_stabilized:{gross_scheduled_rent:noiS.grossAnnual, vacancy_loss:noiS.vacancyLoss, other_income:noiS.otherIncome, effective_gross_income:noiS.egi, operating_expenses:noiS.totalExpenses, noi:noiS.noi},
+  expenses:{taxes:expIn.taxes, insurance:expIn.insurance, maintenance:expIn.maintenance, management_pct:expIn.mgmtPct, management_actual:noiA.mgmtFee, management_stabilized:noiS.mgmtFee, utilities:expIn.utilities, reserves:expIn.reserves, other:expIn.otherExpense, source:$("expenseSource").value.trim()||null},
+  cap_rate_pct:capPct,
+  cap_rate_source:capSource||null,
+  stabilized_value:stabValue,
+  value_range_low:range.low,
+  value_range_high:range.high,
+  value_range_spread_pp:0.5,
+  value_per_unit:perUnit,
+  value_spread_vs_price:spread,
+  debt:{loan_amount:loan, rate_pct:rate, amortization_years:amort, loan_term_years:num("loanTermYears"), monthly_payment:pmt, annual_debt_service:ads, down_payment:down, ltv_pct:ltv, source:$("debtSource").value.trim()||null},
+  dscr_actual:dscrA,
+  dscr_stabilized:dscrS,
+  dscr_band:E2.dscrBand(dscrS),
+  cash_flow_actual:cfA,
+  cash_flow_stabilized:cfS,
+  cash_on_cash_stabilized:coc,
+  break_even_occupancy_pct:breakEven,
+  deferred_maintenance:defs,
+  deferred_maintenance_total:defTotal,
+  deferred_maintenance_per_unit:defPerUnit,
+  deferred_totals_match:defMatch,
+  gates:{passed:gatesPassed, failed:gatesFailed},
+  kill_switch:killActive,
+  kill_conditions_fired:allKills,
+  risk_flags:riskFlags,
+  status:status,
+  recommendation:rec,
+  confidence:conf,
+  exit_fit:$("exitFit").value||null,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value,
+  labeling:"MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL",
+  offer_authorized:false
+ };
+ $("receiptOut").textContent=JSON.stringify(lastReceipt,null,2);
+ if(!suppressHash){updateHash();}
+}
+
+function setVal(id,v){$(id).value=v;}
+function setUnit(i,c){
+ var tr=document.querySelectorAll("#rentBody tr")[i]; if(!tr){return;}
+ function s(f,v){var el=tr.querySelector('[data-f="'+f+'"]'); if(el){el.value=v;}}
+ s("unit",c.unit||""); s("tenant",c.tenant||""); s("rent",c.rent===undefined?"":c.rent); s("market",c.market===undefined?"":c.market);
+ s("leaseEnd",c.leaseEnd||""); s("grade",c.grade||""); s("status",c.status||"Occupied"); s("deferred",c.deferred===undefined?"":c.deferred);
+}
+function setDef(i,c){
+ var tr=document.querySelectorAll("#defBody tr")[i]; if(!tr){return;}
+ function s(f,v){var el=tr.querySelector('[data-f="'+f+'"]'); if(el){el.value=v;}}
+ s("unit",c.unit||""); s("item",c.item||""); s("cost",c.cost===undefined?"":c.cost); s("source",c.source||"");
+}
+function resetGatesKills(){
+ gates.forEach(function(g){$("gate_"+g.id).value="pass";});
+ kills.forEach(function(k){$(k.id).checked=false;});
+}
+function showSampleNote(txt){var n=$("sampleNote");n.hidden=false;n.textContent=txt;}
+
+function loadSample(kind){
+ kind=kind||"a";
+ resetGatesKills();
+ if(kind==="a"){
+  setVal("address","123 Fourplex Way, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-PARCEL-E2A"); setVal("county","Berrien County, MI");
+  setVal("unitCount","4"); setVal("yearBuilt","1965"); $("buildingType").value="Fourplex";
+  setVal("purchasePrice","400000"); $("rentRollVerifiable").value="yes";
+  setVal("rentRollSource","Leases in hand and bank deposits checked, sample data");
+  setVal("leaseUpPlan","N/A, vacancy is 0 percent"); $("exitFit").value="Buy and hold"; setVal("parcelSources","2");
+  setUnit(0,{unit:"1",tenant:"Sample Tenant 1",rent:950,market:1000,leaseEnd:"2027-06-30",grade:"A",status:"Occupied",deferred:500});
+  setUnit(1,{unit:"2",tenant:"Sample Tenant 2",rent:1000,market:1050,leaseEnd:"2027-03-31",grade:"A",status:"Occupied",deferred:0});
+  setUnit(2,{unit:"3",tenant:"Sample Tenant 3",rent:1050,market:1100,leaseEnd:"2026-12-31",grade:"B",status:"Occupied",deferred:1200});
+  setUnit(3,{unit:"4",tenant:"Sample Tenant 4",rent:1100,market:1150,leaseEnd:"2027-09-30",grade:"A",status:"Occupied",deferred:0});
+  setVal("otherIncomeActual","1200"); setVal("otherIncomeStab","1200");
+  setVal("vacancyActualPct","5"); setVal("vacancyStabPct","5");
+  setVal("taxes","4800"); setVal("insurance","2400"); setVal("maintenance","3600");
+  setVal("mgmtPct","8"); setVal("utilities","2400"); setVal("reserves","2000"); setVal("otherExpense","0");
+  setVal("expenseSource","Sample T12, tax bill, insurance quote");
+  setVal("capRatePct","7"); setVal("capSource","Broker OM, 3 local sales, sample");
+  setVal("loanAmount","300000"); setVal("loanRatePct","7"); setVal("amortYears","30");
+  setVal("debtSource","Sample lender term sheet");
+  setDef(0,{unit:"1",item:"Water heater",cost:500,source:"Sample bid"});
+  setDef(1,{unit:"3",item:"Carpet and paint",cost:1200,source:"Sample bid"});
+  setDef(2,{unit:"",item:"",cost:"",source:""});
+  setDef(3,{unit:"",item:"",cost:"",source:""});
+  setVal("confidence","0.75");
+  setVal("assumptions","Sample deal only, not a real deal. Synthetic sample data. 1. Actual rents 950, 1000, 1050, 1100 per month. 2. Market rents 1000, 1050, 1100, 1150 per month. 3. Vacancy allowance 5 percent both cases. 4. Cap rate 7 percent from broker OM. Expected: NOI actual $28,904.80, NOI stabilized $31,002.40, stabilized value $442,891.43, value range $413,365.33 to $476,960.00, DSCR stabilized 1.294, cash flow stabilized $7,051.51.");
+  setVal("missingData","None for the sample. A real deal needs leases, bank deposits, T12, tax bill, and insurance quote.");
+  setVal("conflicts","None. Sample data only.");
+  showSampleNote("Sample A loaded. Synthetic sample data, not a real deal. 4-unit clean deal. Expected: NOI actual $28,904.80, NOI stabilized $31,002.40, stabilized value $442,891.43, value range $413,365.33 to $476,960.00, DSCR stabilized 1.294.");
+ }else if(kind==="b"){
+  setVal("address","456 Value Add Ave, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-PARCEL-E2B"); setVal("county","Berrien County, MI");
+  setVal("unitCount","4"); setVal("yearBuilt","1972"); $("buildingType").value="Fourplex";
+  setVal("purchasePrice","275000"); $("rentRollVerifiable").value="partial";
+  setVal("rentRollSource","Owner rent roll, 3 of 4 leases in hand, sample data");
+  setVal("leaseUpPlan","Lease 1 vacant unit at $850 in 90 days, $1,000 marketing, sample plan"); $("exitFit").value="Value-add / lease-up"; setVal("parcelSources","2");
+  setUnit(0,{unit:"1",tenant:"Sample Tenant 1",rent:700,market:850,leaseEnd:"2027-05-31",grade:"A",status:"Occupied",deferred:800});
+  setUnit(1,{unit:"2",tenant:"Sample Tenant 2",rent:700,market:850,leaseEnd:"2027-02-28",grade:"B",status:"Occupied",deferred:0});
+  setUnit(2,{unit:"3",tenant:"Sample Tenant 3",rent:700,market:850,leaseEnd:"2026-11-30",grade:"C",status:"Occupied",deferred:1500});
+  setUnit(3,{unit:"4",tenant:"Vacant",rent:0,market:850,leaseEnd:"",grade:"C",status:"Vacant",deferred:2500});
+  setVal("otherIncomeActual","600"); setVal("otherIncomeStab","1200");
+  setVal("vacancyActualPct","10"); setVal("vacancyStabPct","10");
+  setVal("taxes","4500"); setVal("insurance","2400"); setVal("maintenance","3600");
+  setVal("mgmtPct","8"); setVal("utilities","3000"); setVal("reserves","2000"); setVal("otherExpense","0");
+  setVal("expenseSource","Sample T12 and tax bill");
+  setVal("capRatePct","6.5"); setVal("capSource","Broker OM, sample");
+  setVal("loanAmount","206250"); setVal("loanRatePct","7.5"); setVal("amortYears","25");
+  setVal("debtSource","Sample lender quote");
+  setDef(0,{unit:"1",item:"Appliances",cost:800,source:"Sample bid"});
+  setDef(1,{unit:"3",item:"Flooring",cost:1500,source:"Sample bid"});
+  setDef(2,{unit:"4",item:"Turn, unit 4",cost:2500,source:"Sample bid"});
+  setDef(3,{unit:"",item:"",cost:"",source:""});
+  setVal("confidence","0.60");
+  setVal("assumptions","Sample deal only, not a real deal. Synthetic sample data. 1. One unit vacant, 25 percent vacancy, with a lease-up plan recorded. 2. Market rent $850 on all 4 units. 3. Cap rate 6.5 percent. Expected: NOI actual $5,917.60, NOI stabilized $19,386.40, stabilized value $298,252.31, DSCR stabilized 1.060, thin, not a kill, cash flow stabilized $1,096.37.");
+  setVal("missingData","One lease missing. A real deal needs all 4 leases and deposit verification.");
+  setVal("conflicts","None. Sample data only.");
+  showSampleNote("Sample B loaded. Synthetic sample data, not a real deal. 4-unit value-add, DSCR stabilized 1.060, thin. Expected: NOI stabilized $19,386.40, stabilized value $298,252.31.");
+ }else{
+  setVal("address","789 Pass Rd, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-PARCEL-E2C"); setVal("county","Berrien County, MI");
+  setVal("unitCount","4"); setVal("yearBuilt","1958"); $("buildingType").value="Fourplex";
+  setVal("purchasePrice","300000"); $("rentRollVerifiable").value="no";
+  setVal("rentRollSource","Seller statement only, no leases, sample data");
+  setVal("leaseUpPlan",""); $("exitFit").value="Pass"; setVal("parcelSources","1");
+  setUnit(0,{unit:"1",tenant:"Sample Tenant 1",rent:800,market:900,leaseEnd:"",grade:"D",status:"Occupied",deferred:2000});
+  setUnit(1,{unit:"2",tenant:"Sample Tenant 2",rent:800,market:900,leaseEnd:"",grade:"D",status:"Occupied",deferred:0});
+  setUnit(2,{unit:"3",tenant:"Vacant",rent:0,market:900,leaseEnd:"",grade:"D",status:"Vacant",deferred:4000});
+  setUnit(3,{unit:"4",tenant:"Vacant",rent:0,market:900,leaseEnd:"",grade:"D",status:"Vacant",deferred:4000});
+  setVal("otherIncomeActual","0"); setVal("otherIncomeStab","0");
+  setVal("vacancyActualPct","10"); setVal("vacancyStabPct","10");
+  setVal("taxes","6000"); setVal("insurance","3600"); setVal("maintenance","5400");
+  setVal("mgmtPct","8"); setVal("utilities","4800"); setVal("reserves","3000"); setVal("otherExpense","0");
+  setVal("expenseSource","Seller summary only, unverified");
+  setVal("capRatePct","7"); setVal("capSource","Seller claim, no source");
+  setVal("loanAmount","240000"); setVal("loanRatePct","8"); setVal("amortYears","25");
+  setVal("debtSource","Sample lender quote");
+  setDef(0,{unit:"1",item:"Roof repair",cost:2000,source:"Seller claim"});
+  setDef(1,{unit:"3",item:"Turn, unit 3",cost:4000,source:"Seller claim"});
+  setDef(2,{unit:"4",item:"Turn, unit 4",cost:4000,source:"Seller claim"});
+  setDef(3,{unit:"",item:"",cost:"",source:""});
+  setVal("confidence","0.30");
+  setVal("assumptions","Sample deal only, not a real deal. Synthetic sample data. PASS sample. Rent roll unverifiable, vacancy 50 percent with no lease-up plan, DSCR stabilized 0.583, below 1.0. Expected: recommendation PASS, status KILL, NOI stabilized $12,969.60.");
+  setVal("missingData","Leases, deposits, T12, inspection, title. All missing in this sample.");
+  setVal("conflicts","Rent roll is seller statement only. Cap rate source is a seller claim.");
+  showSampleNote("Sample C loaded. Synthetic sample data, not a real deal. PASS sample: rent roll unverifiable, 50 percent vacancy with no lease-up plan, DSCR stabilized 0.583. Expected result: recommendation PASS.");
+ }
+ calc();
+}
+
+function collectState(){
+ var state={};
+ document.querySelectorAll("input,select,textarea").forEach(function(el){
+  if(el.id&&el.type!=="checkbox"){state[el.id]=el.value;}
+  if(el.id&&el.type==="checkbox"){state[el.id]=el.checked;}
+ });
+ state.units=getUnits();
+ state.defs=getDefs();
+ return state;
+}
+function applyState(s){
+ suppressHash=true;
+ Object.keys(s).forEach(function(k){
+  if(k==="units"||k==="defs"){return;}
+  var el=$(k); if(!el){return;}
+  if(el.type==="checkbox"){el.checked=!!s[k];}else{el.value=s[k];}
+ });
+ if(s.units){s.units.forEach(function(u,i){setUnit(i,u);});}
+ if(s.defs){s.defs.forEach(function(d,i){setDef(i,d);});}
+ suppressHash=false;
+ calc();
+}
+function updateHash(){
+ try{
+  var json=JSON.stringify(collectState());
+  var b64=btoa(unescape(encodeURIComponent(json)));
+  var url=window.location.href.split("#")[0]+"#d="+b64;
+  $("shareUrl").value=url;
+  if(window.history&&window.history.replaceState){window.history.replaceState(null,"",url);}
+ }catch(e){/* share link unavailable, math still runs */}
+}
+function restoreFromHash(){
+ if(!window.location.hash||window.location.hash.indexOf("#d=")!==0){return false;}
+ try{
+  var json=decodeURIComponent(escape(atob(window.location.hash.slice(3))));
+  var s=JSON.parse(json);
+  applyState(s);
+  showSampleNote("Deal restored from share link. Check the inputs and sources before relying on any number.");
+  return true;
+ }catch(e){return false;}
+}
+function copyText(t,msg){
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t);}
+ else{var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(ta);}
+ showSampleNote(msg);
+}
+function clearAll(){
+ document.querySelectorAll("input,select,textarea").forEach(function(el){
+  if(el.id==="runId"||el.id==="runDate"||el.id==="capActualPct"){return;}
+  if(el.type==="checkbox"){el.checked=false;}
+  else if(el.id==="vacancyActualPct"||el.id==="vacancyStabPct"){el.value="5";}
+  else if(el.id==="mgmtPct"){el.value="8";}
+  else if(el.id==="otherIncomeActual"||el.id==="otherIncomeStab"||el.id==="otherExpense"||el.id==="parcelSources"){el.value="0";}
+  else if(el.id==="confidence"){el.value="0.50";}
+  else if(el.id==="unitCount"){el.value="4";}
+  else{el.value="";}
+ });
+ for(var i=0;i<4;i++){setUnit(i,{unit:String(i+1),status:"Occupied"});}
+ for(var j=0;j<4;j++){setDef(j,{});}
+ resetGatesKills();
+ showSampleNote("Cleared. Enter a real deal, or load a sample.");
+ calc();
+}
+
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this context"));}
+ var data=new TextEncoder().encode(str);
+ return window.crypto.subtle.digest("SHA-256",data).then(function(buf){
+  var bytes=new Uint8Array(buf);
+  var hex="";
+  bytes.forEach(function(b){hex+=("0"+b.toString(16)).slice(-2);});
+  return hex;
+ });
+}
+
+function issueReceipt(){
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var receipt=E2.buildReceipt(lastReceipt,prev,chain.length+1);
+ var canonical=E2.canonicalJSON(receipt);
+ sha256HexBrowser(canonical).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  $("chainOut").textContent=JSON.stringify(chain,null,2);
+  $("verifyOut").innerHTML='<div class="hint">Receipt '+receipt.seq+' issued. Hash '+hex.slice(0,16)+'... Prev '+String(prev).slice(0,16)+'... Press Verify chain to recompute.</div>';
+ }).catch(function(err){
+  $("verifyOut").innerHTML='<div class="warning">Web Crypto unavailable in this context, so no hash was issued in the browser. The same receipt math is verified by the Node test suite. ('+esc(err.message)+')</div>';
+ });
+}
+
+function verifyChainBrowser(){
+ if(chain.length===0){
+  $("verifyOut").innerHTML='<div class="hint">No receipts in this session yet. Press Issue receipt first.</div>';
+  return;
+ }
+ E2.verifyChain(chain,function(canonical){return sha256HexBrowser(canonical);}).then(function(result){
+  var lines=result.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+  var overall=result.ok?"PASS":"FAIL";
+  $("verifyOut").innerHTML='<div class="'+(result.ok?"pass-box":"kill-box")+'"><b>Chain verification: '+overall+'.</b><br>'+esc(lines.join(" | "))+'</div>';
+ }).catch(function(err){
+  $("verifyOut").innerHTML='<div class="warning">Verification failed: '+esc(err.message)+'</div>';
+ });
+}
+
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnShare").addEventListener("click",function(){updateHash();copyText($("shareUrl").value,"Share link copied. It encodes this deal in the URL hash. Nothing was uploaded.");});
+$("btnClearShare").addEventListener("click",function(){if(window.history&&window.history.replaceState){window.history.replaceState(null,"",window.location.href.split("#")[0]);}$("shareUrl").value="";showSampleNote("Share link cleared.");});
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",function(){copyText($("receiptOut").textContent,"Receipt JSON copied.");});
+$("btnDownloadReceipt").addEventListener("click",function(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e2-receipt-"+runId+".json";a.click();
+});
+$("btnPrint").addEventListener("click",function(){window.print();});
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChainBrowser);
+$("btnClearChain").addEventListener("click",function(){chain=[];$("chainOut").textContent="[]";$("verifyOut").innerHTML='<div class="hint">Chain cleared. The next receipt issued starts again at GENESIS.</div>';});
+
+document.addEventListener("input",function(e){if(e.target&&e.target.closest){calc();}});
+document.addEventListener("change",function(e){if(e.target&&e.target.closest){calc();}});
+
+if(!restoreFromHash()){calc();}
+})();
+</script>
+</body>
+</html>
