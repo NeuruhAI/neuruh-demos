@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Gate - JGI Sections 34-39 - Neuruh Demos</title>
+<meta name="description" content="Memory Gate: the JGI memory write gate, decay, consolidation, contradiction graph, and negative-knowledge register (Sections 34-39) as working tools. The paper gives no numeric thresholds; every threshold here is labeled illustrative.">
+<meta name="theme-color" content="#9a7b2d">
+<style>
+:root{--paper:#f7f4ec;--ink:#1c1a16;--muted:#5c564a;--brass:#9a7b2d;--line:#d8d2c2;--card:#fffdf8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.6}
+h1,h2,h3{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.25}
+header.doc{border-bottom:3px solid var(--brass);padding:28px 20px 18px;max-width:960px;margin:0 auto}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{font-size:34px;margin:8px 0 6px}
+header.doc .meta{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--muted)}
+main{max-width:960px;margin:0 auto;padding:20px}
+section.tool{border:1px solid var(--line);background:var(--card);padding:20px;margin-bottom:28px}
+section.tool h2{margin-top:0;font-size:20px}
+label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px}
+input[type=text],input[type=number],select,textarea{width:100%;padding:8px;border:1px solid var(--line);background:#fff;font:inherit;font-size:14px}
+input[type=range]{width:100%}
+textarea{min-height:64px}
+button{background:var(--brass);color:#fff;border:0;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer;margin:10px 8px 0 0}
+button.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.result{margin-top:14px;padding:12px 14px;border:1px solid var(--line);background:var(--paper);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;white-space:pre-wrap}
+.note{font-size:13px;color:var(--muted)}
+.warn{font-size:13px;color:#8a1f1f;font-weight:700}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--paper);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+footer{max-width:960px;margin:0 auto;padding:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media print{body{background:#fff}button{display:none}section.tool{break-inside:avoid}}
+@media (max-width:800px){header.doc h1{font-size:26px}}
+</style>
+</head>
+<body>
+<header class="doc">
+<p class="kicker">Neuruh Demos</p>
+<h1>Memory Gate</h1>
+<p class="meta">Source: Jeramie General Intelligence (JGI V6), Sections 34 to 39 | Built from the JGI Memory Workbench | Founder working paper, not peer reviewed</p>
+<p class="meta">Package: <code>memory-gate</code> v1.0.0 | This page runs the same library code as the Node package (shared <code>lib/*.js</code> files, loaded below).</p>
+<p class="warn">Thresholds are illustrative. The JGI paper gives no numeric thresholds. The write-gate rule (evidence below 3 REJECT, contradiction QUARANTINE, evidence below 6 QUARANTINE, else WRITE) and the consolidation rule are illustrative implementations of the paper's concepts, not formulas from the paper.</p>
+</header>
+<main>
+
+<section class="tool" id="t1"><h2>Tool 1. Memory Write Gate (Section 34)</h2>
+<p class="note">Every durable memory write answers eight questions: class, source, freshness, confidence, contradiction, relevance horizon, fact vs inference, immutable history vs editable current state.</p>
+<p class="warn">Illustrative thresholds: evidence below 3 REJECTS, a contradiction QUARANTINES even at high evidence, evidence below 6 QUARANTINES, otherwise WRITE. The paper gives no numeric thresholds.</p>
+<p class="note">Fix note: the Workbench demo coded the quarantine branch as (ev &lt; 6 || type === "Inference" &amp;&amp; ev &lt; 6). The second half is subsumed by the first and could never change the outcome, so it was dead code. It is removed here. No new threshold was invented to replace it.</p>
+<label for="wg-class">Memory class</label>
+<select id="wg-class"><option>Working</option><option>Episodic</option><option>Semantic</option><option>Procedural</option><option>Negative</option><option>Strategic</option><option>Capability</option><option>Epistemic</option></select>
+<label for="wg-source">Source</label>
+<input type="text" id="wg-source" value="Lead pull, Berrien County">
+<label for="wg-evidence">Evidence strength / confidence (0 to 10): <span id="wg-evidence-out">7</span></label>
+<input type="range" id="wg-evidence" min="0" max="10" step="1" value="7">
+<label for="wg-freshness">Freshness</label>
+<select id="wg-freshness"><option>Minutes</option><option>Hours</option><option selected>Days</option><option>Weeks</option><option>Months</option><option>Years</option></select>
+<label for="wg-horizon">Relevance horizon</label>
+<input type="text" id="wg-horizon" value="Weeks">
+<label for="wg-conflict">Conflict status</label>
+<select id="wg-conflict"><option value="none" selected>None</option><option value="contradicts">Contradicts an existing memory</option><option value="supersedes">Supersedes an existing memory</option></select>
+<label for="wg-type">Fact or inference</label>
+<select id="wg-type"><option selected>Fact</option><option>Inference</option></select>
+<label for="wg-mode">Immutable history or editable current state</label>
+<select id="wg-mode"><option>Immutable history</option><option selected>Editable current state</option></select>
+<button id="wg-run">Run write gate</button>
+<button class="secondary" id="wg-reset">Reset</button>
+<div class="result" id="wg-result">No candidate evaluated yet.</div>
+</section>
+
+<section class="tool" id="t2"><h2>Tool 2. Memory Decay calculator (Section 35)</h2>
+<p class="note">Paper formula: F(t) = 2^(-t/h), where t is age and h is domain-specific half-life.</p>
+<label for="dc-preset">Domain half-life preset</label>
+<select id="dc-preset">
+<option value="runtime">Runtime state: minutes (h = 0.0167 days)</option>
+<option value="repo" selected>Repo state: hours (h = 0.5 days)</option>
+<option value="lead">Lead state: days (h = 7 days)</option>
+<option value="strategy">Business strategy: weeks (h = 30 days)</option>
+<option value="historical">Historical fact: years (h = 365 days)</option>
+</select>
+<label for="dc-t">Age t (days)</label>
+<input type="number" id="dc-t" min="0" step="0.1" value="10">
+<label for="dc-h">Half-life h (days)</label>
+<input type="number" id="dc-h" min="0.0001" step="0.0001" value="0.5">
+<button id="dc-run">Compute retention</button>
+<div class="result" id="dc-result">No computation yet.</div>
+<table id="dc-table" aria-label="Retention over time"><thead><tr><th>Age t</th><th>Retention F(t)</th></tr></thead><tbody></tbody></table>
+</section>
+
+<section class="tool" id="t3"><h2>Tool 3. Contradiction Graph explorer (Section 38)</h2>
+<p class="note">Contradictions are objects: claim A, claim B, sources, freshness, authority, possible resolution, impact. Prioritized by whether resolving them changes action. Changes-action contradictions sort first.</p>
+<label for="cg-a">Claim A</label>
+<input type="text" id="cg-a" value="Berrien lead pull is current">
+<label for="cg-b">Claim B</label>
+<input type="text" id="cg-b" value="Berrien lead pull has failed 18 straight nights">
+<label for="cg-sources">Sources</label>
+<input type="text" id="cg-sources" value="CRM dashboard vs pull log">
+<label for="cg-fresh">Freshness</label>
+<select id="cg-fresh"><option>Minutes</option><option>Hours</option><option selected>Days</option><option>Weeks</option></select>
+<label for="cg-auth">Authority of the stronger side</label>
+<select id="cg-auth"><option>Low</option><option selected>Medium</option><option>High</option></select>
+<label for="cg-res">Possible resolution</label>
+<input type="text" id="cg-res" value="Verify the fresher source, then keep the side with higher authority.">
+<label for="cg-impact">Does resolving this change action?</label>
+<select id="cg-impact"><option value="yes" selected>Yes, it changes action</option><option value="no">No, action is the same either way</option></select>
+<button id="cg-add">Add contradiction</button>
+<button class="secondary" id="cg-clear">Clear all</button>
+<div class="result" id="cg-list">No contradictions recorded.</div>
+</section>
+
+<section class="tool" id="t4"><h2>Tool 4. Negative Knowledge register (Section 37)</h2>
+<p class="note">Record failed method, reason, environment, evidence, correction, and whether failure was intrinsic or contextual. The register blocks re-adding a known-false claim so it is never relearned.</p>
+<label for="nk-method">Failed method or claim</label>
+<input type="text" id="nk-method" value="Cold outreach from a stale lead list converts">
+<label for="nk-reason">Reason it failed</label>
+<input type="text" id="nk-reason" value="List was 19 days stale; owners had already moved">
+<label for="nk-env">Environment</label>
+<input type="text" id="nk-env" value="Berrien County, Oct 2026">
+<label for="nk-evidence">Evidence</label>
+<input type="text" id="nk-evidence" value="0 replies from 5 queued leads">
+<label for="nk-correction">Correction</label>
+<input type="text" id="nk-correction" value="Verify freshness before any send">
+<label for="nk-kind">Failure type</label>
+<select id="nk-kind"><option>Intrinsic</option><option selected>Contextual</option></select>
+<button id="nk-add">Add to register</button>
+<label for="nk-search">Search register</label>
+<input type="text" id="nk-search" placeholder="Type to filter recorded failures">
+<div class="result" id="nk-msg">Register is empty.</div>
+<div class="result" id="nk-list">No entries yet.</div>
+</section>
+
+<section class="tool" id="t5"><h2>Tool 5. Consolidation Planner (Section 36)</h2>
+<p class="note">The paper says compress large episodic histories, never delete raw evidence, and create higher-order summaries with backlinks. It gives no scoring formula.</p>
+<p class="warn">Illustrative rule: importance 7+ and age 30+ days compresses into durable memory; importance 7+ keeps working; importance 4+ and age 90+ days compresses summary only, keeping raw evidence; importance 4+ keeps working; age 30+ days drops the working copy with raw evidence retained; otherwise keep working, review soon. Raw evidence is never deleted.</p>
+<button id="cp-load">Load sample memories</button>
+<button class="secondary" id="cp-run">Run planner</button>
+<table aria-label="Memories to consolidate"><thead><tr><th>Memory</th><th>Importance 1-10</th><th>Age (days)</th><th>Recommendation</th></tr></thead><tbody id="cp-body">
+<tr><td><input type="text" class="cp-name" value="Oct 15 lead pull results"></td><td><input type="number" class="cp-imp" min="1" max="10" value="8"></td><td><input type="number" class="cp-age" min="0" value="19"></td><td class="cp-rec">Not run</td></tr>
+<tr><td><input type="text" class="cp-name" value="Evening outreach log, Nov 2"></td><td><input type="number" class="cp-imp" min="1" max="10" value="6"></td><td><input type="number" class="cp-age" min="0" value="1"></td><td class="cp-rec">Not run</td></tr>
+<tr><td><input type="text" class="cp-name" value="Old Messenger thread drafts"></td><td><input type="number" class="cp-imp" min="1" max="10" value="2"></td><td><input type="number" class="cp-age" min="0" value="120"></td><td class="cp-rec">Not run</td></tr>
+<tr><td><input type="text" class="cp-name" value="N-Cell paper, full text"></td><td><input type="number" class="cp-imp" min="1" max="10" value="9"></td><td><input type="number" class="cp-age" min="0" value="120"></td><td class="cp-rec">Not run</td></tr>
+<tr><td><input type="text" class="cp-name" value="Daily weather check"></td><td><input type="number" class="cp-imp" min="1" max="10" value="3"></td><td><input type="number" class="cp-age" min="0" value="2"></td><td class="cp-rec">Not run</td></tr>
+</tbody></table>
+<div class="result" id="cp-result">Planner has not run.</div>
+</section>
+
+</main>
+<footer>
+<p>Memory Gate. Built from Jeramie General Intelligence (JGI V6), Sections 34 to 39, via the JGI Memory Workbench. Founder working paper, not peer reviewed. JGI is an internal engineering objective, not an AGI claim. Tools run in your browser. Nothing here touches a live system. The paper gives no numeric thresholds; every threshold on this page is labeled illustrative.</p>
+</footer>
+<script src="write-gate.js"></script>
+<script src="decay.js"></script>
+<script src="contradiction.js"></script>
+<script src="negative-knowledge.js"></script>
+<script src="consolidation.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+var WG = window.MemoryGate.WriteGate;
+var DC = window.MemoryGate.Decay;
+var CG = window.MemoryGate.Contradiction;
+var NK = window.MemoryGate.NegativeKnowledge;
+var CP = window.MemoryGate.Consolidation;
+
+/* Tool 1: Write gate. Same library code as the Node package. */
+var wgEv=$("wg-evidence"),wgOut=$("wg-evidence-out");
+wgEv.addEventListener("input",function(){wgOut.textContent=wgEv.value;});
+$("wg-run").addEventListener("click",function(){
+  var r=WG.evaluateWrite({
+    memoryClass:$("wg-class").value,
+    source:$("wg-source").value,
+    freshness:$("wg-freshness").value,
+    evidence:parseInt(wgEv.value,10),
+    contradiction:$("wg-conflict").value,
+    relevanceHorizon:$("wg-horizon").value,
+    kind:$("wg-type").value,
+    mutability:$("wg-mode").value
+  });
+  $("wg-result").textContent="Verdict: "+r.verdict+"\nClass: "+r.input.memoryClass+"\nSource: "+r.input.source+"\nFreshness: "+r.input.freshness+"\nRelevance horizon: "+r.input.relevanceHorizon+"\nReason: "+r.reasons.join(" ")+"\n"+r.thresholdNote;
+});
+$("wg-reset").addEventListener("click",function(){
+  $("wg-class").value="Working";$("wg-source").value="Lead pull, Berrien County";wgEv.value=7;wgOut.textContent="7";
+  $("wg-freshness").value="Days";$("wg-horizon").value="Weeks";$("wg-conflict").value="none";$("wg-type").value="Fact";$("wg-mode").value="Editable current state";
+  $("wg-result").textContent="No candidate evaluated yet.";
+});
+
+/* Tool 2: Decay. Paper formula F(t) = 2^(-t/h). */
+$("dc-preset").addEventListener("change",function(){
+  $("dc-h").value=DC.DECAY_PRESETS[this.value].halfLifeDays;
+});
+$("dc-run").addEventListener("click",function(){
+  var t=parseFloat($("dc-t").value),h=parseFloat($("dc-h").value);
+  try{
+    var f=DC.decay(t,h);
+    $("dc-result").textContent="F("+t+") = 2^(-"+t+"/"+h+") = "+f.toFixed(4)+"\nRetention: "+(f*100).toFixed(2)+"%";
+    var rows=[[0],[h/2],[h],[2*h],[4*h]],html="";
+    rows.forEach(function(r){html+="<tr><td>"+r[0]+"</td><td>"+DC.decay(r[0],h).toFixed(4)+"</td></tr>";});
+    document.querySelector("#dc-table tbody").innerHTML=html;
+  }catch(e){$("dc-result").textContent=e.message;}
+});
+
+/* Tool 3: Contradiction graph. */
+var contradictions=[];
+function renderCg(){
+  if(!contradictions.length){$("cg-list").textContent="No contradictions recorded.";return;}
+  var sorted=CG.prioritizeContradictions(contradictions);
+  var out=sorted.map(function(c,i){
+    return (i+1)+". ["+c.priority+"] A: "+c.claimA+"\n   B: "+c.claimB+"\n   Sources: "+c.sources+" | Freshness: "+c.freshness+" | Authority: "+c.authority+"\n   "+c.priorityReason+"\n   Resolution: "+(c.possibleResolution||"(none recorded)");
+  }).join("\n\n");
+  $("cg-list").textContent=out;
+}
+$("cg-add").addEventListener("click",function(){
+  try{
+    contradictions.push(CG.createContradiction({
+      claimA:$("cg-a").value,claimB:$("cg-b").value,sources:$("cg-sources").value,
+      freshness:$("cg-fresh").value,authority:$("cg-auth").value,
+      possibleResolution:$("cg-res").value,changesAction:$("cg-impact").value
+    }));
+    renderCg();
+  }catch(e){$("cg-list").textContent=e.message;}
+});
+$("cg-clear").addEventListener("click",function(){contradictions=[];renderCg();});
+
+/* Tool 4: Negative Knowledge register. */
+var nkRegister=new NK.NegativeKnowledgeRegister();
+function renderNk(){
+  var q=$("nk-search").value.toLowerCase();
+  var shown=nkRegister.list().filter(function(e){return !q||(e.claim+" "+e.reason+" "+e.environment).toLowerCase().indexOf(q)>=0;});
+  $("nk-list").textContent=shown.length?shown.map(function(e,i){return (i+1)+". "+e.claim+" ["+e.kind+"]\n   Reason: "+e.reason+"\n   Environment: "+e.environment+"\n   Evidence: "+e.evidence+"\n   Correction: "+e.correction;}).join("\n\n"):"No entries yet.";
+}
+$("nk-add").addEventListener("click",function(){
+  try{
+    var r=nkRegister.add({
+      claim:$("nk-method").value,reason:$("nk-reason").value,environment:$("nk-env").value,
+      evidence:$("nk-evidence").value,correction:$("nk-correction").value,kind:$("nk-kind").value
+    });
+    if(r.status==="BLOCKED"){
+      $("nk-msg").textContent="BLOCKED: this is already recorded as known-false. It will not be relearned.\nOriginal record: "+r.existing.claim+" ["+r.existing.kind+"] - "+r.existing.reason;
+    }else{
+      $("nk-msg").textContent="Recorded. "+nkRegister.size()+" known-false item(s) in the register.";
+    }
+    renderNk();
+  }catch(e){$("nk-msg").textContent=e.message;}
+});
+$("nk-search").addEventListener("input",renderNk);
+
+/* Tool 5: Consolidation Planner. */
+$("cp-load").addEventListener("click",function(){
+  var data=[["Oct 15 lead pull results",8,19],["Evening outreach log, Nov 2",6,1],["Old Messenger thread drafts",2,120],["N-Cell paper, full text",9,120],["Daily weather check",3,2]];
+  var rows=document.querySelectorAll("#cp-body tr");
+  rows.forEach(function(r,i){r.querySelector(".cp-name").value=data[i][0];r.querySelector(".cp-imp").value=data[i][1];r.querySelector(".cp-age").value=data[i][2];r.querySelector(".cp-rec").textContent="Not run";});
+  $("cp-result").textContent="Sample memories loaded. Run the planner.";
+});
+$("cp-run").addEventListener("click",function(){
+  var items=[];
+  document.querySelectorAll("#cp-body tr").forEach(function(r){
+    items.push({
+      name:r.querySelector(".cp-name").value,
+      importance:parseInt(r.querySelector(".cp-imp").value,10)||0,
+      age:parseFloat(r.querySelector(".cp-age").value)||0
+    });
+  });
+  var plan=CP.consolidate(items);
+  document.querySelectorAll("#cp-body tr").forEach(function(r,i){
+    r.querySelector(".cp-rec").textContent=plan.items[i].recommendation;
+  });
+  $("cp-result").textContent="Planner done. "+Object.keys(plan.counts).map(function(k){return plan.counts[k]+" x "+k;}).join("; ")+". "+plan.rawEvidenceNote;
+});
+})();
+</script>
+</body>
+</html>
