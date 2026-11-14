@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="E4 Development Feasibility Underwriting Engine v1.0: buildable units, hard and soft costs, timeline, margin, residual land value, entitlement risk, with a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<title>E4 Development Feasibility Underwriting Engine v1.0 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-dark:#7a611f;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--ink);background:var(--ink);color:#f6f1e6;padding:12px 14px;font-weight:700;text-align:center;letter-spacing:.06em}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace;text-align:right}
+.result .row .tag{font-size:11px;color:var(--muted);font-weight:400}
+.big{font-size:22px}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:170px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+figure{margin:14px 0;border:1px solid var(--line);background:var(--bone);padding:12px}
+figcaption{font-size:12px;color:var(--muted);margin-top:8px}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.kill-box{background:#fdf3ef;border:2px solid var(--red);padding:12px 14px;margin-top:12px}
+.pass-box{background:#eaf2ea;border:2px solid var(--green);padding:12px 14px;margin-top:12px}
+.working{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin-top:12px;white-space:pre-wrap}
+.badge{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 8px;border:1px solid var(--ink);margin-left:6px}
+.badge.designed{background:#fdf6d8;border-color:var(--brass);color:var(--brass-dark)}
+.badge.verified{background:#eaf2ea;border-color:var(--green);color:var(--green)}
+.badge.sim{background:var(--ink);color:#f6f1e6}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{body{background:#fff}.toolbar,.no-print{display:none!important}.wrap{max-width:100%;padding:0}section.card{break-inside:avoid;border:1px solid #999}pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}#summarySection{border:2px solid #000}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E4</div>
+<h1>E4 Development Feasibility Underwriting Engine</h1>
+<p>Development feasibility: buildable units, hard and soft costs, timeline, margin, residual land value, entitlement risk, and a SHA-256 receipt chain. Nothing leaves this page.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine 4 of 12 - SIMULATION</b></div>
+<div>Lineage<b>NON_RESIDENTIAL_ENGINES.md E4 contract + residential core gates + 2026-11-04 E4 build</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not a survey, not legal, tax, or lending advice. Verify zoning, title, soils, floodplain, wetland, access, and infrastructure capacity with the county, the municipality, and a licensed professional before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<table>
+<thead><tr><th>Item</th><th>State</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (buildable units, hard and soft costs, residual land value, margin, timeline)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e4.js, run 2026-11-14. Samples A, B, and C hand-computed expectations match the 2026-11-04 E4 build: residual Base $349,000.00, $27,900.00, and -$287,100.00.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e4.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge verified">VERIFIED</span></td><td>HTTP 200 at neuruhai.github.io/neuruh-demos/e4-development-feasibility/, live MD5 matches staged file. See build report.</td></tr>
+<tr><td>Market data (sale prices, costs, timelines)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every price, cost, and timeline is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E4 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E4 spec was found in the vault. See section 14 for the gap. Subject and mechanics are carried from the 2026-11-04 E4 build, and thresholds are the builder's design, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests plus code inspection are the verification for this build. See build report.</td></tr>
+</tbody>
+</table>
+</section>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: Feasible</button>
+<button id="btnSampleB" type="button">Sample B: Thin residual</button>
+<button id="btnSampleC" type="button">Sample C: PASS</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change the average sale price per unit in section 05.</li>
+<li><b>Step 3:</b> Watch residual land value and margin move in the sticky results panel and in section 11, then issue a receipt in section 13 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">Gross revenue (MODELED ESTIMATE)</span><b id="stickyRevenue">N/A</b></div>
+<div><span class="sr-label">Residual land value, Base (MODELED ESTIMATE)</span><b id="stickyResidual">N/A</b></div>
+<div><span class="sr-label">Margin before land</span><b id="stickyMargin">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div class="small" id="missingHints" style="font-size:12px;color:var(--muted);margin-top:4px"></div></div>
+</div>
+
+<section class="card" id="s2">
+<h2><span>02</span>Subject site</h2>
+<p class="sub">Address and parcel must be verified against at least 2 public sources before any number is used. Unverified means HOLD. Zoning and entitlement status come from the county or municipality record, never from a seller claim alone.</p>
+<div class="grid">
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcelId">Parcel ID</label><input id="parcelId" type="text" placeholder="Parcel ID"></div>
+<div><label for="siteAcres">Site acres</label><input id="siteAcres" type="number" min="0" step="0.01" placeholder="e.g. 2.0"></div>
+<div><label for="siteSf">Site SF (public record)</label><input id="siteSf" type="number" min="0" step="1" placeholder="e.g. 87120"></div>
+<div><label for="unbuildableSf">Unbuildable SF (floodplain, wetland, easement)</label><input id="unbuildableSf" type="number" min="0" step="1" placeholder="e.g. 0"></div>
+<div><label for="zoning">Zoning district</label><input id="zoning" type="text" placeholder="e.g. R-2 Residential"></div>
+<div><label for="currentUse">Current use</label><input id="currentUse" type="text" placeholder="e.g. Vacant residential lot"></div>
+<div><label for="access">Access</label><select id="access"><option>Public road frontage</option><option>Easement access</option><option>Flag lot</option><option>No legal access</option></select></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+</div>
+</section>
+
+<section class="card" id="s3">
+<h2><span>03</span>Buildable units</h2>
+<p class="sub">Buildable units are the smaller of proposed units and the maximum the zoning record allows. Density is buildable units divided by site acres. If zoning caps the count below the proposal, the proposal is cut, not the cap.</p>
+<div class="grid">
+<div><label for="proposedUnits">Proposed units</label><input id="proposedUnits" type="number" min="0" step="1" placeholder="e.g. 10"></div>
+<div><label for="maxUnits">Max units allowed by zoning</label><input id="maxUnits" type="number" min="0" step="1" placeholder="e.g. 12"></div>
+<div><label for="avgUnitSf">Average unit SF</label><input id="avgUnitSf" type="number" min="0" step="1" placeholder="e.g. 1400"></div>
+<div><label for="unitType">Unit type</label><select id="unitType"><option value="">Select</option><option>Single-family detached</option><option>Townhouse</option><option>Duplex</option><option>Small multifamily</option><option>Other</option></select></div>
+<div><label for="buildableUnitsOut">Buildable units (computed)</label><input id="buildableUnitsOut" type="text" readonly></div>
+<div><label for="densityOut">Density, units per acre (computed)</label><input id="densityOut" type="text" readonly></div>
+</div>
+<div class="hint" id="unitNote">Enter proposed and maximum units.</div>
+<figure>
+<svg viewBox="0 0 640 90" width="100%" height="90" role="img" aria-label="Buildable units diagram: the smaller of proposed units and the zoning maximum is what gets built">
+<rect x="10" y="15" width="180" height="40" fill="#fffdf6" stroke="#1d1a16"/><text x="100" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Proposed units</text>
+<text x="205" y="40" text-anchor="middle" font-size="16" fill="#9a7b2d">vs</text>
+<rect x="220" y="15" width="180" height="40" fill="#fffdf6" stroke="#1d1a16"/><text x="310" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Max units, zoning</text>
+<text x="415" y="40" text-anchor="middle" font-size="16" fill="#9a7b2d">=</text>
+<rect x="430" y="15" width="200" height="40" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="530" y="40" text-anchor="middle" font-size="11" fill="#1d1a16">Buildable units (smaller)</text>
+<rect x="10" y="65" width="620" height="20" fill="#9a7b2d"/><text x="320" y="79" text-anchor="middle" font-size="11" fill="#ffffff">Density = buildable units / site acres. Buildable SF = site SF - unbuildable SF.</text>
+</svg>
+<figcaption>Figure 1. Buildable units. Zoning caps the count; the proposal never raises the cap.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s4">
+<h2><span>04</span>Builder comps</h2>
+<p class="sub">Minimum 1 usable builder comp. A builder comp is a comparable new-build or recent builder sale, not a resale comp. Every comp needs a price, a sale date, and a full source URL. No builder comp is a kill condition: the deal is PASSed, not estimated.</p>
+<table>
+<thead><tr><th>Builder comp address</th><th>Sale price ($) - MODELED ESTIMATE input</th><th>Sale date</th><th>Source URL</th></tr></thead>
+<tbody id="builderBody"></tbody>
+</table>
+<button type="button" id="btnAddBuilder">Add builder comp row</button>
+<div class="small" id="builderCount" style="font-size:13px;color:var(--muted);margin-top:8px"></div>
+</section>
+
+<section class="card" id="s5">
+<h2><span>05</span>Revenue</h2>
+<p class="sub">Average sale price per unit must be supported by the builder comps in section 04. Gross revenue is buildable units times average sale price. Land asking price is entered here so profit after land can be shown; it is never used to compute residual land value.</p>
+<div class="grid">
+<div><label for="avgSalePrice">Average sale price per unit ($) - MODELED ESTIMATE input</label><input id="avgSalePrice" type="number" min="0" step="0.01" placeholder="e.g. 325000"></div>
+<div><label for="landAsking">Land asking price ($, if any) - MODELED ESTIMATE input</label><input id="landAsking" type="number" min="0" step="0.01" placeholder="e.g. 300000"></div>
+</div>
+<div class="working" id="workingRevenue">Working, revenue: enter buildable units and average sale price to see the arithmetic.</div>
+</section>
+
+<section class="card" id="s6">
+<h2><span>06</span>Hard costs</h2>
+<p class="sub">Hard costs are construction and site work. Enter a per-unit hard cost from a builder bid or a documented local cost basis, plus site work as a lump sum. Contingency is a percent of the hard subtotal. Low and High scenarios scale the hard total by 0.90 and 1.10. Replace every estimate with a bid as soon as you have one. Required hard-cost buckets on every scope: foundation, framing, roofing, HVAC, plumbing, electrical, kitchen, baths, flooring, exterior/paint, site/drive, landscaping. A scope with an empty bucket is incomplete.</p>
+<div class="grid">
+<div><label for="hardPerUnit">Hard cost per unit ($) - MODELED ESTIMATE input</label><input id="hardPerUnit" type="number" min="0" step="0.01" placeholder="e.g. 185000"></div>
+<div><label for="siteWork">Site work ($) - MODELED ESTIMATE input</label><input id="siteWork" type="number" min="0" step="0.01" placeholder="e.g. 120000"></div>
+<div><label for="contingencyPct">Contingency (%) - builder default 5</label><input id="contingencyPct" type="number" min="0" max="100" step="0.5" value="5"></div>
+<div><label for="hardSubtotalOut">Hard subtotal (computed)</label><input id="hardSubtotalOut" type="text" readonly></div>
+<div><label for="contingencyOut">Contingency (computed)</label><input id="contingencyOut" type="text" readonly></div>
+<div><label for="hardTotalOut">Hard total, Base (computed)</label><input id="hardTotalOut" type="text" readonly></div>
+</div>
+<label for="hardNotes" style="margin-top:12px">Hard-cost notes (bids, cost basis, buckets)</label>
+<textarea id="hardNotes" placeholder="Bid source, cost basis, which buckets are priced, which are missing"></textarea>
+<div class="working" id="workingHard">Working, hard costs: enter buildable units and a per-unit hard cost to see the arithmetic.</div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>07</span>Soft costs</h2>
+<p class="sub">Soft costs are everything that is not bricks, lumber, and site work. Enter each line as dollars. Financing and carrying is the total interest and carry over the whole timeline, not a monthly figure.</p>
+<div class="grid">
+<div><label for="softEntitlement">Entitlement and legal ($) - MODELED ESTIMATE input</label><input id="softEntitlement" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="softArch">Architecture and engineering ($) - MODELED ESTIMATE input</label><input id="softArch" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="softPermits">Permits and fees ($) - MODELED ESTIMATE input</label><input id="softPermits" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="softCarrying">Financing and carrying ($) - MODELED ESTIMATE input</label><input id="softCarrying" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="softMarketing">Marketing and sales ($) - MODELED ESTIMATE input</label><input id="softMarketing" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="softOverhead">Developer overhead ($) - MODELED ESTIMATE input</label><input id="softOverhead" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="softTotalOut">Soft total (computed)</label><input id="softTotalOut" type="text" readonly></div>
+<div><label for="targetMargin">Target developer margin (% of gross revenue) - builder default 15</label><input id="targetMargin" type="number" min="0" max="100" step="0.5" value="15"></div>
+</div>
+<div class="working" id="workingSoft">Working, soft costs: enter soft cost lines to see the arithmetic.</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>08</span>Timeline</h2>
+<p class="sub">Enter each phase in months. Entitlement timeline must be knowable: if it is unknown, select Unknown and the kill-switch fires in section 16. Monthly carrying is total financing and carrying divided by total months.</p>
+<div class="grid">
+<div><label for="entMonths">Entitlement (months)</label><input id="entMonths" type="number" min="0" step="1" placeholder="e.g. 6"></div>
+<div><label for="conMonths">Construction (months)</label><input id="conMonths" type="number" min="0" step="1" placeholder="e.g. 12"></div>
+<div><label for="sellMonths">Sellout (months)</label><input id="sellMonths" type="number" min="0" step="1" placeholder="e.g. 6"></div>
+<div><label for="entKnown">Entitlement timeline</label><select id="entKnown"><option value="known">Known</option><option value="unknown">Unknown</option></select></div>
+<div><label for="totalMonthsOut">Total timeline, months (computed)</label><input id="totalMonthsOut" type="text" readonly></div>
+<div><label for="monthlyCarryOut">Monthly carrying (computed)</label><input id="monthlyCarryOut" type="text" readonly></div>
+</div>
+<figure>
+<svg id="timelineSvg" width="100%" height="90" viewBox="0 0 640 90" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Timeline chart">
+<rect id="tlEnt" x="10" y="20" width="100" height="28" fill="#9a7b2d"></rect>
+<rect id="tlCon" x="110" y="20" width="100" height="28" fill="#6b6257"></rect>
+<rect id="tlSell" x="210" y="20" width="100" height="28" fill="#d8d0bd"></rect>
+<text id="tlEntT" x="10" y="65" font-size="12" fill="#1d1a16">Entitlement</text>
+<text id="tlConT" x="110" y="65" font-size="12" fill="#1d1a16">Construction</text>
+<text id="tlSellT" x="210" y="65" font-size="12" fill="#1d1a16">Sellout</text>
+</svg>
+<figcaption>Figure 2. Project timeline by phase. Bar lengths are proportional to months entered above. Unknown entitlement timeline is a kill condition.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s9">
+<h2><span>09</span>Entitlement risk</h2>
+<p class="sub">Check every condition that applies. These are risk flags, not kills by themselves. The kills are listed in section 16: negative residual on Base costs, unknowable entitlement timeline, no builder comp.</p>
+<div class="checklist" id="entRiskList"></div>
+</section>
+
+<section class="card" id="s10">
+<h2><span>10</span>Gates, fail closed</h2>
+<p class="sub">Inherited from the residential core gates. Any failed gate means HOLD. Residual land value is then shown only as a held number, never as a usable offer number. Authority is always no offer without Jeramie unless a human approval record is attached.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div class="hint" id="missingHints2">Missing for a GO: address, parcel, buildable units, average sale price, hard cost per unit, at least 1 usable builder comp, entitlement timeline known, target margin.</div>
+</section>
+
+<section class="card" id="s11">
+<h2><span>11</span>Results</h2>
+<p class="sub">Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. This section states no offer and no recommendation to buy or sell.</p>
+<div class="result">
+<div class="row"><span>Buildable units</span><b id="resBuildable">N/A</b></div>
+<div class="row"><span>Density, units per acre</span><b id="resDensity">N/A</b></div>
+<div class="row big"><span>Gross revenue <span class="tag">MODELED ESTIMATE</span></span><b id="resRevenue">N/A</b></div>
+<div class="row"><span>Hard total, Base <span class="tag">MODELED ESTIMATE</span></span><b id="resHard">N/A</b></div>
+<div class="row"><span>Soft total <span class="tag">MODELED ESTIMATE</span></span><b id="resSoft">N/A</b></div>
+<div class="row"><span>Total cost before land, Base <span class="tag">MODELED ESTIMATE</span></span><b id="resTotalCost">N/A</b></div>
+<div class="row"><span>Required profit at target margin <span class="tag">MODELED ESTIMATE</span></span><b id="resReqProfit">N/A</b></div>
+<div class="row big"><span>Residual land value, Base <span class="tag">MODELED ESTIMATE</span></span><b id="resResidual">N/A</b></div>
+<div class="row"><span>Residual land value, Low / High <span class="tag">MODELED ESTIMATE</span></span><b id="resResidualLH">N/A</b></div>
+<div class="row big"><span>Margin before land</span><b id="resMargin">N/A</b></div>
+<div class="row"><span>Margin after land, at asking price</span><b id="resMarginAfter">N/A</b></div>
+<div class="row"><span>Profit after land, at asking price <span class="tag">MODELED ESTIMATE</span></span><b id="resProfitAfter">N/A</b></div>
+<div class="row"><span>Total timeline, months</span><b id="resTimeline">N/A</b></div>
+<div class="row"><span>Monthly carrying <span class="tag">MODELED ESTIMATE</span></span><b id="resMonthlyCarry">N/A</b></div>
+<div class="row big"><span>Recommendation</span><b id="resRec">HOLD</b></div>
+</div>
+<div id="scenarioTable" style="margin-top:14px"></div>
+<div id="marginBreakdown" style="margin-top:14px"></div>
+<figure>
+<svg id="waterfallSvg" width="100%" height="170" viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Residual land value waterfall chart">
+<text x="10" y="18" font-size="12" fill="#1d1a16">Gross revenue</text><rect id="wfRev" x="150" y="6" width="10" height="18" fill="#9a7b2d"></rect><text id="wfRevT" x="470" y="20" font-size="12" fill="#1d1a16"></text>
+<text x="10" y="48" font-size="12" fill="#1d1a16">Less hard costs</text><rect id="wfHard" x="150" y="36" width="10" height="18" fill="#6b6257"></rect><text id="wfHardT" x="470" y="50" font-size="12" fill="#1d1a16"></text>
+<text x="10" y="78" font-size="12" fill="#1d1a16">Less soft costs</text><rect id="wfSoft" x="150" y="66" width="10" height="18" fill="#6b6257"></rect><text id="wfSoftT" x="470" y="80" font-size="12" fill="#1d1a16"></text>
+<text x="10" y="108" font-size="12" fill="#1d1a16">Less required profit</text><rect id="wfProfit" x="150" y="96" width="10" height="18" fill="#6b6257"></rect><text id="wfProfitT" x="470" y="110" font-size="12" fill="#1d1a16"></text>
+<text x="10" y="138" font-size="12" fill="#1d1a16">Residual land value</text><rect id="wfRes" x="150" y="126" width="10" height="18" fill="#2e5e3a"></rect><text id="wfResT" x="470" y="140" font-size="12" fill="#1d1a16"></text>
+</svg>
+<figcaption>Figure 3. Residual land value waterfall, Base scenario. Bars are proportional to dollars. A residual bar that does not appear means the residual is zero or negative, which is a kill condition.</figcaption>
+</figure>
+<div id="decisionBox" style="margin-top:12px"></div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>12</span>One-page summary, print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above. Dollar figures are MODELED ESTIMATES, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="result">
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Buildable units</span><b id="sumBuildable">N/A</b></div>
+<div class="row"><span>Gross revenue <span class="tag">MODELED ESTIMATE</span></span><b id="sumRevenue">N/A</b></div>
+<div class="row"><span>Hard total, Base <span class="tag">MODELED ESTIMATE</span></span><b id="sumHard">N/A</b></div>
+<div class="row"><span>Soft total <span class="tag">MODELED ESTIMATE</span></span><b id="sumSoft">N/A</b></div>
+<div class="row"><span>Required profit <span class="tag">MODELED ESTIMATE</span></span><b id="sumReqProfit">N/A</b></div>
+<div class="row"><span>Residual land value, Base <span class="tag">MODELED ESTIMATE</span></span><b id="sumResidual">N/A</b></div>
+<div class="row"><span>Residual land value, Low / High <span class="tag">MODELED ESTIMATE</span></span><b id="sumResidualLH">N/A</b></div>
+<div class="row"><span>Margin before land</span><b id="sumMargin">N/A</b></div>
+<div class="row"><span>Total timeline</span><b id="sumTimeline">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.75</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+</section>
+
+<section class="card" id="s13">
+<h2><span>13</span>Receipt v1.0, SHA-256 chain <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">Receipts are issued in this session only. The first receipt in a session has prev_hash GENESIS. Each receipt stores the SHA-256 hash of its canonical JSON with the hash field stripped. Press Verify chain to recompute every hash in the browser with Web Crypto. Offer authorized is always false in this tool. The receipt is evidence, not an offer.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e4-development-feasibility-receipt.v1.0" readonly class="mono"></div>
+</div>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.75"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+<div class="toolbar" style="position:static;border-bottom:0">
+<button class="primary" id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnClearChain" type="button">Clear chain</button>
+</div>
+<div id="verifyOut" style="margin-top:12px"></div>
+<pre id="receiptOut">{}</pre>
+<pre id="chainOut" style="margin-top:12px">[]</pre>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>14</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the address and parcel from at least 2 public sources, enter proposed and maximum units, at least 1 builder comp with a source URL, an average sale price per unit, hard and soft costs, a timeline, and a target margin. The tool computes buildable units as the smaller of proposed and maximum, gross revenue, hard costs with contingency, soft costs, total cost before land, margin before land, and residual land value as gross revenue minus hard costs minus soft costs minus required profit. Low and High scenarios scale the hard total by 0.90 and 1.10. Gates fail closed. A kill means PASS. The receipt records what was entered, what passed, and what was N/A. A share link encodes the whole deal in the URL so someone else can open the same numbers.</p>
+<p><b>What this is not:</b> not an appraisal, not a valuation, not a survey, not a feasibility study by a licensed professional, not legal, tax, or lending advice, and not a guarantee of value, cost, timeline, entitlement, or a sale. It does not verify zoning, title, soils, floodplain, wetland, access, or infrastructure capacity; those come from county, municipal, and professional records you enter. It does not pull live comps, costs, or rates. Hard-cost figures are estimates until a builder bid replaces them. A positive residual does not mean a deal is good, and a PASS does not mean a site is bad. It means the evidence in this run does not support proceeding on the stated strategy. It presents no recommendation to buy or sell.</p>
+<p><b>Sources read in full for this build:</b></p>
+<ul>
+<li>E4 Development Feasibility Engine v1.0, 2026-11-04, local file e4-development-feasibility-site/index.html, live at e4-development-feasibility.pages.dev, HTTP 200, 65,404 bytes, MD5 e06a7b12f9607d04d923abd8a46a221d, byte-identical to the local file. Subject and every mechanic carried from it: buildable units as min(proposed, max), density, builder comps with usable-row counting, gross revenue, hard costs with contingency and 0.90 / 1.10 scenarios, six soft cost lines, timeline with monthly carrying, margin before and after land, residual land value Low / Base / High, entitlement risks, five core gates, three kill conditions, thin-residual and other risk flags, three samples with hand-computed expectations re-proved in the Node tests.</li>
+<li>Vault note 02-Real-Estate-Land/UnderwriteX.md, line 52: Residential v1.1 and E1 v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending. This is the only E-series statement in the vault. It names no E4 subject and no E4 mechanics.</li>
+<li>Hub v2.43, 2026-11-14, neuruh-hub.pages.dev: section A lists E4 Development Feasibility at e4-development-feasibility.pages.dev, added 2026-11-04.</li>
+<li>Audit research-drift-2026-11-14/audit-A-B.md, line 18: E4 Development Feasibility at e4-development-feasibility.pages.dev, HTTP 200, 65,404 bytes, MD5 e06a7b12f9607d04d923abd8a46a221d, status ok.</li>
+<li>E2 Small Multifamily Underwriting Engine v1.0, 2026-11-14, local file e2-small-multifamily/index.html, live at neuruhai.github.io/neuruh-demos/e2-small-multifamily/. Pattern followed exactly: SIMULATION banner, DESIGNED vs VERIFIED status board, MODELED ESTIMATE labels, SHA-256 receipt chain with GENESIS first and in-browser Verify, pure JS calc module, Node test suite.</li>
+<li>E3 Rental / BRRRR Underwriting Engine v1.0, 2026-11-14, local file e3-rental-brrrr/index.html, live at neuruhai.github.io/neuruh-demos/e3-rental-brrrr/. Same pattern.</li>
+<li>Land Intelligence Report generator, land-intelligence-report/index.html: labeling precedent MODELED ESTIMATE, NOT A VALUATION.</li>
+</ul>
+<p><b>Builder design decisions (mine, not paper claims, not Jeramie's order):</b></p>
+<ul>
+<li>Mechanics, kill conditions, risk flags, scenario factors, gates, and all three samples are carried verbatim from the 2026-11-04 E4 build, not invented here.</li>
+<li>Builder defaults, all editable by the user, none a market fact: contingency 5 percent, target developer margin 15 percent of gross revenue, Low and High hard cost factors 0.90 and 1.10, thin residual threshold $50,000, contingency floor 5 percent, soft costs over 20 percent of hard costs as a flag, total timeline over 36 months as a flag, confidence default 0.75.</li>
+<li>Receipt v1.0 uses a SHA-256 chain with GENESIS as the first prev_hash, canonical JSON with sorted keys and the hash field stripped, and an in-browser Verify button using Web Crypto. The 2026-11-04 E4 receipt had no hash chain; the chain is new in this build.</li>
+<li>Schema version for both the plain receipt and the chain receipts: e4-development-feasibility-receipt.v1.0. The 2026-11-04 build used e4-feasibility-receipt.v1.0; the new name matches the E2 and E3 convention and the repo directory.</li>
+</ul>
+<p><b>UNKNOWN, stated plainly:</b></p>
+<ul>
+<li>No E4 specification was found in the vault. Greps for E4, development feasibility, and NON_RESIDENTIAL_ENGINES across the vault returned only the UnderwriteX.md line cited above and the 2026-11-04 E4 build itself. The NON_RESIDENTIAL_ENGINES.md E4 contract cited as lineage in the 2026-11-04 build was not located in the vault, and no Codex V2 Appendix B file was located.</li>
+<li>No market sale prices, hard costs, soft costs, or timelines are known from any source read for this build. Every such number is user input or a labeled builder default.</li>
+<li>Whether any E-series definition beyond the 2026-11-04 builds exists is UNKNOWN. This build carries the 2026-11-04 mechanics verbatim and says so on the page.</li>
+</ul>
+<p><b>Related modules:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://e4-development-feasibility.pages.dev/">E4 Development Feasibility, 2026-11-04 Cloudflare build</a>. E1 covers zoning, split potential, and highest and best use; use it before E4 when the entitlement path itself is the open question.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>15</span>Honest gaps and limits</h2>
+<p class="sub">What this engine does not do, stated plainly.</p>
+<ul>
+<li>No live data connection. Sale prices, costs, and timelines are entered by hand and are only as good as their sources.</li>
+<li>No zoning, title, soils, floodplain, wetland, access, or infrastructure verification. Those come from county, municipal, and professional records you enter.</li>
+<li>No live comps, costs, or rates. Hard-cost figures are estimates until a builder bid replaces them.</li>
+<li>Low and High scenarios scale only hard costs, not revenue, soft costs, or timeline.</li>
+<li>It does not model phased construction, draw schedules, lender terms, tax, or exit friction beyond the lines entered.</li>
+<li>Residual land value is a modeled estimate of what the land could support at the stated costs and margin. It is not a land value, not an offer price, and not a price a seller will accept.</li>
+<li>Margin is before tax and before reserves timing. It is not a tax or investment return claim.</li>
+<li>Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</li>
+<li>Layout was not eyeballed in a real browser. The page was tested with Node tests plus code inspection only.</li>
+</ul>
+</section>
+
+<section class="card" id="s16">
+<h2><span>16</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. A kill is a successful run, not a failed one. If any kill condition fired, the recommendation is PASS.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill-switch active</span><b id="killActive">No</b></div>
+<div class="row"><span>Kill conditions fired</span><b id="killReasons">None</b></div>
+<div class="row"><span>Risk flags (not kills)</span><b id="riskFlags">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="killRec">HOLD</b></div>
+</div>
+<div id="killBox"></div>
+<p style="font-size:13px;color:var(--muted);margin-top:12px">E4 kill conditions, from the 2026-11-04 E4 build: residual land value negative on Base costs; entitlement timeline unknowable; no builder comp. Additional manual kills are listed above and fire the same way. A PASS recommendation means do not proceed on the stated strategy with the evidence in this run. It does not mean the site is bad. It means the evidence does not support proceeding. PASS is not a recommendation to sell, and READY FOR REVIEW is not a recommendation to buy.</p>
+</section>
+
+<footer>
+<p>E4 Development Feasibility Underwriting Engine v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. Offer authorized: false. This file works offline with no external dependencies except e4.js in the same directory. Print this page for the file copy.</p>
+<p>Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://e4-development-feasibility.pages.dev/">E4, 2026-11-04 Cloudflare build</a></p>
+</footer>
+</div>
+
+<script src="e4.js"></script>
+<script>
+(function(){
+"use strict";
+var E4 = window.E4;
+function $(id){return document.getElementById(id);}
+function num(id){var v=parseFloat($(id).value);return isFinite(v)?v:null;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function pctFmt(n){if(n===null||n===undefined||!isFinite(n)){return "N/A";}return (n*100).toFixed(2)+"%";}
+
+var runId="E4-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: exact address and parcel confirmed against at least 2 public sources"},
+ {id:"source",label:"Source gate: every builder comp, cost basis, and market stat carries a full raw URL and access date"},
+ {id:"no_hallucination",label:"No hallucination gate: unverified fields are N/A, nothing invented"},
+ {id:"evidence",label:"Evidence lineage gate: every number traces to a source entered in this run"},
+ {id:"authority",label:"Authority gate: acknowledged, no offer will be quoted without Jeramie (offer authorized stays false unless a human approval record is attached)"}
+];
+var entRisks=[
+ "Rezoning required",
+ "Variance or special exception required",
+ "Public hearing or planning commission approval required",
+ "Environmental review or wetland delineation outstanding",
+ "Infrastructure capacity (water, sewer, roads) unconfirmed",
+ "Neighbor opposition or appeal risk noted"
+];
+var kills=[
+ {id:"k_residual",label:"Residual land value negative on Base costs (contract kill)",auto:"residual"},
+ {id:"k_entitlement",label:"Entitlement timeline unknowable (contract kill)",auto:"entitlement"},
+ {id:"k_nocomp",label:"No builder comp (contract kill)",auto:"nocomp"},
+ {id:"k_flood",label:"Floodplain or wetland delineation outstanding with no professional report"},
+ {id:"k_soils",label:"Soils or geotech failure with no bid"},
+ {id:"k_access",label:"No legal access with no cure"}
+];
+
+function buildLists(){
+ var html="";
+ gates.forEach(function(g){
+  html+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ $("gateList").innerHTML=html;
+ var rh="";
+ entRisks.forEach(function(txt,i){
+  rh+='<div class="item"><input type="checkbox" id="er_'+i+'"><label for="er_'+i+'">'+esc(txt)+'</label></div>';
+ });
+ $("entRiskList").innerHTML=rh;
+ var kh="";
+ kills.forEach(function(k){
+  kh+='<div class="item"><input type="checkbox" id="'+k.id+'" data-kill="'+k.id+'"><label for="'+k.id+'">'+esc(k.label)+'</label></div>';
+ });
+ $("killList").innerHTML=kh;
+}
+buildLists();
+
+function builderRow(c){
+ var tr=document.createElement("tr");
+ function v(f){return c&&c[f]!==undefined&&c[f]!==null?c[f]:"";}
+ tr.innerHTML=
+  '<td><input data-b="addr" type="text" aria-label="Builder comp address" value="'+esc(v("addr"))+'"></td>'+
+  '<td><input data-b="price" type="number" min="0" step="0.01" aria-label="Builder comp sale price in dollars" value="'+esc(v("price"))+'"></td>'+
+  '<td><input data-b="date" type="date" aria-label="Builder comp sale date" value="'+esc(v("date"))+'"></td>'+
+  '<td><input data-b="url" type="text" placeholder="county or MLS record URL" aria-label="Builder comp source URL" value="'+esc(v("url"))+'"></td>';
+ return tr;
+}
+function addBuilderRow(c){$("builderBody").appendChild(builderRow(c||{}));}
+addBuilderRow({});addBuilderRow({});
+
+function getBuilderComps(){
+ var rows=[];
+ document.querySelectorAll("#builderBody tr").forEach(function(tr){
+  function q(s){var i=tr.querySelector('[data-b="'+s+'"]');return i?i.value.trim():"";}
+  var price=parseFloat(q("price"));
+  rows.push({address:q("addr"),sale_price:isNaN(price)?null:price,sale_date:q("date"),source_url:q("url")});
+ });
+ return rows;
+}
+function setBuilderRow(i,c){
+ var tr=document.querySelectorAll("#builderBody tr")[i]; if(!tr){return;}
+ function s(f,v){var el=tr.querySelector('[data-b="'+f+'"]'); if(el){el.value=v;}}
+ s("addr",c.addr||""); s("price",c.price===undefined?"":c.price); s("date",c.date||""); s("url",c.url||"");
+}
+
+var lastReceipt={};
+var chain=[];
+var suppressHash=false;
+
+function calc(){
+ var proposed=num("proposedUnits"), maxU=num("maxUnits");
+ var buildable=E4.buildableUnits(proposed,maxU);
+ var acres=num("siteAcres");
+ var density=E4.density(buildable,acres);
+ var siteSf=num("siteSf"), unb=num("unbuildableSf");
+ var buildableSf=E4.buildableSf(siteSf,unb);
+ $("buildableUnitsOut").value=buildable===null?"":String(buildable);
+ $("densityOut").value=density===null?"":density.toFixed(2);
+ $("unitNote").textContent=(buildable!==null&&proposed!==null&&maxU!==null&&proposed>maxU)?"Zoning caps the count: proposed "+proposed+" units cut to "+buildable+" buildable units.":(buildableSf!==null?"Buildable site area: "+buildableSf.toLocaleString("en-US")+" SF.":"Enter proposed and maximum units.");
+
+ var builders=getBuilderComps();
+ var usable=E4.usableBuilderComps(builders);
+ $("builderCount").textContent=usable.length<1?"Warning: no usable builder comp. A builder comp needs address, sale price, sale date, and source URL. No builder comp is a kill condition.":"Usable builder comps: "+usable.length+" of "+builders.length+" rows.";
+
+ var avgPrice=num("avgSalePrice");
+ var revenue=E4.computeRevenue(buildable,avgPrice);
+ $("workingRevenue").textContent=revenue===null?"Working, revenue: enter buildable units and average sale price to see the arithmetic.":"Working, revenue:\nGross revenue = "+buildable+" units x "+money(avgPrice)+" = "+money(revenue);
+
+ var hardPerUnit=num("hardPerUnit"), siteWork=num("siteWork"), contPct=num("contingencyPct");
+ var hard=E4.computeHardCosts({buildable:buildable,hardPerUnit:hardPerUnit,siteWork:siteWork,contingencyPct:contPct});
+ $("hardSubtotalOut").value=hard.subtotal===null?"":money(hard.subtotal);
+ $("contingencyOut").value=hard.contingency===null?"":money(hard.contingency);
+ $("hardTotalOut").value=hard.totalBase===null?"":money(hard.totalBase);
+ $("workingHard").textContent="Working, hard costs:\n"+hard.steps.join("\n");
+
+ var softParts={entitlementLegal:num("softEntitlement"),architectureEngineering:num("softArch"),permitsFees:num("softPermits"),financingCarrying:num("softCarrying"),marketingSales:num("softMarketing"),developerOverhead:num("softOverhead")};
+ var softTotal=E4.computeSoftTotal(softParts);
+ $("softTotalOut").value=softTotal===null?"":money(softTotal);
+ var targetMargin=num("targetMargin");
+ $("workingSoft").textContent=softTotal===null?"Working, soft costs: enter soft cost lines to see the arithmetic.":"Working, soft costs:\nSoft total = "+money(softParts.entitlementLegal===null?0:softParts.entitlementLegal)+" + "+money(softParts.architectureEngineering===null?0:softParts.architectureEngineering)+" + "+money(softParts.permitsFees===null?0:softParts.permitsFees)+" + "+money(softParts.financingCarrying===null?0:softParts.financingCarrying)+" + "+money(softParts.marketingSales===null?0:softParts.marketingSales)+" + "+money(softParts.developerOverhead===null?0:softParts.developerOverhead)+" = "+money(softTotal);
+
+ var reqProfit=E4.requiredProfit(revenue,targetMargin);
+ var totalCost=E4.totalCostBeforeLand(hard.totalBase,softTotal);
+ var residualBase=E4.computeResidual(revenue,hard.totalBase,softTotal,reqProfit);
+ var residualLow=E4.computeResidual(revenue,hard.totalLow,softTotal,reqProfit);
+ var residualHigh=E4.computeResidual(revenue,hard.totalHigh,softTotal,reqProfit);
+ var marginBefore=E4.marginBeforeLand(revenue,hard.totalBase,softTotal);
+ var landAsking=num("landAsking");
+ var profitAfter=E4.profitAfterLand(revenue,totalCost,landAsking);
+ var marginAfter=E4.marginAfterLand(revenue,profitAfter);
+
+ var entM=num("entMonths"), conM=num("conMonths"), sellM=num("sellMonths");
+ var timeline=E4.computeTimeline(entM,conM,sellM);
+ var totalMonths=timeline.totalMonths;
+ $("totalMonthsOut").value=totalMonths===null?"":String(totalMonths);
+ var monthlyCarry=E4.monthlyCarrying(softParts.financingCarrying,totalMonths);
+ $("monthlyCarryOut").value=monthlyCarry===null?"":money(monthlyCarry);
+ var entKnown=$("entKnown").value;
+ updateTimelineFigures(entM,conM,sellM,totalMonths);
+
+ var entRiskChecked=[];
+ entRisks.forEach(function(txt,i){if($("er_"+i).checked){entRiskChecked.push(txt);}});
+
+ var gatesPassed=[],gatesFailed=[];
+ gates.forEach(function(g){
+  var v=$("gate_"+g.id).value;
+  if(v==="pass"){gatesPassed.push(g.id);}else{gatesFailed.push(g.id);}
+ });
+ $("gateStatus").textContent=gatesFailed.length?"HOLD - gates not verified":"All gates pass";
+ $("gateStatus").className=gatesFailed.length?"hold":"ok";
+ $("gatesPassed").textContent=gatesPassed.length?gatesPassed.join(", "):"None";
+ $("gatesFailed").textContent=gatesFailed.length?gatesFailed.join(", "):"None";
+
+ var manualKills=[];
+ kills.forEach(function(k){if(!k.auto&&$(k.id).checked){manualKills.push(k.label);}});
+ var killEval=E4.evaluateKills({residualBase:residualBase,entitlementKnown:entKnown,revenue:revenue,usableCompCount:usable.length,manualKills:manualKills});
+ var allKills=killEval.fired;
+ var killActive=killEval.killActive;
+ if(residualBase!==null&&residualBase<0){$("k_residual").checked=true;}else{$("k_residual").checked=false;}
+ if(entKnown==="unknown"){$("k_entitlement").checked=true;}else{$("k_entitlement").checked=false;}
+ if(revenue!==null&&usable.length<1){$("k_nocomp").checked=true;}else{$("k_nocomp").checked=false;}
+ $("killActive").textContent=killActive?"Yes":"No";
+ $("killReasons").textContent=killActive?allKills.join("; "):"None";
+ var risk=E4.riskFlags({residualBase:residualBase,residualHigh:residualHigh,marginBefore:marginBefore,targetMarginPct:targetMargin,usableCompCount:usable.length,totalMonths:totalMonths,contingencyPct:contPct,softTotal:softTotal,hardBase:hard.totalBase,proposed:proposed,maxAllowed:maxU,entitlementRisks:entRiskChecked,access:$("access").value});
+ $("riskFlags").textContent=risk.length?risk.join("; "):"None";
+
+ var hasInputs=revenue!==null&&hard.totalBase!==null&&softTotal!==null&&reqProfit!==null;
+ var gateFail=gatesFailed.length>0;
+ var status="", rec="";
+ if(killActive){status="KILL";rec="PASS";}
+ else if(gateFail||!hasInputs){status="HOLD";rec="HOLD";}
+ else{status="READY FOR REVIEW";rec="READY FOR REVIEW";}
+ $("killRec").textContent=rec;
+ $("killBox").innerHTML=killActive?'<div class="kill-box"><b>Recommendation: PASS.</b> Kill-switch fired: '+esc(allKills.join("; ")) +'. A PASS is a successful run. Do not proceed on the stated strategy. No offer without Jeramie. PASS is not a recommendation to sell.</div>':(status==="HOLD"?'<div class="hint">Status: HOLD. Complete the gates and the missing inputs in section 10. No offer without Jeramie.</div>':'<div class="pass-box">Status: READY FOR REVIEW. All gates pass and no kill fired. This is still an underwriting opinion only, not an offer and not a recommendation to buy. No offer without Jeramie.</div>');
+ $("decisionBox").innerHTML=$("killBox").innerHTML;
+
+ $("resBuildable").textContent=buildable===null?"N/A":String(buildable);
+ $("resDensity").textContent=density===null?"N/A":density.toFixed(2);
+ $("resRevenue").textContent=money(revenue);
+ $("resHard").textContent=money(hard.totalBase);
+ $("resSoft").textContent=money(softTotal);
+ $("resTotalCost").textContent=money(totalCost);
+ $("resReqProfit").textContent=money(reqProfit);
+ $("resResidual").textContent=money(residualBase);
+ $("resResidualLH").textContent=(residualLow===null||residualHigh===null)?"N/A":money(residualLow)+" / "+money(residualHigh);
+ $("resMargin").textContent=pctFmt(marginBefore);
+ $("resMarginAfter").textContent=pctFmt(marginAfter);
+ $("resProfitAfter").textContent=money(profitAfter);
+ $("resTimeline").textContent=totalMonths===null?"N/A":totalMonths+" months";
+ $("resMonthlyCarry").textContent=money(monthlyCarry);
+ $("resRec").textContent=rec;
+
+ var st="";
+ if(hasInputs){
+  st='<table><thead><tr><th>Scenario</th><th>Hard total</th><th>Soft total</th><th>Required profit</th><th>Residual land value</th></tr></thead><tbody>'
+  +'<tr><td>Low (hard x 0.90)</td><td>'+money(hard.totalLow)+'</td><td>'+money(softTotal)+'</td><td>'+money(reqProfit)+'</td><td>'+money(residualLow)+'</td></tr>'
+  +'<tr><td>Base</td><td>'+money(hard.totalBase)+'</td><td>'+money(softTotal)+'</td><td>'+money(reqProfit)+'</td><td>'+money(residualBase)+'</td></tr>'
+  +'<tr><td>High (hard x 1.10)</td><td>'+money(hard.totalHigh)+'</td><td>'+money(softTotal)+'</td><td>'+money(reqProfit)+'</td><td>'+money(residualHigh)+'</td></tr>'
+  +'</tbody></table><p class="sub" style="margin-top:8px">Residual = gross revenue - hard total - soft total - required profit. Required profit = target margin x gross revenue.</p>';
+ }else{
+  st='<div class="working">Residual needs gross revenue, hard total, soft total, and target margin. Missing inputs are N/A, and residual is N/A.</div>';
+ }
+ $("scenarioTable").innerHTML=st;
+ var mb="";
+ if(hasInputs){
+  mb='<div class="working">Gross revenue: '+money(revenue)+'\nLess hard total (Base): '+money(hard.totalBase)+'\nLess soft total: '+money(softTotal)+'\nEquals profit before land: '+money(revenue-totalCost)+'\nMargin before land: '+pctFmt(marginBefore)+'\nRequired profit at '+targetMargin.toFixed(2)+'% target: '+money(reqProfit)+'\nResidual land value (Base): '+money(residualBase)+'</div>';
+ }else{
+  mb='<div class="working">Margin and residual need revenue, hard costs, soft costs, and target margin.</div>';
+ }
+ $("marginBreakdown").innerHTML=mb;
+ updateFigures(revenue,hard.totalBase,softTotal,reqProfit,residualBase);
+
+ $("stickyRevenue").textContent=money(revenue);
+ $("stickyResidual").textContent=money(residualBase);
+ $("stickyMargin").textContent=pctFmt(marginBefore);
+ $("stickyRec").textContent=rec;
+
+ var items=[
+  ["Street address",!!$("address").value.trim()],
+  ["Parcel ID",!!$("parcelId").value.trim()],
+  ["Site acres",acres!==null],
+  ["Max units allowed",maxU!==null],
+  ["Proposed units",proposed!==null],
+  ["Average sale price per unit",avgPrice!==null],
+  ["Hard cost per unit",hardPerUnit!==null],
+  ["At least 1 usable builder comp",usable.length>=1],
+  ["Entitlement timeline known",entKnown==="known"],
+  ["Target margin",targetMargin!==null]
+ ];
+ var done=items.filter(function(x){return x[1];}).length;
+ var pct=Math.round(done/items.length*100);
+ $("stickyCompleteBar").style.width=pct+"%";
+ $("stickyCompleteText").textContent=pct+" percent";
+ var missing=items.filter(function(x){return !x[1];}).map(function(x){return x[0];});
+ $("missingHints").textContent=missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.";
+ $("missingHints2").textContent=missing.length?"Missing for a GO: "+missing.join(", ")+".":"All required fields are filled.";
+
+ $("sumAddress").textContent=$("address").value.trim()||"N/A";
+ $("sumParcel").textContent=$("parcelId").value.trim()||"N/A";
+ $("sumBuildable").textContent=buildable===null?"N/A":String(buildable)+(density===null?"":" ("+density.toFixed(2)+" per acre)");
+ $("sumRevenue").textContent=money(revenue);
+ $("sumHard").textContent=money(hard.totalBase);
+ $("sumSoft").textContent=money(softTotal);
+ $("sumReqProfit").textContent=money(reqProfit);
+ $("sumResidual").textContent=money(residualBase);
+ $("sumResidualLH").textContent=(residualLow===null||residualHigh===null)?"N/A":money(residualLow)+" / "+money(residualHigh);
+ $("sumMargin").textContent=pctFmt(marginBefore);
+ $("sumTimeline").textContent=totalMonths===null?"N/A":totalMonths+" months";
+ var conf=parseFloat($("confidence").value); if(!isFinite(conf)){conf=null;}
+ $("sumConfidence").textContent=conf===null?"N/A":conf.toFixed(2);
+ $("sumGates").textContent=gatesFailed.length?"HOLD":"PASS";
+ $("sumRec").textContent=rec;
+
+ lastReceipt={
+  schema_version:"e4-development-feasibility-receipt.v1.0",
+  run_id:runId,
+  run_date:new Date().toISOString().slice(0,10),
+  simulation:true,
+  address:$("address").value.trim()||null,
+  parcel_id:$("parcelId").value.trim()||null,
+  site:{acres:acres,site_sf:siteSf,unbuildable_sf:unb,buildable_sf:buildableSf,zoning:$("zoning").value.trim()||null,current_use:$("currentUse").value.trim()||null,access:$("access").value},
+  buildable_units:{proposed:proposed,max_allowed:maxU,buildable:buildable,density_per_acre:density,avg_unit_sf:num("avgUnitSf"),unit_type:$("unitType").value||null},
+  builder_comps_usable:usable,
+  builder_comps_usable_count:usable.length,
+  revenue:{avg_sale_price_per_unit:avgPrice,gross_revenue:revenue,land_asking:landAsking},
+  hard_costs:{per_unit:hardPerUnit,site_work:siteWork,contingency_pct:contPct,subtotal:hard.subtotal,contingency:hard.contingency,total_base:hard.totalBase,total_low:hard.totalLow,total_high:hard.totalHigh},
+  soft_costs:{entitlement_legal:softParts.entitlementLegal,architecture_engineering:softParts.architectureEngineering,permits_fees:softParts.permitsFees,financing_carrying:softParts.financingCarrying,marketing_sales:softParts.marketingSales,developer_overhead:softParts.developerOverhead,total:softTotal},
+  target_margin_pct:targetMargin,
+  required_profit:reqProfit,
+  total_cost_before_land:totalCost,
+  residual_land_value:{base:residualBase,low:residualLow,high:residualHigh},
+  margin:{before_land:marginBefore,after_land:marginAfter,profit_after_land:profitAfter},
+  timeline:{entitlement_months:entM,construction_months:conM,sellout_months:sellM,total_months:totalMonths,entitlement_known:entKnown,monthly_carrying:monthlyCarry},
+  entitlement_risks:entRiskChecked,
+  gates:{passed:gatesPassed,failed:gatesFailed},
+  kill_switch:killActive,
+  kill_conditions_fired:allKills,
+  risk_flags:risk,
+  status:status,
+  recommendation:rec,
+  confidence:conf,
+  strategy:$("strategy")?$("strategy").value:null,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value,
+  labeling:"MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL",
+  offer_authorized:false
+ };
+ $("receiptOut").textContent=JSON.stringify(lastReceipt,null,2);
+ if(!suppressHash){updateHash();}
+}
+
+function updateFigures(revenue,hardBase,softTotal,reqProfit,residualBase){
+ var scale=Math.max(revenue||0,hardBase||0,softTotal||0,reqProfit||0,Math.abs(residualBase||0),1);
+ function bar(id,val){var r=$(id);if(!r)return;var w=Math.max(0,Math.round((Math.abs(val||0)/scale)*300));r.setAttribute("width",String(w));}
+ bar("wfRev",revenue);bar("wfHard",hardBase);bar("wfSoft",softTotal);bar("wfProfit",reqProfit);bar("wfRes",residualBase);
+ var resRect=$("wfRes");if(resRect)resRect.setAttribute("fill",(residualBase!==null&&residualBase<0)?"#8a2f24":"#2e5e3a");
+ function setT(id,v){var t=$(id);if(t)t.textContent=v;}
+ setT("wfRevT",money(revenue));setT("wfHardT",money(hardBase));setT("wfSoftT",money(softTotal));setT("wfProfitT",money(reqProfit));setT("wfResT",money(residualBase));
+}
+function updateTimelineFigures(entM,conM,sellM,totalMonths){
+ var total=totalMonths||0;
+ var x=10;
+ [["tlEnt","tlEntT",entM,"Entitlement"],["tlCon","tlConT",conM,"Construction"],["tlSell","tlSellT",sellM,"Sellout"]].forEach(function(seg){
+  var r=$(seg[0]);if(!r)return;
+  var w=total>0?Math.round(((seg[2]||0)/total)*600):0;
+  r.setAttribute("x",String(x));r.setAttribute("width",String(w));
+  var t=$(seg[1]);if(t){t.setAttribute("x",String(x));t.textContent=seg[3]+" ("+(seg[2]===null?"N/A":seg[2])+" mo)";}
+  x+=w;
+ });
+}
+
+function setVal(id,v){$(id).value=v;}
+function resetGatesRisks(){
+ gates.forEach(function(g){$("gate_"+g.id).value="pass";});
+ entRisks.forEach(function(txt,i){$("er_"+i).checked=false;});
+ kills.forEach(function(k){$(k.id).checked=false;});
+}
+function showSampleNote(txt){var n=$("sampleNote");n.hidden=false;n.textContent=txt;}
+
+function loadSample(kind){
+ kind=kind||"a";
+ resetGatesRisks();
+ document.querySelectorAll("#builderBody tr").forEach(function(tr){tr.querySelectorAll("input").forEach(function(i){i.value="";});});
+ if(kind==="b"){
+  setVal("address","222 Thin Margin Way, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-PARCEL-E4B");
+  setVal("siteAcres","1.2");setVal("siteSf","52272");setVal("unbuildableSf","2000");
+  setVal("zoning","R-2 Residential");setVal("currentUse","Vacant residential lot");$("access").value="Public road frontage";
+  setVal("proposedUnits","6");setVal("maxUnits","8");setVal("avgUnitSf","1250");$("unitType").value="Townhouse";
+  setBuilderRow(0,{addr:"230 Thin Margin Way, Benton Harbor, MI 49022",price:"282000",date:"2026-08-12",url:"assessor.example/record/comp-230-thin-margin"});
+  setVal("avgSalePrice","280000");setVal("landAsking","25000");
+  setVal("hardPerUnit","175000");setVal("siteWork","80000");setVal("contingencyPct","5");
+  setVal("softEntitlement","25000");setVal("softArch","30000");setVal("softPermits","40000");
+  setVal("softCarrying","60000");setVal("softMarketing","33600");setVal("softOverhead","25000");
+  setVal("targetMargin","15");
+  setVal("entMonths","4");setVal("conMonths","10");setVal("sellMonths","4");$("entKnown").value="known";
+  setVal("confidence","0.70");
+  setVal("hardNotes","Sample deal only, not a real deal. Hard cost per unit from a sample builder basis, not a bid.");
+  setVal("assumptions","Sample deal only, not a real deal. Thin residual sample. 1. Gross revenue 6 x 280000 = 1680000. 2. Hard total 1186500. 3. Soft total 213600. 4. Required profit 252000. Expected residual Base 27900, Low 146550, High -90750. Margin before land 16.66%.");
+  setVal("missingData","None for the sample. A real deal needs a builder bid, entitlement confirmation, and a second builder comp.");
+  setVal("conflicts","None. Sample data only.");
+  showSampleNote("Sample B loaded. This is a sample, not a real deal. Thin residual sample. Expected math: residual Base $27,900.00, Low $146,550.00, High -$90,750.00. Margin before land 16.66%.");
+ }else if(kind==="c"){
+  setVal("address","333 Pass Rd, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-PARCEL-E4C");
+  setVal("siteAcres","1.5");setVal("siteSf","65340");setVal("unbuildableSf","5000");
+  setVal("zoning","R-2 Residential");setVal("currentUse","Vacant residential lot");$("access").value="Public road frontage";
+  setVal("proposedUnits","8");setVal("maxUnits","10");setVal("avgUnitSf","1300");$("unitType").value="Single-family detached";
+  setBuilderRow(0,{addr:"340 Pass Rd, Benton Harbor, MI 49022",price:"262000",date:"2026-08-05",url:"assessor.example/record/comp-340-pass-rd"});
+  setBuilderRow(1,{addr:"335 Pass Rd, Benton Harbor, MI 49022",price:"258000",date:"2026-07-14",url:"assessor.example/record/comp-335-pass-rd"});
+  setVal("avgSalePrice","260000");setVal("landAsking","150000");
+  setVal("hardPerUnit","190000");setVal("siteWork","150000");setVal("contingencyPct","5");
+  setVal("softEntitlement","40000");setVal("softArch","45000");setVal("softPermits","55000");
+  setVal("softCarrying","85000");setVal("softMarketing","41600");setVal("softOverhead","35000");
+  setVal("targetMargin","15");
+  setVal("entMonths","9");setVal("conMonths","12");setVal("sellMonths","8");$("entKnown").value="known";
+  setVal("confidence","0.60");
+  setVal("hardNotes","Sample deal only, not a real deal. Hard cost per unit from a sample builder basis, not a bid.");
+  setVal("assumptions","Sample deal only, not a real deal. PASS sample. Residual Base is negative: gross revenue 2080000 minus hard total 1753500 minus soft total 301600 minus required profit 312000 equals -287100. Expected result: recommendation PASS, status KILL.");
+  setVal("missingData","None for the sample. A real deal needs a builder bid, entitlement confirmation, and soils and floodplain checks.");
+  setVal("conflicts","None. Sample data only.");
+  showSampleNote("Sample C loaded. This is a sample, not a real deal. PASS sample: residual Base -$287,100.00. Expected result: recommendation PASS, status KILL.");
+ }else{
+  setVal("address","111 Feasible Ln, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-PARCEL-E4A");
+  setVal("siteAcres","2.0");setVal("siteSf","87120");setVal("unbuildableSf","0");
+  setVal("zoning","R-2 Residential");setVal("currentUse","Vacant residential lot");$("access").value="Public road frontage";
+  setVal("proposedUnits","10");setVal("maxUnits","12");setVal("avgUnitSf","1400");$("unitType").value="Single-family detached";
+  setBuilderRow(0,{addr:"118 Feasible Ln, Benton Harbor, MI 49022",price:"328000",date:"2026-08-18",url:"assessor.example/record/comp-118-feasible-ln"});
+  setBuilderRow(1,{addr:"105 Feasible Ln, Benton Harbor, MI 49022",price:"322000",date:"2026-07-25",url:"assessor.example/record/comp-105-feasible-ln"});
+  setVal("avgSalePrice","325000");setVal("landAsking","300000");
+  setVal("hardPerUnit","185000");setVal("siteWork","120000");setVal("contingencyPct","5");
+  setVal("softEntitlement","35000");setVal("softArch","48000");setVal("softPermits","62000");
+  setVal("softCarrying","95000");setVal("softMarketing","65000");setVal("softOverhead","40000");
+  setVal("targetMargin","15");
+  setVal("entMonths","6");setVal("conMonths","12");setVal("sellMonths","6");$("entKnown").value="known";
+  setVal("confidence","0.80");
+  setVal("hardNotes","Sample deal only, not a real deal. Hard cost per unit from a sample builder basis, not a bid.");
+  setVal("assumptions","Sample deal only, not a real deal. Feasible sample. 1. Gross revenue 10 x 325000 = 3250000. 2. Hard total 2068500. 3. Soft total 345000. 4. Required profit 487500. Expected residual Base 349000, Low 555850, High 142150. Margin before land 25.74%.");
+  setVal("missingData","None for the sample. A real deal needs a builder bid, entitlement confirmation, and soils and floodplain checks.");
+  setVal("conflicts","None. Sample data only.");
+  showSampleNote("Sample A loaded. This is a sample, not a real deal. Feasible sample. Expected math: residual Base $349,000.00, Low $555,850.00, High $142,150.00. Margin before land 25.74%.");
+ }
+ calc();
+}
+
+function collectState(){
+ var state={};
+ document.querySelectorAll("input,select,textarea").forEach(function(el){
+  if(el.id&&el.type!=="checkbox"){state[el.id]=el.value;}
+  if(el.id&&el.type==="checkbox"){state[el.id]=el.checked;}
+ });
+ state.builders=getBuilderComps();
+ return state;
+}
+function applyState(s){
+ suppressHash=true;
+ Object.keys(s).forEach(function(k){
+  if(k==="builders"){return;}
+  var el=$(k); if(!el){return;}
+  if(el.type==="checkbox"){el.checked=!!s[k];}else{el.value=s[k];}
+ });
+ if(s.builders){
+  while(document.querySelectorAll("#builderBody tr").length<s.builders.length){addBuilderRow({});}
+  s.builders.forEach(function(c,i){setBuilderRow(i,{addr:c.address||"",price:c.sale_price===null?"":c.sale_price,date:c.sale_date||"",url:c.source_url||""});});
+ }
+ suppressHash=false;
+ calc();
+}
+function updateHash(){
+ try{
+  var json=JSON.stringify(collectState());
+  var b64=btoa(unescape(encodeURIComponent(json)));
+  var url=window.location.href.split("#")[0]+"#d="+b64;
+  $("shareUrl").value=url;
+  if(window.history&&window.history.replaceState){window.history.replaceState(null,"",url);}
+ }catch(e){/* share link unavailable, math still runs */}
+}
+function restoreFromHash(){
+ if(!window.location.hash||window.location.hash.indexOf("#d=")!==0){return false;}
+ try{
+  var json=decodeURIComponent(escape(atob(window.location.hash.slice(3))));
+  var s=JSON.parse(json);
+  applyState(s);
+  showSampleNote("Deal restored from share link. Check the inputs and sources before relying on any number.");
+  return true;
+ }catch(e){return false;}
+}
+function copyText(t,msg){
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t);}
+ else{var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(ta);}
+ showSampleNote(msg);
+}
+function clearAll(){
+ document.querySelectorAll("input,select,textarea").forEach(function(el){
+  if(el.id==="runId"||el.id==="runDate"){return;}
+  if(el.type==="checkbox"){el.checked=false;}
+  else if(el.id==="contingencyPct"){el.value="5";}
+  else if(el.id==="targetMargin"){el.value="15";}
+  else if(el.id==="parcelSources"){el.value="0";}
+  else if(el.id==="confidence"){el.value="0.75";}
+  else{el.value="";}
+ });
+ document.querySelectorAll("#builderBody tr").forEach(function(tr){tr.querySelectorAll("input").forEach(function(i){i.value="";});});
+ resetGatesRisks();
+ showSampleNote("Cleared. Enter a real deal, or load a sample.");
+ calc();
+}
+
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this context"));}
+ var data=new TextEncoder().encode(str);
+ return window.crypto.subtle.digest("SHA-256",data).then(function(buf){
+  var bytes=new Uint8Array(buf);
+  var hex="";
+  bytes.forEach(function(b){hex+=("0"+b.toString(16)).slice(-2);});
+  return hex;
+ });
+}
+
+function issueReceipt(){
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var receipt=E4.buildReceipt(lastReceipt,prev,chain.length+1);
+ var canonical=E4.canonicalJSON(receipt);
+ sha256HexBrowser(canonical).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  $("chainOut").textContent=JSON.stringify(chain,null,2);
+  $("verifyOut").innerHTML='<div class="hint">Receipt '+receipt.seq+' issued. Hash '+hex.slice(0,16)+'... Prev '+String(prev).slice(0,16)+'... Press Verify chain to recompute.</div>';
+ }).catch(function(err){
+  $("verifyOut").innerHTML='<div class="warning">Web Crypto unavailable in this context, so no hash was issued in the browser. The same receipt math is verified by the Node test suite. ('+esc(err.message)+')</div>';
+ });
+}
+
+function verifyChainBrowser(){
+ if(chain.length===0){
+  $("verifyOut").innerHTML='<div class="hint">No receipts in this session yet. Press Issue receipt first.</div>';
+  return;
+ }
+ E4.verifyChain(chain,function(canonical){return sha256HexBrowser(canonical);}).then(function(result){
+  var lines=result.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+  var overall=result.ok?"PASS":"FAIL";
+  $("verifyOut").innerHTML='<div class="'+(result.ok?"pass-box":"kill-box")+'"><b>Chain verification: '+overall+'.</b><br>'+esc(lines.join(" | "))+'</div>';
+ }).catch(function(err){
+  $("verifyOut").innerHTML='<div class="warning">Verification failed: '+esc(err.message)+'</div>';
+ });
+}
+
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnAddBuilder").addEventListener("click",function(){addBuilderRow({});calc();});
+$("btnShare").addEventListener("click",function(){updateHash();copyText($("shareUrl").value,"Share link copied. It encodes this deal in the URL hash. Nothing was uploaded.");});
+$("btnClearShare").addEventListener("click",function(){if(window.history&&window.history.replaceState){window.history.replaceState(null,"",window.location.href.split("#")[0]);}$("shareUrl").value="";showSampleNote("Share link cleared.");});
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",function(){copyText($("receiptOut").textContent,"Receipt JSON copied.");});
+$("btnDownloadReceipt").addEventListener("click",function(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e4-receipt-"+runId+".json";a.click();
+});
+$("btnPrint").addEventListener("click",function(){window.print();});
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChainBrowser);
+$("btnClearChain").addEventListener("click",function(){chain=[];$("chainOut").textContent="[]";$("verifyOut").innerHTML='<div class="hint">Chain cleared. The next receipt issued starts again at GENESIS.</div>';});
+
+document.addEventListener("input",function(e){if(e.target&&e.target.closest){calc();}});
+document.addEventListener("change",function(e){if(e.target&&e.target.closest){calc();}});
+
+if(!restoreFromHash()){calc();}
+})();
+</script>
+</body>
+</html>
