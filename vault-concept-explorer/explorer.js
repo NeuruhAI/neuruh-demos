@@ -148,7 +148,9 @@
         '<dt>Collision note</dt><dd>' + (c.collision ? "Yes. A court-verdict collision note exists for this name (00-Collisions/, verdict recorded 2026-11-09)." : "No collision note.") + '</dd>' +
         '<dt>Row sourcing</dt><dd><span class="tag tag-census">' + esc(c.source) + '</span> Master-Data-List.json, census row ' + esc(c.id) + '</dd>' +
         '</dl>';
-      d.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      if (typeof d.scrollIntoView === "function") {
+        d.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
     }
 
     els.results.addEventListener("click", function (ev) {
