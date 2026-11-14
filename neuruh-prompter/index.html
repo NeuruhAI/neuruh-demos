@@ -83,6 +83,7 @@ textarea#script-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(
 textarea#script-input::placeholder{color:var(--faint);}
 .editor-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:8px;flex-wrap:wrap;}
 .wordcount{font-family:var(--font-mono);font-size:11.5px;color:var(--faint);letter-spacing:.03em;}
+.save-note{font-family:var(--font-mono);font-size:11.5px;color:var(--ok);letter-spacing:.03em;}
 .saved{display:grid;gap:6px;margin-top:12px;}
 .saved-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 13px;border-radius:var(--r-2);border:1px solid var(--line);background:var(--s1);cursor:pointer;transition:.15s var(--ease);}
 .saved-item:hover{border-color:var(--line-2);box-shadow:var(--sh-1);}
@@ -268,6 +269,7 @@ select.cam-select{width:100%;margin-top:10px;display:none;background:var(--s1);c
 Line breaks are respected, so you can split the script into beats and the scroll will honor them."></textarea>
         <div class="editor-foot">
           <span class="wordcount" id="wordcount">0 words · ~0:00</span>
+          <span class="save-note" id="save-note"></span>
           <button class="chip" id="calibrate-btn">◎ Calibrate my pace</button>
         </div>
         <div class="saved" id="saved-list"></div>
@@ -439,7 +441,7 @@ const $=id=>document.getElementById(id);
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9']/g,'');
 
-const el={}; ['setup','stage','review','remote','calib','script-input','wordcount','new-script','save-script','saved-list','cam-status','setup-hint','cam-preview','setup-video','setup-framing','flip-btn','cam-select','enable-btn','rehearse-btn','font-range','font-val','font-up','font-down','wpm-range','wpm-val','sens-range','sens-val','track-seg','track-note','dur-seg','grid-toggle','mirror-toggle','count-toggle','remote-toggle','calibrate-btn','calib-sample','calib-timer','calib-state','calib-go','calib-cancel','calib-result','preview','rehearse-bg','framing','script-col','script','readline','wave','rl-tag','progress-fill','rec-dot','rec-timer','mode-name','hud-meta','room-chip','room-code','countdown','count-num','count-prog','stage-ctrls','pause-btn','stop-btn','slower','faster','playback','review-format','meta-dur','meta-size','meta-sha','sha-short','takes-strip','download-btn','hub-save-btn','again-btn','new-btn','review-hint','hub-pill','remote-link','rc-exit','rc-room','rc-connect','rc-status','rc-offline-note','rc-pause','rc-slower','rc-faster','rc-back','rc-fwd','rc-restart','rc-stop']
+const el={}; ['setup','stage','review','remote','calib','script-input','wordcount','save-note','new-script','save-script','saved-list','cam-status','setup-hint','cam-preview','setup-video','setup-framing','flip-btn','cam-select','enable-btn','rehearse-btn','font-range','font-val','font-up','font-down','wpm-range','wpm-val','sens-range','sens-val','track-seg','track-note','dur-seg','grid-toggle','mirror-toggle','count-toggle','remote-toggle','calibrate-btn','calib-sample','calib-timer','calib-state','calib-go','calib-cancel','calib-result','preview','rehearse-bg','framing','script-col','script','readline','wave','rl-tag','progress-fill','rec-dot','rec-timer','mode-name','hud-meta','room-chip','room-code','countdown','count-num','count-prog','stage-ctrls','pause-btn','stop-btn','slower','faster','playback','review-format','meta-dur','meta-size','meta-sha','sha-short','takes-strip','download-btn','hub-save-btn','again-btn','new-btn','review-hint','hub-pill','remote-link','rc-exit','rc-room','rc-connect','rc-status','rc-offline-note','rc-pause','rc-slower','rc-faster','rc-back','rc-fwd','rc-restart','rc-stop']
 .forEach(id=>{ el[id.replace(/-([a-z])/g,(m,c)=>c.toUpperCase())]=$(id); });
 
 const S={
@@ -512,12 +514,23 @@ function renderLibrary(){
     el.savedList.appendChild(row);
   });
 }
+/* Save names the script from its first line. The old handler asked for a
+   name with prompt(); automation and some browsers suppress native dialogs,
+   so prompt() returned null and Save silently stored nothing. No dialog now:
+   the name is the first line, suffixed on duplicates, and the save is
+   confirmed in the editor foot next to the word count. */
+function uniqueScriptName(base){
+  var name=base, n=2;
+  while(S.library.some(function(x){ return x.name===name; })){ name=base+' ('+n+')'; n+=1; }
+  return name;
+}
 el.saveScript.onclick=()=>{
   const text=el.scriptInput.value.trim(); if(!text) return;
   const first=(text.split('\n')[0]||'Untitled').slice(0,42);
-  const name=prompt('Name this script:',first); if(name===null) return;
-  S.library.push({id:Date.now().toString(36),name:name||first,text,updatedAt:Date.now()});
+  const name=uniqueScriptName(first);
+  S.library.push({id:Date.now().toString(36),name:name,text:text,updatedAt:Date.now()});
   persistLibrary(); renderLibrary();
+  el.saveNote.textContent='Saved "'+name+'".';
 };
 el.newScript.onclick=()=>{ el.scriptInput.value=''; onScriptInput(); el.scriptInput.focus(); };
 
