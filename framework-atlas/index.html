@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Framework Atlas (SIMULATION) - Neuruh Ecosystem Codex</title>
+<style>
+  :root { --bone:#fdfcf8; --paper:#f4f1e8; --ink:#1a1712; --muted:#5c564a; --brass:#8a6d2b; --line:#d8d2c2; --red:#8a2b2b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5; }
+  header { border-bottom:3px double var(--brass); padding:28px 24px 18px; max-width:1100px; margin:0 auto; }
+  .docctl { display:flex; flex-wrap:wrap; gap:8px 24px; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .sim { display:inline-block; background:var(--red); color:#fff; font-weight:700; padding:2px 10px; font-size:12px; letter-spacing:.12em; }
+  h1 { font-family:Archivo,system-ui,sans-serif; font-size:34px; line-height:1.1; margin:14px 0 6px; }
+  .sub { color:var(--muted); max-width:75ch; margin:0 0 10px; }
+  .gap { background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--brass); padding:12px 14px; margin:14px 0 0; font-size:14px; }
+  main { max-width:1100px; margin:0 auto; padding:20px 24px 40px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:end; background:var(--paper); border:1px solid var(--line); padding:14px; margin-bottom:14px; }
+  .controls label { display:block; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:3px; }
+  .controls input, .controls select { font:inherit; padding:7px 9px; border:1px solid var(--line); background:#fff; color:var(--ink); min-width:180px; }
+  .controls button { font:inherit; padding:7px 14px; border:1px solid var(--brass); background:var(--brass); color:#fff; cursor:pointer; }
+  .controls button.ghost { background:#fff; color:var(--brass); }
+  .counts { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:13px; color:var(--muted); margin:0 0 10px; }
+  table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); }
+  th, td { text-align:left; padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; font-size:14px; }
+  th { background:var(--paper); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+  tr.row { cursor:pointer; }
+  tr.row:hover { background:#fbf7ea; }
+  tr.row.sel { background:#f6ecd4; }
+  .tier { display:inline-block; font-family:"JetBrains Mono",ui-monospace,monospace; font-weight:700; font-size:12px; padding:1px 8px; border:1px solid var(--brass); }
+  .tier.A { background:#e9e2c8; } .tier.B { background:#f4f1e8; } .tier.C { background:#efe6dd; } .tier.UNKNOWN { background:#fff; border-style:dashed; color:var(--muted); }
+  #detail { border:1px solid var(--brass); background:#fff; padding:18px; margin:16px 0; display:none; }
+  #detail h2 { margin:0 0 4px; font-size:22px; }
+  #detail dl { display:grid; grid-template-columns:170px 1fr; gap:6px 14px; margin:12px 0; font-size:14px; }
+  #detail dt { font-weight:700; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+  #detail dd { margin:0; }
+  #detail .src { font-size:13px; color:var(--muted); }
+  #depview { border:1px solid var(--line); background:#fff; padding:18px; margin:16px 0; }
+  #depview h2 { margin:0 0 8px; font-size:20px; }
+  #depview svg { width:100%; height:auto; background:var(--bone); border:1px solid var(--line); }
+  #depview ul { font-size:14px; }
+  .note { font-size:13px; color:var(--muted); }
+  footer { max-width:1100px; margin:0 auto; padding:0 24px 30px; font-size:13px; color:var(--muted); border-top:1px solid var(--line); }
+  footer p { max-width:85ch; }
+  a { color:var(--brass); }
+  .viewtabs { margin:0 0 12px; }
+  .viewtabs button { font:inherit; padding:6px 14px; border:1px solid var(--brass); background:#fff; color:var(--brass); cursor:pointer; margin-right:6px; }
+  .viewtabs button.on { background:var(--brass); color:#fff; }
+  @media print { .controls, .viewtabs { display:none; } body { background:#fff; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="docctl"><span>Neuruh Framework Atlas</span><span>Source: NRH-DOC-CODEX-001 rev A</span><span>Built: 2026-11-14</span><span class="sim">SIMULATION</span></div>
+  <h1>Framework Atlas</h1>
+  <p class="sub">An explorable browser over the Ecosystem Codex Volume VI IP Framework Register. Every row traces to the codex page. Tiers, roles, and dependencies are shown only where the codex states them. Where the codex states nothing, the atlas says UNKNOWN and invents nothing.</p>
+  <p class="gap" id="gapline">Loading data.</p>
+</header>
+<main>
+  <div class="viewtabs">
+    <button id="tabTable" class="on" type="button">Table view</button>
+    <button id="tabDeps" type="button">Dependency view</button>
+  </div>
+  <div id="tablePane">
+    <div class="controls">
+      <div><label for="q">Search</label><input id="q" type="search" placeholder="Name, function, or posture" autocomplete="off"></div>
+      <div><label for="tier">Tier</label><select id="tier"><option value="">All tiers</option><option>A</option><option>B</option><option>C</option><option value="UNKNOWN">UNKNOWN</option></select></div>
+      <div><label for="domain">Domain (atlas grouping)</label><select id="domain"><option value="">All domains</option></select></div>
+      <div><label for="sort">Sort by name</label><select id="sort"><option value="az">A to Z</option><option value="za">Z to A</option></select></div>
+      <button id="clear" class="ghost" type="button">Clear filters</button>
+    </div>
+    <p class="counts" id="counts"></p>
+    <table>
+      <thead><tr><th>Framework</th><th>Tier</th><th>Domain</th><th>Function (codex, verbatim)</th><th>Posture (codex, verbatim)</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div id="detail" aria-live="polite"></div>
+  </div>
+  <div id="depPane" style="display:none">
+    <div id="depview">
+      <h2>Dependency view: stated dependencies only</h2>
+      <p class="note">Edges below are the only dependencies between two frameworks in this atlas that the codex states. Every other stated dependency points at a component, a host, or a hardware item, and is listed per framework in the table below the diagram. Nothing is inferred.</p>
+      <svg viewBox="0 0 900 260" role="img" aria-label="Stated framework to framework dependency diagram">
+        <text x="20" y="24" font-family="Archivo,sans-serif" font-size="14" font-weight="700">STATED FRAMEWORK TO FRAMEWORK DEPENDENCIES (2 EDGES)</text>
+        <rect x="60" y="70" width="180" height="52" fill="#f4f1e8" stroke="#8a6d2b" stroke-width="2"/>
+        <text x="150" y="101" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700">LandOS</text>
+        <rect x="660" y="70" width="180" height="52" fill="#f4f1e8" stroke="#8a6d2b" stroke-width="2"/>
+        <text x="750" y="101" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700">DeedSonar</text>
+        <line x1="660" y1="96" x2="240" y2="96" stroke="#8a6d2b" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="450" y="84" text-anchor="middle" font-family="Inter,sans-serif" font-size="12">depends on</text>
+        <rect x="60" y="170" width="180" height="52" fill="#f4f1e8" stroke="#8a6d2b" stroke-width="2"/>
+        <text x="150" y="201" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700">CRUCIBLE</text>
+        <rect x="660" y="170" width="180" height="52" fill="#f4f1e8" stroke="#8a6d2b" stroke-width="2"/>
+        <text x="750" y="201" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="700">L4 Engine</text>
+        <line x1="660" y1="196" x2="240" y2="196" stroke="#8a6d2b" stroke-width="2" marker-end="url(#arr)"/>
+        <text x="450" y="184" text-anchor="middle" font-family="Inter,sans-serif" font-size="12">depends on</text>
+        <defs><marker id="arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><polygon points="0 0, 10 4, 0 8" fill="#8a6d2b"/></marker></defs>
+      </svg>
+      <p class="note">Reading: DeedSonar depends on landos-engine (LandOS). L4 Engine depends on CRUCIBLE / BuildOS v2. NCP Phase 2 depends on NCP Phase 1, which is a phase dependency inside one framework, not an edge between frameworks.</p>
+      <h3>All stated dependencies, by framework</h3>
+      <ul id="deplist"></ul>
+    </div>
+  </div>
+</main>
+<footer>
+  <p><b>What this is.</b> A SIMULATION: a browser over codex data. It does not connect to any repository, database, or live system. It does not re-run the 30 June 2026 Code-Verified Reality audit. Tier definitions: A code-verified, B built and inspectable, C specced only, UNKNOWN no tier stated on the codex page.</p>
+  <p><b>Sources.</b> Framework names, functions, and postures: Ecosystem Codex Volume VI, <a href="https://ecosystem-codex.pages.dev/">ecosystem-codex.pages.dev</a> (NRH-DOC-CODEX-001 rev A), accessed 2026-11-14. Tiers and dependencies: Volume VI postures plus the 28-entry master asset register encoded on the same page. Domain is an atlas grouping derived from the codex Function text, not a codex field. The vault holds no standalone Ecosystem Codex note; the codex is referenced in the 2026-11-10 upload sweep coverage file.</p>
+  <p><b>Honest gaps.</b> The codex verifies 31 named IP frameworks but names 20 in Volume VI. The remaining 11 are not named in the source and are not invented here. DeedSonar ownership: the codex source said JV; corrected 22 Oct 2026, DeedSonar is solely the founder's. Audit basis is 30 June 2026; states may have changed since.</p>
+</footer>
+<script src="atlas.js"></script>
+</body>
+</html>
