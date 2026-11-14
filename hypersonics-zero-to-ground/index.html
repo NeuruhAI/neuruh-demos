@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zero to Ground: Hypersonics Learning Track</title>
+<style>
+:root{--paper:#f7f3ea;--bone:#efe8d8;--ink:#1c1a16;--ink2:#4a463d;--brass:#9a7b2d;--line:#d8cfb8;--ok:#2e6b34;--bad:#8a2f23;--mut:#6b6558}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+a{color:var(--brass)}
+h1,h2,h3{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.2}
+h1{font-size:2rem;margin:.2em 0}
+h2{font-size:1.35rem;border-top:2px solid var(--ink);padding-top:.6em;margin-top:2em}
+h3{font-size:1.05rem;margin-bottom:.3em}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+.wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+.docctl{border:1px solid var(--line);background:var(--bone);padding:12px 16px;font-size:.85rem;display:grid;gap:4px}
+.docctl .k{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--brass);margin-right:8px}
+.banner{border:1px solid var(--brass);padding:10px 14px;margin:16px 0;font-size:.92rem;background:#fbf7ec}
+.flag{display:inline-block;border:1px solid var(--brass);color:var(--brass);font-size:.75rem;font-weight:700;letter-spacing:.08em;padding:2px 8px;border-radius:2px}
+.flag.verified{border-color:var(--ok);color:var(--ok)}
+.flag.search{border-color:var(--bad);color:var(--bad)}
+.meterbar{height:14px;background:#e2dac4;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.meterbar>div{height:100%;background:var(--brass);width:0%}
+.meterline{font-family:"JetBrains Mono",monospace;font-size:.9rem;margin:6px 0}
+.check{margin:6px 0}
+.check label{cursor:pointer}
+.check input{margin-right:8px}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:12px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-family:Archivo,sans-serif}
+.note{font-size:.85rem;color:var(--ink2)}
+.src{font-size:.8rem;color:var(--mut)}
+canvas{width:100%;height:auto;border:1px solid var(--line);background:#fdfbf5;display:block}
+figure{margin:16px 0}
+figcaption{font-size:.85rem;color:var(--ink2);margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{border:1px solid var(--line);background:#fdfbf5;padding:12px 14px}
+.card h3{margin-top:0}
+.card.picked{border:2px solid var(--brass)}
+.readout{font-family:"JetBrains Mono",monospace;font-size:.95rem;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:10px 0}
+.readout b{color:var(--brass)}
+label.f{display:block;margin:10px 0 4px;font-weight:600;font-size:.92rem}
+input[type=text],input[type=number],textarea,select{font:inherit;padding:8px 10px;border:1px solid var(--line);background:#fff;color:var(--ink);width:100%;max-width:520px}
+input[type=range]{width:100%;max-width:520px}
+button{font:inherit;background:var(--ink);color:var(--paper);border:0;padding:9px 16px;cursor:pointer;margin:6px 6px 6px 0}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+button:disabled{opacity:.5;cursor:default}
+.status{font-size:.9rem;min-height:1.3em;color:var(--ok);margin:6px 0}
+.status.err{color:var(--bad)}
+pre.draft{white-space:pre-wrap;background:#fdfbf5;border:1px solid var(--line);padding:12px;font-size:.92rem}
+.pass{color:var(--ok);font-weight:700}
+.fail{color:var(--bad);font-weight:700}
+footer{margin-top:3em;border-top:1px solid var(--line);padding-top:12px;font-size:.85rem;color:var(--mut)}
+@media print{
+  body{background:#fff}
+  button,.noprint{display:none}
+  .wrap{max-width:100%;padding:0}
+  a{color:var(--ink);text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="docctl">
+<div><span class="k">DOCUMENT</span>Zero to Ground: Hypersonics Learning Track</div>
+<div><span class="k">VERSION</span>1.0 &middot; 2026-11-14</div>
+<div><span class="k">STATUS</span>Learning tracker with working tools. Not a simulation of a real vehicle.</div>
+<div><span class="k">AUDIT</span>2026-11-14. Every measured number cites its source. Model numbers are labeled teaching model.</div>
+</div>
+<h1>Zero to Ground: Hypersonics Learning Track</h1>
+<p class="sub">Practical advice to gain ground quickly with zero prior experience. Six sections, in order: lock the fundamentals, read the papers that are closest, use simple simulation tools, talk to people already doing the work, pick one small buildable piece, and track the energy and mass ledger every time.</p>
+<div class="banner">This page is a study tracker. It does not fly anything, heat anything, or model a real vehicle. The shock visualizer is a teaching model, labeled as such. The measured numbers on this page come from wind-tunnel and expansion-tube tests, not from flight.</div>
+</header>
+
+<section id="track-tools" aria-label="Track tools">
+<h2>Track progress</h2>
+<div class="meterline" id="trackMeter">Track complete: 0 of 18</div>
+<div class="meterbar"><div id="trackBar"></div></div>
+<p class="note">Counts fundamentals checklist items (8), paper reads (8), a tracked piece chosen (1), and at least one ledger entry (1).</p>
+<div>
+<label class="f" for="shareUrl">Share link</label>
+<input type="text" id="shareUrl" readonly placeholder="Generate a share link to save this track state">
+<div>
+<button id="genShareBtn" type="button">Generate share link</button>
+<button id="copyShareBtn" type="button">Copy share link</button>
+<span class="status" id="shareStatus" aria-live="polite"></span>
+</div>
+</div>
+<div>
+<button id="resetBtn" type="button" class="ghost">Reset track</button>
+<span class="status" id="resetStatus" aria-live="polite"></span>
+</div>
+</section>
+
+<section id="sec-fundamentals" aria-label="Fundamentals first">
+<h2>1. Fundamentals first (4 to 8 weeks)</h2>
+<p>Lock the fundamentals before touching hardware. Check each item as you finish it.</p>
+<div class="meterline" id="fundMeter">Fundamentals: 0 of 8 complete</div>
+<div class="meterbar"><div id="fundBar"></div></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-1"> Weeks 1 to 2: Shock waves, and why compression (not surface friction) dominates heating.</label></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-2"> Weeks 3 to 4: Ionization and plasma, what they actually are.</label></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-3"> Weeks 5 to 6: Basic heat transfer, convection vs radiation.</label></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-4"> Weeks 7 to 8: Compressible flow.</label></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-5"> Free resource: NASA hypersonics primers.</label></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-6"> Free resource: "Introduction to Hypersonic Flow" lecture notes.</label></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-7"> Free resource: short courses on edX or Coursera on compressible flow.</label></div>
+<div class="check"><label><input type="checkbox" class="fund-check" id="fund-8"> Free resource: public MEESST and SpaceX reentry videos, read the captions while watching.</label></div>
+</section>
+
+<section id="sec-papers" aria-label="Papers closest">
+<h2>2. Papers closest (ongoing)</h2>
+<p>Read the abstracts and conclusions first. Note what they measured (shock stand-off, heat-flux reduction percentage) and what hardware they used. Two rows below are search terms only: no paper verified, and the page says so.</p>
+<table>
+<thead><tr><th>Paper or search</th><th>Status</th><th>What they measured</th><th>Hardware used</th><th>Results and limits</th><th>Links</th><th>Read</th></tr></thead>
+<tbody>
+<tr id="row-meesst">
+<td><b>MEESST MHD heat flux</b><br><span class="note">Magnetohydrodynamic Enhanced Entry System for Space Transportation. EU Horizon 2020 FET, grant 899298. HTS magnetic shielding.</span></td>
+<td><span class="flag verified">VERIFIED</span></td>
+<td>Shock stand-off distance and heat-flux reduction percentage.</td>
+<td>PWK1 arc jet facility at the Institute of Space Systems (heat flux); VKI Plasmatron (radio blackout); HTS magnet probe.</td>
+<td>Heat flux reduction up to 40% for a Moon-return entry (60 MJ/kg) and up to 80% for an interstellar-return entry (80 MJ/kg), in supersonic air plasma. Up to 5 dB signal-loss reduction. Oswald et al., Vacuum, Oct 2025: up to 83% total heat flux reduction in high-enthalpy air plasma. Grant closed September 2024. Scaling toward a flight demo on The Exploration Company's Nyx capsule. Limit: shielding needs plasma. Below Mach 5 to 10 in the lower atmosphere the plasma fades and the Lorentz force fades with it. Wind-tunnel numbers, not flight.<br><span class="src">Measured, MEESST wind tunnel, audit 2026-11-14.</span></td>
+<td><a href="https://www.researchgate.net/publication/365654759_A_Magnetohydrodynamic_Enhanced_Entry_System_for_Space_Transportation_MEESST">ResearchGate overview</a><br><a href="https://www.springerprofessional.de/magnetohydrodynamic-effects-on-radio-signal-propagation-in-a-pla/51668356">Springer Professional, MHD effects on radio signal propagation</a><br><a href="https://newsletter.altruspace.com/p/keeping-cool-this-re-entry-season">Altruspace newsletter, MEESST results</a></td>
+<td><div class="check"><label><input type="checkbox" class="paper-check" data-row="meesst" data-kind="abs"> Abstract read</label></div><div class="check"><label><input type="checkbox" class="paper-check" data-row="meesst" data-kind="concl"> Conclusions read</label></div></td>
+</tr>
+<tr id="row-tokyo">
+<td><b>Tokyo Metropolitan University pulsed magnet reentry</b><br><span class="note">Shimamura group. Paper: Muramatsu, Takeaki, et al. "Quasi-Steady Magnetic Field Generated by Pulse Forming Network for Magnetohydrodynamic Aerobraking." Journal of Spacecraft and Rockets, 2026.</span></td>
+<td><span class="flag verified">VERIFIED</span></td>
+<td>Shock-layer thickness only. They did NOT directly measure heat flux reduction or drag increase. Qualitative shock-layer comparison only.</td>
+<td>MX-6.0 8 m expansion tube. Pulsed electromagnet driven by a pulse-forming network. Fields 1.24 and 1.58 tesla. Shock about 7.7 km/s. Test duration about 40 microseconds. Model 20 mm.</td>
+<td>Self-emission (shock) layer about 16% thicker with the field on (15.7% and 16.2% in two models). A numerical study they cite: 0.5 T around a capsule reduced calculated wall heat flux to about 53% of the no-field value.<br><span class="src">Measured, Tokyo Metro, audit 2026-11-14.</span></td>
+<td><a href="https://doi.org/10.2514/1.A36635">DOI 10.2514/1.A36635</a><br><a href="https://www.thebrighterside.news/post/powerful-new-magnetic-system-could-help-spacecraft-survive-the-brutal-heat-of-reentry/">The Brighter Side, report on the Tokyo test</a></td>
+<td><div class="check"><label><input type="checkbox" class="paper-check" data-row="tokyo" data-kind="abs"> Abstract read</label></div><div class="check"><label><input type="checkbox" class="paper-check" data-row="tokyo" data-kind="concl"> Conclusions read</label></div></td>
+</tr>
+<tr id="row-laser">
+<td><b>"laser energy deposition hypersonic"</b><br><span class="note">Search term from the plan.</span></td>
+<td><span class="flag search">SEARCH TO RUN</span></td>
+<td>Not verified. Run the search, then note what any paper found measured.</td>
+<td>Not verified. Note the hardware any paper found used.</td>
+<td>No specific paper verified. Label stays "search to run" until a paper is read.<br><span class="src">Not verified.</span></td>
+<td>None. Search the exact term.</td>
+<td><div class="check"><label><input type="checkbox" class="paper-check" data-row="laser" data-kind="abs"> Abstract read</label></div><div class="check"><label><input type="checkbox" class="paper-check" data-row="laser" data-kind="concl"> Conclusions read</label></div></td>
+</tr>
+<tr id="row-hts">
+<td><b>"HTS magnet plasma wind tunnel"</b><br><span class="note">Search term from the plan.</span></td>
+<td><span class="flag search">SEARCH TO RUN</span></td>
+<td>Not verified. Run the search, then note what any paper found measured.</td>
+<td>Not verified. Note the hardware any paper found used.</td>
+<td>No specific paper verified. Label stays "search to run" until a paper is read.<br><span class="src">Not verified.</span></td>
+<td>None. Search the exact term.</td>
+<td><div class="check"><label><input type="checkbox" class="paper-check" data-row="hts" data-kind="abs"> Abstract read</label></div><div class="check"><label><input type="checkbox" class="paper-check" data-row="hts" data-kind="concl"> Conclusions read</label></div></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+<section id="sec-sim" aria-label="Simulation tools">
+<h2>3. Simulation tools</h2>
+<p>Free or low-cost options: OpenFOAM (open-source CFD), or browser-based flow visualizers. Start by modeling a simple blunt body with and without a low-density region ahead of it. The goal is intuition, not perfect numbers.</p>
+<figure>
+<canvas id="shockCanvas" width="720" height="360" role="img" aria-label="Blunt body with bow shock diagram"></canvas>
+<figcaption>Figure 1. Blunt body with bow shock. Flow comes from the left. The shock stands off ahead of the nose. Turning MHD on moves the shock outward and drops the modeled heat flux. Teaching model, not CFD.</figcaption>
+</figure>
+<div>
+<label class="f" for="machSlider">Mach: <span class="mono" id="machVal">10</span></label>
+<input type="range" id="machSlider" min="5" max="25" step="1" value="10">
+<label class="f" for="noseSlider">Nose radius R (m): <span class="mono" id="noseVal">0.50</span></label>
+<input type="range" id="noseSlider" min="0.1" max="1" step="0.05" value="0.5">
+<label class="f" for="bSlider">Magnetic field B (tesla): <span class="mono" id="bVal">1.58</span></label>
+<input type="range" id="bSlider" min="0" max="2" step="0.05" value="1.58">
+<div class="check"><label><input type="checkbox" id="mhdToggle" checked> MHD on (magnetic field applied)</label></div>
+</div>
+<div class="readout" id="simReadout" aria-live="polite"></div>
+<p class="note">Teaching model, not CFD. Stagnation-point heat flux uses Sutton-Graves: q = 1.7415e-4 * sqrt(rho / R) * V^3, q in W/cm2, rho in kg/m3, R nose radius in m, V in m/s. Assumptions stated plainly: rho is fixed at a teaching value of 0.02 kg/m3, and V = Mach * 340 m/s. The reduction curve is illustrative; the measured anchors are MEESST 40 to 83% heat-flux reduction in a wind tunnel, and Tokyo 16% thicker shock layer with no heat flux measured. Stand-off factor is illustrative and anchored: 1 + 0.10 * B gives 1.16x at 1.58 T, matching the Tokyo measured 16%.</p>
+</section>
+
+<section id="sec-people" aria-label="Talk to people">
+<h2>4. Talk to people already doing the work</h2>
+<p>University groups working on hypersonics or HTS magnets (search MEESST partners, Tokyo Metro, or U.S. university hypersonics labs). Many will answer a short, specific email from someone who has read their paper. Conferences and online forums (NASASpaceflight, Reddit r/AerospaceEngineering) are lower-stakes places to ask questions.</p>
+<table>
+<thead><tr><th>Target</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>MEESST partners</td><td><select class="outreach-select" data-target="meesst-partners"><option value="not contacted">Not contacted</option><option value="emailed">Emailed</option><option value="replied">Replied</option></select></td></tr>
+<tr><td>Tokyo Metro, Shimamura group</td><td><select class="outreach-select" data-target="tokyo-shimamura"><option value="not contacted">Not contacted</option><option value="emailed">Emailed</option><option value="replied">Replied</option></select></td></tr>
+<tr><td>US university hypersonics labs</td><td><select class="outreach-select" data-target="us-labs"><option value="not contacted">Not contacted</option><option value="emailed">Emailed</option><option value="replied">Replied</option></select></td></tr>
+<tr><td>NASASpaceflight forum</td><td><select class="outreach-select" data-target="nasaspaceflight"><option value="not contacted">Not contacted</option><option value="emailed">Emailed</option><option value="replied">Replied</option></select></td></tr>
+<tr><td>r/AerospaceEngineering</td><td><select class="outreach-select" data-target="reddit-aero"><option value="not contacted">Not contacted</option><option value="emailed">Emailed</option><option value="replied">Replied</option></select></td></tr>
+</tbody>
+</table>
+<h3>Email draft generator</h3>
+<label class="f" for="paperTitle">Paper title</label>
+<input type="text" id="paperTitle" placeholder="e.g. Quasi-Steady Magnetic Field Generated by Pulse Forming Network for Magnetohydrodynamic Aerobraking">
+<label class="f" for="paperQuestion">One specific question</label>
+<textarea id="paperQuestion" rows="3" placeholder="e.g. In the MX-6.0 tests, did the 1.58 T field change the emission-layer thickness the same way in both models, or did one model respond more?"></textarea>
+<div>
+<button id="genEmailBtn" type="button">Generate email draft</button>
+<button id="copyEmailBtn" type="button">Copy email draft</button>
+<span class="status" id="emailStatus" aria-live="polite"></span>
+</div>
+<pre class="draft" id="emailDraft">No draft yet. Enter a paper title and one specific question, then Generate.</pre>
+</section>
+
+<section id="sec-piece" aria-label="Pick one small buildable piece">
+<h2>5. Pick one small, buildable piece</h2>
+<p>Instead of the whole system, focus on one subsystem. Click one to track it. Document what you learn.</p>
+<div class="grid">
+<div class="card" id="piece-a">
+<h3>(a) Textured or channeled surface</h3>
+<p>Question: can a textured or channeled surface reduce local heating in a small plasma torch or arc-jet test?</p>
+<p class="note">What it would prove: whether surface texture changes local heating under a plasma jet. Access needed: university or makerspace plasma torch or arc-jet equipment.</p>
+<button type="button" class="pick-btn" data-piece="a">Track this piece</button>
+</div>
+<div class="card" id="piece-b">
+<h3>(b) Simple coil and a laboratory plasma</h3>
+<p>Question: what does a simple coil do to a laboratory plasma?</p>
+<p class="note">What it would prove: whether a coil field visibly moves or shapes a lab plasma. Access needed: university or makerspace plasma equipment and a coil.</p>
+<button type="button" class="pick-btn" data-piece="b">Track this piece</button>
+</div>
+<div class="card" id="piece-c">
+<h3>(c) Blunt body, low-density region ahead</h3>
+<p>Question: what changes when a blunt body flies with and without a low-density region ahead of it?</p>
+<p class="note">What it would prove: whether a low-density region ahead of the body moves the shock or changes heating. Access needed: simulation first (OpenFOAM or a flow visualizer), wind-tunnel time later.</p>
+<button type="button" class="pick-btn" data-piece="c">Track this piece</button>
+</div>
+</div>
+<p class="readout" id="trackedPiece">Tracked piece: none chosen yet.</p>
+</section>
+
+<section id="sec-ledger" aria-label="Energy and mass ledger">
+<h2>6. Energy and mass ledger</h2>
+<p>For every idea, write down: how much energy does the flow already have? How much energy or mass does my system add? How fast does the air recover? This single habit keeps ideas grounded.</p>
+<figure>
+<svg viewBox="0 0 720 170" width="720" height="170" role="img" aria-label="Measured anchors bar chart" style="width:100%;height:auto;border:1px solid var(--line);background:#fdfbf5">
+<text x="16" y="24" font-family="Archivo,sans-serif" font-size="15" font-weight="700" fill="#1c1a16">Measured anchors (wind tunnel and expansion tube, not flight)</text>
+<text x="16" y="58" font-family="Inter,sans-serif" font-size="12" fill="#1c1a16">MEESST Moon-return heat flux cut</text>
+<rect x="270" y="44" width="160" height="18" fill="#9a7b2d"></rect>
+<text x="436" y="58" font-family="JetBrains Mono,monospace" font-size="12" fill="#1c1a16">40%</text>
+<text x="16" y="88" font-family="Inter,sans-serif" font-size="12" fill="#1c1a16">MEESST interstellar-return heat flux cut</text>
+<rect x="270" y="74" width="320" height="18" fill="#9a7b2d"></rect>
+<text x="596" y="88" font-family="JetBrains Mono,monospace" font-size="12" fill="#1c1a16">80%</text>
+<text x="16" y="118" font-family="Inter,sans-serif" font-size="12" fill="#1c1a16">Oswald 2025 heat flux cut</text>
+<rect x="270" y="104" width="332" height="18" fill="#9a7b2d"></rect>
+<text x="608" y="118" font-family="JetBrains Mono,monospace" font-size="12" fill="#1c1a16">83%</text>
+<text x="16" y="148" font-family="Inter,sans-serif" font-size="12" fill="#1c1a16">Tokyo shock layer thicker (not heat flux)</text>
+<rect x="270" y="134" width="64" height="18" fill="#4a463d"></rect>
+<text x="340" y="148" font-family="JetBrains Mono,monospace" font-size="12" fill="#1c1a16">16%</text>
+</svg>
+<figcaption>Figure 2. Measured anchors. MEESST heat-flux cuts and the Oswald 2025 result are percentages of heat flux reduced in a wind tunnel. The Tokyo bar is a different quantity: shock-layer thickness increase, with no heat flux measured. Do not compare the Tokyo bar to the heat-flux bars as if they were the same measurement. Sources: MEESST wind tunnel and Tokyo Metro, audit 2026-11-14.</figcaption>
+</figure>
+<label class="f" for="ledV">Flow velocity V (m/s)</label>
+<input type="number" id="ledV" step="1" value="7000">
+<label class="f" for="ledMdot">Mass flow mdot (kg/s)</label>
+<input type="number" id="ledMdot" step="0.01" value="1">
+<label class="f" for="ledSysW">System power added (W)</label>
+<input type="number" id="ledSysW" step="1" value="1000">
+<label class="f" for="ledSysKg">System mass added (kg)</label>
+<input type="number" id="ledSysKg" step="0.01" value="0">
+<label class="f" for="ledRecovery">Recovery note: how fast does the air recover? (free text, write it down)</label>
+<input type="text" id="ledRecovery" placeholder="e.g. Recovery time unknown, measure in the next test">
+<div class="readout" id="ledgerReadout" aria-live="polite"></div>
+<div>
+<button id="logEntryBtn" type="button">Log entry</button>
+<span class="status" id="ledgerStatus" aria-live="polite"></span>
+</div>
+<table>
+<thead><tr><th>V (m/s)</th><th>mdot (kg/s)</th><th>Flow energy (J/kg)</th><th>Flow power (W)</th><th>System power (W)</th><th>System mass (kg)</th><th>Power ratio</th><th>Recovery note</th></tr></thead>
+<tbody id="ledgerBody"><tr><td colspan="8">No entries yet. Log one to start the ledger.</td></tr></tbody>
+</table>
+<p class="note" id="ledgerCapNote">Ledger keeps at most 20 entries. Older entries are dropped first, and the page says so when it happens.</p>
+</section>
+
+<section id="sec-verify" aria-label="Self check">
+<h2>Verify: the page checks its own math</h2>
+<p class="note">Teaching model. The checks below recompute the page formulas from fixed inputs and compare against hand-computed expected values.</p>
+<div class="readout" id="selfCheck">Running checks.</div>
+<button id="runCheckBtn" type="button">Re-run checks</button>
+</section>
+
+<footer>
+<p>Sources: the plan handed over 2026-11-14 and the verified anchors checked the same day. MEESST links: ResearchGate overview, Springer Professional, Altruspace newsletter. Tokyo links: DOI 10.2514/1.A36635, The Brighter Side report. "Laser energy deposition hypersonic" and "HTS magnet plasma wind tunnel" are search terms only, no paper verified. Sutton-Graves is a teaching model here, labeled as such. All state lives in this browser; the share link carries the track state in the URL hash.</p>
+<p>Neuruh, AI That Executes. Contact: <a href="mailto:jeramie@neuruh.com">jeramie@neuruh.com</a> &middot; Scheduling: <a href="https://cal.com/neuruh">cal.com/neuruh</a></p>
+</footer>
+</div>
+<script>
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var RHO = 0.02;
+var SOUND = 340;
+var K_SG = 1.7415e-4;
+function fmt(n, d){ return Number(n).toFixed(d); }
+function fmtInt(n){ return Math.round(n).toLocaleString("en-US"); }
+function suttonGraves(mach, r){
+  var v = mach * SOUND;
+  return K_SG * Math.sqrt(RHO / r) * Math.pow(v, 3);
+}
+function mhdReduction(b){ return 0.5 * (1 - Math.exp(-b / 0.8)); }
+function standOff(b){ return 1 + 0.10 * b; }
+function roundStep(v, step){
+  var p = 0;
+  var s = String(step);
+  if (s.indexOf(".") >= 0) p = s.length - s.indexOf(".") - 1;
+  return Number(v.toFixed(p));
+}
+
+/* ---------- Section 3: visualizer ---------- */
+var canvas = $("shockCanvas");
+function drawShock(){
+  var ctx = null;
+  try { ctx = canvas.getContext("2d"); } catch (e) { ctx = null; }
+  var mach = Number($("machSlider").value);
+  var r = Number($("noseSlider").value);
+  var b = Number($("bSlider").value);
+  var on = $("mhdToggle").checked;
+  var beff = on ? b : 0;
+  var v = mach * SOUND;
+  var q0 = suttonGraves(mach, r);
+  var red = on ? mhdReduction(beff) : 0;
+  var q = q0 * (1 - red);
+  var so = standOff(beff);
+  $("machVal").textContent = String(mach);
+  $("noseVal").textContent = fmt(r, 2);
+  $("bVal").textContent = fmt(b, 2);
+  $("simReadout").innerHTML =
+    "<b>V</b> " + fmtInt(v) + " m/s &nbsp; <b>q base</b> " + fmtInt(q0) + " W/cm2 &nbsp; <b>q with MHD</b> " + fmtInt(q) + " W/cm2<br>" +
+    "<b>MHD reduction (illustrative)</b> " + fmt(red * 100, 1) + "% &nbsp; <b>Shock stand-off</b> " + fmt(so, 2) + "x base" +
+    (on ? "" : " &nbsp; (MHD off, B ignored)");
+  if (!ctx) return;
+  var W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#fdfbf5"; ctx.fillRect(0, 0, W, H);
+  var noseX = 470, noseY = H / 2, noseR = 110;
+  var gap = 46 * so;
+  var shockX = noseX - noseR - gap;
+  ctx.strokeStyle = "#1c1a16"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(shockX - 30, 30);
+  ctx.quadraticCurveTo(shockX - 90, noseY, shockX - 30, H - 30);
+  ctx.stroke();
+  ctx.fillStyle = "#1c1a16";
+  ctx.font = "14px Inter, sans-serif";
+  ctx.fillText("bow shock", shockX - 120, 24);
+  ctx.fillText("stand-off " + fmt(so, 2) + "x base", shockX - 60, noseY - 96);
+  ctx.strokeStyle = "#9a7b2d"; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(noseX - noseR, noseY - 60);
+  ctx.lineTo(shockX + 6, noseY - 60);
+  ctx.moveTo(noseX - noseR, noseY + 60);
+  ctx.lineTo(shockX + 6, noseY + 60);
+  ctx.stroke();
+  ctx.fillStyle = "#4a463d";
+  ctx.beginPath();
+  ctx.arc(noseX, noseY, noseR, -Math.PI / 2, Math.PI / 2, false);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#f7f3ea";
+  ctx.font = "13px Inter, sans-serif";
+  ctx.fillText("blunt body", noseX - 40, noseY - 4);
+  ctx.fillText("stagnation point", noseX - 52, noseY + 20);
+  ctx.fillStyle = "#1c1a16";
+  ctx.font = "13px Inter, sans-serif";
+  ctx.fillText("flow", 24, noseY - 70);
+  ctx.strokeStyle = "#1c1a16"; ctx.lineWidth = 1.5;
+  var i, y;
+  for (i = 0; i < 5; i++){
+    y = 60 + i * 60;
+    ctx.beginPath();
+    ctx.moveTo(20, y); ctx.lineTo(90, y);
+    ctx.moveTo(90, y); ctx.lineTo(78, y - 5);
+    ctx.moveTo(90, y); ctx.lineTo(78, y + 5);
+    ctx.stroke();
+  }
+  ctx.fillStyle = "#6b6558";
+  ctx.font = "12px Inter, sans-serif";
+  ctx.fillText("Mach " + mach + "  |  R " + fmt(r, 2) + " m  |  B " + (on ? fmt(b, 2) : "0 (off)") + " T", 16, H - 12);
+}
+["machSlider", "noseSlider", "bSlider"].forEach(function(id){
+  $(id).addEventListener("input", drawShock);
+  $(id).addEventListener("change", function(){
+    var el = $(id);
+    el.value = roundStep(Number(el.value), Number(el.step));
+    drawShock();
+  });
+});
+$("mhdToggle").addEventListener("change", drawShock);
+
+/* ---------- Completeness ---------- */
+var FUND_TOTAL = 8, PAPER_TOTAL = 8;
+function fundCount(){
+  var n = 0;
+  var boxes = document.querySelectorAll(".fund-check");
+  for (var i = 0; i < boxes.length; i++) if (boxes[i].checked) n++;
+  return n;
+}
+function paperCount(){
+  var n = 0;
+  var boxes = document.querySelectorAll(".paper-check");
+  for (var i = 0; i < boxes.length; i++) if (boxes[i].checked) n++;
+  return n;
+}
+function ledgerHasEntry(){ return state.ledger.length > 0; }
+function updateMeters(){
+  var f = fundCount();
+  $("fundMeter").textContent = "Fundamentals: " + f + " of " + FUND_TOTAL + " complete";
+  $("fundBar").style.width = (f / FUND_TOTAL * 100) + "%";
+  var total = FUND_TOTAL + PAPER_TOTAL + 1 + 1;
+  var done = f + paperCount() + (state.tracked ? 1 : 0) + (ledgerHasEntry() ? 1 : 0);
+  $("trackMeter").textContent = "Track complete: " + done + " of " + total;
+  $("trackBar").style.width = (done / total * 100) + "%";
+}
+
+/* ---------- State, share link, restore ---------- */
+var OUTREACH_TARGETS = ["meesst-partners", "tokyo-shimamura", "us-labs", "nasaspaceflight", "reddit-aero"];
+var state = {
+  fund: [false, false, false, false, false, false, false, false],
+  papers: { meesst: [false, false], tokyo: [false, false], laser: [false, false], hts: [false, false] },
+  outreach: { "meesst-partners": "not contacted", "tokyo-shimamura": "not contacted", "us-labs": "not contacted", "nasaspaceflight": "not contacted", "reddit-aero": "not contacted" },
+  tracked: null,
+  ledger: []
+};
+function collectState(){
+  var boxes = document.querySelectorAll(".fund-check");
+  for (var i = 0; i < boxes.length; i++) state.fund[i] = boxes[i].checked;
+  var pboxes = document.querySelectorAll(".paper-check");
+  for (var j = 0; j < pboxes.length; j++){
+    var row = pboxes[j].getAttribute("data-row");
+    var kind = pboxes[j].getAttribute("data-kind");
+    state.papers[row][kind === "abs" ? 0 : 1] = pboxes[j].checked;
+  }
+  var sels = document.querySelectorAll(".outreach-select");
+  for (var k = 0; k < sels.length; k++) state.outreach[sels[k].getAttribute("data-target")] = sels[k].value;
+  return state;
+}
+function encodeState(){
+  collectState();
+  var json = JSON.stringify(state);
+  var b64 = btoa(unescape(encodeURIComponent(json)));
+  return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function decodeState(str){
+  var b64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  return JSON.parse(decodeURIComponent(escape(atob(b64))));
+}
+function applyState(s){
+  if (!s) return;
+  if (Array.isArray(s.fund)){
+    var boxes = document.querySelectorAll(".fund-check");
+    for (var i = 0; i < boxes.length && i < s.fund.length; i++) boxes[i].checked = !!s.fund[i];
+  }
+  if (s.papers){
+    var pboxes = document.querySelectorAll(".paper-check");
+    for (var j = 0; j < pboxes.length; j++){
+      var row = pboxes[j].getAttribute("data-row");
+      var kind = pboxes[j].getAttribute("data-kind");
+      if (s.papers[row]) pboxes[j].checked = !!s.papers[row][kind === "abs" ? 0 : 1];
+    }
+  }
+  if (s.outreach){
+    var sels = document.querySelectorAll(".outreach-select");
+    for (var k = 0; k < sels.length; k++){
+      var t = sels[k].getAttribute("data-target");
+      if (s.outreach[t]) sels[k].value = s.outreach[t];
+    }
+  }
+  if (s.tracked) setTracked(s.tracked, true);
+  if (Array.isArray(s.ledger)){
+    state.ledger = s.ledger.slice(0, 20);
+    renderLedger();
+  }
+  collectState();
+  updateMeters();
+}
+function restoreFromHash(){
+  var h = window.location.hash || "";
+  var m = h.match(/#s=([A-Za-z0-9\-_]+)/);
+  if (!m) return;
+  try { applyState(decodeState(m[1])); } catch (e) { /* bad link, leave defaults */ }
+}
+$("genShareBtn").addEventListener("click", function(){
+  var url = window.location.href.split("#")[0] + "#s=" + encodeState();
+  $("shareUrl").value = url;
+  $("shareStatus").textContent = "";
+});
+function copyText(text, statusEl){
+  function fail(){
+    statusEl.textContent = "Copy failed. Select the text and copy it manually.";
+    statusEl.classList.add("err");
+  }
+  function ok(){
+    statusEl.textContent = "Copied.";
+    statusEl.classList.remove("err");
+  }
+  statusEl.classList.remove("err");
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok, function(){
+      fallbackCopy(text, statusEl, ok, fail);
+    });
+  } else {
+    fallbackCopy(text, statusEl, ok, fail);
+  }
+}
+function fallbackCopy(text, statusEl, ok, fail){
+  try {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    var done = false;
+    if (document.execCommand) done = document.execCommand("copy");
+    document.body.removeChild(ta);
+    if (done) ok(); else fail();
+  } catch (e) { fail(); }
+}
+$("copyShareBtn").addEventListener("click", function(){
+  var v = $("shareUrl").value;
+  if (!v){
+    $("shareStatus").textContent = "Generate the share link first.";
+    $("shareStatus").classList.add("err");
+    return;
+  }
+  copyText(v, $("shareStatus"));
+});
+
+/* ---------- Reset (two-step page control, no native dialog) ---------- */
+var resetArmed = false;
+$("resetBtn").addEventListener("click", function(){
+  if (!resetArmed){
+    resetArmed = true;
+    $("resetBtn").textContent = "Click again to confirm reset";
+    $("resetStatus").textContent = "This clears every checkbox, status, tracked piece, and ledger entry.";
+    $("resetStatus").classList.remove("err");
+    return;
+  }
+  resetArmed = false;
+  $("resetBtn").textContent = "Reset track";
+  var boxes = document.querySelectorAll(".fund-check, .paper-check");
+  for (var i = 0; i < boxes.length; i++) boxes[i].checked = false;
+  var sels = document.querySelectorAll(".outreach-select");
+  for (var j = 0; j < sels.length; j++) sels[j].value = "not contacted";
+  state.tracked = null;
+  state.ledger = [];
+  setTracked(null, true);
+  renderLedger();
+  $("shareUrl").value = "";
+  $("shareStatus").textContent = "";
+  $("resetStatus").textContent = "Track cleared.";
+  window.location.hash = "";
+  updateMeters();
+});
+
+/* ---------- Section 4: email draft ---------- */
+$("genEmailBtn").addEventListener("click", function(){
+  var title = $("paperTitle").value.trim();
+  var q = $("paperQuestion").value.trim();
+  if (!title || !q){
+    $("emailDraft").textContent = "Enter a paper title and one specific question first.";
+    $("emailStatus").textContent = "";
+    return;
+  }
+  var draft = "Subject: Question on " + title + "\n\n" +
+    "Hello,\n\n" +
+    "I read your paper, " + title + ". One question I could not answer from the paper alone:\n\n" +
+    q + "\n\n" +
+    "Thank you for the work. I am learning hypersonics from the ground up and trying to understand the measurements before the theory.\n\n" +
+    "Jeramie Hicks\njeramie@neuruh.com";
+  $("emailDraft").textContent = draft;
+  $("emailStatus").textContent = "";
+});
+$("copyEmailBtn").addEventListener("click", function(){
+  var v = $("emailDraft").textContent;
+  if (!v || v.indexOf("No draft yet") === 0 || v.indexOf("Enter a paper title") === 0){
+    $("emailStatus").textContent = "Generate a draft first.";
+    $("emailStatus").classList.add("err");
+    return;
+  }
+  copyText(v, $("emailStatus"));
+});
+
+/* ---------- Section 5: picker ---------- */
+var PIECE_NAMES = {
+  a: "(a) Textured or channeled surface",
+  b: "(b) Simple coil and a laboratory plasma",
+  c: "(c) Blunt body, low-density region ahead"
+};
+function setTracked(key, silent){
+  state.tracked = key;
+  ["a", "b", "c"].forEach(function(k){
+    var card = $("piece-" + k);
+    if (card) card.classList.toggle("picked", k === key);
+  });
+  $("trackedPiece").textContent = key ? ("Tracked piece: " + PIECE_NAMES[key] + ".") : "Tracked piece: none chosen yet.";
+  if (!silent) updateMeters();
+}
+document.querySelectorAll(".pick-btn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    setTracked(btn.getAttribute("data-piece"), false);
+  });
+});
+
+/* ---------- Section 6: ledger ---------- */
+function ledgerCalc(v, mdot, sysW){
+  var fe = (v * v) / 2;
+  var fp = 0.5 * mdot * v * v;
+  var ratio = fp > 0 ? sysW / fp : 0;
+  return { fe: fe, fp: fp, ratio: ratio };
+}
+function updateLedgerReadout(){
+  var v = Number($("ledV").value) || 0;
+  var mdot = Number($("ledMdot").value) || 0;
+  var sysW = Number($("ledSysW").value) || 0;
+  var c = ledgerCalc(v, mdot, sysW);
+  $("ledgerReadout").innerHTML =
+    "<b>Flow energy per kg</b> " + fmtInt(c.fe) + " J/kg &nbsp; <b>Flow power</b> " + fmtInt(c.fp) + " W<br>" +
+    "<b>System-to-flow power ratio</b> " + c.ratio.toExponential(3) + " (" + fmt(c.ratio, 7) + ")";
+}
+function renderLedger(){
+  var body = $("ledgerBody");
+  body.innerHTML = "";
+  if (!state.ledger.length){
+    var tr = document.createElement("tr");
+    var td = document.createElement("td");
+    td.colSpan = 8;
+    td.textContent = "No entries yet. Log one to start the ledger.";
+    tr.appendChild(td);
+    body.appendChild(tr);
+    return;
+  }
+  state.ledger.forEach(function(e){
+    var r = document.createElement("tr");
+    [e.v, e.mdot, fmtInt(e.fe), fmtInt(e.fp), e.sysW, e.sysKg, e.ratio.toExponential(3), e.note || ""].forEach(function(val){
+      var c = document.createElement("td");
+      c.textContent = String(val);
+      r.appendChild(c);
+    });
+    body.appendChild(r);
+  });
+}
+["ledV", "ledMdot", "ledSysW", "ledSysKg"].forEach(function(id){
+  $(id).addEventListener("input", updateLedgerReadout);
+  $(id).addEventListener("change", function(){
+    var el = $(id);
+    el.value = roundStep(Number(el.value) || 0, Number(el.step) || 0.01);
+    updateLedgerReadout();
+  });
+});
+$("logEntryBtn").addEventListener("click", function(){
+  var v = Number($("ledV").value) || 0;
+  var mdot = Number($("ledMdot").value) || 0;
+  var sysW = Number($("ledSysW").value) || 0;
+  var sysKg = Number($("ledSysKg").value) || 0;
+  var note = $("ledRecovery").value.trim();
+  var c = ledgerCalc(v, mdot, sysW);
+  var dropped = false;
+  if (state.ledger.length >= 20){ state.ledger.shift(); dropped = true; }
+  state.ledger.push({ v: v, mdot: mdot, sysW: sysW, sysKg: sysKg, note: note, fe: c.fe, fp: c.fp, ratio: c.ratio });
+  renderLedger();
+  updateMeters();
+  $("ledgerStatus").textContent = dropped ? "Entry logged. Ledger is capped at 20 entries, so the oldest entry was dropped." : "Entry logged.";
+  $("ledgerStatus").classList.remove("err");
+});
+
+/* ---------- Section 7: self check ---------- */
+function runSelfCheck(){
+  var q = suttonGraves(10, 0.5);
+  var qExp = 1368958;
+  var qOk = Math.abs(q - qExp) < 1;
+  var c = ledgerCalc(7000, 1, 1000);
+  var feOk = Math.abs(c.fe - 24500000) < 1;
+  var fpOk = Math.abs(c.fp - 24500000) < 1;
+  var rOk = Math.abs(c.ratio - 0.0000408) < 0.0000001;
+  var all = qOk && feOk && fpOk && rOk;
+  $("selfCheck").innerHTML =
+    "Sutton-Graves, Mach 10, R 0.5 m, rho 0.02 kg/m3: computed " + fmtInt(q) + " W/cm2, expected 1,368,958 W/cm2. " +
+    (qOk ? "<span class='pass'>PASS</span>" : "<span class='fail'>FAIL</span>") + "<br>" +
+    "Ledger, V 7000 m/s, mdot 1 kg/s: flow energy " + fmtInt(c.fe) + " J/kg (expected 24,500,000). " +
+    (feOk ? "<span class='pass'>PASS</span>" : "<span class='fail'>FAIL</span>") + "<br>" +
+    "Ledger, same inputs: flow power " + fmtInt(c.fp) + " W (expected 24,500,000). " +
+    (fpOk ? "<span class='pass'>PASS</span>" : "<span class='fail'>FAIL</span>") + "<br>" +
+    "Ledger, system 1000 W: power ratio " + fmt(c.ratio, 7) + " (expected 0.0000408). " +
+    (rOk ? "<span class='pass'>PASS</span>" : "<span class='fail'>FAIL</span>") + "<br>" +
+    (all ? "<span class='pass'>All checks PASS.</span>" : "<span class='fail'>A check FAILED.</span>");
+  return all;
+}
+$("runCheckBtn").addEventListener("click", runSelfCheck);
+
+/* ---------- wire checklist + outreach to meters ---------- */
+document.querySelectorAll(".fund-check, .paper-check").forEach(function(box){
+  box.addEventListener("change", updateMeters);
+});
+document.querySelectorAll(".outreach-select").forEach(function(sel){
+  sel.addEventListener("change", function(){ collectState(); });
+});
+
+/* ---------- init ---------- */
+restoreFromHash();
+drawShock();
+updateLedgerReadout();
+updateMeters();
+runSelfCheck();
+})();
+</script>
+</body>
+</html>
