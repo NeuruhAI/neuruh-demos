@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SAL Content Pipeline | Neuruh</title>
+<style>
+  :root { --bone:#f4f1ea; --paper:#fbf9f4; --ink:#1a1a18; --muted:#6b675c; --brass:#a07d2c; --line:#d8d2c2; --red:#9b2c2c; --green:#2f6b33; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Inter, Helvetica, Arial, sans-serif; line-height:1.55; }
+  .wrap { max-width:1020px; margin:0 auto; padding:24px 20px 64px; }
+  header.docctl { border:1px solid var(--line); background:var(--paper); padding:16px 20px; }
+  .docctl .kicker { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass); }
+  h1 { font-family:Archivo, Helvetica, Arial, sans-serif; font-size:30px; line-height:1.15; margin:8px 0 4px; }
+  .sub { color:var(--muted); margin:0 0 8px; }
+  .banner { border:2px solid var(--brass); background:#f7ecd2; padding:12px 16px; margin:16px 0; font-weight:600; }
+  .banner small { display:block; font-weight:400; color:var(--muted); margin-top:4px; }
+  section { background:var(--paper); border:1px solid var(--line); padding:20px; margin:20px 0; }
+  h2 { font-family:Archivo, Helvetica, Arial, sans-serif; font-size:20px; margin:0 0 4px; border-bottom:2px solid var(--brass); padding-bottom:6px; }
+  h3 { font-size:15px; margin:18px 0 6px; }
+  .meta { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; margin:12px 0; }
+  .meta div { border:1px solid var(--line); padding:8px 10px; font-size:13px; }
+  .meta b { display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin:10px 0; }
+  th, td { border:1px solid var(--line); padding:6px 8px; text-align:left; vertical-align:top; }
+  th { background:#efeadd; font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
+  .mono { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; }
+  .small { font-size:12px; }
+  .muted { color:var(--muted); }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:end; margin:12px 0; }
+  .controls label { font-size:12px; font-weight:600; display:block; }
+  .controls select, .controls input { padding:8px; font-size:14px; border:1px solid var(--line); background:#fff; }
+  button { background:var(--ink); color:var(--paper); border:0; padding:10px 16px; font-size:14px; cursor:pointer; }
+  button:disabled { opacity:.45; cursor:default; }
+  button.secondary { background:#fff; color:var(--ink); border:1px solid var(--ink); }
+  .stage { border:1px solid var(--line); margin:12px 0; padding:12px 14px; }
+  .stage.done { border-left:4px solid var(--brass); }
+  .stage h3 { margin:0 0 2px; }
+  .stage .st-status { float:right; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11px; color:var(--muted); }
+  .stage label { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); display:block; margin-top:8px; }
+  .stage pre { background:#f1ede2; border:1px solid var(--line); padding:8px 10px; white-space:pre-wrap; word-break:break-word; font-size:12px; margin:2px 0 0; min-height:20px; }
+  .cursor-row { background:#f7ecd2; }
+  .receipt-card { border:1px solid var(--line); padding:12px 14px; margin:12px 0; }
+  .rc-head { margin-bottom:6px; }
+  .pass { color:var(--green); font-weight:700; }
+  .fail { color:var(--red); font-weight:700; }
+  .tag { display:inline-block; border:1px solid var(--brass); color:var(--brass); font-size:11px; letter-spacing:.08em; padding:2px 6px; text-transform:uppercase; }
+  .tag.designed { border-color:var(--ink); color:var(--ink); }
+  .tag.verified { border-color:var(--green); color:var(--green); }
+  .tag.stated { border-color:var(--muted); color:var(--muted); }
+  details summary { cursor:pointer; font-weight:600; }
+  footer { color:var(--muted); font-size:12px; margin-top:24px; }
+  #cursorLog div { border-bottom:1px solid var(--line); padding:6px 0; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="docctl">
+  <div class="kicker">Neuruh &middot; Document build &middot; SAL Content Pipeline</div>
+  <h1>SAL Content Pipeline</h1>
+  <p class="sub">Stacked Agent Logic applied to the distribution content bank and the repurpose engine. A bank item passes through six stacked stages, becomes one platform draft, and leaves a hash-chained receipt.</p>
+  <div class="meta">
+    <div><b>Built</b>2026-11-14, overnight run</div>
+    <div><b>State</b>Tier B working demo (this page runs in the browser)</div>
+    <div><b>Input corpus</b>content-bank.md, 30 items, verbatim</div>
+    <div><b>Receipt format</b>v1.0, SHA-256, GENESIS first</div>
+    <div><b>Network</b>None. No fetch, no upload, no data leaves the page.</div>
+    <div><b>Publishes</b>Nothing. Drafts only. X stop order holds.</div>
+  </div>
+</header>
+
+<div class="banner">SIMULATION. Everything on this page runs in your browser against the 30-item bank embedded in the page. The cursor control changes on-page state only. No queue file is written, no post is sent, nothing is published.
+<small>DESIGNED vs VERIFIED is labeled on every claim below. The six pipeline stages are a design decision by this build, not a paper claim. See "Design decisions" and "Gaps".</small></div>
+
+<section id="sources">
+  <h2>1. What the sources actually say about SAL</h2>
+  <p>Read in full before building: the vault dossier, the Ecosystem Codex Volume VI, the Framework Atlas data, the content bank, and the live receipt-chain-explorer.</p>
+  <table>
+    <thead><tr><th>Source</th><th>What it states</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Vault <span class="mono">01-Core-Architecture/SAL.md</span> (CORE-002, verified 2026-11-08)</td><td>Canonical SAL is <b>Stacked Agent Logic</b> only, per court verdict 2026-11-09. Four-way naming collision: Structured Agent Language is a separate concept (the AXON SAL Engine), Signal Convergence Engine is separate, Signal Alert has no evidence. No repo. Owner UNKNOWN. 4 Notion IP Registry rows, all Stacked Agent Logic: AI-FW-032 (Draft, Built), AI-FW-SAL-001 (Draft, In Progress, near-duplicate of AI-FW-032), LEAD-FW-001 Reddit Lead Gen SAL Stack Subreddit Signal Extraction (Draft, Built), LEAD-FW-002 Reddit Lead Gen SAL Stack Intent-Locked Signal Scraper (Draft, Built).</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Notion IP Registry (via vault dossier)</td><td>"Agent composition layer for stacking and orchestrating multi-agent pipelines." / "Multi-agent orchestration framework that defines how agents are stacked, coordinated..."</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Ecosystem Codex Volume VI (NRH-DOC-CODEX-001 rev A)</td><td>SAL: "Prompt engineering framework", posture "Independently developed". No tier stated. No stages stated. No content pipeline stated.</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Framework Atlas <span class="mono">frameworks.json</span> (sal entry)</td><td>Function "Prompt engineering framework", domain "Prompt and cognition", tier <b>UNKNOWN</b> (no tier in Volume VI, no matching entry in the 28-entry master asset register), no dependencies stated. The build brief called SAL Tier C; the atlas says UNKNOWN, and UNKNOWN is what this page uses.</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Content bank <span class="mono">content-bank.md</span></td><td>30 items, each a verified fact with proof and angles. Platform formats: X under 280 chars blunt one link max; Threads 1-2 short paragraphs; IG caption plus hook first line; FB groups teach-first value only. Cursor on disk: cursor_index 8, updated 2026-11-13 21:55 (bank item 8 skipped as duplicate, already queued in 2026-11-13-0700-item7.md).</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Receipt-chain-explorer (live demo)</td><td>Receipt format v1.0: canonical JSON (keys sorted, arrays in order), <span class="mono">provenance.report_hash_sha256</span> stripped before hashing, SHA-256 only, first receipt prev hash GENESIS, link passes when prev hash equals the previous receipt hash. Sample root receipt rcpt-20261114-0001 belongs to the pipeline first run, a different run from this demo.</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>SAL content pipeline (a defined pipeline with stages)</td><td>No source defines one. No standalone SAL dossier for a content pipeline exists in the vault. The pipeline on this page is a new design built on the sourced SAL definition.</td><td><span class="tag designed">Designed</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="pipeline">
+  <h2>2. Pipeline stage simulator</h2>
+  <p>Pick a bank item and a platform, then press Run pipeline. Each stage shows its input, its transform, and its output. The run stops at VERIFY if a check fails: the draft is held, no queue entry is made, no receipt is emitted.</p>
+  <div class="controls">
+    <div><label for="bankIndex">Bank item (1-30)</label><input id="bankIndex" type="number" min="1" max="30" value="10" style="width:80px"></div>
+    <div><label for="platform">Platform</label><select id="platform">
+      <option value="x">X (@NeuruhAI) - under 280 chars</option>
+      <option value="threads">Threads - 1-2 short paragraphs</option>
+      <option value="ig">Instagram - caption + hook first line</option>
+      <option value="fb">Facebook groups - teach-first</option>
+    </select></div>
+    <button id="runBtn">Run pipeline</button>
+  </div>
+  <p id="runNote" class="muted">No run yet this session.</p>
+  <div class="stage" id="stage-ingest"><span class="st-status">waiting</span><h3>1. INGEST</h3><p class="muted small">Take one bank item by index. Nothing is invented; the fact, proof, and angles come from the bank verbatim.</p><label>Input</label><pre class="st-input"></pre><label>Transform</label><pre class="st-transform"></pre><label>Output</label><pre class="st-output"></pre></div>
+  <div class="stage" id="stage-stack"><span class="st-status">waiting</span><h3>2. STACK</h3><p class="muted small">Layer three agents in order: fact layer (verbatim fact), voice layer (blunt, no fluff), format layer (platform rule). Each layer only sees the output of the layer below it.</p><label>Input</label><pre class="st-input"></pre><label>Transform</label><pre class="st-transform"></pre><label>Output</label><pre class="st-output"></pre></div>
+  <div class="stage" id="stage-transform"><span class="st-status">waiting</span><h3>3. TRANSFORM</h3><p class="muted small">Apply the platform format rule to the stacked brief and produce one draft.</p><label>Input</label><pre class="st-input"></pre><label>Transform</label><pre class="st-transform"></pre><label>Output</label><pre class="st-output"></pre></div>
+  <div class="stage" id="stage-verify"><span class="st-status">waiting</span><h3>4. VERIFY</h3><p class="muted small">Run real checks on the draft: length within the platform limit, content words trace to the fact, at most one link on X, no live claim when the fact says NOT YET DEPLOYED, no dollar figure the fact does not contain.</p><label>Input</label><pre class="st-input"></pre><label>Transform</label><pre class="st-transform"></pre><label>Output</label><pre class="st-output"></pre></div>
+  <div class="stage" id="stage-queue"><span class="st-status">waiting</span><h3>5. QUEUE</h3><p class="muted small">Map the draft to the repurpose queue: queue file item&lt;N&gt;.md covers bank item N+1, cursor 0-based. Drafts only, never publishes.</p><label>Input</label><pre class="st-input"></pre><label>Transform</label><pre class="st-transform"></pre><label>Output</label><pre class="st-output"></pre></div>
+  <div class="stage" id="stage-receipt"><span class="st-status">waiting</span><h3>6. RECEIPT</h3><p class="muted small">Emit a receipt format v1.0 record: SHA-256 over canonical JSON with the hash field stripped, chained to the previous receipt hash, GENESIS first.</p><label>Input</label><pre class="st-input"></pre><label>Transform</label><pre class="st-transform"></pre><label>Output</label><pre class="st-output"></pre></div>
+</section>
+
+<section id="queue">
+  <h2>3. Repurpose queue view</h2>
+  <p>The 30-item bank by index, with the cursor position. The cursor is 0-based: queue file <span class="mono">item&lt;N&gt;.md</span> covers bank item N+1. Advancing the cursor here changes on-page state only (SIMULATION). It writes no file and touches no queue.</p>
+  <p id="cursorReadout" class="mono small">Loading cursor...</p>
+  <div class="controls">
+    <button id="advanceBtn">Advance cursor one step</button>
+    <button id="resetCursorBtn" class="secondary">Reset cursor to 0 (simulation)</button>
+  </div>
+  <div id="cursorLog"></div>
+  <div id="queueTable"></div>
+</section>
+
+<section id="receipts">
+  <h2>4. Receipt panel</h2>
+  <p>Each completed run emits one receipt format v1.0 record. The hash is computed for real in this browser with the Web Crypto API (SHA-256) over canonical JSON with the hash field stripped. The first receipt in a session chains from GENESIS; each later receipt chains to the previous receipt hash. Press Verify on any receipt to recompute its hash and check its link.</p>
+  <p id="chainBanner" class="mono small">Chain: empty. First receipt in a session chains from GENESIS.</p>
+  <div class="controls"><button id="exportBtn" class="secondary">Export receipts as JSONL</button></div>
+  <div id="receiptList"><p class="muted">No receipts yet this session. Run the pipeline to emit one.</p></div>
+</section>
+
+<section id="status">
+  <h2>5. Status board: the repurpose engine</h2>
+  <p>Stated state of the real repurpose engine, as verified from the queue directory and the bank file on disk on 2026-11-14. This board describes the real engine; the simulator above is separate and labeled SIMULATION throughout.</p>
+  <table>
+    <thead><tr><th>Item</th><th>State</th><th>Evidence</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Engine mode</td><td>Drafts only, never publishes</td><td>Queue files are draft packs on disk; the bank rule is "never invent"</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>X stop order (2026-10-01)</td><td>HOLDS. Nothing publishes to X.</td><td>Standing order in the overnight brief; no publish step exists in this demo</td><td><span class="tag stated">Stated</span></td></tr>
+      <tr><td>Cursor wrap, 2026-11-11</td><td>Wrapped past the end of the bank and reset to 0, advanced to 1</td><td>Queue dir: 30 files on 2026-11-11, item7 at 0700 through item29 at 0850, then item0 at 0855 through item6 at 0925</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Queue, 2026-11-12</td><td>Covered all 30 items again</td><td>Queue dir: 30 files on 2026-11-12, same item7-to-item6 wrap pattern</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Queue, 2026-11-13</td><td>30 files, 0700-0921. Cursor reached 23 after the 0810 item22 file (0-based: item22 covers bank item 23, next index 23), then the run wrapped through item6 at 0921.</td><td>Queue dir: 30 files on 2026-11-13; 0810 file is item22.md</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Cursor on disk now</td><td>cursor_index 8</td><td>content-bank.md cursor block, updated 2026-11-13 21:55: bank item 8 skipped as duplicate, already queued in 2026-11-13-0700-item7.md; advanced to 8. The simulator starts at 8 to match the file.</td><td><span class="tag verified">Verified</span></td></tr>
+      <tr><td>Dedup guard</td><td>Needs TZ=America/Detroit on its date call; bare date evaluates in UTC on the build VM and globs the next-day directory between 20:00 and 22:00 EDT</td><td>Repurpose engine notes, recorded 2026-10-07 and 2026-10-08</td><td><span class="tag stated">Stated</span></td></tr>
+      <tr><td>This demo</td><td>Tier B working demo: the pipeline, queue view, and receipt chain all execute in the browser</td><td>This page. SAL itself stays Tier UNKNOWN per the atlas; the demo does not promote SAL to a higher tier.</td><td><span class="tag designed">Designed</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="decisions">
+  <h2>6. Design decisions (mine, labeled)</h2>
+  <p>Nothing in this section is a paper claim. Each decision below was made by this build because the sources do not define it.</p>
+  <ul>
+    <li><b>Stage list (six stages).</b> No source defines SAL stages. I defined INGEST, STACK, TRANSFORM, VERIFY, QUEUE, RECEIPT to apply the sourced SAL idea (stacking and orchestrating agent layers) to the content bank and the repurpose engine.</li>
+    <li><b>Three-layer stack.</b> Fact layer, voice layer, format layer. My layering, chosen so each layer has one job and only sees the output below it.</li>
+    <li><b>Draft transforms.</b> X takes the first sentence plus the proof link when it fits, hard-truncated at 280 chars. Threads takes the first two sentences. IG takes an 8-word hook plus the full fact. FB prefixes "What this shows:". All four are deterministic string operations on the bank fact, never invented text.</li>
+    <li><b>Verify checks.</b> Five checks, all computed for real: length, word trace, link count, no live claim when the fact says NOT YET DEPLOYED, no invented dollar figure.</li>
+    <li><b>Receipt ids.</b> sal-20261114-0001 and up, per session run. This demo's chain is separate from the pipeline first-run receipt rcpt-20261114-0001 in the receipt-chain-explorer; the two chains do not share hashes.</li>
+    <li><b>Initial cursor 8.</b> Taken from the bank file on disk (cursor_index 8, 2026-11-13 21:55), not from the brief's 08:10 figure, because the file is the fresher record. Both figures are shown on the status board with their evidence.</li>
+  </ul>
+  <h3>Gaps (honest)</h3>
+  <ul>
+    <li>No standalone SAL dossier for a content pipeline exists in the vault. The SAL dossier (CORE-002) is a census/collision record, not a design doc.</li>
+    <li>No source defines SAL stages, layer counts, or any content pipeline behavior. The pipeline here is new design, not recovered spec.</li>
+    <li>SAL has no repo, no owner, no runtime. Current runtime: NO REPO. Owner: UNKNOWN.</li>
+    <li>SAL tier is UNKNOWN in the Framework Atlas, not Tier C. The brief's "Tier C concept" framing is not supported by the atlas and is corrected on this page.</li>
+    <li>The vault SAL record is a naming-collision family: Structured Agent Language (AXON SAL Engine) and Signal Convergence Engine are separate concepts and are not used by this demo.</li>
+    <li>Layout was not eyeballed in a live browser by this build; behavior and hashes were tested in Node (see the build report).</li>
+  </ul>
+</section>
+
+<footer>
+  SAL Content Pipeline v1.0 &middot; 2026-11-14 &middot; Receipt format v1.0, SHA-256 &middot; SIMULATION &middot; No dollar valuation is stated anywhere on this page &middot; No owner or property PII &middot; Sources: vault 01-Core-Architecture/SAL.md, Ecosystem Codex NRH-DOC-CODEX-001 rev A, Framework Atlas frameworks.json, content-bank.md, receipt-chain-explorer.
+</footer>
+
+</div>
+<script src="app.js"></script>
+</body>
+</html>
