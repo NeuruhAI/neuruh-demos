@@ -458,7 +458,7 @@ if (typeof document !== 'undefined') {
     var host = $('receipt-list');
     if (!host) { return; }
     if (receipts.length === 0) {
-      host.innerHTML = '<p class="muted">No receipts yet this session. Run the parser, the router, failover, role-switching, or the fabric walkthrough to emit one.</p>';
+      host.innerHTML = '<p class="muted">No receipts yet this session. Run the parser, the router, failover, role-switching, the fabric walkthrough, or the hub status check to emit one.</p>';
       return;
     }
     var html = '';
@@ -589,6 +589,15 @@ if (typeof document !== 'undefined') {
     } else {
       $('status-output').innerHTML = '<p class="fail">' + esc(r.error) + '</p>';
     }
+    /* Show status is an action like the others: it must emit a receipt.
+       Before this line it emitted nothing, so a full session of 8 actions
+       held only 7 receipts and the page's "Every action on this page emits
+       a receipt" claim did not hold for the status action. */
+    var detail = { target: r.target || target, ok: r.ok };
+    if (r.ok && typeof r.tasks === 'number') { detail.tasks = r.tasks; detail.failed_spokes = r.failed_spokes; detail.spokes = r.spokes; }
+    if (r.ok && r.role) { detail.role = r.role; detail.failed = r.failed; }
+    if (!r.ok) { detail.error = r.error; }
+    emitReceipt('status', detail);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
