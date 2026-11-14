@@ -380,16 +380,17 @@ Line breaks are respected, so you can split the script into beats and the scroll
  <div class="rc-wrap">
   <div class="topbar"><div class="mark"><div class="mark-glyph"></div><div class="mark-txt"><b>Remote</b></div></div><div class="pill btnish" id="rc-exit" role="button" tabindex="0">← prompter</div></div>
   <p class="sub">Enter the 4-digit code shown on the prompter's screen, then drive the take from here.</p>
-  <div class="rc-code"><input id="rc-room" inputmode="numeric" maxlength="4" placeholder="0000"><button class="btn primary" style="width:auto;padding:0 22px" id="rc-connect">Pair</button></div>
+  <p class="sub" id="rc-offline-note" style="display:none">Remote control needs the Neuruh server running. This page is on static hosting, so pairing is off. The prompter on this device works normally.</p>
+  <div class="rc-code"><input id="rc-room" inputmode="numeric" maxlength="4" placeholder="0000"><button class="btn primary" style="width:auto;padding:0 22px" id="rc-connect" disabled>Pair</button></div>
   <div class="rc-status" id="rc-status">not paired</div>
   <div class="rc-grid">
-    <button class="rc-btn big" id="rc-pause">Pause / Resume<small>toggle</small></button>
-    <button class="rc-btn" id="rc-slower">– pace</button>
-    <button class="rc-btn" id="rc-faster">+ pace</button>
-    <button class="rc-btn" id="rc-back">↩ back<small>8 words</small></button>
-    <button class="rc-btn" id="rc-fwd">skip ↪<small>8 words</small></button>
-    <button class="rc-btn" id="rc-restart">Restart<small>top of script</small></button>
-    <button class="rc-btn stopb" id="rc-stop">Stop take</button>
+    <button class="rc-btn big" id="rc-pause" disabled>Pause / Resume<small>toggle</small></button>
+    <button class="rc-btn" id="rc-slower" disabled>– pace</button>
+    <button class="rc-btn" id="rc-faster" disabled>+ pace</button>
+    <button class="rc-btn" id="rc-back" disabled>↩ back<small>8 words</small></button>
+    <button class="rc-btn" id="rc-fwd" disabled>skip ↪<small>8 words</small></button>
+    <button class="rc-btn" id="rc-restart" disabled>Restart<small>top of script</small></button>
+    <button class="rc-btn stopb" id="rc-stop" disabled>Stop take</button>
   </div>
  </div>
 </section>
@@ -438,7 +439,7 @@ const $=id=>document.getElementById(id);
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const norm=s=>s.toLowerCase().replace(/[^a-z0-9']/g,'');
 
-const el={}; ['setup','stage','review','remote','calib','script-input','wordcount','new-script','save-script','saved-list','cam-status','setup-hint','cam-preview','setup-video','setup-framing','flip-btn','cam-select','enable-btn','rehearse-btn','font-range','font-val','font-up','font-down','wpm-range','wpm-val','sens-range','sens-val','track-seg','track-note','dur-seg','grid-toggle','mirror-toggle','count-toggle','remote-toggle','calibrate-btn','calib-sample','calib-timer','calib-state','calib-go','calib-cancel','calib-result','preview','rehearse-bg','framing','script-col','script','readline','wave','rl-tag','progress-fill','rec-dot','rec-timer','mode-name','hud-meta','room-chip','room-code','countdown','count-num','count-prog','stage-ctrls','pause-btn','stop-btn','slower','faster','playback','review-format','meta-dur','meta-size','meta-sha','sha-short','takes-strip','download-btn','hub-save-btn','again-btn','new-btn','review-hint','hub-pill','remote-link','rc-exit','rc-room','rc-connect','rc-status','rc-pause','rc-slower','rc-faster','rc-back','rc-fwd','rc-restart','rc-stop']
+const el={}; ['setup','stage','review','remote','calib','script-input','wordcount','new-script','save-script','saved-list','cam-status','setup-hint','cam-preview','setup-video','setup-framing','flip-btn','cam-select','enable-btn','rehearse-btn','font-range','font-val','font-up','font-down','wpm-range','wpm-val','sens-range','sens-val','track-seg','track-note','dur-seg','grid-toggle','mirror-toggle','count-toggle','remote-toggle','calibrate-btn','calib-sample','calib-timer','calib-state','calib-go','calib-cancel','calib-result','preview','rehearse-bg','framing','script-col','script','readline','wave','rl-tag','progress-fill','rec-dot','rec-timer','mode-name','hud-meta','room-chip','room-code','countdown','count-num','count-prog','stage-ctrls','pause-btn','stop-btn','slower','faster','playback','review-format','meta-dur','meta-size','meta-sha','sha-short','takes-strip','download-btn','hub-save-btn','again-btn','new-btn','review-hint','hub-pill','remote-link','rc-exit','rc-room','rc-connect','rc-status','rc-offline-note','rc-pause','rc-slower','rc-faster','rc-back','rc-fwd','rc-restart','rc-stop']
 .forEach(id=>{ el[id.replace(/-([a-z])/g,(m,c)=>c.toUpperCase())]=$(id); });
 
 const S={
@@ -461,13 +462,33 @@ if('serviceWorker' in navigator){ try{ navigator.serviceWorker.register('./sw.js
 
 /* ================= HUB DETECT =================
    serve.py answers /api/health. Plain static hosting doesn't —
-   remote + hub-save features hide themselves gracefully. */
+   remote + hub-save features hide themselves gracefully.
+   Remote buttons start disabled in the HTML and are only enabled when
+   the health check proves the server is there. When it is not, the
+   remote lane is disabled up front with a plain-language note, instead
+   of letting the buttons fail silently on every tap. */
+var RC_BTNS = ['rcConnect','rcPause','rcSlower','rcFaster','rcBack','rcFwd','rcRestart','rcStop'];
+function setRemoteEnabled(on){
+  RC_BTNS.forEach(function(k){ if(el[k]) el[k].disabled = !on; });
+}
+function markHubOffline(){
+  S.hub = false;
+  setRemoteEnabled(false);
+  el.rcStatus.textContent = 'Remote control needs the Neuruh server running. Pairing is off on this page.';
+  el.rcOfflineNote.style.display = 'block';
+  el.hubSaveBtn.disabled = true;
+  var sub = el.remoteToggle.querySelector('.sub');
+  if (sub) sub.textContent = 'Needs the Neuruh server running. Unavailable on static hosting.';
+  el.remoteToggle.style.pointerEvents = 'none';
+  el.remoteToggle.style.opacity = '0.55';
+}
 (async function detectHub(){
   try{
     const ctl=new AbortController(); setTimeout(()=>ctl.abort(),1800);
     const r=await fetch('./api/health',{cache:'no-store',signal:ctl.signal});
-    if(r.ok){ const j=await r.json(); if(j&&j.ok){ S.hub=true; el.hubPill.style.display='inline-flex'; el.hubPill.className='pill hub'; el.hubPill.textContent='hub · online'; } }
-  }catch(e){ /* no hub — fine */ }
+    if(r.ok){ const j=await r.json(); if(j&&j.ok){ S.hub=true; el.hubPill.style.display='inline-flex'; el.hubPill.className='pill hub'; el.hubPill.textContent='hub · online'; setRemoteEnabled(true); el.rcOfflineNote.style.display='none'; return; } }
+    markHubOffline();
+  }catch(e){ markHubOffline(); }
 })();
 
 /* ================= SCREEN ROUTER ================= */
@@ -890,6 +911,7 @@ el.rehearseBtn.onclick=()=>gotoStage(true);
 /* ================= REMOTE — PROMPTER SIDE (host) =================
    Long-polls the hub relay for commands sent by the paired remote. */
 function startRemoteHost(){
+  if(!S.hub) return; // no server, no polling: the static host has no /api/ctl relay
   const arr=new Uint32Array(1); crypto.getRandomValues(arr);
   S.room=String(1000+(arr[0]%9000)); S.pollCursor=0;
   el.roomCode.textContent=S.room; el.roomChip.style.display='flex';
@@ -928,6 +950,7 @@ el.rcConnect.onclick=()=>{
   rcRoom=v; el.rcStatus.textContent='paired to room '+v+' — buttons are live';
 };
 function rcSend(cmd){
+  if(!S.hub){ el.rcStatus.textContent='Remote control needs the Neuruh server running. Pairing is off on this page.'; return; }
   if(!rcRoom){ el.rcStatus.textContent='pair first — enter the code above'; return; }
   fetch('./api/ctl',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({room:rcRoom,cmd})})
     .then(r=>{ el.rcStatus.textContent=r.ok?('sent · '+cmd):'send failed — is the hub running?'; })
