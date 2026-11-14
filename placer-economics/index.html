@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Placer Economics Calculator (SIMULATION) | Neuruh</title>
+<style>
+  :root { --bone:#f4f1e8; --paper:#fbf9f3; --ink:#1c1a16; --brass:#a07d2c; --muted:#6b655a; --line:#d8d2c2; --pass:#2e6b34; --fail:#9a2a1e; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.55; }
+  .wrap { max-width:980px; margin:0 auto; padding:0 20px 64px; }
+  header { border-bottom:3px solid var(--ink); padding:28px 0 16px; }
+  .kicker { font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass); }
+  h1 { font-family:Archivo,Inter,sans-serif; font-size:34px; line-height:1.1; margin:8px 0 6px; }
+  h2 { font-family:Archivo,Inter,sans-serif; font-size:22px; border-bottom:2px solid var(--ink); padding-bottom:6px; margin:40px 0 14px; }
+  h3 { font-size:16px; margin:22px 0 8px; }
+  p { margin:8px 0; }
+  .sim { display:inline-block; background:var(--ink); color:var(--bone); font-family:"JetBrains Mono",monospace; font-size:12px; letter-spacing:.12em; padding:4px 10px; border-radius:3px; }
+  .banner { background:#fff6d8; border:1px solid var(--brass); border-radius:6px; padding:12px 16px; margin:18px 0; font-size:14px; }
+  .banner b { color:var(--fail); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:16px 0; }
+  .card { background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:14px; }
+  .card .num { font-family:Archivo,Inter,sans-serif; font-size:30px; font-weight:700; line-height:1.1; }
+  .card .lbl { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+  .calc { background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:20px; margin:16px 0; }
+  .calc label { display:block; font-size:13px; font-weight:600; margin:14px 0 4px; }
+  .calc input[type=number] { width:100%; padding:9px 10px; font-size:16px; border:1px solid var(--line); border-radius:4px; background:#fff; }
+  .calc input[type=range] { width:100%; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px){ .row2{ grid-template-columns:1fr; } }
+  .result { margin-top:18px; padding:16px; border-radius:6px; background:#fff; border:2px solid var(--line); }
+  .result .rev { font-family:Archivo,Inter,sans-serif; font-size:32px; font-weight:700; }
+  .gate { display:inline-block; font-weight:700; font-size:18px; padding:4px 12px; border-radius:4px; margin-top:8px; }
+  .gate.pass { background:#dff0df; color:var(--pass); border:1px solid var(--pass); }
+  .gate.fail { background:#fbe3df; color:var(--fail); border:1px solid var(--fail); }
+  .formula { font-family:"JetBrains Mono",monospace; background:#efece2; padding:10px 12px; border-radius:4px; font-size:14px; }
+  .preset { display:inline-block; margin:4px 6px 4px 0; padding:6px 12px; border:1px solid var(--brass); border-radius:20px; background:#fff; cursor:pointer; font-size:13px; }
+  .preset:hover { background:#f3ead2; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:12px 0; background:var(--paper); }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  th { background:#ece7d8; font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+  .filters { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; align-items:center; }
+  .filters select { padding:7px 9px; font-size:14px; border:1px solid var(--line); border-radius:4px; background:#fff; }
+  .filters input { padding:7px 9px; font-size:14px; border:1px solid var(--line); border-radius:4px; }
+  .steps { counter-reset:step; list-style:none; padding:0; }
+  .steps li { counter-increment:step; padding:10px 0 10px 46px; position:relative; border-bottom:1px solid var(--line); }
+  .steps li::before { content:counter(step); position:absolute; left:0; top:10px; width:30px; height:30px; border-radius:50%; background:var(--brass); color:#fff; text-align:center; line-height:30px; font-weight:700; }
+  .funnel { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+  .funnel .step { flex:1; min-width:150px; background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center; }
+  .funnel .step .n { font-family:Archivo,Inter,sans-serif; font-size:24px; font-weight:700; color:var(--brass); }
+  .funnel .step.winner { border:2px solid var(--brass); }
+  .open { background:#fff6d8; border:1px solid var(--brass); border-radius:6px; padding:14px 16px; }
+  .mono { font-family:"JetBrains Mono",monospace; font-size:13px; }
+  .src { font-size:12px; color:var(--muted); }
+  footer { border-top:2px solid var(--ink); margin-top:48px; padding-top:14px; font-size:13px; color:var(--muted); }
+  .swatch { display:inline-block; width:14px; height:14px; border-radius:3px; vertical-align:-2px; margin-right:6px; border:1px solid #999; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Neuruh &middot; Minerals / Placer Venture &middot; Batch 007 dossier</div>
+  <h1>Placer Economics Calculator</h1>
+  <p><span class="sim">SIMULATION</span> &nbsp; Tier C concept turned into a Tier B working demo. Every number on this page comes from the Batch 007 absorption dossier. Modeled revenue is a calculation, not a real return.</p>
+</header>
+
+<div class="banner"><b>Read first:</b> nothing on this page is a real return, a real grade, or a real assay. The calculator models Revenue per ton from inputs you choose. The pit scores are proximity scores from a read-only CSV recomputation, not assays. Proximity is a prioritizer, not a grade. No samples were taken, no operator was contacted, no money was committed.</div>
+
+<h2>1. The thesis: water sorts, the weak die, the heavies stay</h2>
+<p><b>Placer concentration is hydraulic sorting plus differential survival.</b> Water runs the same algorithm on every rock on Earth, so the output structure is always identical. Only the trace inputs (source rock) change, and that is the sand color.</p>
+<ol class="steps">
+  <li><b>Chemical weathering kills the weak minerals first.</b> Feldspar and mica, most of the volume of granite and gneiss, hydrolyze into clay. The clay layer is not a separate deposit. It is the corpse of the parent rock.</li>
+  <li><b>Only the resistates survive transport.</b> Quartz (Mohs 7, chemically inert), chert and flint, garnet (6.5 to 7.5, dense), zircon, tourmaline, rutile. Geologists measure sediment maturity by counting these survivors: the <b>ZTR index</b> (zircon, tourmaline, rutile). Given enough cycles, every sediment converges to the same end state: quartz sand plus clay plus durable gravel plus heavy resistates.</li>
+  <li><b>Water sorts the survivors by settling velocity</b>, a function of density and size. Quartz is about 2.65 specific gravity, garnet 3.5 to 4.3, magnetite 5.2. Wherever current velocity drops, inside bends, behind boulders, gradient breaks, the heavies drop out together and concentrate.</li>
+  <li><b>Clay is the false bedrock.</b> Heavies work down through loose gravel until they hit the impermeable clay lens and stop. They accumulate on top of the clay contact. Placer miners dig to clay for exactly this reason. Sand and clay composite near water is textbook trap stratigraphy.</li>
+  <li><b>Chert and flint nodules are lag survivors.</b> They form inside limestone, the limestone dissolves away in weak carbonic acid, and the insoluble nodules ride into the gravels intact because nothing in a streambed can degrade them.</li>
+</ol>
+<h3>Sand color is the provenance fingerprint</h3>
+<table>
+  <tr><th>Color</th><th>Meaning</th></tr>
+  <tr><td><span class="swatch" style="background:#c9a86a"></span>Tan / yellow / red</td><td>Iron oxide coatings (goethite, hematite)</td></tr>
+  <tr><td><span class="swatch" style="background:#1c1a16"></span>Black</td><td>Magnetite / ilmenite; in placer context, the heavy-mineral concentrate itself</td></tr>
+  <tr><td><span class="swatch" style="background:#b0506e"></span>Pink / wine streaks</td><td>Garnet sand (watch for this after storms)</td></tr>
+  <tr><td><span class="swatch" style="background:#f5f2e8"></span>White</td><td>Mature pure quartz</td></tr>
+  <tr><td><span class="swatch" style="background:#5d7d4a"></span>Green</td><td>Olivine or glauconite</td></tr>
+</table>
+<p>Southwest Michigan is glacial outwash: the entire landscape is pre-sorted sediment. The ice sheet ground up Canadian Shield garnet-bearing gneiss and schist plus Michigan Basin cherty limestone, and meltwater ran the density sort at continental scale. Every creek cut is re-sorting already-sorted material.</p>
+<p><b>The premise crack, named before the hunt:</b> "sell critical minerals from a gravel pit" fuses two different businesses. Gravel pits sell aggregate, a cents-per-ton volume game. Critical minerals come from heavy mineral sands, paleo dune, beach, or river deposits enriched in high-density minerals. Same physics, different geologic address. Great Lakes glacial sediment runs about 1 to 2% by weight magnetite equivalent, hobby-panning territory, sub-economic to mine standalone. <b>Garnet is the one that can clear at small scale:</b> dense, abrasive-market, no chemical plant, no license.</p>
+<p class="src">Data note: MRDS ceased systematic updates in 2011. It is an occurrence archive, not a permit roll. Active operator and contact data comes from MI EGLE and Indiana DNR; that join is the next build, not this page.</p>
+
+<h2>2. The economics gate: revenue per ton</h2>
+<p class="formula">Revenue / ton_feed = Grade(%) &times; Recovery(%) &times; Price($/ton_conc)</p>
+<p>Grade and recovery are entered as percentages. The gate compares modeled revenue per ton of feed against your all-in cost per ton of feed. Pass means the modeled revenue clears the modeled cost. It does not mean a real pit makes money.</p>
+
+<div class="calc">
+  <h3 style="margin-top:0">Calculator</h3>
+  <p style="font-size:13px;color:var(--muted)">Presets use the dossier order-of-magnitude price bands. Prices need live verification before any commitment.</p>
+  <div id="presets">
+    <button class="preset" data-grade="2" data-recovery="70" data-price="300">Garnet, waterjet abrasive ($200-400)</button>
+    <button class="preset" data-grade="2" data-recovery="70" data-price="250">Ilmenite, Ti ($200-300)</button>
+    <button class="preset" data-grade="0.5" data-recovery="70" data-price="1350">Rutile, Ti ($1,200-1,500)</button>
+    <button class="preset" data-grade="0.5" data-recovery="70" data-price="2000">Zircon ($1,500-2,500)</button>
+    <button class="preset" data-grade="100" data-recovery="100" data-price="12">Construction aggregate ($10-15)</button>
+    <button class="preset" data-grade="100" data-recovery="100" data-price="45">Industrial / silica sand ($30-60)</button>
+  </div>
+  <div class="row2">
+    <div>
+      <label for="grade">Grade of target mineral in feed (%)</label>
+      <input type="number" id="grade" min="0" max="100" step="0.1" value="2">
+      <input type="range" id="gradeR" min="0" max="10" step="0.1" value="2">
+    </div>
+    <div>
+      <label for="recovery">Recovery, fraction of the mineral captured (%)</label>
+      <input type="number" id="recovery" min="0" max="100" step="1" value="70">
+      <input type="range" id="recoveryR" min="0" max="100" step="1" value="70">
+    </div>
+    <div>
+      <label for="price">Price of concentrate ($ per ton)</label>
+      <input type="number" id="price" min="0" step="10" value="300">
+    </div>
+    <div>
+      <label for="cost">All-in cost per ton of feed ($), the gate</label>
+      <input type="number" id="cost" min="0" step="0.5" value="3">
+    </div>
+  </div>
+  <div class="result" id="result">
+    <div>Modeled revenue per ton of feed</div>
+    <div class="rev" id="revOut">$0.00</div>
+    <div id="mathOut" class="mono"></div>
+    <div><span class="gate fail" id="gateOut">FAIL</span></div>
+    <div id="marginOut" style="margin-top:8px"></div>
+    <p style="font-size:13px;color:var(--muted);margin-top:10px">Worked example: garnet at 2% grade, 70% recovery, $300/ton concentrate gives 0.02 &times; 0.70 &times; $300 = $4.20 per ton of feed. Against a $3.00/ton cost that passes by $1.20. At 1% grade the same setup gives $2.10 and fails. That is the whole gate: grade is the lever, and glacial grades are thin.</p>
+  </div>
+</div>
+<p><b>What clears, per the dossier:</b> garnet needs about 1 to 3% grade at $200 to $400/ton. Ilmenite needs about 2% or more at $200 to $300/ton, marginal at glacial grades. Rutile and zircon are rare in glacial sediment and belong to coastal heavy-mineral sands only. Monazite (rare earths) is excluded regardless of price: thorium means NORM and NRC / state radiation licensing.</p>
+<div class="banner"><b>Monazite rule, hard exclusion: score for it, never handle it.</b> A monazite flag is information that can be sold or joint-ventured. It is not inventory to touch. The scorer weights monazite / rare earths at 0.0 by design. It also collides with the existing ITAR/EAR posture on edge-agent: a radiological materials file open next to an export-control file is not wanted.</div>
+
+<h2>3. The scored universe: 1,707 pits recomputed</h2>
+<p>Every figure below was recomputed from <span class="mono">mineral_pit_scores_MI_IN.csv</span> in the Batch 007 absorption (1,707 data rows plus header). The scoring script <span class="mono">score_pits.py</span> (176 lines) was read, not executed, and this page does not execute it either. Scores are relative to this run, normalized to the max raw score. They are not absolute grades and are not comparable across runs unless re-normalized.</p>
+<div class="grid">
+  <div class="card"><div class="num">1,707</div><div class="lbl">Pits scored</div></div>
+  <div class="card"><div class="num">1,110</div><div class="lbl">OFFTAKE (active producers)</div></div>
+  <div class="card"><div class="num">509</div><div class="lbl">TAILINGS (past producers)</div></div>
+  <div class="card"><div class="num">88</div><div class="lbl">RECON (everything else)</div></div>
+  <div class="card"><div class="num">154</div><div class="lbl">With any HM signal in a 40 km halo</div></div>
+  <div class="card"><div class="num">7</div><div class="lbl">Tier 1 (score 70+), all Marquette</div></div>
+  <div class="card"><div class="num">542 / 0</div><div class="lbl">Indiana pits / with signal</div></div>
+  <div class="card"><div class="num">422 / 19</div><div class="lbl">Within 100 mi of Benton Harbor / with signal</div></div>
+  <div class="card"><div class="num">12 / 12</div><div class="lbl">Marquette pits / with signal, max 100</div></div>
+  <div class="card"><div class="num">35 / 11</div><div class="lbl">Garnet halos / monazite halos</div></div>
+  <div class="card"><div class="num">0</div><div class="lbl">Pits documenting their own heavies (own_hm is "-" on all 1,707 rows)</div></div>
+  <div class="card"><div class="num">160.8 km</div><div class="lbl">Median distance to nearest HM occurrence, all rows (165.3 km on the within-100-mi subset)</div></div>
+</div>
+<p><b>Why the geography is the problem:</b> the Marquette halo occurrences are the iron mines (Tilden, Humboldt, Michigamme, Athens, Riverside). Precambrian bedrock, high-grade metamorphic rock, the actual source. The gravel pits up there sit on till derived directly from it, short transport, grade preserved. Benton Harbor is at the distal end of the glacial conveyor: the Lake Michigan lobe hauled the sediment 300+ miles from those source rocks, sorting and diluting the entire way. Standing at the bottom of the sluice box looking at tailings; the gold is at the head of the run. That is Marquette. Indiana median distance to nearest HM occurrence is 382.8 km versus Michigan 118.5 km.</p>
+<p class="src">Corrections recorded in the dossier: the transcript Tier 1 range of 277 to 330 mi does not reproduce from the CSV. The CSV Tier 1 range is 305 to 320 mi. The 165 km median reproduces on the within-100-mi subset (165.3 km), not the full set (160.8 km).</p>
+
+<h3>Pit-table explorer</h3>
+<p>The 10 dossier-named rows below are the only individual rows this page asserts. The full 1,707-row CSV is the product, not this table. Filter by play, tier, or halo mineral.</p>
+<div class="filters">
+  <label>Play
+    <select id="fPlay"><option value="">All</option><option>OFFTAKE</option><option>TAILINGS</option></select>
+  </label>
+  <label>Tier
+    <select id="fTier"><option value="">All listed</option><option value="1">Tier 1 (score 70+)</option><option value="2">Below Tier 1</option></select>
+  </label>
+  <label>Halo mineral
+    <select id="fHalo"><option value="">Any</option><option>Garnet</option><option>Ilmenite</option><option>Zircon</option><option>Magnetite</option><option>Gold</option><option>Monazite</option></select>
+  </label>
+  <input id="fSearch" type="text" placeholder="Search site name">
+  <span id="countOut" class="mono"></span>
+</div>
+<table id="pitTable">
+  <thead><tr><th>Score</th><th>Site</th><th>County</th><th>Play</th><th>Nearest HM (km)</th><th>Mi from Benton Harbor</th><th>Halo minerals</th></tr></thead>
+  <tbody></tbody>
+</table>
+<p class="src">An 8th row scores 69.8 (City of Marquette Pit, second dep_id), just below the Tier 1 line. Mead Pit is the best tailings candidate at 49.4, 318 mi. A third "Mead"-matching row, Morgan Meadows Pit, Marquette, OFFTAKE, 49.5, is a different site.</p>
+
+<h2>4. The halo explainer: what counts as a signal</h2>
+<p>The scorer pulls the USGS MRDS national database, isolates sand, gravel, and sediment pits, and scores each on <b>provenance proximity</b> to documented heavy-mineral occurrences. MRDS records a pit's existence but is about 88% null on what is actually in it, so stated content cannot be the signal. Proximity to source rock can be, because short glacial transport preserves grade.</p>
+<ul>
+  <li><b>40 km halo:</b> a radius around each documented heavy-mineral occurrence. A pit inside the halo carries a signal; a pit outside it does not. 154 of 1,707 pits fall inside a halo.</li>
+  <li><b>Weighting:</b> inverse-distance weighted sum, sum of weight / (1 + distance/10), plus best mineral times 2.0. Closer occurrences count more.</li>
+  <li><b>HM vocabulary:</b> 16 text keys (garnet, titan, ilmenit, rutile, zircon, monazit, rare earth, magnetit, staurolit, kyanite, heavy mineral, placer, ruby, sapphire, diamond, gold) matched against 12 MRDS text columns.</li>
+  <li><b>Economic weights:</b> Garnet / Rutile / Zircon / HMS 3.0; Titanium / Ilmenite / Placer 2.5; Gold / Diamond 2.0; Magnetite / Staurolite / Kyanite 1.5; Corundum 1.0; <b>Monazite / REE 0.0 by design</b>.</li>
+  <li><b>Own-hit multiplier:</b> a pit documenting its own heavies gets times 4.0. No pit in the output does: own_hm is "-" on all 1,707 rows, so the multiplier never fires.</li>
+  <li><b>Multipliers:</b> status (Producer 1.25, Past Producer 1.15, Plant 1.00, Prospect 0.90, Unknown 0.70); MRDS record quality grade (A 1.30, B 1.20, C 1.05, D 1.00, E 0.90).</li>
+  <li><b>Play routing:</b> Producer goes to OFFTAKE, Past Producer goes to TAILINGS, everything else goes to RECON.</li>
+  <li><b>Home base:</b> Benton Harbor, 42.1167, -86.4542, haversine miles column.</li>
+</ul>
+<p><b>Try it:</b> pick a distance and see how the halo weight falls off.</p>
+<div class="calc">
+  <label for="haloD">Distance from pit to nearest HM occurrence (km): <span id="haloDVal">2.0</span></label>
+  <input type="range" id="haloD" min="0" max="60" step="0.5" value="2">
+  <div id="haloOut" class="mono" style="margin-top:10px"></div>
+</div>
+
+<h2>5. The funnel: 3, then 1, then 2, then 4</h2>
+<p>The four plays are not parallel businesses. They are a dependency chain. You cannot do byproduct offtake without knowing which operators run heavies through their wash plant. You cannot reprocess tailings without knowing which piles assay. You cannot acquire a pit without knowing which pit. Play 3 is not a fourth option. It is the scoring engine that makes 1, 2, and 4 targetable. This is LandOS: score the universe, act on the top decile.</p>
+<div class="funnel">
+  <div class="step winner"><div class="n">3</div><b>Data layer</b><br>THE WINNER. Scoring layer: USGS MRDS plus state permit rolls plus historic assays. Zero regulatory exposure, pure information arbitrage. Built itself in the session.</div>
+  <div class="step"><div class="n">1</div><b>Byproduct offtake</b><br>LIVE. 7 Tier 1 targets, all Marquette, all active producers. Krygorski Const Co scores 100. A phone call, not a mine.</div>
+  <div class="step"><div class="n">2</div><b>Tailings reprocess</b><br>UP ONLY. Best candidate Mead Pit (Baraga, score 49.4), 318 mi.</div>
+  <div class="step"><div class="n">4</div><b>Acquire + extract</b><br>DEAD locally. Viable only if operations relocate to the UP. Do not.</div>
+</div>
+<p>Sequence: <b>3, then 1, then 2, then 4.</b> Anything else is buying a pit before knowing what is in it.</p>
+
+<div class="open">
+  <h3 style="margin-top:0">Open decision A / B / C: UNANSWERED</h3>
+  <p>This page does not decide it. Jeramie has not answered as of 2026-11-10.</p>
+  <ul>
+    <li><b>A. Prove the mineral thesis.</b> Pull samples from the top 3 Marquette pits, run separation, get real grades. Cheap. Kills or confirms Plays 1, 2, and 4 permanently.</li>
+    <li><b>B. Build the data layer for real.</b> MRDS times MI EGLE permits times IN DNR times parcel data, the scored, contactable database. Zero regulatory exposure. LandOS on a new substrate; the session proved the architecture generalizes across domains.</li>
+    <li><b>C. Both. B funds A.</b></li>
+  </ul>
+  <p>The transcript's read is B: the minerals in reach are dilute, the information about them is not. That is a read, not a decision. Do not assume.</p>
+</div>
+
+<h2>6. Honest limits</h2>
+<ul>
+  <li>MRDS ceased systematic updates in 2011. It is an occurrence archive, not a permit roll.</li>
+  <li>Proximity is not grade. The score tells you where to sample, nothing more.</li>
+  <li>Nothing gets committed without a heavy-liquid separation or Franz run on a real sample. A few hundred dollars settles what no amount of modeling will.</li>
+  <li>Scores are relative to this run. They are not comparable across runs with different input sets unless re-normalized.</li>
+  <li>The transcript's 277 to 330 mi Tier 1 range and 165 km median are approximate or subset-dependent. Use the CSV figures: 305 to 320 mi, 160.8 km all rows, 165.3 km SW Michigan subset.</li>
+  <li>MRDS input counts (4,168 records, null rates) are transcript only, not re-verifiable from the output CSV. The LandOS "49 signals / 43,897 parcels" reference is unverified and conflicts with the estate record (50 signals). Neither is asserted here.</li>
+</ul>
+
+<footer>
+  <p><span class="sim">SIMULATION</span></p>
+  <p>Source: Batch 007 absorption dossier, <span class="mono">minerals-placer-venture.md</span>, absorbed 2026-11-10. CSV: <span class="mono">mineral_pit_scores_MI_IN.csv</span>, 1,707 scored pits, MI/IN. Scorer: <span class="mono">score_pits.py</span>, 176 lines, read-only, not executed. Related visual: <a href="https://neuruhai.github.io/neuruh-demos/mineral-pits/">mineral-pits Three.js pit map</a>.</p>
+  <p>Built 2026-11-14 in the overnight run. Static page, no backend, no data leaves the browser. Modeled revenue is a calculation, never a real return.</p>
+</footer>
+</div>
+
+<script>
+var PITS = [
+  {score:100.0, site:"Krygorski Const Co", county:"Marquette", state:"MI", play:"OFFTAKE", hm:2.0, mi:305, halo:"Garnet, Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:87.4, site:"Dishneau Pit", county:"Marquette", state:"MI", play:"OFFTAKE", hm:3.8, mi:315, halo:"Garnet, Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:81.9, site:"Hocking Construction Co. Pit", county:"Marquette", state:"MI", play:"OFFTAKE", hm:7.9, mi:320, halo:"Garnet, Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:81.2, site:"Lindberg Quarries", county:"Marquette", state:"MI", play:"OFFTAKE", hm:6.9, mi:305, halo:"Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:79.1, site:"Herman Gunlach Company", county:"Marquette", state:"MI", play:"OFFTAKE", hm:4.3, mi:311, halo:"Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:79.1, site:"480 Pit and Mill", county:"Marquette", state:"MI", play:"OFFTAKE", hm:6.4, mi:305, halo:"Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:74.3, site:"City of Marquette Pit", county:"Marquette", state:"MI", play:"OFFTAKE", hm:5.7, mi:311, halo:"Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:69.8, site:"City of Marquette Pit (second dep_id)", county:"Marquette", state:"MI", play:"OFFTAKE", hm:5.7, mi:311, halo:"Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:49.5, site:"Morgan Meadows Pit", county:"Marquette", state:"MI", play:"OFFTAKE", hm:2.1, mi:311, halo:"Garnet, Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:49.4, site:"Mead Pit", county:"Baraga", state:"MI", play:"TAILINGS", hm:1.9, mi:318, halo:"Garnet, Gold, Ilmenite, Magnetite, Monazite, Zircon"},
+  {score:49.1, site:"Mead Pit", county:"Baraga", state:"MI", play:"TAILINGS", hm:2.1, mi:318, halo:"Garnet, Gold, Ilmenite, Magnetite, Monazite, Zircon"}
+];
+
+function money(n){ return "$" + n.toFixed(2); }
+
+function calc(){
+  var g = parseFloat(document.getElementById("grade").value) || 0;
+  var r = parseFloat(document.getElementById("recovery").value) || 0;
+  var p = parseFloat(document.getElementById("price").value) || 0;
+  var c = parseFloat(document.getElementById("cost").value) || 0;
+  var rev = (g/100) * (r/100) * p;
+  document.getElementById("revOut").textContent = money(rev) + " / ton of feed";
+  document.getElementById("mathOut").textContent = (g/100).toFixed(4) + " grade x " + (r/100).toFixed(2) + " recovery x $" + p.toFixed(0) + " = " + money(rev);
+  var gate = document.getElementById("gateOut");
+  var margin = rev - c;
+  if (rev >= c) {
+    gate.textContent = "PASS: modeled revenue clears modeled cost";
+    gate.className = "gate pass";
+  } else {
+    gate.textContent = "FAIL: modeled revenue does not clear modeled cost";
+    gate.className = "gate fail";
+  }
+  document.getElementById("marginOut").textContent = "Margin vs cost of " + money(c) + "/ton: " + (margin >= 0 ? "+" : "") + money(margin) + " per ton. Modeled only, not a real return.";
+}
+
+function syncRange(numId, rangeId){
+  var n = document.getElementById(numId), r = document.getElementById(rangeId);
+  n.addEventListener("input", function(){ r.value = Math.min(parseFloat(n.value)||0, parseFloat(r.max)); calc(); });
+  r.addEventListener("input", function(){ n.value = r.value; calc(); });
+}
+["grade","recovery","price","cost"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", calc);
+});
+syncRange("grade","gradeR");
+syncRange("recovery","recoveryR");
+
+document.querySelectorAll("#presets .preset").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.getElementById("grade").value = btn.dataset.grade;
+    document.getElementById("gradeR").value = Math.min(parseFloat(btn.dataset.grade), 10);
+    document.getElementById("recovery").value = btn.dataset.recovery;
+    document.getElementById("recoveryR").value = btn.dataset.recovery;
+    document.getElementById("price").value = btn.dataset.price;
+    calc();
+  });
+});
+
+function renderTable(){
+  var play = document.getElementById("fPlay").value;
+  var tier = document.getElementById("fTier").value;
+  var halo = document.getElementById("fHalo").value;
+  var q = document.getElementById("fSearch").value.toLowerCase();
+  var rows = PITS.filter(function(p){
+    if (play && p.play !== play) return false;
+    if (tier === "1" && p.score < 70) return false;
+    if (tier === "2" && p.score >= 70) return false;
+    if (halo && p.halo.indexOf(halo) === -1) return false;
+    if (q && p.site.toLowerCase().indexOf(q) === -1) return false;
+    return true;
+  });
+  var tb = document.querySelector("#pitTable tbody");
+  tb.innerHTML = rows.map(function(p){
+    return "<tr><td><b>" + p.score.toFixed(1) + "</b>" + (p.score >= 70 ? " (Tier 1)" : "") + "</td><td>" + p.site + "</td><td>" + p.county + ", " + p.state + "</td><td>" + p.play + "</td><td>" + p.hm.toFixed(1) + "</td><td>" + p.mi.toFixed(0) + "</td><td>" + p.halo + "</td></tr>";
+  }).join("") || "<tr><td colspan='7'>No listed rows match. The full 1,707-row CSV holds the rest.</td></tr>";
+  document.getElementById("countOut").textContent = rows.length + " of " + PITS.length + " listed rows shown";
+}
+["fPlay","fTier","fHalo"].forEach(function(id){ document.getElementById(id).addEventListener("change", renderTable); });
+document.getElementById("fSearch").addEventListener("input", renderTable);
+
+function haloCalc(){
+  var d = parseFloat(document.getElementById("haloD").value);
+  document.getElementById("haloDVal").textContent = d.toFixed(1);
+  var w = 1 / (1 + d/10);
+  var inside = d <= 40;
+  document.getElementById("haloOut").textContent = "Distance " + d.toFixed(1) + " km: " + (inside ? "INSIDE the 40 km halo, counts as a signal." : "OUTSIDE the 40 km halo, no signal.") + " Inverse-distance weight 1/(1 + d/10) = " + w.toFixed(3) + " (garnet weight 3.0 x this = " + (3*w).toFixed(3) + " before the best-mineral x2.0 and status/quality multipliers). At 0 km the weight is 1.000; at 40 km it is 0.200; at 160.8 km, the all-rows median distance, it would be 0.059 and outside the halo anyway.";
+}
+document.getElementById("haloD").addEventListener("input", haloCalc);
+
+calc();
+renderTable();
+haloCalc();
+</script>
+</body>
+</html>
