@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NCP Lab: Neuruh Cognitive Platform, Working Demo (SIMULATION)</title>
+<style>
+  :root { --bone: #f4f1ea; --paper: #fffdf7; --ink: #1c1a16; --muted: #5c564a; --brass: #9a7422; --line: #d8d2c2; --ok: #2e6b34; --warn: #8a5a00; --bad: #9b2c2c; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bone); color: var(--ink); font-family: Georgia, "Times New Roman", serif; line-height: 1.55; }
+  header { background: var(--ink); color: var(--bone); padding: 28px 20px 22px; }
+  header h1 { margin: 0 0 6px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 30px; letter-spacing: 0.5px; }
+  header p { margin: 4px 0; color: #cfc8b8; }
+  .sim { display: inline-block; background: var(--brass); color: #fff; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 12px; font-weight: bold; letter-spacing: 1.5px; padding: 3px 10px; border-radius: 3px; }
+  main { max-width: 980px; margin: 0 auto; padding: 20px 20px 60px; }
+  section { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 20px 22px; margin: 18px 0; }
+  h2 { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 20px; margin: 0 0 10px; border-bottom: 2px solid var(--brass); padding-bottom: 6px; }
+  h3 { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 16px; margin: 18px 0 6px; }
+  p, li { font-size: 15px; }
+  .small { font-size: 13px; color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 7px 9px; text-align: left; vertical-align: top; }
+  th { background: #ece7d8; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 13px; }
+  td.num, th.num { text-align: right; }
+  .tag { display: inline-block; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 11px; font-weight: bold; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 3px; }
+  .tag.b { background: #e3ecdc; color: var(--ok); }
+  .tag.c { background: #f3e2c8; color: var(--warn); }
+  .tag.u { background: #e8e4da; color: var(--muted); }
+  .tag.sim2 { background: #efe6cf; color: #6d5210; }
+  .pipeline { font-family: "Courier New", monospace; font-size: 14px; background: #f0ecdf; border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; overflow-x: auto; white-space: pre-wrap; }
+  input[type="text"], input[type="number"] { font-size: 15px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; width: 100%; max-width: 520px; }
+  button { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px; font-weight: bold; background: var(--ink); color: var(--bone); border: none; border-radius: 4px; padding: 9px 16px; cursor: pointer; margin: 6px 6px 0 0; }
+  button.secondary { background: var(--paper); color: var(--ink); border: 1px solid var(--ink); }
+  button:disabled { opacity: 0.45; cursor: default; }
+  .preset { font-size: 13px; padding: 6px 10px; }
+  .steps { list-style: none; padding: 0; margin: 12px 0 0; }
+  .steps li { border-left: 3px solid var(--brass); padding: 6px 10px; margin: 6px 0; background: #faf7ef; font-size: 14px; }
+  .steps li b { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 12px 0; }
+  .node { border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 12px; background: #fbf9f3; }
+  .node .nid { font-weight: bold; }
+  .node .role { color: var(--muted); }
+  .node.pinned { background: #eef3e4; border-color: var(--ok); }
+  .node.organ { background: #f3e6c2; border-color: var(--brass); }
+  .node .heat { display: block; margin-top: 3px; }
+  .counters { font-family: "Helvetica Neue", Arial, sans-serif; font-size: 14px; }
+  .counters b { font-size: 18px; }
+  .receipt { border: 1px solid var(--line); border-radius: 4px; padding: 12px; margin: 10px 0; background: #fbf9f3; }
+  .receipt pre { font-size: 12px; overflow-x: auto; background: #f0ecdf; padding: 10px; border-radius: 4px; margin: 8px 0 0; }
+  .verdict { font-family: "Helvetica Neue", Arial, sans-serif; font-weight: bold; }
+  .verdict.pass { color: var(--ok); }
+  .verdict.fail { color: var(--bad); }
+  .labdesign { background: #f7efdc; border: 1px dashed var(--brass); border-radius: 4px; padding: 10px 12px; font-size: 14px; }
+  code { font-size: 13px; background: #f0ecdf; padding: 1px 5px; border-radius: 3px; }
+  footer { max-width: 980px; margin: 0 auto; padding: 0 20px 40px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+  @media print { body { background: #fff; } section { break-inside: avoid; } button { display: none; } }
+</style>
+</head>
+<body>
+<header>
+  <span class="sim">SIMULATION</span>
+  <h1>NCP Lab: Neuruh Cognitive Platform</h1>
+  <p>A working, interactive demo of the stated NCP mechanics. Static HTML and JS. No backend. Nothing leaves this page.</p>
+  <p>Built 2026-11-14, overnight Neuruh run. Framework tier: <b>UNKNOWN</b> (per the Framework Atlas; see the tier note below). This demo assigns no tier to the framework.</p>
+</header>
+<main>
+
+<section id="what">
+  <h2>1. What NCP is, as stated</h2>
+  <p><b>NCP</b> is the <b>Neuruh Cognitive Platform</b>. It sits in Volume III, Agentic Infrastructure, of the Neuruh Ecosystem Codex (NRH-DOC-CODEX-001 rev A, issued 28 July 2026, evidence basis the Code-Verified Reality audit of 30 June 2026).</p>
+  <table>
+    <tr><th>Stated fact</th><th>Source</th></tr>
+    <tr><td>NCP is the Neuruh Cognitive Platform, in Volume III (Agentic Infrastructure)</td><td>Codex Volume VI register line; Volume III contents list</td></tr>
+    <tr><td>Phase 1: 1,890 AtomicNodes, Convergence Router, Semantic Cache Vault, KuzuDB graph, /dev/shm RAM-disk</td><td>Codex Volume III component table</td></tr>
+    <tr><td>Phase 1 verify anchor: 1,890 AtomicNodes, 98 percent LLM-bypass (claimed)</td><td>Codex Volume III component table</td></tr>
+    <tr><td>Phase 1 risk: RAM-disk dependency on an 8GB machine</td><td>Codex Volume III component table</td></tr>
+    <tr><td>Phase 2: PHALANX, SYMBIOTE, UIR, Firecracker Micro-VMs. Specced, not compiled, correctly deferred</td><td>Codex Volume III component table; Appendix C (DEFERRED)</td></tr>
+    <tr><td>Phase 2 rule: "Do not build before a paying customer exists for Phase 1"</td><td>Codex Volume III component table</td></tr>
+    <tr><td>Register: NRH-IN-NCP-SYS-001 (NCP Phase 1), NRH-IN-NCP-SPC-002 (NCP Phase 2)</td><td>Framework Atlas entry <code>ncp</code></td></tr>
+    <tr><td>Phase 1 dependencies: KuzuDB, Local RAM disk</td><td>Framework Atlas entry <code>ncp</code></td></tr>
+    <tr><td>AXON Lattice Substrate extends NCP Phase 1; its <code>convergence.py</code> is a drop-in for the Phase 1 router; live <code>tasks.py</code> / Celery wiring pending; KuzuDB path untested here (JSONL fallback works); 16 of 16 tests pass as run in batch 018</td><td>Vault: AXON Lattice Substrate dossier and 01-Core-Architecture/AXON Lattice Substrate.md</td></tr>
+    <tr><td>Heat lifecycle (lattice transcript): pin threshold 3.0, organ threshold 6.0; RAM-disk pin is the tier between "warm node" and "organ candidate"; roughly 40 to 50 times I/O gain claimed for small file operations on the pinning path</td><td>Vault: AXON Lattice Substrate dossier, section 13</td></tr>
+    <tr><td>Stated conditional shortcuts: resale jumps SIGNAL to CLOSE when the signal is "price_delta over 40%"; real estate jumps VALUATION to CLOSE when the buyer is "standing cash"</td><td>Vault: AXON Lattice Substrate dossier, section on conditional shortcuts</td></tr>
+    <tr><td>Stated loop: route, log, heat, mint, bloom, repeat. Before the lattice, 1,890 AtomicNodes sat in a static table with a router picking among them; after, the router rewrites the graph it routes on</td><td>Vault: AXON Lattice Substrate dossier</td></tr>
+  </table>
+  <p class="small">Every number above is a source claim as of the June 2026 audit era. This demo counts and simulates them; it does not re-verify them. The 98 percent bypass figure is a claim, not a verified measurement.</p>
+</section>
+
+<section id="tier">
+  <h2>2. Tier, exactly as stated</h2>
+  <p>Framework tier: <span class="tag u">UNKNOWN</span> per the Framework Atlas (<code>frameworks.json</code>, entry <code>ncp</code>, accessed 2026-11-14).</p>
+  <p>The atlas records the split instead of forcing one tier: <b>NCP Phase 1 is Tier B</b> (built and inspectable) and <b>NCP Phase 2 is Tier C</b> (specced / scoped / aspirational). Its tier note reads: "No single tier is stated for NCP as a framework. The register splits it: NCP Phase 1 is Tier B and NCP Phase 2 is Tier C. Assigning one tier would hide that split, so the framework tier is UNKNOWN with the split recorded here."</p>
+  <table>
+    <tr><th>Part</th><th>Tier as stated</th><th>Meaning (atlas tier definitions)</th></tr>
+    <tr><td>NCP as a framework</td><td><span class="tag u">UNKNOWN</span></td><td>No tier is stated for this framework on the codex page. Not assigned by this atlas.</td></tr>
+    <tr><td>NCP Phase 1</td><td><span class="tag b">Tier B</span></td><td>Built and inspectable: exists and can be demonstrated, not independently verified. Describable, not claimable as proof.</td></tr>
+    <tr><td>NCP Phase 2</td><td><span class="tag c">Tier C</span></td><td>Specced / scoped / aspirational: design or scope document only. Does not execute. Never surfaced externally.</td></tr>
+  </table>
+  <p>"Tier B" in the build brief describes this demo (built and inspectable), not the framework. The page assigns no tier to NCP itself.</p>
+</section>
+
+<section id="structure">
+  <h2>3. Structure view (stated components only)</h2>
+  <h3>NCP Phase 1 pipeline (stated)</h3>
+  <div class="pipeline">Task
+  -&gt; Convergence Router
+  -&gt; Shortcut Edge Layer lookup (learned shortcuts first)
+  -&gt; Semantic Cache Vault (98 percent bypass claimed)
+  -&gt; AtomicNode (1,890 stated; 24 in this demo model)
+  -&gt; Route logged to KuzuDB graph (JSONL fallback)
+  -&gt; Heat Field (heat accumulates per route)
+  -&gt; RAM-disk pin at heat 3.0 (simulated /dev/shm)
+  -&gt; Bloom to organ candidate at heat 6.0, breadth bar applies
+  -&gt; Repeat (route, log, heat, mint, bloom, repeat)</div>
+  <p class="small">The pipeline order follows the stated loop and the lattice transcript. The "mint" step (minting a shortcut from repeated routes) is represented in this demo by the Shortcut Edge Layer remembering each task once routed.</p>
+  <h3>NCP Phase 2 modules (stated, all SPECCED, not compiled)</h3>
+  <table>
+    <tr><th>Module</th><th>State</th></tr>
+    <tr><td>PHALANX</td><td><span class="tag c">Tier C: SPECCED, not compiled</span></td></tr>
+    <tr><td>SYMBIOTE</td><td><span class="tag c">Tier C: SPECCED, not compiled</span></td></tr>
+    <tr><td>UIR</td><td><span class="tag c">Tier C: SPECCED, not compiled</span></td></tr>
+    <tr><td>Firecracker Micro-VMs</td><td><span class="tag c">Tier C: SPECCED, not compiled</span></td></tr>
+  </table>
+  <p>Phase 2 is DEFERRED in the codex Appendix C. The source rule stands: do not build Phase 2 before a paying customer exists for Phase 1. This demo does not simulate Phase 2 internals, because none are stated.</p>
+  <h3>Dependencies (stated, Phase 1)</h3>
+  <p>KuzuDB (graph persistence; JSONL fallback stated in the lattice transcript) and Local RAM disk (/dev/shm; the transcript notes /dev/shm does not exist on macOS, where the fallback is /tmp). Phase 2 depends on Phase 1; that is a phase dependency inside one framework, not an edge between frameworks.</p>
+</section>
+
+<section id="simulator">
+  <h2>4. Interactive simulator: the Convergence Router</h2>
+  <p>Route a task through the model router. Each run shows every step, updates node heat, and emits a receipt (section 6).</p>
+  <div class="labdesign"><b>LAB DESIGN DECISION (not a paper claim):</b> this demo models a 24-node lattice, not the stated 1,890 AtomicNodes, so every node fits on one screen. Task-to-node mapping uses a deterministic FNV-1a hash (shown in step 2). The real router's mapping is not stated in any source read. The breadth bar is set at 2 distinct tasks through a node: the transcript states the bar exists but does not state its number.</div>
+  <p style="margin-top:14px;">
+    <label for="taskInput"><b>Task to route</b></label><br>
+    <input type="text" id="taskInput" placeholder="e.g. score this parcel" value="score this parcel">
+  </p>
+  <p>
+    <button id="routeBtn">Route task</button>
+    <button id="resetBtn" class="secondary">Reset session</button>
+  </p>
+  <p>Presets (the two stated conditional shortcuts, plus two plain tasks):<br>
+    <button class="preset" data-task="price_delta over 40% resale signal">price_delta over 40% resale signal</button>
+    <button class="preset" data-task="standing cash buyer valuation">standing cash buyer valuation</button>
+    <button class="preset" data-task="score this parcel">score this parcel</button>
+    <button class="preset" data-task="route nightly build">route nightly build</button>
+  </p>
+  <div id="routeOut"></div>
+  <h3>Model lattice (24 nodes)</h3>
+  <p class="small">Heat rises 1.0 per route through a node. Pinned at heat 3.0 (RAM-disk tier, simulated). Organ candidate at heat 6.0 with at least 2 distinct tasks (breadth bar, lab design). Repeating one task raises heat but never passes the breadth bar.</p>
+  <div class="grid" id="nodeGrid"></div>
+  <p class="counters">Tasks routed: <b id="cRouted">0</b> &nbsp; Resolved without an LLM call: <b id="cBypass">0</b> &nbsp; Session bypass rate: <b id="cRate">n/a</b> &nbsp; Nodes pinned: <b id="cPinned">0</b> &nbsp; Organ candidates: <b id="cOrgan">0</b></p>
+  <p class="small">Session bypass rate is observed inside this demo only. It is not the source-claimed 98 percent.</p>
+</section>
+
+<section id="calculator">
+  <h2>5. Calculator: LLM-bypass calls (Codex Calculator 1, no money)</h2>
+  <p>The codex Volume III calculator uses the source-claimed 98 percent bypass rate. This demo keeps the same math but reports calls only, never money.</p>
+  <p>
+    <label for="callsInput"><b>Model calls per month</b></label><br>
+    <input type="number" id="callsInput" value="10000" min="0" step="1">
+  </p>
+  <p>
+    <label for="pctInput"><b>Bypass percent (source claim: 98)</b></label><br>
+    <input type="number" id="pctInput" value="98" min="0" max="100" step="1">
+  </p>
+  <p><button id="calcBtn">Compute bypass</button></p>
+  <div id="calcOut"></div>
+</section>
+
+<section id="receipts">
+  <h2>6. Receipt panel (receipt format v1.0)</h2>
+  <p>Every router run and every calculator run emits a receipt. Receipts chain: the first receipt in a session has <code>prev_hash</code> GENESIS, and each later receipt chains to the previous receipt's hash. The hash covers the canonical JSON of the receipt with the <code>hash</code> field stripped, using SHA-256.</p>
+  <p><button id="verifyBtn">Verify all receipts</button> <span id="verifyOut" class="verdict"></span></p>
+  <div id="receiptList"><p class="small">No receipts yet. Route a task or run the calculator.</p></div>
+  <p class="small">Verification runs in this browser with the Web Crypto API and recomputes every hash from the stored receipt text. A changed receipt or a broken chain link reports FAIL.</p>
+</section>
+
+<section id="status">
+  <h2>7. Status board: DESIGNED vs VERIFIED</h2>
+  <table>
+    <tr><th>Item</th><th>State</th><th>Basis</th></tr>
+    <tr><td>NCP Phase 1 (1,890 AtomicNodes, Convergence Router, Semantic Cache Vault, KuzuDB, RAM-disk)</td><td><span class="tag b">DESIGNED (Tier B, built and inspectable per register)</span></td><td>Codex Volume III; Atlas register split. Not independently verified by this demo.</td></tr>
+    <tr><td>98 percent LLM-bypass</td><td><span class="tag u">DESIGNED (source claim)</span></td><td>Codex Volume III verify anchor. Claimed, not verified here.</td></tr>
+    <tr><td>NCP Phase 2 (PHALANX, SYMBIOTE, UIR, Firecracker)</td><td><span class="tag c">DESIGNED (Tier C, specced, not compiled)</span></td><td>Codex Volume III and Appendix C (DEFERRED).</td></tr>
+    <tr><td>AXON Lattice Substrate extending Phase 1 (convergence.py drop-in)</td><td><span class="tag b">DESIGNED (Tier B per lattice dossier)</span></td><td>Vault dossier; batch 018 ran 16 of 16 tests on the source files. Live tasks.py / Celery wiring pending.</td></tr>
+    <tr><td>This demo page (NCP Lab)</td><td><span class="tag b">VERIFIED (in its own terms)</span></td><td>67 Node tests pass; node --check clean; live page HTTP 200 and byte-identical (see build report). SIMULATION throughout.</td></tr>
+    <tr><td>Live NCP tasks.py / Celery wiring</td><td><span class="tag u">UNKNOWN</span></td><td>Vault dossier: adapter exists, wiring is external, pending.</td></tr>
+    <tr><td>KuzuDB persistence under a real KuzuDB install</td><td><span class="tag u">UNKNOWN</span></td><td>Vault dossier: kuzu not installed where verified; JSONL fallback works.</td></tr>
+    <tr><td>Standalone NCP dossier in the vault</td><td><span class="tag u">UNKNOWN (no dossier found)</span></td><td>Vault search found no standalone NCP dossier and no NCP collision record. NCP facts come from the codex, the atlas, and the lattice dossier.</td></tr>
+  </table>
+</section>
+
+<section id="gaps">
+  <h2>8. Honest gaps and UNKNOWNs</h2>
+  <ul>
+    <li>No standalone NCP dossier exists in the vault as searched 2026-11-14. No NCP collision record exists in 00-Collisions. This is a gap in the record, not a failure of this demo.</li>
+    <li>Framework tier is UNKNOWN (atlas). Phase 1 Tier B and Phase 2 Tier C are the register split; no single tier is assigned.</li>
+    <li>The 1,890 AtomicNode count and the 98 percent bypass rate are June 2026 audit-era source claims. Neither was re-verified in this lane, and the demo's 24-node model does not reproduce them.</li>
+    <li>How the real Convergence Router maps a task to a node is not stated in any source read. The demo's FNV-1a mapping is a lab design decision.</li>
+    <li>The breadth bar's number is not stated. The demo uses 2 distinct tasks and labels that as its own choice.</li>
+    <li>Phase 2 internals are not stated anywhere read. Only the four module names and the "specced, not compiled" state are shown.</li>
+    <li>The code lives on the founder's Mac at ~/repos/autonomous-builder/axon-lattice-substrate/ per the vault dossier, not in this workspace. No repo was inspected in this lane.</li>
+    <li>The browser-side Verify button and receipt chain were verified by Node tests of the same pure logic plus code inspection; the live page was verified for HTTP 200 and byte identity, not clicked through in a live browser (no live browser is available to this subagent).</li>
+  </ul>
+</section>
+
+<section id="design">
+  <h2>9. Lab design decisions (mine, labeled)</h2>
+  <ul>
+    <li>24-node model lattice instead of the stated 1,890 nodes, so the whole lattice is visible and testable.</li>
+    <li>FNV-1a hash of the normalized task text, mod 24, picks the node. Deterministic and shown step by step.</li>
+    <li>Heat rises 1.0 per route. Pin at 3.0 and organ at 6.0 use the stated thresholds; the breadth bar is set at 2 distinct tasks (unstated number, my choice).</li>
+    <li>Conditional shortcuts fire on the two exact condition phrases stated in the lattice transcript, case-insensitive.</li>
+    <li>The bypass calculator reports calls avoided and calls to the LLM only. No money figures appear anywhere on this page.</li>
+    <li>Receipts follow the receipt format v1.0 pattern used by the other labs: canonical JSON, hash stripped, SHA-256, GENESIS first, chained.</li>
+  </ul>
+</section>
+
+<section id="sources">
+  <h2>10. Sources read (in full, before building)</h2>
+  <ol>
+    <li>Framework Atlas data, <code>~/workspace/framework-atlas/frameworks.json</code>, entry <code>ncp</code>: function "Neuruh Cognitive Platform", domain "Agentic infrastructure", posture "Phase 1 built, Phase 2 specced", register NRH-IN-NCP-SYS-001 and NRH-IN-NCP-SPC-002, dependencies KuzuDB and Local RAM disk, tier <b>UNKNOWN</b> with the Phase 1 Tier B / Phase 2 Tier C split recorded. Atlas accessed 2026-11-14.</li>
+    <li>Ecosystem Codex live page, https://ecosystem-codex.pages.dev/ (NRH-DOC-CODEX-001 rev A, issued 28 July 2026, audit 30 June 2026): Volume III component table (NCP Phase 1 and Phase 2 rows, Calculator 1), Volume VI register line ("NCP, Neuruh Cognitive Platform, Phase 1 built, Phase 2 specced"), Appendix C (NCP Phase 2 DEFERRED), tier definitions, Valuation Honesty Rule.</li>
+    <li>Vault dossier <code>_research/axon-lattice-substrate/axon-lattice-substrate.md</code> (read in full): lattice as an extension of NCP Phase 1, convergence.py drop-in, tasks.py / Celery wiring pending, conditional shortcuts, heat lifecycle and pin/organ thresholds, RAM-disk pinning, 16 of 16 tests in batch 018, KuzuDB untested with JSONL fallback.</li>
+    <li>Vault page <code>01-Core-Architecture/AXON Lattice Substrate.md</code>: current consumer is the NCP Phase 1 router; live wiring pending.</li>
+    <li>Vault sweep <code>_research/upload-sweep-2026-11-10/codex-pdfs.md</code>, codex section: "NCP Phase 1: 1,890 AtomicNodes, 98 percent LLM-bypass claimed. NCP Phase 2 (PHALANX, SYMBIOTE, UIR, Firecracker) specced, not compiled."</li>
+    <li>Vault search for NCP across all markdown: no standalone NCP dossier, no NCP census or collision record. Remaining hits are Notion fetch JSONs and the files above.</li>
+    <li>DIMEA 2.0 Decision Lab (live, same overnight run): receipt format v1.0 pattern reused here.</li>
+  </ol>
+  <p class="small">No dollar valuations appear on this page, per the Valuation Honesty Rule and the build brief. No owner or property personal information appears. No em dashes appear in any shipped file (grep-verified, 0 hits).</p>
+</section>
+
+</main>
+<footer>
+  <p class="small">NCP Lab. SIMULATION. Built 2026-11-14. Sources cited on the page. Framework tier UNKNOWN per the Framework Atlas. This demo is a working model of stated mechanics, not the NCP codebase and not a verification of any source claim.</p>
+</footer>
+
+<script src="app.js"></script>
+<script>
+(function () {
+  "use strict";
+  var L = window.NcpLab;
+  var session = L.makeSession();
+  var receipts = [];
+  var receiptCount = 0;
+
+  function el(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function sha256Hex(str) {
+    if (!window.crypto || !crypto.subtle) {
+      return Promise.reject(new Error("Web Crypto (crypto.subtle) is unavailable in this browser context."));
+    }
+    var buf = new TextEncoder().encode(str);
+    return crypto.subtle.digest("SHA-256", buf).then(function (hash) {
+      var bytes = new Uint8Array(hash);
+      var out = "";
+      for (var i = 0; i < bytes.length; i++) {
+        out += ("0" + bytes[i].toString(16)).slice(-2);
+      }
+      return out;
+    });
+  }
+  function prevHash() {
+    return receipts.length ? receipts[receipts.length - 1].hash : "GENESIS";
+  }
+  function renderReceiptList() {
+    var box = el("receiptList");
+    if (!receipts.length) {
+      box.innerHTML = "<p class=\"small\">No receipts yet. Route a task or run the calculator.</p>";
+      return;
+    }
+    var html = "";
+    receipts.forEach(function (r) {
+      html += "<div class=\"receipt\"><b>" + esc(r.id) + "</b> &nbsp; kind: " + esc(r.kind) + " &nbsp; issued: " + esc(r.issued_at) +
+        "<br>prev: <code>" + esc(r.prev_hash) + "</code><br>hash: <code>" + esc(r.hash) + "</code>" +
+        "<span class=\"verdict\" data-verify=\"" + esc(r.id) + "\"></span>" +
+        "<pre>" + esc(JSON.stringify(r, null, 2)) + "</pre></div>";
+    });
+    box.innerHTML = html;
+  }
+  function issueReceipt(kind, summary, inputs, results) {
+    receiptCount += 1;
+    var id = "NCP-LAB-R-" + String(receiptCount).padStart(3, "0");
+    var rec = L.buildReceiptObject(id, kind, summary, inputs, results, prevHash(), new Date().toISOString());
+    return sha256Hex(L.canonicalStringify(L.stripHash(rec))).then(function (h) {
+      rec.hash = h;
+      receipts.push(rec);
+      renderReceiptList();
+      el("verifyOut").textContent = "";
+      return rec;
+    }).catch(function (err) {
+      receiptCount -= 1;
+      el("receiptList").innerHTML = "<p><b>Receipt error:</b> " + esc(err.message) + " Receipts need Web Crypto, which requires a secure context (https or localhost).</p>";
+      return null;
+    });
+  }
+  function renderGrid() {
+    var html = "";
+    session.nodes.forEach(function (n) {
+      var cls = "node" + (n.organ_candidate ? " organ" : (n.pinned ? " pinned" : ""));
+      var state = n.organ_candidate ? "ORGAN CANDIDATE" : (n.pinned ? "PINNED (RAM-disk)" : "cold");
+      html += "<div class=\"" + cls + "\"><span class=\"nid\">" + esc(n.id) + "</span> <span class=\"role\">" + esc(n.role) + "</span>" +
+        "<span class=\"heat\">heat " + n.heat.toFixed(1) + " | " + state + "</span>" +
+        "<span class=\"heat\">tasks: " + n.distinct_tasks.length + "</span></div>";
+    });
+    el("nodeGrid").innerHTML = html;
+    el("cRouted").textContent = session.routed;
+    el("cBypass").textContent = session.bypassed;
+    el("cRate").textContent = session.routed ? Math.round(session.bypassed / session.routed * 100) + "%" : "n/a";
+    var pinned = 0, organ = 0;
+    session.nodes.forEach(function (n) { if (n.pinned) { pinned += 1; } if (n.organ_candidate) { organ += 1; } });
+    el("cPinned").textContent = pinned;
+    el("cOrgan").textContent = organ;
+  }
+  function runRoute() {
+    var task = el("taskInput").value;
+    var out = el("routeOut");
+    var res = L.routeTask(session, task);
+    if (res.error) {
+      out.innerHTML = "<p><b>Error:</b> " + esc(res.error) + "</p>";
+      return;
+    }
+    var html = "<h3>Route result: " + esc(res.task) + "</h3><p>Node <b>" + esc(res.node_id) + "</b> (" + esc(res.node_role) + "), hash " + res.hash +
+      ", SEL " + (res.sel_hit ? "HIT" : "MISS") + ", shortcut " + (res.shortcut_fired ? esc(res.shortcut_fired) : "none") +
+      ", bypassed: <b>" + (res.bypassed ? "YES" : "NO") + "</b>, heat " + res.heat_before.toFixed(1) + " to " + res.heat_after.toFixed(1) +
+      ", pinned: " + (res.pinned ? "YES" : "NO") + ", organ candidate: " + (res.organ_candidate ? "YES" : "NO") + ".</p><ol class=\"steps\">";
+    res.steps.forEach(function (s) {
+      html += "<li><b>Step " + s.n + ": " + esc(s.name) + ".</b> " + esc(s.detail) + "</li>";
+    });
+    html += "</ol>";
+    out.innerHTML = html;
+    renderGrid();
+    issueReceipt("route", "Routed task to " + res.node_id,
+      { task: res.task, hash: res.hash },
+      { node_id: res.node_id, node_role: res.node_role, sel_hit: res.sel_hit, shortcut_fired: res.shortcut_fired, bypassed: res.bypassed, heat_before: res.heat_before, heat_after: res.heat_after, pinned: res.pinned, organ_candidate: res.organ_candidate });
+  }
+  function runCalc() {
+    var out = el("calcOut");
+    var res = L.bypassCalc(el("callsInput").value, el("pctInput").value);
+    if (res.error) {
+      out.innerHTML = "<p><b>Error:</b> " + esc(res.error) + "</p>";
+      return;
+    }
+    var html = "<h3>Result</h3><p>Calls avoided: <b>" + res.calls_avoided + "</b>. Calls still to the LLM: <b>" + res.calls_to_llm + "</b> (of " + res.monthly_calls + " at " + res.bypass_pct + " percent bypass).</p><ol class=\"steps\">";
+    res.steps.forEach(function (s) {
+      html += "<li><b>Step " + s.n + ": " + esc(s.name) + ".</b> " + esc(s.detail) + "</li>";
+    });
+    html += "</ol>";
+    out.innerHTML = html;
+    issueReceipt("bypass-calc", "Bypass calc: " + res.calls_avoided + " of " + res.monthly_calls + " calls avoided",
+      { monthly_calls: res.monthly_calls, bypass_pct: res.bypass_pct },
+      { calls_avoided: res.calls_avoided, calls_to_llm: res.calls_to_llm });
+  }
+  function verifyAll() {
+    var out = el("verifyOut");
+    if (!receipts.length) { out.textContent = "No receipts to verify."; out.className = "verdict"; return; }
+    if (!window.crypto || !crypto.subtle) {
+      out.textContent = "FAIL: Web Crypto is unavailable in this browser.";
+      out.className = "verdict fail";
+      return;
+    }
+    var chain = Promise.resolve(true);
+    var expectedPrev = "GENESIS";
+    var failId = null;
+    receipts.forEach(function (r) {
+      chain = chain.then(function (okSoFar) {
+        if (!okSoFar) { return false; }
+        if (r.prev_hash !== expectedPrev) { failId = r.id + " (prev link)"; return false; }
+        return sha256Hex(L.canonicalStringify(L.stripHash(r))).then(function (h) {
+          if (h !== r.hash) { failId = r.id + " (hash)"; return false; }
+          expectedPrev = r.hash;
+          var slot = document.querySelector("[data-verify=\"" + r.id + "\"]");
+          if (slot) { slot.textContent = " PASS"; slot.className = "verdict pass"; }
+          return true;
+        });
+      });
+    });
+    chain.then(function (ok) {
+      if (ok) {
+        out.textContent = "PASS: all " + receipts.length + " receipts verified, chain intact.";
+        out.className = "verdict pass";
+      } else {
+        out.textContent = "FAIL at " + failId + ".";
+        out.className = "verdict fail";
+        var slot = document.querySelector("[data-verify=\"" + failId.split(" ")[0] + "\"]");
+        if (slot) { slot.textContent = " FAIL"; slot.className = "verdict fail"; }
+      }
+    });
+  }
+
+  el("routeBtn").addEventListener("click", runRoute);
+  el("taskInput").addEventListener("keydown", function (e) { if (e.key === "Enter") { runRoute(); } });
+  el("calcBtn").addEventListener("click", runCalc);
+  el("verifyBtn").addEventListener("click", verifyAll);
+  el("resetBtn").addEventListener("click", function () {
+    session = L.makeSession();
+    receipts = [];
+    receiptCount = 0;
+    el("routeOut").innerHTML = "";
+    el("verifyOut").textContent = "";
+    renderReceiptList();
+    renderGrid();
+  });
+  var presets = document.querySelectorAll(".preset");
+  presets.forEach(function (b) {
+    b.addEventListener("click", function () {
+      el("taskInput").value = b.getAttribute("data-task");
+      runRoute();
+    });
+  });
+  renderGrid();
+})();
+</script>
+</body>
+</html>
