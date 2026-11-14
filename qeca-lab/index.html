@@ -176,6 +176,7 @@ pre.json { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11
 <div class="card">
 <button id="rc-verify">Verify chain</button>
 <button id="rc-copy" class="ghost">Copy latest receipt JSON</button>
+<span id="rc-copy-status" class="mono" style="font-size:13px" aria-live="polite"></span>
 <span id="rc-status" class="mono" style="font-size:13px"></span>
 <div id="rc-list"></div>
 <pre class="json" id="rc-json">No receipts yet. Run a tool above.</pre>
@@ -228,6 +229,35 @@ pre.json { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11
   function num(id) { var v = parseFloat(document.getElementById(id).value); return v; }
   function fmt(x, d) { return Number(x).toFixed(d === undefined ? 4 : d); }
 
+  /* Step-implied rounding (float32 spinbutton artifacts, e.g. 0.6 showing as
+   * 0.6000000238418579): round each number input to the decimals its step
+   * implies, at calc time when the input is not focused, and on change.
+   * The focused input is never disturbed mid-typing. */
+  function stepDecimals(el) {
+    var step = el.getAttribute('step');
+    if (!step || step === 'any') return null;
+    var n = parseFloat(step);
+    if (!isFinite(n) || n <= 0) return null;
+    var dot = step.indexOf('.');
+    return dot === -1 ? 0 : step.length - dot - 1;
+  }
+  function roundStepValue(el) {
+    var d = stepDecimals(el);
+    if (d === null) return;
+    var v = parseFloat(el.value);
+    if (!isFinite(v)) return;
+    var f = Math.pow(10, d);
+    var r = Math.round(v * f) / f;
+    var s = String(r);
+    if (s !== el.value) el.value = s;
+  }
+  function normalizeInputs() {
+    var inputs = document.querySelectorAll('input[type="number"]');
+    for (var i = 0; i < inputs.length; i++) {
+      if (document.activeElement !== inputs[i]) roundStepValue(inputs[i]);
+    }
+  }
+
   function renderReceipts() {
     var list = document.getElementById('rc-list');
     if (!chain.length) { list.innerHTML = '<p class="sub">No receipts yet.</p>'; return; }
@@ -251,6 +281,7 @@ pre.json { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11
 
   /* Tool 1 */
   function runSim() {
+    normalizeInputs();
     var seed = parseInt(document.getElementById('sim-seed').value, 10);
     var target = parseInt(document.getElementById('sim-target').value, 10);
     var strength = num('sim-strength');
@@ -299,6 +330,7 @@ pre.json { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11
     document.getElementById('qcm-out').innerHTML = html;
   }
   document.getElementById('qcm-apply').addEventListener('click', function () {
+    normalizeInputs();
     var ev = [num('qcm-e0'), num('qcm-e1'), num('qcm-e2'), num('qcm-e3')];
     try {
       qcm = Q.qcmRound(qcm, ev);
@@ -319,6 +351,7 @@ pre.json { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11
 
   /* Tool 3 */
   function runHasi() {
+    normalizeInputs();
     var out = document.getElementById('h-out');
     try {
       var r = Q.hasiScore({
@@ -356,7 +389,28 @@ pre.json { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11
   document.getElementById('rc-copy').addEventListener('click', function () {
     if (!chain.length) return;
     var txt = document.getElementById('rc-json').textContent;
-    if (navigator.clipboard) navigator.clipboard.writeText(txt);
+    var status = document.getElementById('rc-copy-status');
+    function done() { status.textContent = 'Receipt JSON copied.'; }
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = txt;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); }
+      catch (e) { status.textContent = 'Copy failed. Select the receipt JSON and copy it manually.'; }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, fallback);
+    } else {
+      fallback();
+    }
+  });
+  /* Change backstop: a committed value is normalized even while focused;
+   * change fires on commit, never mid-typing. */
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t && t.tagName === 'INPUT' && t.type === 'number') roundStepValue(t);
   });
   renderReceipts();
 })();
