@@ -426,6 +426,8 @@
   scene.add(dir);
 
   var nodeMeshes = [];
+  var hubMeshes = [];
+  var ringMeshes = [];
   var group = new THREE.Group();
   scene.add(group);
   var RING_R = 11;
@@ -438,12 +440,15 @@
     hub.position.set(cx, 0, cz);
     hub.userData = {domain: dm};
     group.add(hub);
+    hubMeshes.push(hub);
     var ring = new THREE.Mesh(
       new THREE.TorusGeometry(2.6, 0.05, 8, 48),
       new THREE.MeshBasicMaterial({color: new THREE.Color(dm.color)}));
     ring.rotation.x = Math.PI / 2;
     ring.position.set(cx, 0, cz);
+    ring.userData = {domain: dm};
     group.add(ring);
+    ringMeshes.push(ring);
     var members = ENTITIES.filter(function(e){ return e.d === dm.code; });
     members.forEach(function(ent, i){
       var a = (i / members.length) * Math.PI * 2;
@@ -473,7 +478,7 @@
     pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    var hits = raycaster.intersectObjects(nodeMeshes);
+    var hits = raycaster.intersectObjects(nodeMeshes).filter(function(h){ return h.object.visible; });
     if (hits.length) selectEntity(hits[0].object.userData.entity);
   });
 
@@ -508,6 +513,12 @@
     nodeMeshes.forEach(function(m){
       m.visible = (activeDomain === "ALL" || m.userData.entity.d === activeDomain);
     });
+    hubMeshes.forEach(function(m){
+      m.visible = (activeDomain === "ALL" || m.userData.domain.code === activeDomain);
+    });
+    ringMeshes.forEach(function(m){
+      m.visible = (activeDomain === "ALL" || m.userData.domain.code === activeDomain);
+    });
   }
   controls.addEventListener("click", function(e){
     var b = e.target.closest("button[data-domain]");
@@ -520,6 +531,11 @@
   });
   document.getElementById("reset-view").addEventListener("click", function(){
     theta = 0; phi = 1.05; radius = 32;
+    activeDomain = "ALL";
+    applyFilter();
+    Array.prototype.forEach.call(controls.querySelectorAll("button"), function(x){
+      x.classList.toggle("active", x.getAttribute("data-domain") === "ALL");
+    });
   });
   var rotBtn = document.getElementById("autorotate");
   rotBtn.addEventListener("click", function(){
