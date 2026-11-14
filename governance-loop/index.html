@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Integrated Governance Loop - SIMULATION</title>
+<style>
+  body{font-family:Georgia,serif;background:#f4f1ea;color:#1a1a1a;margin:0;padding:0}
+  .banner{background:#8a1f1f;color:#fff;padding:10px 20px;font-family:monospace;font-size:14px;letter-spacing:1px}
+  .wrap{max-width:920px;margin:0 auto;padding:24px 20px 60px}
+  h1{font-size:30px;margin:8px 0 4px}
+  .sub{color:#555;font-size:15px;margin:0 0 20px}
+  h2{font-size:19px;border-bottom:2px solid #b08d3c;padding-bottom:4px;margin-top:34px}
+  h3{font-size:16px;margin:18px 0 6px}
+  p,li{font-size:15px;line-height:1.55}
+  code{font-family:monospace;background:#e8e2d4;padding:1px 5px;border-radius:3px;font-size:13px}
+  pre{background:#1a1a1a;color:#e8e2d4;padding:14px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.5}
+  button{font-family:monospace;font-size:14px;background:#1a1a1a;color:#f4f1ea;border:0;padding:10px 18px;border-radius:4px;cursor:pointer;margin:4px 6px 4px 0}
+  button:hover{background:#b08d3c;color:#1a1a1a}
+  button.preset{background:#5a4a1f}
+  .card{border:1px solid #c9c2b0;background:#fff;padding:14px 16px;border-radius:6px;margin:12px 0}
+  .promote{background:#1f6b2e;color:#fff;font-weight:bold}
+  .stop{background:#8a1f1f;color:#fff;font-weight:bold}
+  .ok{color:#1f6b2e;font-weight:bold}
+  .bad{color:#8a1f1f;font-weight:bold}
+  .warn{color:#8a6d1f;font-weight:bold}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+  th,td{border:1px solid #c9c2b0;padding:6px 8px;text-align:left}
+  th{background:#e8e2d4}
+  .mono{font-family:monospace;font-size:12px;word-break:break-all}
+  .note{font-size:13px;color:#666}
+  label{display:block;font-size:14px;margin:8px 0}
+  label span{display:block;font-size:13px;color:#555}
+  input,select{font-family:monospace;font-size:14px;padding:6px 8px;border:1px solid #c9c2b0;border-radius:4px;background:#fff;width:100%;box-sizing:border-box}
+  input[type=checkbox]{width:auto}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  fieldset{border:1px solid #c9c2b0;border-radius:6px;margin:14px 0;padding:12px 16px}
+  legend{font-weight:bold;font-size:15px;padding:0 6px}
+</style>
+</head>
+<body>
+<div class="banner">SIMULATION - REFERENCE IMPLEMENTATION - NOT THE PRODUCTION LOOP</div>
+<div class="wrap">
+<h1>Integrated Governance Loop</h1>
+<p class="sub">One claim, run through all three governance pieces in sequence: N-Cell/64 header, governance intersection, memory write-gate, CRUCIBLE gate, receipt, promotion. The loop is visible end to end.</p>
+
+<p><strong>What this is:</strong> a working reference implementation that wires together the three modules built earlier in this run: the N-Cell Organ Manifest header stamper, the memory write-gate, and the P0 seam loop (receipt watcher, Sentinel, ingest, promotion). It enforces nothing in production, routes nothing, and grants no authority.</p>
+<p><strong>What this is not:</strong> the production loop. The production loop lives on Jeramie Hicks' Mac. Nothing on this page touches it, reads from it, or claims to be it.</p>
+<p><strong>Receipt standard:</strong> receipt v1.0, SHA-256 hash chain, first prev hash is the literal string <code>GENESIS</code>, canonical JSON with the hash field stripped before hashing. FNV-1a is used nowhere. Bit meanings are the N-Cell demo placeholders and manifest mappings, never paper claims. Memory-gate thresholds are illustrative; the paper sets none.</p>
+
+<h2>1. The loop, in order</h2>
+<ol>
+  <li><strong>Step 1, header.</strong> Stamp an N-Cell/64 header, paper Section 3.3: 8 bytes, routeMask, organMask, lifecycleMask, authorityMask, memoryMask, confidence 0-255, risk 0-255, outputMask. The paper defines the layout only and sets no numeric defaults. Defaults here are the Organ Manifest demo defaults: confidence 128, every other byte 0, organMask 0x07 (SAL manifest bits 0, 1, 2).</li>
+  <li><strong>Step 2, intersection.</strong> E* = E_proposed AND E_allowed AND E_available, paper Section 3.4, computed on edge id sets. Verdicts: NO PROPOSAL (proposed empty), BLOCKED (intersection empty), PARTIAL (some proposed edges lost), PROCEED (intersection equals proposed). Defaults: propose 8, allow 6, available 5, intersection 5, PARTIAL.</li>
+  <li><strong>Step 3, memory write-gate.</strong> The claim's evidence answers the 8 gate questions (class, source, freshness, confidence, contradiction, relevance horizon, fact vs inference, immutable history vs editable current state). Illustrative rule: evidence below 3 REJECT, contradicts QUARANTINE, evidence below 6 QUARANTINE, else WRITE. The paper sets no numeric thresholds.</li>
+  <li><strong>Step 4, CRUCIBLE gate.</strong> Score = max(0, emergence - objections) x multiplier. Ladder: revenue/signed contract 1.00, paid pilot 0.50, one real lead 0.30, nothing 0.15. KILL below 20 or 3 strikes, ITERATE 20-49, SHIP-CANDIDATE at or above 50 only with a real external signal.</li>
+  <li><strong>Step 5, receipt.</strong> A receipt v1.0 is emitted recording the header, the intersection verdict, the gate verdict, and the CRUCIBLE verdict, chained from GENESIS.</li>
+  <li><strong>Step 6, promotion.</strong> Only a claim that passes all three gates AND carries a real external signal promotes. Otherwise it stops, and the blocking gate is named.</li>
+</ol>
+
+<h2>2. The claim</h2>
+<fieldset>
+  <legend>Claim</legend>
+  <label>Claim text<span>One sentence stating what is claimed.</span>
+    <input id="claimText" value="Berrien County parcel 11-09-0000-0000-00-0 is a past-due tax opportunity worth a $29 Land Intelligence Report.">
+  </label>
+</fieldset>
+
+<fieldset>
+  <legend>Step 1: N-Cell/64 header</legend>
+  <div class="grid">
+    <label>Byte 0 routeMask (hex)<input id="hRoute" value="00" maxlength="2"></label>
+    <label>Byte 1 organMask (hex, SAL bits 0-2 = 07)<input id="hOrgan" value="07" maxlength="2"></label>
+    <label>Byte 2 lifecycleMask (hex)<input id="hLifecycle" value="00" maxlength="2"></label>
+    <label>Byte 3 authorityMask (hex)<input id="hAuthority" value="00" maxlength="2"></label>
+    <label>Byte 4 memoryMask (hex)<input id="hMemory" value="00" maxlength="2"></label>
+    <label>Byte 5 confidence (0-255)<input id="hConfidence" value="128" type="number" min="0" max="255"></label>
+    <label>Byte 6 risk (0-255)<input id="hRisk" value="0" type="number" min="0" max="255"></label>
+    <label>Byte 7 outputMask (hex)<input id="hOutput" value="00" maxlength="2"></label>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Step 2: Governance intersection (edge ids, comma separated)</legend>
+  <div class="grid">
+    <label>E_proposed (default 8 edges)<input id="eProposed" value="0,1,2,3,4,5,6,7"></label>
+    <label>E_allowed (default 6 edges)<input id="eAllowed" value="0,1,2,3,4,5"></label>
+    <label>E_available (default 5 edges)<input id="eAvailable" value="0,1,2,3,4"></label>
+  </div>
+  <p class="note">Doctrine eta is a recorded check shown with the results, not a promotion gate: I_q, I_r, I_v, E_wasted, C_violations, feedback accuracy. Seed requires eta at or above 70 AND accuracy at or above 0.6.</p>
+  <div class="grid">
+    <label>I_q<input id="etaIq" value="10" type="number" min="0"></label>
+    <label>I_r<input id="etaIr" value="9" type="number" min="0"></label>
+    <label>I_v<input id="etaIv" value="8" type="number" min="0"></label>
+    <label>E_wasted<input id="etaWasted" value="0" type="number" min="0"></label>
+    <label>C_violations<input id="etaViol" value="0" type="number" min="0"></label>
+    <label>Feedback accuracy (0-1)<input id="etaAcc" value="0.8" type="number" min="0" max="1" step="0.1"></label>
+  </div>
+</fieldset>
+
+<fieldset>
+  <legend>Step 3: Memory write-gate (8 questions)</legend>
+  <div class="grid">
+    <label>1. Memory class
+      <select id="mClass">
+        <option>Working</option><option>Episodic</option><option selected>Semantic</option><option>Procedural</option>
+        <option>Negative</option><option>Strategic</option><option>Capability</option><option>Epistemic</option>
+      </select>
+    </label>
+    <label>2. Source<input id="mSource" value="county record"></label>
+    <label>3. Freshness
+      <select id="mFresh"><option>Minutes</option><option>Hours</option><option selected>Days</option><option>Weeks</option><option>Months</option><option>Years</option></select>
+    </label>
+    <label>4. Evidence / confidence (0-10)<input id="mEvidence" value="8" type="number" min="0" max="10" step="1"></label>
+    <label>5. Contradiction
+      <select id="mContra"><option selected>none</option><option>contradicts</option><option>supersedes</option></select>
+    </label>
+    <label>6. Relevance horizon<input id="mHorizon" value="90 days"></label>
+    <label>7. Fact vs inference
+      <select id="mKind"><option selected>Fact</option><option>Inference</option></select>
+    </label>
+    <label>8. Mutability
+      <select id="mMut"><option>Immutable history</option><option selected>Editable current state</option></select>
+    </label>
+  </div>
+  <p class="note">Illustrative thresholds only: the paper gives no numeric thresholds. REJECT below 3, QUARANTINE below 6, else WRITE. A contradiction quarantines at any evidence level.</p>
+</fieldset>
+
+<fieldset>
+  <legend>Step 4: CRUCIBLE gate</legend>
+  <div class="grid">
+    <label>Emergence raw (0-100)<input id="cEmergence" value="90" type="number" min="0" max="100"></label>
+    <label>Objection penalty (0-100)<input id="cObjection" value="10" type="number" min="0" max="100"></label>
+    <label>Strongest real external signal
+      <select id="cSignal">
+        <option value="contract" selected>revenue / signed contract (x1.00)</option>
+        <option value="pilot">paid pilot (x0.50)</option>
+        <option value="lead">one real lead (x0.30)</option>
+        <option value="none">nothing (x0.15)</option>
+      </select>
+    </label>
+    <label><input id="cExternal" type="checkbox" checked> Real external signal present (required for SHIP-CANDIDATE and for promotion)</label>
+  </div>
+</fieldset>
+
+<h2>3. Run it</h2>
+<p><button class="primary" id="runBtn" type="button">Run the claim through the loop</button></p>
+<p>
+  <button class="preset" id="presetPass" type="button">Preset: passing claim, real signal</button>
+  <button class="preset" id="presetFabricated" type="button">Preset: fabricated world (eta 0.0 blocked)</button>
+  <button class="preset" id="preset9456" type="button">Preset: World 94-56 x 0.15 = 5.7 KILL</button>
+  <button class="preset" id="presetPerfect" type="button">Preset: perfect world, zero signal = 15 KILL</button>
+</p>
+<div id="resultOut"><p class="note">No claim run yet. Use a preset or fill in the form and run it.</p></div>
+
+<h2>4. The receipt</h2>
+<p class="note">Each run emits one receipt v1.0 chained from GENESIS. Verify it, or tamper with a copy and watch verification fail.</p>
+<p>
+  <button id="verifyBtn" type="button">Verify the receipt</button>
+  <button id="tamperBtn" type="button">Tamper with a copy, then verify</button>
+</p>
+<div id="receiptCheck"></div>
+<pre id="receiptOut">Run a claim to see its receipt.</pre>
+
+<h2>5. Recorded cases, live in your browser</h2>
+<table>
+  <tr><th>Case</th><th>Expected</th><th>Live result</th></tr>
+  <tr><td>Fabricated world (I_q = I_r = I_v = 0)</td><td>eta 0.0, seed blocked</td><td id="c1">not run</td></tr>
+  <tr><td>(94 - 56) x 0.15</td><td>5.7, KILL</td><td id="c2">not run</td></tr>
+  <tr><td>Perfect world, zero signal (100 - 0) x 0.15</td><td>15, KILL</td><td id="c3">not run</td></tr>
+  <tr><td>Passing claim with a real signal</td><td>PROMOTE</td><td id="c4">not run</td></tr>
+  <tr><td>Passing claim, no external signal</td><td>stops, CRUCIBLE downgrades to ITERATE</td><td id="c5">not run</td></tr>
+  <tr><td>Tampered receipt</td><td>verification fails</td><td id="c6">not run</td></tr>
+</table>
+<button id="runCases" type="button">Run recorded cases</button>
+
+<h2>6. Sources and reuse</h2>
+<ul>
+  <li>Module: <code>governance-loop.js</code> (UMD, shared by Node tests and this page). Tests: <code>test.js</code> (<code>node test.js</code>, 29 checks). Notes: <code>README.md</code>.</li>
+  <li>SHA-256, canonical JSON, receipt v1.0, CRUCIBLE gate, eta gate: copied verbatim from <code>p0-seam-loop/p0-seam.js</code>.</li>
+  <li>Memory write-gate rule: copied verbatim from <code>memory-gate/lib/write-gate.js</code> (dead inference branch already removed there).</li>
+  <li>Header byte order and defaults: N-Cell Organ Manifest demo (<code>ncell-organ-manifest/demo/app.js</code>); organMask 0x07 is the SAL manifest bit mapping.</li>
+  <li>Governance intersection computation, promotion decision, and the runClaim orchestrator are new in this demo. The N-Cell demo shows the intersection formula but does not compute it.</li>
+</ul>
+<p class="note">SIMULATION. Reference implementation only. No external sends, no Stripe, no production data.</p>
+</div>
+<script src="governance-loop.js"></script>
+<script>
+(function () {
+  var G = window.GovernanceLoop;
+  function val(id) { return document.getElementById(id).value; }
+  function num(id, fallback) {
+    var n = parseFloat(val(id));
+    return isNaN(n) ? fallback : n;
+  }
+  function parseHex(id, fallback) {
+    var n = parseInt(val(id), 16);
+    return (isNaN(n) || n < 0 || n > 255) ? fallback : n;
+  }
+  function parseEdges(id) {
+    return val(id).split(',').map(function (s) { return parseInt(s.trim(), 10); }).filter(function (n) { return !isNaN(n); });
+  }
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function short(h) { return h ? h.slice(0, 16) + '...' : 'null'; }
+
+  var lastResult = null;
+
+  function readClaim() {
+    return {
+      claim: val('claimText'),
+      header: {
+        routeMask: parseHex('hRoute', 0),
+        organMask: parseHex('hOrgan', 7),
+        lifecycleMask: parseHex('hLifecycle', 0),
+        authorityMask: parseHex('hAuthority', 0),
+        memoryMask: parseHex('hMemory', 0),
+        confidence: num('hConfidence', 128),
+        risk: num('hRisk', 0),
+        outputMask: parseHex('hOutput', 0)
+      },
+      proposed: parseEdges('eProposed'),
+      allowed: parseEdges('eAllowed'),
+      available: parseEdges('eAvailable'),
+      eta: {
+        I_q: num('etaIq', 0), I_r: num('etaIr', 0), I_v: num('etaIv', 0),
+        E_wasted: num('etaWasted', 0), C_violations: num('etaViol', 0),
+        feedback_accuracy: num('etaAcc', 0)
+      },
+      memory: {
+        memoryClass: val('mClass'), source: val('mSource'), freshness: val('mFresh'),
+        evidence: num('mEvidence', 0), contradiction: val('mContra'),
+        relevanceHorizon: val('mHorizon'), kind: val('mKind'), mutability: val('mMut')
+      },
+      emergence_raw: num('cEmergence', 0),
+      objection_penalty: num('cObjection', 0),
+      signal: val('cSignal'),
+      external_signal: document.getElementById('cExternal').checked
+    };
+  }
+
+  function verdictSpan(v, good) {
+    var cls = (good.indexOf(v) !== -1) ? 'ok' : (v === 'KILL' || v === 'REJECT' || v === 'BLOCKED' || v === 'NO PROPOSAL' ? 'bad' : 'warn');
+    return '<span class="' + cls + '">' + esc(v) + '</span>';
+  }
+
+  function render(r) {
+    lastResult = r;
+    var promo = r.promotion.promote
+      ? '<div class="card promote">PROMOTE. All three gates pass with a real external signal.</div>'
+      : '<div class="card stop">STOP. Blocked at: ' + esc(r.promotion.blockingGate) + '. ' + esc(r.promotion.reason) + '.</div>';
+    var html = promo;
+    html += '<div class="card"><strong>Step 1, header.</strong> N-Cell/64: <span class="mono">' + esc(r.header.hex) + '</span><br>'
+      + 'Bytes: ' + r.header.bytes.map(function (b, i) { return esc(r.header.byteNames[i]) + ' 0x' + ('0' + b.toString(16)).slice(-2).toUpperCase(); }).join(', ') + '</div>';
+    html += '<div class="card"><strong>Step 2, intersection.</strong> E* = E_proposed AND E_allowed AND E_available.<br>'
+      + 'Proposed ' + r.intersection.counts.proposed + ', allowed ' + r.intersection.counts.allowed
+      + ', available ' + r.intersection.counts.available + ', intersection ' + r.intersection.counts.intersection
+      + ' (edges ' + esc(r.intersection.intersection.join(', ') || 'none') + ').<br>'
+      + 'Verdict: ' + verdictSpan(r.intersection.verdict, ['PROCEED']) + ' ' + esc(r.intersection.reason) + '<br>'
+      + 'Doctrine eta (recorded check, not a promotion gate): ' + r.eta.eta + ', seed allowed: ' + r.eta.seed_allowed + ' (' + esc(r.eta.reason) + ')</div>';
+    html += '<div class="card"><strong>Step 3, memory write-gate.</strong> Verdict: ' + verdictSpan(r.memoryGate.verdict, ['WRITE'])
+      + '<br>' + esc(r.memoryGate.reasons.join(' ')) + '<br><span class="note">Illustrative thresholds only: the paper sets none.</span></div>';
+    html += '<div class="card"><strong>Step 4, CRUCIBLE gate.</strong> Score ' + r.crucible.score + ' (multiplier ' + r.crucible.multiplier + '), verdict: '
+      + verdictSpan(r.crucible.verdict, ['SHIP-CANDIDATE']) + ' ' + esc(r.crucible.reason) + '</div>';
+    html += '<div class="card"><strong>Step 5, receipt.</strong> Receipt v1.0, SHA-256, prev hash GENESIS. Hash <span class="mono">' + short(r.receipt.provenance.report_hash_sha256) + '</span>. '
+      + (r.receiptValid ? '<span class="ok">Verifies.</span>' : '<span class="bad">FAILED verification.</span>') + '</div>';
+    html += '<div class="card"><strong>Step 6, promotion.</strong> ' + (r.promotion.promote
+      ? '<span class="ok">PROMOTE.</span> The claim passes the intersection, the memory gate, and CRUCIBLE, with a real external signal.'
+      : '<span class="bad">Does not promote.</span> Blocking gate: ' + esc(r.promotion.blockingGate) + '.') + '</div>';
+    document.getElementById('resultOut').innerHTML = html;
+    document.getElementById('receiptOut').textContent = JSON.stringify(r.receipt, null, 2);
+    document.getElementById('receiptCheck').innerHTML = '';
+  }
+
+  document.getElementById('runBtn').addEventListener('click', function () {
+    render(G.runClaim(readClaim()));
+  });
+
+  function set(id, value) { document.getElementById(id).value = value; }
+  function setChecked(id, value) { document.getElementById(id).checked = value; }
+
+  document.getElementById('presetPass').addEventListener('click', function () {
+    set('claimText', 'Berrien County parcel is a past-due tax opportunity worth a $29 Land Intelligence Report.');
+    set('eProposed', '0,1,2,3'); set('eAllowed', '0,1,2,3,4,5'); set('eAvailable', '0,1,2,3,4');
+    set('etaIq', '10'); set('etaIr', '9'); set('etaIv', '8'); set('etaWasted', '0'); set('etaViol', '0'); set('etaAcc', '0.8');
+    set('mEvidence', '8'); set('mContra', 'none');
+    set('cEmergence', '90'); set('cObjection', '10'); set('cSignal', 'contract'); setChecked('cExternal', true);
+    render(G.runClaim(readClaim()));
+  });
+  document.getElementById('presetFabricated').addEventListener('click', function () {
+    set('claimText', 'Fabricated world: no evidence, no signal, no external check.');
+    set('eProposed', '0,1,2,3,4,5,6,7'); set('eAllowed', '0,1,2,3,4,5'); set('eAvailable', '0,1,2,3,4');
+    set('etaIq', '0'); set('etaIr', '0'); set('etaIv', '0'); set('etaWasted', '0'); set('etaViol', '0'); set('etaAcc', '0');
+    set('mEvidence', '1'); set('mContra', 'none');
+    set('cEmergence', '0'); set('cObjection', '0'); set('cSignal', 'none'); setChecked('cExternal', false);
+    render(G.runClaim(readClaim()));
+  });
+  document.getElementById('preset9456').addEventListener('click', function () {
+    set('claimText', 'World 94-56: strong emergence, heavy objections, no signal.');
+    set('eProposed', '0,1,2,3'); set('eAllowed', '0,1,2,3,4,5'); set('eAvailable', '0,1,2,3,4');
+    set('mEvidence', '8'); set('mContra', 'none');
+    set('cEmergence', '94'); set('cObjection', '56'); set('cSignal', 'none'); setChecked('cExternal', false);
+    render(G.runClaim(readClaim()));
+  });
+  document.getElementById('presetPerfect').addEventListener('click', function () {
+    set('claimText', 'Perfect world, zero signal: flawless emergence, nothing behind it.');
+    set('eProposed', '0,1,2,3'); set('eAllowed', '0,1,2,3,4,5'); set('eAvailable', '0,1,2,3,4');
+    set('mEvidence', '8'); set('mContra', 'none');
+    set('cEmergence', '100'); set('cObjection', '0'); set('cSignal', 'none'); setChecked('cExternal', false);
+    render(G.runClaim(readClaim()));
+  });
+
+  document.getElementById('verifyBtn').addEventListener('click', function () {
+    if (!lastResult) { document.getElementById('receiptCheck').innerHTML = '<p class="bad">Run a claim first.</p>'; return; }
+    var v = G.verifyReceipt(lastResult.receipt);
+    document.getElementById('receiptCheck').innerHTML = v.ok
+      ? '<p><span class="ok">Receipt verifies.</span> Hash recomputes to the stored hash.</p>'
+      : '<p><span class="bad">Receipt FAILED verification:</span> ' + esc(v.error) + '</p>';
+  });
+  document.getElementById('tamperBtn').addEventListener('click', function () {
+    if (!lastResult) { document.getElementById('receiptCheck').innerHTML = '<p class="bad">Run a claim first.</p>'; return; }
+    var copy = JSON.parse(JSON.stringify(lastResult.receipt));
+    copy.payload.crucible.verdict = 'SHIP-CANDIDATE';
+    var v = G.verifyReceipt(copy);
+    document.getElementById('receiptCheck').innerHTML = v.ok
+      ? '<p><span class="bad">ERROR: tampered receipt verified. That must never happen.</span></p>'
+      : '<p><span class="ok">Tampered copy correctly FAILS verification:</span> ' + esc(v.error) + '</p>';
+  });
+  document.getElementById('runCases').addEventListener('click', function () {
+    var g = G.etaGate({ I_q: 0, I_r: 0, I_v: 0, E_wasted: 0, C_violations: 0, feedback_accuracy: 0 });
+    document.getElementById('c1').textContent = 'eta ' + g.eta + ', seed_allowed ' + g.seed_allowed + (g.eta === 0 && !g.seed_allowed ? ' PASS' : ' FAIL');
+    var v2 = G.crucibleVerdict({ emergence_raw: 94, objection_penalty: 56, signal: 'none' });
+    document.getElementById('c2').textContent = 'score ' + v2.score + ', ' + v2.verdict + (v2.score === 5.7 && v2.verdict === 'KILL' ? ' PASS' : ' FAIL');
+    var v3 = G.crucibleVerdict({ emergence_raw: 100, objection_penalty: 0, signal: 'none' });
+    document.getElementById('c3').textContent = 'score ' + v3.score + ', ' + v3.verdict + (v3.score === 15 && v3.verdict === 'KILL' ? ' PASS' : ' FAIL');
+    var passClaim = {
+      claim: 'passing claim', proposed: [0, 1, 2, 3], allowed: [0, 1, 2, 3, 4, 5], available: [0, 1, 2, 3, 4],
+      memory: { memoryClass: 'Semantic', source: 'county record', freshness: 'Days', evidence: 8, contradiction: 'none', relevanceHorizon: '90 days', kind: 'Fact', mutability: 'Editable current state' },
+      emergence_raw: 90, objection_penalty: 10, signal: 'contract', external_signal: true
+    };
+    var r4 = G.runClaim(passClaim);
+    document.getElementById('c4').textContent = 'promote ' + r4.promotion.promote + (r4.promotion.promote ? ' PASS' : ' FAIL');
+    var noSignal = JSON.parse(JSON.stringify(passClaim));
+    noSignal.external_signal = false;
+    var r5 = G.runClaim(noSignal);
+    document.getElementById('c5').textContent = 'promote ' + r5.promotion.promote + ', CRUCIBLE ' + r5.crucible.verdict + (!r5.promotion.promote && r5.crucible.verdict === 'ITERATE' ? ' PASS' : ' FAIL');
+    var tampered = JSON.parse(JSON.stringify(r4.receipt));
+    tampered.payload.crucible.verdict = 'SHIP-CANDIDATE';
+    var v6 = G.verifyReceipt(tampered);
+    document.getElementById('c6').textContent = 'verify ok ' + v6.ok + (!v6.ok ? ' PASS' : ' FAIL');
+  });
+})();
+</script>
+</body>
+</html>
