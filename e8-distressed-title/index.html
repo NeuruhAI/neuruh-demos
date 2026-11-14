@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Distressed Title Underwriting Engine E8 v1.0: lien stack in priority order, probate risk, tax risk, cure cost, dealability score, and closing structure, with gates, kill-switch, and a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="Distressed Title Underwriting Engine E8 - Neuruh">
+<meta property="og:description" content="Evidence-first distressed title underwriting: lien stack, probate risk, tax risk, cure cost, dealability score, and assignment vs double close, with gates, kill-switch, and a SHA-256 receipt chain. SIMULATION.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>Distressed Title Underwriting Engine E8 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace;text-align:right}
+.big{font-size:22px}
+.big b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+.tag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass);padding:1px 4px;white-space:nowrap}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.scroll{overflow-x:auto}
+.formula{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px}
+.working{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px;white-space:pre-wrap}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:150px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+footer a{color:var(--brass)}
+figure{margin:14px 0;border:1px solid var(--line);background:var(--paper);padding:12px}
+figure svg{max-width:100%;height:auto;display:block}
+figure figcaption{font-size:12px;color:var(--muted);margin-top:8px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:760px){.grid,.grid2,.meta{grid-template-columns:1fr}header.doc h1{font-size:24px}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}
+#summarySection{border:2px solid #000}
+}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.pass-box{background:#e6efe6;border:1px solid var(--green);padding:10px 12px;font-weight:700;margin-top:12px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E8</div>
+<h1>Distressed Title Underwriting Engine</h1>
+<p>Tax, probate, estate, heir, lien, and code deals where title is the deal. Lien stack in priority order, probate risk, tax risk, cure cost, dealability score, and closing structure (assignment vs double close).</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine 8 of 12 - SIMULATION</b></div>
+<div>Lineage<b>2026-11-04 E8 build + Residential v1.1 gates + E1 land gates + E13 Risk / Kill-Switch</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not a title commitment, not legal advice, not tax advice. Public-data and seller-provided underwriting only. Verify every lien, tax balance, probate status, and heir with the county recorder, the tax collector, the probate court, and a title company or probate attorney before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: clean title</button>
+<button id="btnSampleB" type="button">Sample B: probate, double close</button>
+<button id="btnSampleC" type="button">Sample C: PASS</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<div class="scroll"><table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (lien stack, probate and tax risk, cure cost, equity, dealability score, closing structure)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e8.js, run 2026-11-14. Sample A hand-computed expectations match: total liens $97,000.00, gross equity $83,000.00, cure $1,000.00, net equity $57,000.00, cure ratio 1.20%, dealability score 100, structure assignment. Sample B: total liens $78,500.00, gross equity $71,500.00, cure $11,600.00, net equity $29,900.00, cure ratio 16.22%, score 65, structure double close. Sample C: total liens $127,500.00, gross equity -$7,500.00, cure $14,000.00, net equity -$56,500.00, score 0, recommendation PASS, all three AUTO kills fire.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e8.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge verified">VERIFIED</span></td><td>HTTP 200 at neuruhai.github.io/neuruh-demos/e8-distressed-title/, live MD5 matches staged file. See build report.</td></tr>
+<tr><td>Market data (values, lien amounts, payoff figures, probate timelines)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every value, lien amount, payoff, and timeline is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E8 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E8 specification document was found in the vault. The subject (Distressed Title) and its mechanics come from the 2026-11-04 E8 build, itself live at e8-distressed-title.pages.dev. See section 14 for the gap. Kill conditions and risk flags are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests are the verification for this build. See build report.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change the 1st mortgage amount in the lien stack in section 03.</li>
+<li><b>Step 3:</b> Watch Total Liens, Gross Equity, and the Dealability Score move in the sticky panel at the top and in sections 03, 06, and 07, then issue a receipt in section 12 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">Gross equity (MODELED ESTIMATE)</span><b id="stickyEquity">N/A</b></div>
+<div><span class="sr-label">Cure cost (MODELED ESTIMATE)</span><b id="stickyCure">N/A</b></div>
+<div><span class="sr-label">Dealability score</span><b id="stickyScore">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div style="font-size:12px;color:var(--muted);margin-top:4px" id="missingHints">Missing for a GO: address, parcel, estimated value, lien stack marked complete with every lien sourced and verified, probate status, tax status, cure cost, repairs.</div></div>
+</div>
+
+<section class="card" id="s1">
+<h2><span>02</span>Subject property and value</h2>
+<p class="sub">Address / parcel gate. Confirm the parcel from at least 2 public sources before any lien is used. Value is the estimated as-is value from comps or a stated source, never an invented number. If value is unverified, equity is N/A.</p>
+<div class="grid">
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcelId">Parcel ID</label><input id="parcelId" type="text" placeholder="Parcel ID"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="value">Estimated as-is value ($) <span class="tag">MODELED ESTIMATE</span></label><input id="value" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="valueSource">Value source</label><input id="valueSource" type="text" placeholder="Example: 3 sold comps, county assessor, or N/A"></div>
+<div><label for="ownerName">Record owner name (as recorded)</label><input id="ownerName" type="text" placeholder="Owner name from county record, or N/A"></div>
+<div><label for="ownerStatus">Owner status</label><select id="ownerStatus"><option value="">Select</option><option>Living owner, sole</option><option>Living owners, joint</option><option>Deceased owner, estate</option><option>Deceased owner, no estate opened</option><option>Unknown</option></select></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+<div><label for="parcelSourceNames">Parcel source names</label><input id="parcelSourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+</div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>03</span>Lien stack in priority order</h2>
+<p class="sub">Priority order is the order liens are paid at closing, senior first. Property taxes are normally senior to a mortgage. A lien with no amount or no source is not a complete lien, and an incomplete stack kills the deal. Every row needs a lien type, an amount, a source, and a verified flag. Rows are reordered by the Priority number you enter.</p>
+<figure>
+<svg width="100%" height="150" viewBox="0 0 900 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Lien stack priority diagram">
+<rect x="10" y="10" width="880" height="28" fill="#9a7b2d"/><text x="20" y="29" fill="#fffdf6" font-size="13" font-family="monospace">1. PROPERTY TAXES (senior, paid first)</text>
+<rect x="10" y="42" width="880" height="28" fill="#e8ddba"/><text x="20" y="61" fill="#1d1a16" font-size="13" font-family="monospace">2. 1ST MORTGAGE / DEED OF TRUST</text>
+<rect x="10" y="74" width="880" height="28" fill="#f6f1e6" stroke="#d8cfb8"/><text x="20" y="93" fill="#1d1a16" font-size="13" font-family="monospace">3. 2ND MORTGAGE / HELOC / MECHANIC'S LIEN</text>
+<rect x="10" y="106" width="880" height="28" fill="#fffdf6" stroke="#d8cfb8"/><text x="20" y="125" fill="#1d1a16" font-size="13" font-family="monospace">4. HOA / JUDGMENT / IRS / OTHER JUNIOR LIENS (paid last, in recorded order)</text>
+</svg>
+<figcaption>Figure 1. Lien priority order. Senior liens are paid before junior liens at closing. If the stack does not cover the sale price, junior liens are short and the deal cannot close without a payoff agreement or a cure. Priority is a legal question for the title company, not a guess in this tool.</figcaption>
+</figure>
+<table>
+<thead><tr><th>Priority</th><th>Lien type</th><th>Holder / creditor</th><th>Amount ($)</th><th>Source reference</th><th>Verified?</th><th>Notes</th></tr></thead>
+<tbody id="lienBody"></tbody>
+</table>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+<button id="btnAddLien" type="button">Add lien row</button>
+<label style="display:inline-flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)"><input type="checkbox" id="lienStackComplete" style="width:18px;height:18px"> Lien stack is complete: every lien against this parcel is listed above, confirmed by title search or county record</label>
+</div>
+<div class="result" id="lienBox">
+<div class="row"><span>Total lien stack <span class="tag">MODELED ESTIMATE</span></span><b id="totalLiens">N/A</b></div>
+<div class="row"><span>Senior liens (priority 1 and 2) <span class="tag">MODELED ESTIMATE</span></span><b id="seniorLiens">N/A</b></div>
+<div class="row"><span>Junior liens (priority 3 and higher) <span class="tag">MODELED ESTIMATE</span></span><b id="juniorLiens">N/A</b></div>
+<div class="row"><span>Liens with amount</span><b id="lienCount">0</b></div>
+<div class="row"><span>Liens unverified</span><b id="lienUnverified">0</b></div>
+<div class="row"><span>Liens missing amount or source</span><b id="lienIncomplete">0</b></div>
+</div>
+<div class="working" id="workLiens">Lien math: total lien stack is the sum of every lien row with an amount above 0. Senior liens are priority 1 and 2. Junior liens are priority 3 and higher, or no priority entered.</div>
+<div class="warning" id="lienWarning" hidden>Warning: the lien stack is marked incomplete, or a lien row is missing an amount or a source. The run is KILL until the stack is complete.</div>
+</section>
+
+<section class="card" id="s3">
+<h2><span>04</span>Probate risk</h2>
+<p class="sub">Probate risk is about who can legally sign. An heir who cannot sign, or a missing heir, is a title defect, not a negotiation point. Heir complexity with no probate counsel path is a kill condition.</p>
+<div class="grid">
+<div><label for="probateStatus">Probate status</label><select id="probateStatus"><option value="">Select</option><option value="none">No probate needed, living owner(s)</option><option value="open_pr">Probate open, personal representative appointed</option><option value="not_opened_counsel">Not opened, known heirs, probate counsel engaged</option><option value="not_opened_no_counsel">Not opened, known heirs, no probate counsel</option><option value="dispute_counsel">Heir dispute or unknown heirs, probate counsel engaged</option><option value="dispute_no_counsel">Heir dispute or unknown heirs, no probate counsel</option></select></div>
+<div><label for="heirCount">Known heirs (count)</label><input id="heirCount" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="heirsConsent">Heirs who have consented in writing (count)</label><input id="heirsConsent" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="probateCourt">Probate court / case number</label><input id="probateCourt" type="text" placeholder="Court and case number, or N/A"></div>
+<div><label for="probateCounsel">Probate counsel name</label><input id="probateCounsel" type="text" placeholder="Attorney name, or N/A"></div>
+<div><label for="probateTimeline">Probate timeline to clear title (months)</label><input id="probateTimeline" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+</div>
+<div class="result">
+<div class="row"><span>Probate risk level</span><b id="probateLevel">N/A</b></div>
+<div class="row"><span>Heir consent</span><b id="heirConsentOut">N/A</b></div>
+<div class="row"><span>Probate counsel path</span><b id="probateCounselOut">N/A</b></div>
+</div>
+<div class="warning" id="probateWarning" hidden></div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>05</span>Tax risk</h2>
+<p class="sub">Tax risk is about whether the county can sell the parcel out from under the deal. Delinquent taxes are normally senior to everything else. A tax sale date, or a redemption deadline, is a hard calendar fact, not a soft risk.</p>
+<div class="grid">
+<div><label for="taxStatus">Tax status</label><select id="taxStatus"><option value="">Select</option><option value="current">Current, paid</option><option value="delinq_1">Delinquent, 1 year</option><option value="delinq_2">Delinquent, 2 or more years / tax sale pending</option><option value="unknown">Unknown</option></select></div>
+<div><label for="taxOwed">Taxes owed, including penalties and interest ($) <span class="tag">MODELED ESTIMATE</span></label><input id="taxOwed" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="taxSource">Tax source</label><input id="taxSource" type="text" placeholder="Example: County treasurer, or N/A"></div>
+<div><label for="taxSaleDate">Tax sale date, if scheduled</label><input id="taxSaleDate" type="date"></div>
+<div><label for="redemptionDeadline">Redemption deadline, if any</label><input id="redemptionDeadline" type="date"></div>
+<div><label for="redemptionCost">Redemption cost to stop the sale ($) <span class="tag">MODELED ESTIMATE</span></label><input id="redemptionCost" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+</div>
+<div class="result">
+<div class="row"><span>Tax risk level</span><b id="taxLevel">N/A</b></div>
+<div class="row"><span>Taxes owed <span class="tag">MODELED ESTIMATE</span></span><b id="taxOwedOut">N/A</b></div>
+</div>
+<div class="warning" id="taxWarning" hidden></div>
+</section>
+
+<section class="card" id="s5">
+<h2><span>06</span>Cure cost and equity</h2>
+<p class="sub">Cure cost is what it takes to make title insurable and the deal closable. Every cure line needs an amount or N/A with the missing source named. Cure cost above equity kills the deal.</p>
+<div class="formula">Gross Equity = Estimated Value - Total Lien Stack<br>Net Equity = Estimated Value - Total Lien Stack - Cure Cost - Repairs - Assignment Buffer ($10,000)<br>Cure Ratio = Cure Cost / Gross Equity (only when Gross Equity is positive)</div>
+<table>
+<thead><tr><th>Cure item</th><th>Amount ($)</th><th>Source / note</th></tr></thead>
+<tbody id="cureBody"></tbody>
+</table>
+<div style="margin-top:10px"><button id="btnAddCure" type="button">Add cure row</button></div>
+<div class="grid" style="margin-top:12px">
+<div><label for="repairs">Estimated repairs ($) <span class="tag">MODELED ESTIMATE</span></label><input id="repairs" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="assignBuffer">Assignment buffer ($, default 10,000)</label><input id="assignBuffer" type="number" min="0" step="1" value="10000"></div>
+<div><label for="repairsKnown">Repairs known?</label><select id="repairsKnown"><option value="">Select</option><option value="yes">Yes, scoped</option><option value="no">No, unknown</option></select></div>
+</div>
+<div class="result">
+<div class="row"><span>Estimated value <span class="tag">MODELED ESTIMATE</span></span><b id="outValue">N/A</b></div>
+<div class="row"><span>Total lien stack <span class="tag">MODELED ESTIMATE</span></span><b id="outLiens">N/A</b></div>
+<div class="row big"><span>Gross equity <span class="tag">MODELED ESTIMATE</span></span><b id="outEquity">N/A</b></div>
+<div class="row"><span>Cure cost (total) <span class="tag">MODELED ESTIMATE</span></span><b id="outCure">N/A</b></div>
+<div class="row"><span>Cure ratio (cure / gross equity)</span><b id="outCureRatio">N/A</b></div>
+<div class="row"><span>Repairs <span class="tag">MODELED ESTIMATE</span></span><b id="outRepairs">N/A</b></div>
+<div class="row"><span>Assignment buffer <span class="tag">MODELED ESTIMATE</span></span><b id="outBuffer">N/A</b></div>
+<div class="row big"><span>Net equity after cure, repairs, buffer <span class="tag">MODELED ESTIMATE</span></span><b id="outNetEquity">N/A</b></div>
+</div>
+<div class="working" id="workEquity">Equity math: gross equity = estimated value - total lien stack. Net equity = gross equity - cure cost - repairs - assignment buffer. Cure ratio = cure cost / gross equity, only when gross equity is positive. Net equity stays N/A until a cure total and a repairs figure are both entered.</div>
+<div class="warning" id="cureWarning" hidden></div>
+</section>
+
+<section class="card" id="s6">
+<h2><span>07</span>Dealability score (0 to 100)</h2>
+<p class="sub">Deterministic rubric. Start at 100 and subtract the deductions below. The score is a screening number, not a value opinion. A high score never overrides a kill condition.</p>
+<figure>
+<svg width="100%" height="90" viewBox="0 0 900 90" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dealability score bands">
+<rect x="10" y="10" width="280" height="34" fill="#8a2f24"/><text x="20" y="32" fill="#fffdf6" font-size="13" font-family="monospace">0-39 PASS / not dealable</text>
+<rect x="296" y="10" width="280" height="34" fill="#e8ddba"/><text x="306" y="32" fill="#1d1a16" font-size="13" font-family="monospace">40-69 Conditional, double close</text>
+<rect x="582" y="10" width="308" height="34" fill="#2e5e3a"/><text x="592" y="32" fill="#fffdf6" font-size="13" font-family="monospace">70-100 Dealable, assignment possible</text>
+<text x="10" y="70" fill="#6b6257" font-size="12" font-family="monospace">Score bands are a screen only. Any kill condition in section 10 means PASS regardless of score.</text>
+</svg>
+<figcaption>Figure 2. Dealability score bands. The band guides the closing structure in section 08. It never overrides a kill.</figcaption>
+</figure>
+<table>
+<thead><tr><th>Deduction</th><th>Points</th><th>Applied</th></tr></thead>
+<tbody id="scoreBody"></tbody>
+</table>
+<div class="result">
+<div class="row big"><span>Dealability score</span><b id="outScore">N/A</b></div>
+<div class="row"><span>Score band</span><b id="outBand">N/A</b></div>
+</div>
+<div class="working" id="workScore">Score math: start at 100 and subtract each deduction in the table above, then clamp to 0 to 100.</div>
+<div class="grid2 checklist" style="margin-top:12px">
+<div class="item"><input type="checkbox" id="flagCloud"><label for="flagCloud">Cloud on title (unreleased lien, bad deed, boundary dispute)</label></div>
+<div class="item"><input type="checkbox" id="flagLisPendens"><label for="flagLisPendens">Lis pendens or pending litigation</label></div>
+<div class="item"><input type="checkbox" id="flagCode"><label for="flagCode">Code violations or municipal fines outstanding</label></div>
+<div class="item"><input type="checkbox" id="flagQuietTitle"><label for="flagQuietTitle">Quiet title action needed</label></div>
+<div class="item"><input type="checkbox" id="flagIrs"><label for="flagIrs">Federal tax lien (IRS) in the stack</label></div>
+<div class="item"><input type="checkbox" id="flagBankruptcy"><label for="flagBankruptcy">Owner in bankruptcy, or bankruptcy in the chain</label></div>
+</div>
+<div style="margin-top:12px"><label for="titleNotes">Title notes (source each item, or write N/A)</label><textarea id="titleNotes" placeholder="Title search date and source, commitment status, exceptions noted, or N/A"></textarea></div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>08</span>Closing structure: assignment vs double close</h2>
+<p class="sub">The structure follows the title facts, not the fee. Assignment is only recommended when title is clearable, no probate is pending, cure cost is small, and the score is 70 or higher. Everything else that is still dealable goes double close, so the title company clears title on the first leg.</p>
+<div class="formula">Assignment if ALL of: dealability score 70 or higher, no kill fired, probate status is none or open with PR appointed, cure cost $5,000 or less, net equity positive.<br>Double close if ANY of: score below 70, probate not opened or heir consent incomplete, quiet title needed, cure cost above $5,000, title company requires it, or assignment fee disclosure risk is flagged.<br>PASS if ANY kill fired. No structure is recommended on a PASS.</div>
+<div class="grid">
+<div><label for="assignFee">Assignment fee, if assigned ($) <span class="tag">MODELED ESTIMATE</span></label><input id="assignFee" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="titleCompanyRequires">Title company requires double close?</label><select id="titleCompanyRequires"><option value="">Select</option><option value="no">No</option><option value="yes">Yes</option><option value="unknown">Unknown</option></select></div>
+<div><label for="feeDisclosureRisk">Assignment fee disclosure risk?</label><select id="feeDisclosureRisk"><option value="">Select</option><option value="no">No</option><option value="yes">Yes, fee is large or seller is sensitive</option></select></div>
+</div>
+<div class="result">
+<div class="row big"><span>Recommended structure</span><b id="outStructure">N/A</b></div>
+<div class="row"><span>Structure reasons</span><span id="outStructureReasons">Fill in sections 03 to 07.</span></div>
+<div class="row"><span>Assignment fee <span class="tag">MODELED ESTIMATE</span></span><b id="outAssignFee">N/A</b></div>
+<div class="row"><span>Net equity after cure, repairs, buffer <span class="tag">MODELED ESTIMATE</span></span><b id="outNetEquity2">N/A</b></div>
+</div>
+<div class="working" id="workStructure">Structure reasons are listed above. Assignment needs every condition at once; any single miss means double close.</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>09</span>Gates - fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass. A kill in section 10 overrides a HOLD and means PASS.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div class="hint" id="missingHints">Missing for a GO: address, parcel, estimated value, lien stack marked complete with every lien sourced and verified, probate status, tax status, cure cost, repairs.</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span>10</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. List the kill conditions that fired, the risk flags, and the explicit PASS recommendation if any fired. A PASS is a successful run, not a failed one.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill conditions fired (E8 contract)</span><b id="killFired">None</b></div>
+<div class="row"><span>Kill conditions fired (automatic)</span><b id="killAuto">None</b></div>
+<div class="row"><span>Risk flags</span><b id="riskFlags">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="recommendation">HOLD</b></div>
+</div>
+<div id="decisionBox" style="margin-top:12px"></div>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>11</span>One-page summary - print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above.</p>
+<div class="result">
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Estimated value <span class="tag">MODELED ESTIMATE</span></span><b id="sumValue">N/A</b></div>
+<div class="row"><span>Total lien stack <span class="tag">MODELED ESTIMATE</span></span><b id="sumLiens">N/A</b></div>
+<div class="row"><span>Gross equity <span class="tag">MODELED ESTIMATE</span></span><b id="sumEquity">N/A</b></div>
+<div class="row"><span>Cure cost <span class="tag">MODELED ESTIMATE</span></span><b id="sumCure">N/A</b></div>
+<div class="row"><span>Net equity <span class="tag">MODELED ESTIMATE</span></span><b id="sumNet">N/A</b></div>
+<div class="row"><span>Dealability score</span><b id="sumScore">N/A</b></div>
+<div class="row"><span>Closing structure</span><b id="sumStructure">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+</section>
+
+<section class="card" id="s10">
+<h2><span>12</span>Receipt and receipt chain</h2>
+<p class="sub">Generated from the inputs above. Matches the distressed-title-receipt v1.0 schema fields. Offer authorized is always false in this tool. The receipt is evidence, not an offer. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e8-distressed-title-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<div class="toolbar no-print" style="position:static;border-bottom:0">
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+</div>
+<div id="chainStatus" class="hint" style="margin-top:12px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>13</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the parcel from at least 2 public sources, list every lien in priority order with an amount and a source, grade probate and tax risk, price every cure line, then let the tool compute total liens, gross equity, cure cost, cure ratio, net equity, and the dealability score from the stated rubric. The closing structure follows the title facts: assignment only when title is clearable, no probate is pending, cure cost is $5,000 or less, and the score is 70 or higher. A share link encodes the whole deal in the URL so someone else can open the same numbers.</p>
+<p><b>What this is not:</b> not an appraisal, not a title commitment, not legal or tax advice, and not a replacement for a title search, a probate attorney, a tax collector payoff, or a licensed professional. It does not invent liens, prices, heirs, or payoff amounts. If a field cannot be verified, it stays N/A. A high dealability score does not mean a deal is good, and a PASS does not mean a property is bad. It means the title evidence in this run does not support proceeding. No offer is quoted without Jeramie.</p>
+<p><b>Sources read for this build:</b> (1) Distressed Title Underwriting Engine E8 v1.0, 2026-11-04, local file ~/workspace/e8-distressed-title-site/index.html (963 lines, 68,746 bytes, MD5 594f410b520897339b3d7bbe2dfd8b7f), live at https://e8-distressed-title.pages.dev/ (HTTP 200, byte-identical to the local file). Subject, inputs, outputs, gates, kill conditions, risk flags, and all three samples are carried from it. (2) E7 Mobile Home Park Underwriting Engine v1.0, 2026-11-14, local files ~/workspace/e7-mobile-home-park/ (index.html, e7.js, tests/test-e7.js), live at https://neuruhai.github.io/neuruh-demos/e7-mobile-home-park/. Pattern followed: SIMULATION banner, status board, MODELED ESTIMATE labels, SHA-256 receipt chain, Node test suite. (3) Vault note ~/workspace/neuruh-obsidian-vault/02-Real-Estate-Land/UnderwriteX.md, line 52: "Underwriting engines Residential v1.1 and E1 Land and Zoning Unlock v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending." (4) Hub, 2026-11-14, https://neuruh-hub.pages.dev/: section A lists E8 Distressed Title at e8-distressed-title.pages.dev, added 2026-11-04. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. See the gaps list below.</p>
+<p><b>Related engines:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> (ARV and MAO for the same property once title is clearable) | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> (for vacant land title deals) | <a href="https://neuruhai.github.io/neuruh-demos/e7-mobile-home-park/">E7 Mobile Home Park (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e5-commercial/">E5 Commercial (GitHub Pages)</a>. Use the Residential engine for ARV and MAO on the purchase side once title is clearable, and E7 when the deal is really a park deal.</p>
+<p><b>Builder defaults, labeled as the builder's defaults, editable, never market facts:</b> assignment buffer $10,000 (carried from the 2026-11-04 build, where it is the stated default in the section 06 formula). No other defaults are baked in: value, lien amounts, tax owed, cure amounts, and repairs are all entered by the user, and a blank field is N/A or zero as stated on the page, never a hidden market assumption. The receipt chain design (SHA-256, GENESIS first, canonical JSON with sorted keys and the hash field stripped, Web Crypto Verify in the browser) is the builder's addition: the 2026-11-04 E8 receipt had no hash chain. The working-lines blocks in sections 03, 06, 07, and 08 are also the builder's addition. Two defects in the 2026-11-04 page script were fixed in this build, not carried: sample switching left stale lien rows behind, and the kill-list dedup could never match. See section 14.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>14</span>Honest gaps and limits</h2>
+<p class="sub">What this tool does not do, stated plainly.</p>
+<ul>
+<li>It does not pull live county records, title searches, tax payoffs, or probate dockets; every fact is entered by hand and must be checked at its source.</li>
+<li>Lien priority is a legal determination that varies by jurisdiction and recording order; this tool orders rows by the priority number you enter and does not verify priority itself.</li>
+<li>IRS lien payoff amounts, redemption figures, and probate timelines change with the county and the case; enter the figures the county or the attorney gives you, or leave them N/A.</li>
+<li>The dealability score is a screening rubric built for this engine, not a market standard.</li>
+<li>No E8 specification document was found in the vault. Greps for E8 as a whole word and for "Distressed Title" across the vault returned zero hits outside unrelated files. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault; the only "Codex V2" mentions in the vault are a recipe count line and a recovery ledger title, neither an E8 spec. What would ground E8 further: the Codex V2 Appendix B document, or a written E8 spec from Jeramie stating the subject and mechanics.</li>
+<li>FIXED in this build, defect 1 (2026-11-04 script): loading a sample did not rebuild the lien and cure rows. Sample C adds a fifth lien row (HOA, $3,500); loading Sample A or Sample B afterward kept that row, so total liens read $100,500 instead of $97,000 for Sample A and $82,000 instead of $78,500 for Sample B, corrupting equity and score. This build rebuilds the rows at the start of every sample load. The 2026-11-04 build and its local file were not touched.</li>
+<li>FIXED in this build, defect 2 (2026-11-04 script): the combined kill list dedup compared short automatic labels ("Lien stack incomplete") against long manual labels ("Lien stack incomplete (E8 kill condition 1)") with indexOf, which never matches, so a kill fired both ways appeared twice in kill_conditions_fired. This build drops an automatic entry when a manual label starts with it. The manual and automatic lists are still shown separately on the page.</li>
+<li>Carried quirk, not fixed: on a blank page the dealability score reads 100 / 100, because no deduction applies with no inputs. The recommendation is still HOLD until the gates and required fields are filled. This is the 2026-11-04 behavior carried verbatim.</li>
+<li>Carried behavior: net equity stays N/A until a cure total and a repairs figure are both entered, even when the cure total would be zero. A blank cure table is not the same as a zero cure cost in this engine.</li>
+<li>Layout was not eyeballed in a real browser. Math was tested in Node with hand-computed values plus a jsdom DOM smoke test. See the build report.</li>
+<li>All sample deals are synthetic and labeled as such.</li>
+</ul>
+</section>
+
+<footer>
+<p>Distressed Title Underwriting Engine E8 v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Not a title commitment. Public-data underwriting only. No offer without Jeramie. Offer authorized is always false. This file works offline except for the e8.js module it loads from the same directory. Print this page for the file copy. Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a>.</p>
+</footer>
+
+</div>
+
+<script src="e8.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var v=parseFloat($(id).value);return isFinite(v)?v:null;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function money0(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+Math.round(v).toLocaleString("en-US");}
+function pct2(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return (v*100).toFixed(2)+"%";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function safeAlert(m){try{alert(m);}catch(e){}}
+function setTxt(id,t){var e=$(id);if(e){e.textContent=t;}}
+
+var runId="E8-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: exact address and parcel confirmed against at least 2 public sources"},
+ {id:"source",label:"Source gate: every lien, tax balance, probate fact, and cure line carries a source reference"},
+ {id:"no_hallucination",label:"No-hallucination gate: unverified fields are N/A, nothing invented, no invented payoff amounts"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no offer without Jeramie; offer authorized is false"},
+ {id:"title",label:"Title gate: lien stack confirmed by title search or county record, or the stack is marked incomplete and the run is KILL"},
+ {id:"probate",label:"Probate gate: who can sign is established, or the run is HOLD until counsel confirms it"}
+];
+var kills=[
+ {id:"k_lien_incomplete",label:"Lien stack incomplete (E8 kill condition 1)"},
+ {id:"k_heir_no_counsel",label:"Heir complexity with no probate counsel path (E8 kill condition 2)"},
+ {id:"k_cure_gt_equity",label:"Cure cost greater than equity (E8 kill condition 3)"},
+ {id:"k_uninsurable",label:"Title uninsurable with no quiet-title budget"},
+ {id:"k_wont_sign",label:"Seller or heir will not sign, or a required signer cannot be located"}
+];
+var FLAGS=[
+ {id:"flagCloud",label:"Cloud on title"},
+ {id:"flagLisPendens",label:"Lis pendens or pending litigation"},
+ {id:"flagCode",label:"Code violations or municipal fines"},
+ {id:"flagQuietTitle",label:"Quiet title action needed"},
+ {id:"flagIrs",label:"Federal tax lien (IRS) in the stack"},
+ {id:"flagBankruptcy",label:"Owner in bankruptcy, or bankruptcy in the chain"}
+];
+var CURE_DEFAULTS=["Payoff processing fees","Recording fees","Probate filing fees","Quiet title action"];
+
+function buildGates(){
+ var html="";
+ gates.forEach(function(g){
+  html+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ $("gateList").innerHTML=html;
+ var kh="";
+ kills.forEach(function(k){
+  kh+='<div class="item"><input type="checkbox" id="'+k.id+'" data-kill="'+k.id+'"><label for="'+k.id+'">'+esc(k.label)+'</label></div>';
+ });
+ $("killList").innerHTML=kh;
+}
+buildGates();
+
+var lienIndex=0;
+function lienRow(c){
+ lienIndex++;
+ var tr=document.createElement("tr");
+ tr.setAttribute("data-lien",lienIndex);
+ function opt(v,t,sel){return '<option value="'+v+'"'+(sel===v?" selected":"")+'>'+t+'</option>';}
+ var typeOpts=["Property taxes","1st mortgage","2nd mortgage / HELOC","Mechanic's lien","HOA lien","Judgment lien","IRS federal tax lien","State tax lien","Code / municipal fine","Other"].map(function(t){return opt(t,t,c&&c.type);}).join("");
+ tr.innerHTML=
+  '<td><input type="number" aria-label="Lien priority" data-f="priority" min="1" step="1" value="'+(c&&c.priority?c.priority:"")+'" placeholder="1"></td>'+
+  '<td><select aria-label="Lien type" data-f="type"><option value="">Select</option>'+typeOpts+'</select></td>'+
+  '<td><input type="text" aria-label="Lien holder" data-f="holder" value="'+esc(c&&c.holder||"")+'" placeholder="Holder"></td>'+
+  '<td><input type="number" aria-label="Lien amount in dollars" data-f="amount" min="0" step="1" value="'+(c&&c.amount!=null?c.amount:"")+'" placeholder="0"></td>'+
+  '<td><input type="text" aria-label="Lien source reference" data-f="source" value="'+esc(c&&c.source||"")+'" placeholder="Source reference"></td>'+
+  '<td style="text-align:center"><input type="checkbox" aria-label="Lien verified" data-f="verified" '+(c&&c.verified?"checked":"")+'></td>'+
+  '<td><input type="text" aria-label="Lien notes" data-f="notes" value="'+esc(c&&c.notes||"")+'" placeholder="Notes"></td>';
+ return tr;
+}
+function addLien(c){$("lienBody").appendChild(lienRow(c||{}));}
+var cureIndex=0;
+function cureRow(c){
+ cureIndex++;
+ var tr=document.createElement("tr");
+ tr.setAttribute("data-cure",cureIndex);
+ tr.innerHTML=
+  '<td><input type="text" aria-label="Cure item" data-f="item" value="'+esc(c&&c.item||"")+'" placeholder="Cure item"></td>'+
+  '<td><input type="number" aria-label="Cure amount in dollars" data-f="amount" min="0" step="1" value="'+(c&&c.amount!=null?c.amount:"")+'" placeholder="0"></td>'+
+  '<td><input type="text" aria-label="Cure source or note" data-f="source" value="'+esc(c&&c.source||"")+'" placeholder="Source or note"></td>';
+ return tr;
+}
+function addCure(c){$("cureBody").appendChild(cureRow(c||{}));}
+/* FIX (builder, 2026-11-14): the 2026-11-04 loadSample never rebuilt
+   the lien and cure rows, so Sample C's fifth lien row survived into
+   Samples A and B and inflated their totals. Every sample load and
+   every clear now starts from fresh rows. */
+function resetRows(){
+ $("lienBody").innerHTML="";lienIndex=0;
+ addLien({});addLien({});addLien({});addLien({});
+ $("cureBody").innerHTML="";cureIndex=0;
+ CURE_DEFAULTS.forEach(function(item){addCure({item:item});});
+}
+resetRows();
+
+function getLiens(){
+ var out=[];
+ document.querySelectorAll("#lienBody tr").forEach(function(tr){
+  function v(f){var e=tr.querySelector('[data-f="'+f+'"]');return e?e.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  var amount=n("amount"), priority=n("priority");
+  var hasData=v("type")!==""||v("holder").trim()!==""||amount!==null||v("source").trim()!==""||v("notes").trim()!=="";
+  var verified=tr.querySelector('[data-f="verified"]').checked;
+  out.push({priority:priority,type:v("type"),holder:v("holder"),amount:amount,source:v("source"),verified:verified,notes:v("notes"),hasData:hasData});
+ });
+ return out;
+}
+function getCures(){
+ var out=[];
+ document.querySelectorAll("#cureBody tr").forEach(function(tr){
+  function v(f){var e=tr.querySelector('[data-f="'+f+'"]');return e?e.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  var amount=n("amount");
+  out.push({item:v("item"),amount:amount,source:v("source")});
+ });
+ return out;
+}
+
+var lastReceipt=null;
+
+function calc(){
+ var value=num("value");
+ var liens=getLiens();
+ var stack=E8.lienStack(liens,$("lienStackComplete").checked);
+ var totalLiens=stack.total, hasLiens=stack.hasLiens;
+ var senior=stack.senior, junior=stack.junior;
+ var unverified=stack.unverified, incompleteRows=stack.incompleteRows;
+ var stackComplete=$("lienStackComplete").checked;
+ var stackIncomplete=stack.stackIncomplete;
+ setTxt("totalLiens",hasLiens?money(totalLiens):"N/A");
+ setTxt("seniorLiens",hasLiens?money(senior):"N/A");
+ setTxt("juniorLiens",hasLiens?money(junior):"N/A");
+ setTxt("lienCount",String(stack.withAmountCount));
+ setTxt("lienUnverified",String(unverified));
+ setTxt("lienIncomplete",String(incompleteRows));
+ $("lienWarning").hidden=!(hasLiens&&stackIncomplete);
+ if(hasLiens&&stackIncomplete){$("lienWarning").textContent="Warning: the lien stack is marked incomplete, or a lien row is missing an amount or a source. The run is KILL until the stack is complete.";}
+ setTxt("workLiens",hasLiens?("Total lien stack = "+stack.liensWithAmount.map(function(l){return E8.fmt2(l.amount);}).join(" + ")+" = "+E8.fmt2(totalLiens)+"\nSenior (priority 1 and 2) = "+E8.fmt2(senior)+"\nJunior (priority 3 and higher) = "+E8.fmt2(junior)):"Lien math: total lien stack is the sum of every lien row with an amount above 0. Senior liens are priority 1 and 2. Junior liens are priority 3 and higher, or no priority entered.");
+
+ var probateKey=$("probateStatus").value;
+ var heirCount=num("heirCount"), heirsConsent=num("heirsConsent");
+ var prob=E8.probateRisk(probateKey,heirCount,heirsConsent);
+ setTxt("probateLevel",prob.level?prob.level+" risk":"N/A");
+ setTxt("heirConsentOut",prob.heirConsentOut);
+ setTxt("probateCounselOut",prob.counselOut);
+ var heirKill=prob.heirKill;
+ $("probateWarning").hidden=!heirKill;
+ if(heirKill){$("probateWarning").textContent="KILL: heir complexity with no probate counsel path. No probate counsel path means no one can establish who can sign. Get probate counsel before proceeding.";}
+
+ var taxKey=$("taxStatus").value;
+ var taxOwed=num("taxOwed");
+ var tax=E8.taxRisk(taxKey,taxOwed);
+ setTxt("taxLevel",tax.level?tax.level+" risk":"N/A");
+ setTxt("taxOwedOut",money(taxOwed));
+ $("taxWarning").hidden=!tax.warning;
+ if(tax.warning){$("taxWarning").textContent=tax.warning;}
+
+ var cures=getCures();
+ var eq=E8.cureEquity({value:value,totalLiens:totalLiens,hasLiens:hasLiens,cures:cures,repairs:num("repairs"),buffer:num("assignBuffer")});
+ var cureTotal=eq.cureTotal, hasCure=eq.hasCure;
+ var repairs=eq.repairs, buffer=eq.buffer;
+ var grossEquity=eq.grossEquity, netEquity=eq.netEquity, cureRatio=eq.cureRatio;
+ setTxt("outValue",money(value));
+ setTxt("outLiens",hasLiens?money(totalLiens):"N/A");
+ setTxt("outEquity",money(grossEquity));
+ setTxt("outCure",hasCure?money(cureTotal):"N/A");
+ setTxt("outCureRatio",cureRatio===null?"N/A":pct2(cureRatio));
+ setTxt("outRepairs",money(repairs));
+ setTxt("outBuffer",money(buffer));
+ setTxt("outNetEquity",money(netEquity));
+ var cureKill=eq.cureKill;
+ $("cureWarning").hidden=!cureKill;
+ if(cureKill){$("cureWarning").textContent="KILL: cure cost "+money(cureTotal)+" is greater than gross equity "+money(grossEquity)+". The cure eats the deal. PASS.";}
+ setTxt("workEquity",(grossEquity===null&&!hasCure)?"Equity math: gross equity = estimated value - total lien stack. Net equity = gross equity - cure cost - repairs - assignment buffer. Cure ratio = cure cost / gross equity, only when gross equity is positive. Net equity stays N/A until a cure total and a repairs figure are both entered.":("Gross equity = "+E8.fmt2(value)+" - "+E8.fmt2(totalLiens)+" = "+E8.fmt2(grossEquity)+"\nCure cost = "+eq.cureRowsWithAmount.map(function(c){return E8.fmt2(c.amount);}).join(" + ")+" = "+E8.fmt2(cureTotal)+"\nNet equity = "+E8.fmt2(grossEquity)+" - "+E8.fmt2(cureTotal)+" - "+E8.fmt2(repairs)+" - "+E8.fmt2(buffer)+" = "+E8.fmt2(netEquity)+"\nCure ratio = "+E8.fmt2(cureTotal)+" / "+E8.fmt2(grossEquity)+" = "+pct2(cureRatio)));
+
+ var flagCount=0;
+ FLAGS.forEach(function(f){if($(f.id).checked){flagCount++;}});
+ var sc=E8.dealabilityScore({stackIncomplete:stackIncomplete,hasLiens:hasLiens,unverified:unverified,probateLabel:prob.label,probateDeduction:prob.deduction,taxLabel:tax.label,taxDeduction:tax.deduction,grossEquity:grossEquity,hasCure:hasCure,cureRatio:cureRatio,flagCount:flagCount,repairsKnown:$("repairsKnown").value});
+ var deductions=sc.deductions, score=sc.score, band=sc.band;
+ var sb="";
+ deductions.forEach(function(d){sb+="<tr><td>"+esc(d.label)+"</td><td>-"+d.points+"</td><td>Applied</td></tr>";});
+ if(!deductions.length){sb="<tr><td>No deductions</td><td>0</td><td>None applied</td></tr>";}
+ $("scoreBody").innerHTML=sb;
+ setTxt("outScore",String(score)+" / 100");
+ setTxt("outBand",band);
+ setTxt("workScore",deductions.length?("Score = 100"+deductions.map(function(d){return " - "+d.points+" ("+d.label+")";}).join("")+" = "+score+" / 100 ("+band+")"):"No deductions: score 100 / 100 (70-100 Dealable). A high score never overrides a kill condition.");
+
+ var gateValues={};
+ gates.forEach(function(g){var el=document.querySelector('[data-gate="'+g.id+'"]');gateValues[g.id]=el?el.value:"hold";});
+ var gateEval=E8.evaluateGates(gateValues);
+ var gatesOk=gateEval.ok;
+ setTxt("gateStatus",gatesOk?"GO - all gates pass":("HOLD - "+gateEval.failed.length+" gate(s) failed or held"));
+ $("gateStatus").className=gatesOk?"ok":"hold";
+ setTxt("gatesPassed",gateEval.passed.length?gateEval.passed.join(", "):"None");
+ setTxt("gatesFailed",gateEval.failed.length?gateEval.failed.join(", "):"None");
+
+ var manualKills=[];
+ kills.forEach(function(k){if($(k.id).checked){manualKills.push(k.label);}});
+ var autoKills=[];
+ if(hasLiens&&stackIncomplete){autoKills.push("Lien stack incomplete");}
+ if(heirKill){autoKills.push("Heir complexity with no probate counsel path");}
+ if(cureKill){autoKills.push("Cure cost greater than equity");}
+ var killEval=E8.evaluateKills({manualKills:manualKills,autoKills:autoKills});
+ var allKills=killEval.all;
+ var killActive=killEval.killActive;
+ setTxt("killFired",manualKills.length?manualKills.join("; "):"None");
+ setTxt("killAuto",autoKills.length?autoKills.join("; "):"None");
+ var checkedFlagLabels=[];
+ FLAGS.forEach(function(f){if($(f.id).checked){checkedFlagLabels.push(f.label);}});
+ var riskFlagList=E8.riskFlags({checkedFlags:checkedFlagLabels,probateLevel:prob.level,taxLevel:tax.level,cureRatio:cureRatio,grossEquity:grossEquity});
+ setTxt("riskFlags",riskFlagList.length?riskFlagList.join("; "):"None");
+
+ var struct=E8.closingStructure({killActive:killActive,score:score,probateKey:probateKey,probateLabel:prob.label,hasCure:hasCure,cureTotal:cureTotal,netEquity:netEquity,titleCompanyRequires:$("titleCompanyRequires").value,feeDisclosureRisk:$("feeDisclosureRisk").value});
+ var structure=struct.structure, structureReasons=struct.reasons;
+ setTxt("outStructure",structure);
+ setTxt("outStructureReasons",structureReasons.length?structureReasons.join(" "):"Fill in sections 03 to 07.");
+ var assignFee=num("assignFee");
+ setTxt("outAssignFee",money(assignFee));
+ setTxt("outNetEquity2",money(netEquity));
+ setTxt("workStructure",structureReasons.join("\n"));
+
+ var status=E8.recommendation({killActive:killActive,gatesFailedCount:gateEval.failed.length,value:value,hasLiens:hasLiens,stackComplete:stackComplete,probateKey:probateKey,taxKey:taxKey,hasCure:hasCure,repairs:repairs});
+ setTxt("recommendation",status+(killActive?" (PASS recommended)":""));
+ var decision="";
+ if(killActive){
+  decision='<div class="warning">Recommendation: PASS. Kill condition fired: '+esc(allKills.join("; ")) +'. A PASS is a successful run, not a failed one. No offer without Jeramie.</div>';
+ }else if(status==="HOLD"){
+  decision='<div class="hint">Status: HOLD. Gates, value, lien stack, probate, tax, cure, or repairs are incomplete. The numbers below are held numbers only, not a usable offer basis. No offer without Jeramie.</div>';
+ }else{
+  decision='<div class="pass-box">Status: READY FOR REVIEW. All gates pass and no kill fired. This is still an underwriting opinion only, not an offer. No offer without Jeramie.</div>';
+ }
+ $("decisionBox").innerHTML=decision;
+
+ var comp=E8.completeness([
+  ["Street address",!!$("address").value.trim()],
+  ["Parcel ID",!!$("parcelId").value.trim()],
+  ["Estimated value",value!==null],
+  ["Lien stack complete with at least 1 lien",stackComplete&&hasLiens],
+  ["Probate status",probateKey!==""],
+  ["Tax status",taxKey!==""],
+  ["Cure cost entered",hasCure],
+  ["Repairs entered",$("repairsKnown").value!==""&&repairs!==null]
+ ]);
+ $("stickyCompleteBar").style.width=comp.pct+"%";
+ setTxt("stickyCompleteText",comp.pct+" percent");
+ setTxt("missingHints",comp.missing.length?"Missing for a GO: "+comp.missing.join(", ")+".":"All required fields are filled.");
+ setTxt("stickyEquity",money(grossEquity));
+ setTxt("stickyCure",hasCure?money(cureTotal):"N/A");
+ setTxt("stickyScore",String(score)+" / 100");
+ setTxt("stickyRec",status);
+
+ setTxt("sumAddress",$("address").value.trim()||"N/A");
+ setTxt("sumParcel",$("parcelId").value.trim()||"N/A");
+ setTxt("sumValue",money(value));
+ setTxt("sumLiens",hasLiens?money(totalLiens):"N/A");
+ setTxt("sumEquity",money(grossEquity));
+ setTxt("sumCure",hasCure?money(cureTotal):"N/A");
+ setTxt("sumNet",money(netEquity));
+ setTxt("sumScore",String(score)+" / 100 ("+band+")");
+ setTxt("sumStructure",structure);
+ var conf=parseFloat($("confidence").value);if(isNaN(conf)){conf=null;}
+ setTxt("sumConfidence",conf===null?"N/A":conf.toFixed(2));
+ setTxt("sumGates",gatesOk?"GO - all gates pass":"HOLD");
+ setTxt("sumRec",status);
+
+ var receipt={
+  schema_version:"distressed-title-receipt.v1.0",
+  run_id:runId,
+  run_date:new Date().toISOString().slice(0,10),
+  address:$("address").value.trim()||null,
+  parcel_id:$("parcelId").value.trim()||null,
+  county:$("county").value.trim()||null,
+  owner_status:$("ownerStatus").value||null,
+  estimated_value:value,
+  value_source:$("valueSource").value.trim()||null,
+  lien_stack:{complete:stackComplete,total_liens:hasLiens?totalLiens:null,senior_liens:hasLiens?senior:null,junior_liens:hasLiens?junior:null,unverified_count:unverified,incomplete_rows:incompleteRows,liens:stack.liensWithAmount},
+  probate:{status:probateKey||null,risk_level:prob.level,known_heirs:heirCount,heirs_consented:heirsConsent,counsel_path:prob.counselPath,court_case:$("probateCourt").value.trim()||null,counsel:$("probateCounsel").value.trim()||null,timeline_months:num("probateTimeline")},
+  tax:{status:taxKey||null,risk_level:tax.level,taxes_owed:taxOwed,tax_source:$("taxSource").value.trim()||null,tax_sale_date:$("taxSaleDate").value||null,redemption_deadline:$("redemptionDeadline").value||null,redemption_cost:num("redemptionCost")},
+  cure:{total:hasCure?cureTotal:null,items:eq.cureRowsWithAmount},
+  equity:{gross:grossEquity,repairs:repairs,assignment_buffer:buffer,net:netEquity,cure_ratio:cureRatio},
+  dealability_score:score,
+  score_band:band,
+  score_deductions:deductions,
+  title_flags:riskFlagList,
+  closing_structure:structure,
+  structure_reasons:structureReasons,
+  assignment_fee:assignFee,
+  gates_passed:gateEval.passed,
+  gates_failed:gateEval.failed,
+  kill_conditions_fired:allKills,
+  kill_conditions_manual:manualKills,
+  kill_conditions_automatic:autoKills,
+  risk_flags:riskFlagList,
+  recommendation:status,
+  confidence:conf,
+  offer_authorized:false,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value
+ };
+ lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ updateHash();
+ return receipt;
+}
+
+function setVal(id,v){$(id).value=v;}
+function setLienRow(i,priority,type,holder,amount,source,verified,notes){
+ var tr=document.querySelectorAll("#lienBody tr")[i];if(!tr)return;
+ function q(f){return tr.querySelector('[data-f="'+f+'"]');}
+ q("priority").value=priority;q("type").value=type;q("holder").value=holder;q("amount").value=amount;q("source").value=source;q("verified").checked=!!verified;q("notes").value=notes||"";
+}
+function setCureRow(i,item,amount,source){
+ var tr=document.querySelectorAll("#cureBody tr")[i];if(!tr)return;
+ function q(f){return tr.querySelector('[data-f="'+f+'"]');}
+ q("item").value=item;q("amount").value=amount;q("source").value=source||"";
+}
+function resetAll(){
+ gates.forEach(function(g){$("gate_"+g.id).value="hold";});
+ kills.forEach(function(k){$(k.id).checked=false;});
+ FLAGS.forEach(function(f){$(f.id).checked=false;});
+ $("lienStackComplete").checked=false;
+ $("sampleNote").hidden=true;
+ resetRows();
+}
+function loadSample(kind){
+ kind=kind||"a";
+ resetAll();
+ if(kind==="b"){
+  setVal("address","456 Estate Rd, St. Joseph, MI 49085");
+  setVal("parcelId","SAMPLE-E8-B");setVal("county","Berrien County, MI");
+  setVal("value","150000");setVal("valueSource","3 sold comps, county assessor");
+  setVal("ownerName","Estate of Robert Sample (deceased)");setVal("ownerStatus","Deceased owner, estate");
+  setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setLienRow(0,1,"Property taxes","Berrien County Treasurer",6500,"County treasurer payoff 2026-11-01",true,"");
+  setLienRow(1,2,"1st mortgage","Sample Mortgage Servicer",68000,"Mortgage servicer payoff letter",true,"");
+  setLienRow(2,3,"Judgment lien","Sample Creditor LLC",4000,"County recorder search",true,"");
+  setLienRow(3,"","","","","",false,"");
+  $("lienStackComplete").checked=true;
+  setVal("probateStatus","not_opened_counsel");setVal("heirCount","3");setVal("heirsConsent","1");
+  setVal("probateCourt","Berrien County Probate Court, case N/A");setVal("probateCounsel","Sample Probate Attorney");setVal("probateTimeline","4");
+  setVal("taxStatus","delinq_1");setVal("taxOwed","6500");setVal("taxSource","County treasurer");
+  setVal("taxSaleDate","");setVal("redemptionDeadline","");setVal("redemptionCost","");
+  setCureRow(0,"Probate filing fees",3500,"Probate court fee schedule");
+  setCureRow(1,"Probate attorney",5000,"Attorney estimate");
+  setCureRow(2,"Quiet title action",2500,"Attorney estimate");
+  setCureRow(3,"Payoff processing fees",600,"Servicer payoff letter");
+  setVal("repairs","20000");setVal("assignBuffer","10000");setVal("repairsKnown","yes");
+  $("flagQuietTitle").checked=true;
+  setVal("assignFee","");setVal("titleCompanyRequires","unknown");setVal("feeDisclosureRisk","no");
+  gates.forEach(function(g){$("gate_"+g.id).value="pass";});
+  setVal("confidence","0.65");
+  setVal("assumptions","Sample deal only, not a real deal. Probate sample. 1. Value 150000 from sold comps. 2. Total liens 78500. 3. Cure 11600. 4. Repairs 20000. Expected math: gross equity 71500, net equity 29900, cure ratio 16.22 percent, dealability score 65, structure double close.");
+  $("sampleNote").hidden=false;
+  $("sampleNote").innerHTML="<b>Sample B loaded.</b> This is a sample, not a real deal. Probate deal with counsel engaged. Expected: total liens $78,500.00, gross equity $71,500.00, cure $11,600.00, net equity $29,900.00, dealability score 65, structure double close.";
+ }else if(kind==="c"){
+  setVal("address","789 Distressed Ln, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-E8-C");setVal("county","Berrien County, MI");
+  setVal("value","120000");setVal("valueSource","3 sold comps, county assessor");
+  setVal("ownerName","Estate of Mary Sample (deceased)");setVal("ownerStatus","Deceased owner, no estate opened");
+  setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setLienRow(0,1,"Property taxes","Berrien County Treasurer",9000,"County treasurer payoff 2026-11-01",true,"");
+  setLienRow(1,2,"1st mortgage","Sample Mortgage Servicer",85000,"Mortgage servicer payoff letter",true,"");
+  setLienRow(2,3,"IRS federal tax lien","IRS",18000,"County recorder search",false,"Amount unverified, payoff not requested");
+  setLienRow(3,4,"Judgment lien","Sample Creditor LLC",12000,"",true,"No source recorded");
+  addLien({});setLienRow(4,5,"HOA lien","Sample HOA",3500,"HOA ledger",true,"");
+  $("lienStackComplete").checked=false;
+  setVal("probateStatus","dispute_no_counsel");setVal("heirCount","5");setVal("heirsConsent","1");
+  setVal("probateCourt","N/A");setVal("probateCounsel","N/A");setVal("probateTimeline","");
+  setVal("taxStatus","delinq_2");setVal("taxOwed","9000");setVal("taxSource","County treasurer");
+  setVal("taxSaleDate","2026-12-15");setVal("redemptionDeadline","2026-12-01");setVal("redemptionCost","9500");
+  setCureRow(0,"Quiet title action",6000,"Attorney estimate");
+  setCureRow(1,"Probate attorney",5000,"Attorney estimate");
+  setCureRow(2,"Payoff and recording fees",2000,"Servicer payoff letter");
+  setCureRow(3,"Tax redemption",1000,"County treasurer");
+  setVal("repairs","25000");setVal("assignBuffer","10000");setVal("repairsKnown","yes");
+  $("flagQuietTitle").checked=true;$("flagLisPendens").checked=true;$("flagIrs").checked=true;
+  setVal("assignFee","");setVal("titleCompanyRequires","unknown");setVal("feeDisclosureRisk","no");
+  gates.forEach(function(g){$("gate_"+g.id).value="pass";});
+  $("gate_source").value="fail";
+  setVal("confidence","0.40");
+  setVal("assumptions","Sample deal only, not a real deal. PASS sample. 1. Total liens 127500 exceed value 120000, gross equity negative 7500. 2. Cure 14000 exceeds equity. 3. Heir dispute with no probate counsel. 4. Lien stack incomplete. Expected result: recommendation PASS, dealability score 0.");
+  $("sampleNote").hidden=false;
+  $("sampleNote").innerHTML="<b>Sample C loaded.</b> This is a sample, not a real deal. PASS sample: liens exceed value, cure exceeds equity, heir dispute with no counsel, incomplete lien stack. Expected: gross equity -$7,500.00, net equity -$56,500.00, dealability score 0, recommendation PASS.";
+ }else{
+  setVal("address","123 Clear Title St, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-E8-A");setVal("county","Berrien County, MI");
+  setVal("value","180000");setVal("valueSource","3 sold comps, county assessor");
+  setVal("ownerName","Jane A. Sample (living)");setVal("ownerStatus","Living owner, sole");
+  setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setLienRow(0,1,"Property taxes","Berrien County Treasurer",3800,"County treasurer payoff 2026-11-01",true,"");
+  setLienRow(1,2,"1st mortgage","Sample Mortgage Servicer",92000,"Mortgage servicer payoff letter",true,"");
+  setLienRow(2,3,"HOA lien","Sample HOA",1200,"HOA ledger",true,"");
+  setLienRow(3,"","","","","",false,"");
+  $("lienStackComplete").checked=true;
+  setVal("probateStatus","none");setVal("heirCount","");setVal("heirsConsent","");
+  setVal("probateCourt","N/A");setVal("probateCounsel","N/A");setVal("probateTimeline","");
+  setVal("taxStatus","current");setVal("taxOwed","3800");setVal("taxSource","County treasurer");
+  setVal("taxSaleDate","");setVal("redemptionDeadline","");setVal("redemptionCost","");
+  setCureRow(0,"Payoff processing fees",750,"Servicer payoff letter");
+  setCureRow(1,"Recording fees",250,"County recorder fee schedule");
+  setCureRow(2,"Probate filing fees","","N/A");
+  setCureRow(3,"Quiet title action","","N/A");
+  setVal("repairs","15000");setVal("assignBuffer","10000");setVal("repairsKnown","yes");
+  setVal("assignFee","10000");setVal("titleCompanyRequires","no");setVal("feeDisclosureRisk","no");
+  gates.forEach(function(g){$("gate_"+g.id).value="pass";});
+  setVal("confidence","0.85");
+  setVal("assumptions","Sample deal only, not a real deal. Clean title sample. 1. Value 180000 from sold comps. 2. Total liens 97000. 3. Cure 1000. 4. Repairs 15000. Expected math: gross equity 83000, net equity 57000, cure ratio 1.20 percent, dealability score 100, structure assignment.");
+  $("sampleNote").hidden=false;
+  $("sampleNote").innerHTML="<b>Sample A loaded.</b> This is a sample, not a real deal. Clean title sample. Expected: total liens $97,000.00, gross equity $83,000.00, cure $1,000.00, net equity $57,000.00, dealability score 100, structure assignment.";
+ }
+ calc();
+}
+
+function gatherState(){
+ var liens=[],cures=[];
+ document.querySelectorAll("#lienBody tr").forEach(function(tr){
+  function v(f){var e=tr.querySelector('[data-f="'+f+'"]');return e?e.value:"";}
+  liens.push({priority:v("priority"),type:v("type"),holder:v("holder"),amount:v("amount"),source:v("source"),verified:tr.querySelector('[data-f="verified"]').checked,notes:v("notes")});
+ });
+ document.querySelectorAll("#cureBody tr").forEach(function(tr){
+  function v(f){var e=tr.querySelector('[data-f="'+f+'"]');return e?e.value:"";}
+  cures.push({item:v("item"),amount:v("amount"),source:v("source")});
+ });
+ var state={};
+ var ids=["address","parcelId","county","value","valueSource","ownerName","ownerStatus","parcelSources","parcelSourceNames","probateStatus","heirCount","heirsConsent","probateCourt","probateCounsel","probateTimeline","taxStatus","taxOwed","taxSource","taxSaleDate","redemptionDeadline","redemptionCost","repairs","assignBuffer","repairsKnown","assignFee","titleCompanyRequires","feeDisclosureRisk","confidence","assumptions","missingData","conflicts","titleNotes"];
+ ids.forEach(function(id){state[id]=$(id).value;});
+ state.lienStackComplete=$("lienStackComplete").checked;
+ state.liens=liens;state.cures=cures;
+ state.flags={};FLAGS.forEach(function(f){state.flags[f.id]=$(f.id).checked;});
+ state.gates={};gates.forEach(function(g){state.gates[g.id]=$("gate_"+g.id).value;});
+ state.kills={};kills.forEach(function(k){state.kills[k.id]=$(k.id).checked;});
+ return state;
+}
+function applyState(s){
+ if(!s||typeof s!=="object"){return;}
+ var ids=["address","parcelId","county","value","valueSource","ownerName","ownerStatus","parcelSources","parcelSourceNames","probateStatus","heirCount","heirsConsent","probateCourt","probateCounsel","probateTimeline","taxStatus","taxOwed","taxSource","taxSaleDate","redemptionDeadline","redemptionCost","repairs","assignBuffer","repairsKnown","assignFee","titleCompanyRequires","feeDisclosureRisk","confidence","assumptions","missingData","conflicts","titleNotes"];
+ ids.forEach(function(id){if(s[id]!==undefined&&$(id)){$(id).value=s[id];}});
+ if(s.lienStackComplete!==undefined){$("lienStackComplete").checked=!!s.lienStackComplete;}
+ if(Array.isArray(s.liens)){
+  $("lienBody").innerHTML="";lienIndex=0;
+  s.liens.forEach(function(l){addLien(l);});
+ }
+ if(Array.isArray(s.cures)){
+  $("cureBody").innerHTML="";cureIndex=0;
+  s.cures.forEach(function(c){addCure(c);});
+ }
+ if(s.flags){FLAGS.forEach(function(f){if(s.flags[f.id]!==undefined){$(f.id).checked=!!s.flags[f.id];}});}
+ if(s.gates){gates.forEach(function(g){if(s.gates[g.id]!==undefined){$("gate_"+g.id).value=s.gates[g.id];}});}
+ if(s.kills){kills.forEach(function(k){if(s.kills[k.id]!==undefined){$(k.id).checked=!!s.kills[k.id];}});}
+}
+function encodeState(){
+ try{return btoa(unescape(encodeURIComponent(JSON.stringify(gatherState()))));}catch(e){return "";}
+}
+function decodeState(hash){
+ try{return JSON.parse(decodeURIComponent(escape(atob(hash))));}catch(e){return null;}
+}
+var hashTimer=null;
+function updateHash(){
+ if(hashTimer){clearTimeout(hashTimer);}
+ hashTimer=setTimeout(function(){
+  try{
+   var h=encodeState();
+   if(h){history.replaceState(null,"","#d="+h);}
+  }catch(e){}
+ },300);
+}
+function restoreFromHash(){
+ if(window.location.hash&&window.location.hash.indexOf("#d=")===0){
+  var s=decodeState(window.location.hash.slice(3));
+  if(s){applyState(s);}
+ }
+}
+
+function clearAll(){
+ document.querySelectorAll("input,select,textarea").forEach(function(e){
+  if(e.type==="checkbox"){e.checked=false;}
+  else if(e.type==="number"||e.type==="text"||e.type==="date"||e.tagName==="TEXTAREA"){e.value="";}
+  else if(e.tagName==="SELECT"){e.selectedIndex=0;}
+ });
+ $("assignBuffer").value="10000";$("confidence").value="0.50";
+ resetRows();
+ buildGates();
+ $("sampleNote").hidden=true;
+ try{history.replaceState(null,""," ");}catch(e){}
+ calc();
+}
+function copyText(t,msg){
+ function done(){safeAlert(msg);}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,function(){fallback();});}
+ else{fallback();}
+ function fallback(){
+  var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");}catch(e){}
+  document.body.removeChild(ta);done();
+ }
+}
+function copyShareLink(){
+ var url=window.location.href.split("#")[0]+"#d="+encodeState();
+ $("shareUrl").value=url;
+ copyText(url,"Share link copied. It encodes this deal in the URL hash. Nothing was uploaded.");
+}
+function copyReceipt(){copyText($("receiptOut").textContent,"Receipt JSON copied.");}
+function downloadReceipt(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e8-distressed-title-receipt.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+/* Receipt chain v1.0: SHA-256, GENESIS first, canonical JSON with the
+   hash field stripped, Verify via Web Crypto with PASS/FAIL per receipt. */
+var chain=[];
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!lastReceipt||!lastReceipt.run_id){safeAlert("No receipt to issue yet.");return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E8.buildReceipt(lastReceipt,prev,seq);
+ sha256HexBrowser(E8.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){safeAlert("Could not hash receipt: "+e.message);});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E8.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e8-distressed-title-chain.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+$("btnAddLien").addEventListener("click",function(){addLien({});calc();});
+$("btnAddCure").addEventListener("click",function(){addCure({});calc();});
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnShare").addEventListener("click",copyShareLink);
+$("btnClearShare").addEventListener("click",function(){$("shareUrl").value="";try{history.replaceState(null,""," ");}catch(e){}});
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",copyReceipt);
+$("btnDownloadReceipt").addEventListener("click",downloadReceipt);
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnPrint").addEventListener("click",function(){window.print();});
+document.addEventListener("input",calc);
+document.addEventListener("change",calc);
+window.loadSampleA=function(){loadSample("a");};
+window.loadSampleB=function(){loadSample("b");};
+window.loadSampleC=function(){loadSample("c");};
+window.clearAll=clearAll;
+window.calc=calc;
+window.issueReceipt=issueReceipt;
+window.verifyChain=verifyChain;
+window.getChain=function(){return chain;};
+window.getLastReceipt=function(){return lastReceipt;};
+restoreFromHash();
+calc();
+renderChain();
+})();
+</script>
+</body>
+</html>
