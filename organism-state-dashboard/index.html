@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Organism State Dashboard | Neuruh</title>
+<style>
+  :root { --bone:#f4f1ea; --paper:#fdfcf8; --ink:#1a1712; --muted:#6b6455; --brass:#a67c2e; --line:#d8d2c2; --red:#9b2c1e; --green:#2e6b34; --amber:#8a6d1a; --grey:#5c5c5c; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:"Inter","Helvetica Neue",Arial,sans-serif; font-size:15px; line-height:1.5; }
+  .sheet { max-width:1180px; margin:0 auto; padding:32px 28px 64px; background:var(--paper); border-left:1px solid var(--line); border-right:1px solid var(--line); }
+  .dochead { border-bottom:3px solid var(--ink); padding-bottom:14px; margin-bottom:8px; }
+  .dochead .kicker { font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--brass); }
+  h1 { font-family:Georgia,"Times New Roman",serif; font-size:34px; line-height:1.15; margin:8px 0 6px; }
+  .lede { font-size:16px; color:#33302a; max-width:900px; }
+  .meta { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:18px 0 8px; font-size:13px; }
+  .meta div { border:1px solid var(--line); padding:10px 12px; background:var(--bone); }
+  .meta b { display:block; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:3px; }
+  .counts { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 22px; }
+  .count { border:1px solid var(--line); padding:6px 12px; font-size:13px; background:var(--bone); }
+  .count b { font-size:18px; margin-right:4px; }
+  h2 { font-family:Georgia,serif; font-size:20px; margin:28px 0 8px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th { text-align:left; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); border-bottom:2px solid var(--ink); padding:8px 8px; vertical-align:bottom; }
+  td { border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; }
+  tr:hover td { background:#faf7ef; }
+  .sys { font-weight:700; }
+  .sys small { display:block; font-weight:400; color:var(--muted); font-size:12px; }
+  .pill { display:inline-block; font-family:"JetBrains Mono",ui-monospace,monospace; font-size:11px; font-weight:700; letter-spacing:.06em; padding:3px 8px; border-radius:2px; white-space:nowrap; }
+  .st-live { background:#e2efdd; color:var(--green); border:1px solid #9dbf95; }
+  .st-down { background:#f7e3df; color:var(--red); border:1px solid #d8a89e; }
+  .st-sim { background:#fdf3d7; color:var(--amber); border:1px solid #d9c27a; }
+  .st-designed { background:#e8e6f2; color:#4a3f7a; border:1px solid #b6aede; }
+  .st-paused { background:#ececec; color:var(--grey); border:1px solid #bdbdbd; }
+  .st-running { background:#ddeef5; color:#1f5a73; border:1px solid #9cc4d4; }
+  .st-failing { background:#f7e3df; color:var(--red); border:1px solid #d8a89e; }
+  .st-built { background:#e2efdd; color:var(--green); border:1px solid #9dbf95; }
+  .st-disc { background:#ececec; color:var(--grey); border:1px solid #bdbdbd; }
+  .tier { font-family:"JetBrains Mono",ui-monospace,monospace; font-weight:700; white-space:nowrap; }
+  .ev { font-size:12.5px; }
+  .ev a { color:var(--brass); }
+  .note { background:var(--bone); border:1px solid var(--line); border-left:4px solid var(--brass); padding:14px 16px; margin:22px 0; font-size:14px; }
+  .legend { font-size:13px; color:#33302a; }
+  .legend b { font-family:"JetBrains Mono",ui-monospace,monospace; }
+  footer { margin-top:32px; border-top:2px solid var(--ink); padding-top:12px; font-size:12.5px; color:var(--muted); }
+  @media print { body { background:#fff; } .sheet { border:none; max-width:none; } }
+  @media (max-width:760px) { .meta { grid-template-columns:1fr 1fr; } table { font-size:12px; } }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="dochead">
+    <div class="kicker">Neuruh &middot; Organism State &middot; Document Control</div>
+    <h1>Organism State Dashboard</h1>
+    <p class="lede">The honest state of every major Neuruh system in one table, built from evidence on disk and the overnight audit of 2026-11-14. Every status cites its evidence: either a live URL verified by curl on this date, or a dated record named in the row.</p>
+  </div>
+
+  <div class="meta">
+    <div><b>As of</b>2026-11-14, approx 01:25 EST</div>
+    <div><b>Evidence base</b>Overnight audit, hub sections A-H, 143 cards, all HTTP 200 (audit-A-B.md, audit-C-D-G.md, audit-E.md, audit-F-H.md)</div>
+    <div><b>Live checks</b>curl, 2026-11-14 01:17 EST, follow redirects, 20s timeout</div>
+    <div><b>Systems listed</b>16</div>
+  </div>
+
+  <div class="counts">
+    <span class="count"><b>3</b> LIVE</span>
+    <span class="count"><b>3</b> DOWN</span>
+    <span class="count"><b>4</b> SIMULATION</span>
+    <span class="count"><b>1</b> DESIGNED</span>
+    <span class="count"><b>1</b> BUILT, UNPUBLISHED</span>
+    <span class="count"><b>1</b> PAUSED</span>
+    <span class="count"><b>1</b> RUNNING</span>
+    <span class="count"><b>1</b> FAILING</span>
+    <span class="count"><b>1</b> DISCONNECTED</span>
+  </div>
+
+  <div class="note"><strong>Read this first.</strong> These statuses are verified claims, not live telemetry. Nothing on this page polls a running system. A row marked LIVE means the public URL returned HTTP 200 when curled on the verification date shown, with the MD5 recorded in the evidence column. A row marked SIMULATION means working code runs in the browser only and touches no live system. A row marked DOWN means the endpoint did not answer or returned an error on the verification date. UNKNOWN would mean no verification exists; no row on this page is UNKNOWN.</div>
+
+  <h2>State table</h2>
+  <table>
+    <thead>
+      <tr><th>System</th><th>Tier</th><th>Status</th><th>Last verified</th><th>Evidence</th><th>How verified</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="sys">DeedSonar<small>Flagship real-estate CRM and lead app (Next.js, Supabase, Vercel)</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-down">DOWN</span></td>
+        <td>2026-11-14 01:17 EST (first recorded 2026-11-04)</td>
+        <td class="ev"><a href="https://deedsonar.com/">deedsonar.com</a> returned HTTP 503 DEPLOYMENT_PAUSED, 99 bytes, MD5 3e86f8c39f29b31677e940b680a21ea8. First recorded 2026-11-04; confirmed again in audit-A-B.md, 2026-11-14 00:56 EST.</td>
+        <td class="ev">Live curl by this dashboard build, 2026-11-14 01:17 EST.</td>
+      </tr>
+      <tr>
+        <td class="sys">Production Supabase<small>DeedSonar production database (Supabase Pro)</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-down">DOWN</span></td>
+        <td>2026-11-04 (recorded); unreachable since approx Oct 16, 2026</td>
+        <td class="ev">Dated record: overnight run record and MEMORY.md DeedSonar entry. Production Supabase unreachable since approx Oct 16, 2026; ownership and access unresolved after the 2026-11-04 assertion that the accounts are Jeramie's and Bryan Franklin locked him out. No saved Supabase login exists, so no direct probe was possible from this build.</td>
+        <td class="ev">Dated record, not a live probe. Would verify with a Supabase project connection test from an authorized login.</td>
+      </tr>
+      <tr>
+        <td class="sys">LANDOS engine<small>Land signal scoring and lead engine (FastAPI)</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-down">DOWN</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev">Not hosted. landos-engine.fly.dev returned no response (curl HTTP 000) on 2026-11-14 01:17 EST. Recorded in the overnight run record as not hosted.</td>
+        <td class="ev">Live curl by this dashboard build, 2026-11-14 01:17 EST.</td>
+      </tr>
+      <tr>
+        <td class="sys">Land Intelligence Report storefront<small>Report $29, 3-pack $69, Verified Dossier $295</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-sim">SIMULATION</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev"><a href="https://neuruhai.github.io/neuruh-demos/land-report-store/">land-report-store</a> HTTP 200, 49,762 bytes, MD5 5182441eee0e6f87e75e6013f1f391ca. Page banner reads SIMULATION, NO LIVE CHECKOUT, NO REAL PAYMENT. Stripe disconnected, so no payment can complete.</td>
+        <td class="ev">Live curl by this dashboard build, 2026-11-14 01:17 EST, plus page banner text.</td>
+      </tr>
+      <tr>
+        <td class="sys">P0 seam reference loop<small>Receipt watcher to Sentinel to ingest to promotion loop, reference implementation</small></td>
+        <td class="tier">A</td>
+        <td><span class="pill st-sim">SIMULATION</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev"><a href="https://neuruhai.github.io/neuruh-demos/p0-seam-loop/">p0-seam-loop</a> HTTP 200, 11,622 bytes, MD5 b666a3adfa2cdb2b8e4cdc398cda0828. Node tests 33/33 pass (coordinator-log.md, Lane A, 2026-11-14 00:49 EST). Labeled SIMULATION, REFERENCE IMPLEMENTATION, NOT THE PRODUCTION LOOP. The production Mac loop is still owed.</td>
+        <td class="ev">Live curl by this dashboard build; test count from Lane A record.</td>
+      </tr>
+      <tr>
+        <td class="sys">N-Cell Organ Manifests<small>Organ Manifests for all 10 Section 4 organs, N-Cell/64 header stamper</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-sim">SIMULATION</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev"><a href="https://neuruhai.github.io/neuruh-demos/ncell-organ-manifest/">ncell-organ-manifest</a> HTTP 200, 5,330 bytes, MD5 d971db8b8f2cfc3f7a95981b4142ae9d. Validator 18/18 pass (coordinator-log.md, Lane B, 2026-11-14 00:50 EST). 0 of 10 manifests fully grounded by design: permittedRoutes and lifecycleStages unresolved in all 10, nothing invented. Labeled SIMULATION.</td>
+        <td class="ev">Live curl by this dashboard build; validator count from Lane B record.</td>
+      </tr>
+      <tr>
+        <td class="sys">Memory Gate<small>JGI Sections 34-39: write gate, decay, consolidation, contradiction graph, negative-knowledge register</small></td>
+        <td class="tier">A</td>
+        <td><span class="pill st-sim">SIMULATION</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev"><a href="https://neuruhai.github.io/neuruh-demos/memory-gate/">memory-gate</a> HTTP 200, 18,866 bytes, MD5 d25557dfa3f7dcf857ed39d68310fc12. Tests 21/21 pass (coordinator-log.md, Lane C, 2026-11-14 00:49 EST). Thresholds labeled illustrative; the JGI paper gives no numeric thresholds. Working module v1.0.0, demo runs in the browser only.</td>
+        <td class="ev">Live curl by this dashboard build; test count from Lane C record.</td>
+      </tr>
+      <tr>
+        <td class="sys">Pipeline first run<small>Signal-to-Content-to-Outreach Pipeline, first run (St. Joseph County ArcGIS)</small></td>
+        <td class="tier">C</td>
+        <td><span class="pill st-designed">DESIGNED</span></td>
+        <td>2026-11-14 00:48 EST</td>
+        <td class="ev">Dated record: ~/workspace/goals/start-50-qualified-sales-conversations-from-outbound/hidden_files/pipeline-signals.md. 5 signals pulled, 3 verified against 2026 county record cards, 1 BiggerPockets cold first-touch draft queued, NOT SENT, awaiting Jeramie's per-draft approval. Receipt hash 5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0. Pipeline stays DESIGNED until approval plus send plus recorded outcome.</td>
+        <td class="ev">Dated run record on disk, not a live endpoint. Would verify with an approved send and a recorded reply or silence outcome.</td>
+      </tr>
+      <tr>
+        <td class="sys">Parcel Reality Bench (prbench)<small>AI benchmark on county parcel records, Indiana-Michigan region</small></td>
+        <td class="tier">A</td>
+        <td><span class="pill st-live">LIVE</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev"><a href="https://bench.neuruh.com/">bench.neuruh.com</a> HTTP 200, 13,006 bytes, MD5 5fb189b9039d994ec9ffe78a1fddee67.</td>
+        <td class="ev">Live curl by this dashboard build, 2026-11-14 01:17 EST.</td>
+      </tr>
+      <tr>
+        <td class="sys">Neuruh Hub v2.26<small>Master map of the estate, 143 sites</small></td>
+        <td class="tier">A</td>
+        <td><span class="pill st-live">LIVE</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev"><a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a> HTTP 200, 88,364 bytes, MD5 01fdbfa0e920e4c624e5122ae400b268. Reads Hub v2.26. Deployment bbb82109-967b-4e4b-a34d-b36f1a78a0a0 (fix-hub-reprice.md, 2026-11-14 01:14 EST). Overnight audit of all 143 cards: all HTTP 200.</td>
+        <td class="ev">Live curl by this dashboard build, 2026-11-14 01:17 EST.</td>
+      </tr>
+      <tr>
+        <td class="sys">Vault Overview<small>Everything in the vault, one page (246 census concepts, 942 files in 11-Notion)</small></td>
+        <td class="tier">A</td>
+        <td><span class="pill st-live">LIVE</span></td>
+        <td>2026-11-14 01:17 EST</td>
+        <td class="ev"><a href="https://neuruhai.github.io/neuruh-demos/vault-overview/">vault-overview</a> HTTP 200, 702,157 bytes, MD5 d8b8b81dee566e39db4f801a93fb35ae. Regenerated 2026-11-14 00:49 EST (coordinator-log.md, Lane F): 246 census concepts, 303 learnings, 35/35 regression checks pass, verify.js 1,076 checks, 0 failures. Current as of the Section 33 state.</td>
+        <td class="ev">Live curl by this dashboard build; regen record from Lane F.</td>
+      </tr>
+      <tr>
+        <td class="sys">Meme factory<small>Template-first meme cannon, 5 lanes</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-built">BUILT, UNPUBLISHED</span></td>
+        <td>2026-11-14 01:2x EST</td>
+        <td class="ev">Disk count by this dashboard build: 1,037 PNG files in ~/workspace/your_files/meme-factory/ (120 load-up 1, 814 load-up 2, 36 new-style, 67 in root including early batches). Recorded finished-meme total is 1,036 (66 early batches plus 120 plus 814 plus 36); the on-disk total includes one raw source photo that is not a finished meme. Nothing published. Public link still serves the old agency version until Jeramie approves a re-share.</td>
+        <td class="ev">Direct disk count by this dashboard build, 2026-11-14. Publish state from the overnight record.</td>
+      </tr>
+      <tr>
+        <td class="sys">X volume publisher<small>@NeuruhAI cadence: 20 original posts a day plus replies across 50 threads</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-paused">PAUSED</span></td>
+        <td>2026-10-01 (stop order, still in force)</td>
+        <td class="ev">Dated record: Oct 1, 2026 stop order plus spam label. Drafts stay queued, nothing publishes. Standing cadence remains the order for when publishing resumes; stop and report immediately if X restricts the account.</td>
+        <td class="ev">Dated order on record. Would verify by Jeramie lifting the stop order.</td>
+      </tr>
+      <tr>
+        <td class="sys">Messenger estate watch<small>Facebook Messenger sync and estate-thread watch</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-running">RUNNING</span></td>
+        <td>2026-11-13 (evening log)</td>
+        <td class="ev">Dated record: Messenger sync is back with clean runs and no estate replies seen, but the thread cache is still empty with 0 messages on all 5 threads since Oct 25, 2026, so nothing arriving cannot be proved. Cache anomaly unresolved since Oct 25.</td>
+        <td class="ev">Dated evening log on record. Would verify with a non-empty thread cache or a confirmed unlock of the account.</td>
+      </tr>
+      <tr>
+        <td class="sys">Lead pull<small>Nightly lead pull into the pipeline (target 50)</small></td>
+        <td class="tier">B</td>
+        <td><span class="pill st-failing">FAILING</span></td>
+        <td>2026-11-12 (evening log)</td>
+        <td class="ev">Dated record: the lead pull failed a 28th straight night in the 2026-11-12 evening log, making tonight the 29th straight failure in the overnight brief. Pipeline still 8 of 50, unchanged since Sep 28, 2026. The same 5 Berrien leads from Oct 15 are 28 days stale and expired Oct 22 under the 7-day TTL, with drafts held under a stale warning and not sent. Notion log still blocked.</td>
+        <td class="ev">Dated evening log on record. Would verify with one successful nightly pull and a pipeline count above 8 of 50.</td>
+      </tr>
+      <tr>
+        <td class="sys">Stripe<small>Payment processing for the Land Intelligence Report store</small></td>
+        <td class="tier">GATE</td>
+        <td><span class="pill st-disc">DISCONNECTED</span></td>
+        <td>2026-11-14 00:46 EST</td>
+        <td class="ev">Dated record: coordinator-log.md, Lane G, 2026-11-14 00:46 EST. Stripe untouched, still disconnected, needs Jeramie's OAuth tap. Live Payment Link URLs do not exist yet. Go-live runbook and link-swap script are written and dry-run proven only.</td>
+        <td class="ev">Dated run record. Would verify with Jeramie's OAuth tap and a live Payment Link returning a checkout page.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Tier legend (Ecosystem Codex)</h2>
+  <p class="legend"><b>Tier A</b> code-verified: derived from inspection of running code and passing test suites, not projection. <b>Tier B</b> built and inspectable: the thing exists and can be inspected, no revenue verified. <b>Tier C</b> specced / aspirational: designs, not working systems. <b>GATE</b> pointer: the row points at an external service or gate outside this estate, and its state depends on that outside party. Tier definitions verified against <a href="https://ecosystem-codex.pages.dev/">ecosystem-codex.pages.dev</a> on 2026-11-14.</p>
+
+  <div class="note"><strong>What would change a row.</strong> DOWN to LIVE needs a live HTTP 200 from the real endpoint plus a working login or checkout where one applies. SIMULATION to LIVE needs the same, plus proof the code runs outside the browser against real data. DESIGNED to LIVE needs an approved send and a recorded outcome. DISCONNECTED to LIVE needs Jeramie's OAuth tap and a live Payment Link. No row on this page was upgraded on assertion alone.</div>
+
+  <footer>
+    Organism State Dashboard. Built 2026-11-14 during the overnight Neuruh run. Sources: audit-A-B.md, audit-C-D-G.md, audit-E.md, audit-F-H.md, coordinator-log.md, fix-hub-reprice.md, pipeline-signals.md, MEMORY.md. Live checks by curl, 2026-11-14 01:17 EST. Statuses are verified claims as of the date shown, not live telemetry. Next verification is due when any row changes state.
+  </footer>
+</div>
+</body>
+</html>
