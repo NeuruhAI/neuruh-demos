@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P0 Seam Reference Loop - SIMULATION</title>
+<style>
+  body{font-family:Georgia,serif;background:#f4f1ea;color:#1a1a1a;margin:0;padding:0}
+  .banner{background:#8a1f1f;color:#fff;padding:10px 20px;font-family:monospace;font-size:14px;letter-spacing:1px}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 20px 60px}
+  h1{font-size:30px;margin:8px 0 4px}
+  .sub{color:#555;font-size:15px;margin:0 0 20px}
+  h2{font-size:19px;border-bottom:2px solid #b08d3c;padding-bottom:4px;margin-top:34px}
+  p,li{font-size:15px;line-height:1.55}
+  code{font-family:monospace;background:#e8e2d4;padding:1px 5px;border-radius:3px;font-size:13px}
+  pre{background:#1a1a1a;color:#e8e2d4;padding:14px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.5}
+  button{font-family:monospace;font-size:14px;background:#1a1a1a;color:#f4f1ea;border:0;padding:10px 18px;border-radius:4px;cursor:pointer;margin:4px 6px 4px 0}
+  button:hover{background:#b08d3c;color:#1a1a1a}
+  .card{border:1px solid #c9c2b0;background:#fff;padding:14px 16px;border-radius:6px;margin:12px 0}
+  .verdict-kill{color:#8a1f1f;font-weight:bold}
+  .verdict-iterate{color:#8a6d1f;font-weight:bold}
+  .verdict-ship{color:#1f6b2e;font-weight:bold}
+  .ok{color:#1f6b2e;font-weight:bold}
+  .bad{color:#8a1f1f;font-weight:bold}
+  table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+  th,td{border:1px solid #c9c2b0;padding:6px 8px;text-align:left}
+  th{background:#e8e2d4}
+  .mono{font-family:monospace;font-size:12px;word-break:break-all}
+  .note{font-size:13px;color:#666}
+</style>
+</head>
+<body>
+<div class="banner">SIMULATION - REFERENCE IMPLEMENTATION - NOT THE PRODUCTION LOOP</div>
+<div class="wrap">
+<h1>P0 Seam Reference Loop</h1>
+<p class="sub">Receipt watcher &rarr; Sentinel invocation &rarr; result ingest &rarr; custody &rarr; promotion. Browser demo of the Node module <code>p0-seam.js</code>. The same file powers both: the Node tests (<code>node test.js</code>, 33 checks) and this page.</p>
+
+<p><strong>What this is:</strong> a working reference implementation of the missing automatic handoff in the Neuruh organism: a receipt watcher observes a sealed receipt ledger, Sentinel (CRUCIBLE gate) scores each world, outcomes are ingested back onto the same hash-chained ledger, and only a SHIP-CANDIDATE with a real external signal promotes.</p>
+<p><strong>What this is not:</strong> the production loop. The production loop lives on Jeramie Hicks' Mac (launchd ticks, the always-running Switchboard, the loopback Sentinel organ at 127.0.0.1:18731). Nothing on this page touches it, reads from it, or claims to be it.</p>
+<p><strong>Receipt standard:</strong> receipt v1.0, SHA-256 hash chain, first prev hash is the literal string <code>GENESIS</code>, canonical JSON with the hash field stripped before hashing. Source: the Land Intelligence Report store (<code>buildReceipt</code>). The N-Cell adapter demo uses FNV-1a 32-bit hashing; that is demo-only and is <strong>not</strong> used here. Every hash on this page is SHA-256.</p>
+
+<h2>1. The formulas</h2>
+<ul>
+  <li><strong>CRUCIBLE gate score</strong> = max(0, emergence_raw - objection_penalty) x multiplier</li>
+  <li><strong>Multiplier ladder:</strong> revenue / signed contract 1.00, paid pilot 0.50, one real lead 0.30, nothing 0.15</li>
+  <li><strong>Verdicts:</strong> KILL below 20, ITERATE 20-49, SHIP-CANDIDATE at or above 50 only with a real external signal (50+ without a signal downgrades to ITERATE)</li>
+  <li><strong>Strikes:</strong> a KILL adds one strike. The first KILL does <em>not</em> move the file. <code>kill_move</code> fires only at strike 3.</li>
+  <li><strong>Doctrine eta</strong> = (I_q x I_r x I_v) / (1 + E_wasted + C_violations), bounded 0-100. Seed requires eta &ge; 70 AND feedback accuracy &ge; 0.6.</li>
+  <li><strong>Promotion gate:</strong> only SHIP-CANDIDATE with a real external signal promotes. SHIP-CANDIDATE without a signal, ITERATE, and KILL are all refused.</li>
+</ul>
+
+<h2>2. Run the loop</h2>
+<p>Seeds a two-receipt GENESIS ledger, then runs three worlds through Sentinel, ingests each outcome as a new chained receipt, and checks promotion.</p>
+<button id="runLoop">Run the loop</button>
+<button id="tamper">Run with a tampered ledger</button>
+<button id="wrongGenesis">Run with a wrong GENESIS</button>
+<div id="loopOut"></div>
+
+<h2>3. Recorded cases, live in your browser</h2>
+<table>
+  <tr><th>Case</th><th>Expected</th><th>Live result</th></tr>
+  <tr><td>Fabricated world (I_q = I_r = I_v = 0)</td><td>eta 0.0, seed blocked</td><td id="c1">not run</td></tr>
+  <tr><td>(94 - 56) x 0.15</td><td>5.7, KILL</td><td id="c2">not run</td></tr>
+  <tr><td>Perfect world, zero signal (100 - 0) x 0.15</td><td>15, KILL</td><td id="c3">not run</td></tr>
+  <tr><td>Strike 1 KILL</td><td>no move</td><td id="c4">not run</td></tr>
+  <tr><td>Strike 3 KILL</td><td>kill_move fires</td><td id="c5">not run</td></tr>
+  <tr><td>SHIP-CANDIDATE, no external signal</td><td>promotion refused</td><td id="c6">not run</td></tr>
+</table>
+<button id="runCases">Run recorded cases</button>
+
+<h2>4. The ledger after a run</h2>
+<p class="note">Every outcome receipt is chained onto the same ledger: its prev hash is the previous receipt hash, and the whole chain re-verifies after ingest.</p>
+<pre id="ledgerOut">Run the loop to see the ledger.</pre>
+
+<h2>5. Source</h2>
+<p>Module: <code>p0-seam.js</code> (UMD, shared by Node tests and this page). Tests: <code>test.js</code> (<code>node test.js</code>). Notes: <code>README.md</code>. Full work order for the production seam, including the retro-court owed and the Mac-side live proof, is in the Neuruh vault at <code>_research/p0-seam-workorder.md</code>.</p>
+<p class="note">SIMULATION. Reference implementation only. No external sends, no Stripe, no production data.</p>
+</div>
+<script src="p0-seam.js"></script>
+<script>
+(function () {
+  var P0 = window.P0Seam;
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function short(h) { return h ? h.slice(0, 16) + '...' : 'null'; }
+
+  function seedLedger() {
+    var r1 = P0.buildReceipt({ type: 'seed', seq: 1, payload: { world: 'alpha', note: 'genesis receipt' }, prevHash: 'GENESIS', timestamp_utc: '2026-11-14T00:00:00.000Z' });
+    var r2 = P0.buildReceipt({ type: 'seed', seq: 2, payload: { world: 'alpha', note: 'second receipt' }, prevHash: r1.provenance.report_hash_sha256, timestamp_utc: '2026-11-14T00:01:00.000Z' });
+    return [r1, r2];
+  }
+  function toJsonl(receipts) {
+    return receipts.map(function (r) { return JSON.stringify(r); }).join('\n') + '\n';
+  }
+  var WORLDS = [
+    { id: 'w-kill', emergence_raw: 94, objection_penalty: 56, signal: 'none', external_signal: false, I_q: 0, I_r: 0, I_v: 0, E_wasted: 0, C_violations: 0, feedback_accuracy: 0 },
+    { id: 'w-iterate', emergence_raw: 60, objection_penalty: 10, signal: 'pilot', external_signal: true, I_q: 10, I_r: 7, I_v: 10, E_wasted: 9, C_violations: 0, feedback_accuracy: 0.6 },
+    { id: 'w-ship', emergence_raw: 90, objection_penalty: 10, signal: 'contract', external_signal: true, I_q: 10, I_r: 9, I_v: 8, E_wasted: 0, C_violations: 0, feedback_accuracy: 0.8 }
+  ];
+  function verdictClass(v) {
+    return v === 'KILL' ? 'verdict-kill' : (v === 'ITERATE' ? 'verdict-iterate' : 'verdict-ship');
+  }
+  function render(result) {
+    var html = '';
+    result.steps.forEach(function (s) {
+      if (s.hop === 'watcher') {
+        html += '<div class="card"><strong>Hop 1, receipt watcher.</strong> ' + (s.ok ? '<span class="ok">Chain verified.</span> ' : '<span class="bad">Chain REJECTED.</span> ') + s.receipts_seen + ' receipts seen.' + (s.errors && s.errors.length ? '<br><span class="bad">' + esc(s.errors.join('; ')) + '</span>' : '') + '</div>';
+      } else if (s.hop === 'sentinel+ingest') {
+        html += '<div class="card"><strong>Hop 2+3, Sentinel + ingest, world ' + esc(s.world) + '.</strong><br>Score ' + s.score + ', verdict <span class="' + verdictClass(s.verdict) + '">' + s.verdict + '</span>, doctrine eta ' + s.eta + ', seed allowed: ' + s.seed_allowed + ', strikes: ' + s.strikes + (s.kill_move ? ', <span class="bad">kill_move fired</span>' : '') + '<br>Outcome receipt <span class="mono">' + short(s.outcome_receipt) + '</span><br>Promotion: ' + (s.promote ? '<span class="ok">PROMOTE</span>' : '<span class="bad">refused</span>') + ' (' + esc(s.promote_reason) + ')</div>';
+      } else if (s.hop === 'custody') {
+        html += '<div class="card"><strong>Hop 4, custody.</strong> ' + (s.ok ? '<span class="ok">Final chain verifies.</span> ' : '<span class="bad">Final chain FAILED.</span> ') + s.receipts_total + ' receipts on the ledger.</div>';
+      }
+    });
+    if (result.promotions.length) {
+      html += '<div class="card"><strong>Promotions:</strong> ' + result.promotions.map(function (p) { return esc(p.world) + ' (' + short(p.receipt_hash) + ')'; }).join(', ') + '</div>';
+    } else {
+      html += '<div class="card"><strong>Promotions:</strong> none.</div>';
+    }
+    document.getElementById('loopOut').innerHTML = html;
+    document.getElementById('ledgerOut').textContent = JSON.stringify(result.ledger, null, 2);
+  }
+  document.getElementById('runLoop').addEventListener('click', function () {
+    render(P0.runLoop(toJsonl(seedLedger()), WORLDS));
+  });
+  document.getElementById('tamper').addEventListener('click', function () {
+    var ledger = seedLedger();
+    ledger[1].payload.note = 'tampered after sealing';
+    render(P0.runLoop(toJsonl(ledger), WORLDS));
+  });
+  document.getElementById('wrongGenesis').addEventListener('click', function () {
+    var ledger = seedLedger();
+    var fixed = JSON.parse(JSON.stringify(ledger[0]));
+    fixed.provenance.prev_receipt_hash = 'NOT-GENESIS';
+    var stripped = JSON.parse(JSON.stringify(fixed));
+    delete stripped.provenance.report_hash_sha256;
+    fixed.provenance.report_hash_sha256 = P0.hashStr(P0.canonical(stripped));
+    ledger[0] = fixed;
+    render(P0.runLoop(toJsonl(ledger), WORLDS));
+  });
+  document.getElementById('runCases').addEventListener('click', function () {
+    var g = P0.etaGate({ I_q: 0, I_r: 0, I_v: 0, E_wasted: 0, C_violations: 0, feedback_accuracy: 0 });
+    document.getElementById('c1').textContent = 'eta ' + g.eta + ', seed_allowed ' + g.seed_allowed + (g.eta === 0 && !g.seed_allowed ? ' PASS' : ' FAIL');
+    var v2 = P0.crucibleVerdict({ emergence_raw: 94, objection_penalty: 56, signal: 'none' });
+    document.getElementById('c2').textContent = 'score ' + v2.score + ', ' + v2.verdict + (v2.score === 5.7 && v2.verdict === 'KILL' ? ' PASS' : ' FAIL');
+    var v3 = P0.crucibleVerdict({ emergence_raw: 100, objection_penalty: 0, signal: 'none' });
+    document.getElementById('c3').textContent = 'score ' + v3.score + ', ' + v3.verdict + (v3.score === 15 && v3.verdict === 'KILL' ? ' PASS' : ' FAIL');
+    var s1 = P0.applyStrike({ strikes: 0, moved: false }, 'KILL');
+    document.getElementById('c4').textContent = 'strikes ' + s1.strikes + ', kill_move ' + s1.kill_move + (!s1.kill_move ? ' PASS' : ' FAIL');
+    var s3 = P0.applyStrike({ strikes: 2, moved: false }, 'KILL');
+    document.getElementById('c5').textContent = 'strikes ' + s3.strikes + ', kill_move ' + s3.kill_move + (s3.kill_move ? ' PASS' : ' FAIL');
+    var p = P0.promotionGate({ verdict: 'SHIP-CANDIDATE', external_signal: false });
+    document.getElementById('c6').textContent = 'promote ' + p.promote + (!p.promote ? ' PASS' : ' FAIL');
+  });
+})();
+</script>
+</body>
+</html>
