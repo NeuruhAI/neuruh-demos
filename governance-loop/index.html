@@ -201,12 +201,27 @@
   function parseEdges(id) {
     return val(id).split(',').map(function (s) { return parseInt(s.trim(), 10); }).filter(function (n) { return !isNaN(n); });
   }
+  /* Step-implied rounding for number inputs: a step of 0.1 carries 1 decimal,
+     a step of 1 carries integers. Normalizes the value in place, skipping the
+     focused input so mid-edit typing is never disturbed. Fixes the float32
+     spinbutton artifact (0.800000011920929) on the feedback-accuracy input. */
+  function roundStep(id) {
+    var el = document.getElementById(id);
+    if (document.activeElement === el) return;
+    var step = parseFloat(el.getAttribute('step') || '1') || 1;
+    var decimals = (String(step).split('.')[1] || '').length;
+    var n = parseFloat(el.value);
+    if (isNaN(n)) return;
+    var p = Math.pow(10, decimals);
+    el.value = String(Math.round(n * p) / p);
+  }
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
   function short(h) { return h ? h.slice(0, 16) + '...' : 'null'; }
 
   var lastResult = null;
 
   function readClaim() {
+    roundStep('etaAcc');
     return {
       claim: val('claimText'),
       header: {
@@ -276,6 +291,9 @@
     render(G.runClaim(readClaim()));
   });
 
+  /* Change-event backstop: clean the feedback-accuracy value after any edit. */
+  document.getElementById('etaAcc').addEventListener('change', function () { roundStep('etaAcc'); });
+
   function set(id, value) { document.getElementById(id).value = value; }
   function setChecked(id, value) { document.getElementById(id).checked = value; }
 
@@ -320,7 +338,7 @@
   document.getElementById('tamperBtn').addEventListener('click', function () {
     if (!lastResult) { document.getElementById('receiptCheck').innerHTML = '<p class="bad">Run a claim first.</p>'; return; }
     var copy = JSON.parse(JSON.stringify(lastResult.receipt));
-    copy.payload.crucible.verdict = 'SHIP-CANDIDATE';
+    copy.payload.crucible.verdict = 'KILL';
     var v = G.verifyReceipt(copy);
     document.getElementById('receiptCheck').innerHTML = v.ok
       ? '<p><span class="bad">ERROR: tampered receipt verified. That must never happen.</span></p>'
@@ -345,7 +363,7 @@
     var r5 = G.runClaim(noSignal);
     document.getElementById('c5').textContent = 'promote ' + r5.promotion.promote + ', CRUCIBLE ' + r5.crucible.verdict + (!r5.promotion.promote && r5.crucible.verdict === 'ITERATE' ? ' PASS' : ' FAIL');
     var tampered = JSON.parse(JSON.stringify(r4.receipt));
-    tampered.payload.crucible.verdict = 'SHIP-CANDIDATE';
+    tampered.payload.crucible.verdict = 'KILL';
     var v6 = G.verifyReceipt(tampered);
     document.getElementById('c6').textContent = 'verify ok ' + v6.ok + (!v6.ok ? ' PASS' : ' FAIL');
   });
