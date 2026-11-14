@@ -633,12 +633,16 @@ function calc(){
  setTxt("gatesPassed",gateEval.passed.length?gateEval.passed.join(", "):"None");
  setTxt("gatesFailed",gateEval.failed.length?gateEval.failed.join(", "):"None");
 
- var manualKills=[];
- kills.forEach(function(k){if($(k.id).checked){manualKills.push(k.label);}});
  var autoKills=[];
  if(hasLiens&&stackIncomplete){autoKills.push("Lien stack incomplete");}
  if(heirKill){autoKills.push("Heir complexity with no probate counsel path");}
  if(cureKill){autoKills.push("Cure cost greater than equity");}
+ var AUTO_KILL_IDS=["k_lien_incomplete","k_heir_no_counsel","k_cure_gt_equity"];
+ $("k_lien_incomplete").checked=(hasLiens&&stackIncomplete);
+ $("k_heir_no_counsel").checked=!!heirKill;
+ $("k_cure_gt_equity").checked=!!cureKill;
+ var manualKills=[];
+ kills.forEach(function(k){if(AUTO_KILL_IDS.indexOf(k.id)!==-1){return;} if($(k.id).checked){manualKills.push(k.label);}});
  var killEval=E8.evaluateKills({manualKills:manualKills,autoKills:autoKills});
  var allKills=killEval.all;
  var killActive=killEval.killActive;
