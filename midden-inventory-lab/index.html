@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIDDEN Inventory Lab (SIMULATION) - Neuruh</title>
+<style>
+  :root { --paper:#f7f4ec; --bone:#efeadd; --ink:#1c1a16; --muted:#5c564a; --brass:#9a7b2d; --brass-dark:#7a611f; --line:#d8d0bd; --card:#fffdf6; --warn-bg:#fdf3d7; --warn-ink:#6b4e00; --ok:#2e6b34; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Inter, "Segoe UI", system-ui, -apple-system, sans-serif; font-size:16px; line-height:1.55; }
+  header.doc { border-bottom:3px solid var(--brass); padding:28px 24px 20px; background:var(--bone); }
+  header.doc .kicker { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass-dark); }
+  h1 { font-family:Archivo, "Arial Black", sans-serif; font-size:34px; line-height:1.1; margin:8px 0 6px; }
+  h2 { font-family:Archivo, "Arial Black", sans-serif; font-size:22px; margin:0 0 10px; border-bottom:2px solid var(--brass); padding-bottom:6px; }
+  h3 { font-size:17px; margin:18px 0 6px; }
+  .lede { max-width:76ch; margin:0; }
+  .meta { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin:18px 0 0; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12.5px; }
+  .meta div { border:1px solid var(--line); background:var(--card); padding:8px 10px; }
+  .meta b { display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+  main { max-width:1020px; margin:0 auto; padding:28px 24px 60px; }
+  section { margin-bottom:40px; }
+  .sim { display:inline-block; background:var(--brass); color:#fff; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:.12em; padding:3px 8px; border-radius:2px; }
+  .tag { display:inline-block; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:11.5px; padding:2px 7px; border:1px solid var(--brass); color:var(--brass-dark); border-radius:2px; }
+  .tag.unknown { border-color:#8a8371; color:var(--muted); }
+  .tag.last { background:var(--warn-bg); border-color:var(--warn-ink); color:var(--warn-ink); }
+  table { width:100%; border-collapse:collapse; background:var(--card); font-size:15px; }
+  th, td { border:1px solid var(--line); padding:9px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--bone); font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase; }
+  td.num { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .unknown-cell { color:var(--muted); font-style:italic; }
+  .note { background:var(--card); border-left:4px solid var(--brass); padding:12px 14px; margin:14px 0; font-size:15px; }
+  .warn { background:var(--warn-bg); border-left:4px solid var(--warn-ink); padding:12px 14px; margin:14px 0; }
+  .panel { background:var(--card); border:1px solid var(--line); padding:18px; margin-top:14px; }
+  label { display:block; font-weight:600; margin:12px 0 4px; }
+  input[type="number"], select { width:100%; max-width:420px; padding:9px 10px; font-size:16px; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  button { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:14px; background:var(--brass); color:#fff; border:0; padding:10px 16px; cursor:pointer; margin:14px 8px 0 0; }
+  button:hover { background:var(--brass-dark); }
+  button.ghost { background:transparent; color:var(--brass-dark); border:1px solid var(--brass); }
+  button.small { padding:5px 9px; margin:0 2px; font-size:12px; }
+  .error { color:#8a1f1f; font-weight:700; margin-top:12px; }
+  .modeled { font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .queue-list { list-style:none; padding:0; margin:14px 0; }
+  .queue-list li { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); padding:9px 12px; margin-bottom:6px; }
+  .queue-list .rank { font-family:"JetBrains Mono", ui-monospace, monospace; font-weight:700; width:34px; }
+  .queue-list .name { flex:1; font-weight:600; }
+  details { background:var(--card); border:1px solid var(--line); padding:12px 14px; margin-top:14px; }
+  summary { cursor:pointer; font-weight:700; }
+  ol.tight li, ul.tight li { margin-bottom:6px; }
+  .figcap { font-size:13px; color:var(--muted); margin-top:6px; }
+  footer { border-top:3px solid var(--brass); padding:20px 24px 40px; background:var(--bone); font-size:14px; color:var(--muted); }
+  @media print { body { background:#fff; } header.doc, footer { background:#fff; } button { display:none; } }
+</style>
+</head>
+<body>
+<header class="doc">
+  <div class="kicker">Neuruh &middot; MIDDEN &middot; Inventory Lab &middot; NRH-DOC-MIDDEN-LAB-001</div>
+  <h1>MIDDEN Inventory Lab <span class="sim">SIMULATION</span></h1>
+  <p class="lede">A working demo of the MIDDEN estate and thrift retail pilot as an inventory
+  lab: the stated fastest-sellers-first order, a pricing simulator that only ever
+  models numbers the user types in, a reorderable posting queue, and a status board
+  for the marketplace account. Nothing on this page sends data anywhere. No data
+  leaves the page. No price on this page is a quote, a valuation, or a listing price.</p>
+  <div class="meta">
+    <div><b>Built</b>2026-11-14, overnight run</div>
+    <div><b>Concept tier</b>Tier C (specced)</div>
+    <div><b>This demo</b>Tier B (built, inspectable)</div>
+    <div><b>State</b>SIMULATION throughout</div>
+    <div><b>Sources</b>Goal file, Codex, vault (see Sources)</div>
+    <div><b>Money rule</b>No valuations; modeled only</div>
+  </div>
+</header>
+<main>
+
+<section id="about">
+  <h2>1. What MIDDEN is, as stated</h2>
+  <p>MIDDEN is a provisional codename for a planned small-town estate and thrift retail
+  format, piloting in Michiana. Its stated purpose is to cash-flow, to feed real-estate
+  leads, and to fund future robotics and recycling hardware. That is the whole stated
+  role on record. No location, no opening date, no stock count, and no revenue figure
+  is stated anywhere in the sources read for this demo.</p>
+  <p><span class="tag">DESIGNED</span> This lab, the category order, the pricing simulator
+  formula, and the queue tool are designed here and labeled as such.</p>
+  <p><span class="tag">VERIFIED</span> Only the facts quoted with a dated source in the
+  Sources section. Everything else on this page is UNKNOWN until a stated source says
+  otherwise.</p>
+  <div class="note"><b>Codex and vault gaps, stated plainly.</b> The live Ecosystem Codex
+  (ecosystem-codex.pages.dev, read 2026-11-14) contains no MIDDEN entry and no mention
+  of thrift retail. The Obsidian vault
+  (~/workspace/neuruh-obsidian-vault, searched 2026-11-14) contains no MIDDEN note or
+  dossier. The only vault hit for the word is an unrelated archaeological use inside a
+  geointel research spec. MIDDEN therefore has no canon note yet. That is a gap, not a
+  finding about the concept.</div>
+</section>
+
+<section id="inventory">
+  <h2>2. Inventory table: fastest sellers first</h2>
+  <p>Categories in the stated fastest-sellers-first order from the liquidation goal file.
+  Collectibles and arcade go last. Cross-posting is 19 groups for every category, per
+  the standing share rule of 2026-10-09: every listing goes to Marketplace plus all 19
+  local groups, full push.</p>
+  <table id="inventoryTable">
+    <thead><tr>
+      <th>Sell order</th><th>Category</th><th>Cross-post groups</th><th>Sell-last flag</th>
+      <th>List price</th><th>Qty on hand</th><th>Days to sell</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Filing cabinets</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">2</td><td>Chairs</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">3</td><td>Desks</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">4</td><td>Ladders</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">5</td><td>Compressors</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">6</td><td>Tires</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">7</td><td>Furniture</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">8</td><td>Fixtures</td><td class="num">19</td><td><span class="tag">No</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">9</td><td>Collectibles</td><td class="num">19</td><td><span class="tag last">SELL LAST</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+      <tr><td class="num">10</td><td>Arcade</td><td class="num">19</td><td><span class="tag last">SELL LAST</span></td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td><td class="unknown-cell">UNKNOWN</td></tr>
+    </tbody>
+  </table>
+  <p class="figcap">Figure 1. Inventory by stated sell order. Only rank, category, group count,
+  and the sell-last flag are stated facts. Price, quantity, and days to sell are UNKNOWN
+  at category level in the sources read.</p>
+  <div class="note"><b>Why price, quantity, and days to sell read UNKNOWN.</b> The goal
+  file records prices and counts per individual listing, not per category, and this demo
+  does not aggregate them. Per the standing overnight rule, no cash figures from the goal
+  file are restated anywhere on this page. Days to sell is not stated for any category.
+  Use the pricing simulator below to model a price you type in yourself; the simulator
+  never supplies a price of its own.</div>
+  <details>
+    <summary>The 19 cross-post groups (stated order, 2026-10-09 share rule)</summary>
+    <ol class="tight">
+      <li>Michiana Garage Sales (South Bend, Niles, Dowagaic, St Joseph)</li>
+      <li>Coloma Trash &amp; Treasure</li>
+      <li>Vintage Dirtbike Deals</li>
+      <li>SOUTH HAVEN Area Online Garage Sale</li>
+      <li>Dowagiac Far &amp; Wide Buy Sell Trade</li>
+      <li>BH YARD $ALE</li>
+      <li>Granger Online Garage Sale</li>
+      <li>Berrien County Online Garage Sale (Buy, Sell, and Trade)</li>
+      <li>SISTER LAKES BUY SELL SWAP</li>
+      <li>Coloma for Sale and surrounding areas /show it works!</li>
+      <li>GARAGE SALE (Dowagiac, Decatur, Lawrence, Hartford, Sister Lakes Etc)</li>
+      <li>Niles Garage Sale</li>
+      <li>Dowagiac Garage Sale</li>
+      <li>Osceola Online Garage Sales</li>
+      <li>Bangor/south haven buy sell trade and donate</li>
+      <li>Vintage Dirt Bikes &amp; Parts</li>
+      <li>SWMI REI</li>
+      <li>Real Estate Wholesale deals.</li>
+      <li>Buy-Sale-Trade....South bend Area!!</li>
+    </ol>
+    <p>Stated findings kept on record: the "List to more places" dialog offers only 15 of
+    the 19 groups; the other four need a per-listing Share to a group. One group removes
+    these shares within about a minute of submission; do not repost into it. The "Listed
+    in N places" count is stale while the dialog is open; close and reopen for a fresh
+    count. Moda AI Club is excluded: it is an AI community group under the 2026-10-01
+    stop order, not a local buy/sell group.</p>
+  </details>
+</section>
+
+<section id="pricing">
+  <h2>3. Pricing simulator (MODELED, NOT A QUOTE)</h2>
+  <p>Pick a category, type a list price, pick a markdown schedule. The page shows the
+  modeled price step by step. Every dollar figure below comes from the number you typed
+  or from the formula applied to it. The demo never emits a price on its own.</p>
+  <div class="panel">
+    <label for="simCategory">Category</label>
+    <select id="simCategory">
+      <option>Filing cabinets</option>
+      <option>Chairs</option>
+      <option>Desks</option>
+      <option>Ladders</option>
+      <option>Compressors</option>
+      <option>Tires</option>
+      <option>Furniture</option>
+      <option>Fixtures</option>
+      <option>Collectibles</option>
+      <option>Arcade</option>
+    </select>
+    <label for="simPrice">List price you type in (dollars, greater than 0, up to 1,000,000)</label>
+    <input type="number" id="simPrice" min="0.01" max="1000000" step="0.01" placeholder="Type a list price, for example 100">
+    <label for="simSchedule">Markdown schedule (your pick)</label>
+    <select id="simSchedule">
+      <option value="none">No markdown</option>
+      <option value="m10d7">10 percent off after 7 days</option>
+      <option value="m10d7_m25d14">10 percent off after 7 days, then 25 percent off after 14 days</option>
+      <option value="m25d7">25 percent off after 7 days</option>
+      <option value="m50d14">50 percent off after 14 days</option>
+    </select>
+    <br>
+    <button id="simRun" type="button">Model this price</button>
+    <button id="simClear" type="button" class="ghost">Clear</button>
+    <div id="simError" class="error" role="alert"></div>
+    <div id="simOut"></div>
+  </div>
+  <div class="note"><b>Formula (my design decision, not a paper formula).</b> Modeled price
+  at each step equals the list price multiplied by (1 minus each markdown applied so far).
+  Markdowns compound multiplicatively: 10 percent off, then 25 percent off, leaves 67.5
+  percent of the list price, not 65 percent. No fees, no shipping, no tax, no haggling,
+  and no sale probability are modeled. Sale timing is hypothetical: a markdown date is a
+  schedule you pick, not a prediction that the item sells on that day. Every modeled
+  figure is labeled MODELED, NOT A QUOTE. Nothing here is a valuation.</div>
+</section>
+
+<section id="queue">
+  <h2>4. Queue simulator: fastest sellers first</h2>
+  <p>Default order is the stated order from the goal file. Move categories up or down and
+  the posting order updates. The simulator warns you if Collectibles or Arcade leaves
+  the last two slots, because the stated rule is collectibles and arcade last.</p>
+  <ol class="queue-list" id="queueList"></ol>
+  <div id="queueWarn" class="warn" style="display:none;"><b>Rule break (simulation):</b>
+  Collectibles or Arcade is no longer in the last two slots. The stated rule is
+  collectibles and arcade last. This is allowed in the simulator so you can see the
+  effect, but it breaks the stated order.</div>
+  <p id="queuePlan"></p>
+  <button id="queueReset" type="button" class="ghost">Reset to stated order</button>
+</section>
+
+<section id="status">
+  <h2>5. Status board: marketplace account and the run</h2>
+  <p>All rows are SIMULATION of stated record, not a live check. This page makes no
+  network calls and cannot know the account state right now.</p>
+  <table>
+    <thead><tr><th>Item</th><th>State</th><th>Dated evidence (stated)</th><th>What would verify a change</th></tr></thead>
+    <tbody>
+      <tr><td>Marketplace account</td><td><span class="tag last">LOCKED</span></td><td>Locked 2026-11-04 about 06:51 EST during the second share session; Facebook showed a hacked-account warning and redirected all tabs to a checkpoint. Unlock unconfirmed as of 2026-11-14.</td><td>Jeramie confirms the unlock from a previously used device, or completes the security steps. Only he can clear it.</td></tr>
+      <tr><td>Share pacing on resume</td><td><span class="tag">SLOWER PACE</span></td><td>Pacing skill: fewer listings per session, pauses between listings, keep the rate well below the rate that locked the account, about 110 shares in about 22 minutes across 5 listings.</td><td>A resumed session tally that stays well below the lock rate with no checkpoint, recorded per listing (live, pending, removed, not captured).</td></tr>
+      <tr><td>Resume cursor</td><td><span class="tag">PARTIAL 15 OF 19</span></td><td>Nordstrom Black Retail Ottomans / Low Seating, next after the lock. 15 of 19 groups done via "List to more places" (toast confirmed). The Vintage Dirt Bikes &amp; Parts share status is UNKNOWN; it was clicked as the lock hit. Three groups not attempted.</td><td>Reopen its "Your listing" dialog for a fresh count, verify whether the Vintage share posted, then finish the missing Share groups.</td></tr>
+      <tr><td>Push totals</td><td><span class="tag">STATED TALLY</span></td><td>About 276 shares submitted across the two 2026-11-04 sessions. Session 1: 17 live immediately, 47 pending admin approval, 1 removed by admin, 1 toast not captured. Session 2: 110 group shares, stopped by the lock.</td><td>Fresh "Listed in N places" dialog counts per listing; live counts lag because most groups hold posts for admin approval.</td></tr>
+      <tr><td>Items live</td><td><span class="tag">33 LIVE (STATED)</span></td><td>Goal description: the run has 33 items live and is moving through remaining inventory after the double-posting guard was fixed. The end of the selling list is still unconfirmed; it showed "Loading..." at the end.</td><td>Scroll the selling list to its end and confirm the final item before declaring the queue finished.</td></tr>
+      <tr><td>MIDDEN concept</td><td><span class="tag">TIER C</span></td><td>Specced concept only. No MIDDEN entry in the live Ecosystem Codex and no MIDDEN note in the vault (both checked 2026-11-14). This demo moves it to Tier B: built and inspectable, not independently verified.</td><td>A MIDDEN note or dossier filed in the vault; a MIDDEN entry in the Codex; a stated pilot location and opening state.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="gaps">
+  <h2>6. Gaps stated on the page, not hidden</h2>
+  <ol class="tight">
+    <li>No MIDDEN note or dossier exists in the vault. This demo is the first MIDDEN artifact in the overnight run; the canon note is still owed.</li>
+    <li>No MIDDEN entry exists in the Ecosystem Codex. The Codex states no MIDDEN role and no MIDDEN numbers.</li>
+    <li>Price, quantity on hand, and days to sell are UNKNOWN for every category. No category-level figures are stated in the sources read.</li>
+    <li>The goal file resume cursor names no arcade listing. Arcade-last is stated in the sell order, but no arcade item is named in the file read.</li>
+    <li>The end of the selling list is unconfirmed ("Loading..." at the end). The queue may continue past the last named item.</li>
+    <li>The marketplace account lock is unresolved. Unlock is unconfirmed, and only Jeramie can clear it. Nothing on this page can check it.</li>
+    <li>About 25 listings flagged as duplicates in the "Needs attention" section were not worked. Share status there is unresolved.</li>
+    <li>The pricing simulator formula is my design decision. It models markdown arithmetic only. It predicts no sale, no buyer, and no date.</li>
+  </ol>
+</section>
+
+<section id="sources">
+  <h2>7. Sources read, in full, before building</h2>
+  <ul class="tight">
+    <li>Liquidation goal file: ~/workspace/goals/facebook-marketplace-liquidation-listings/GOAL.md (read in full). Stated facts used: the fastest-sellers-first order, the 19-group share rule with the group list, the 2026-11-04 lock at about 06:51 EST, the pacing note (slower on resume), the session tallies, the 33 items live, the resume cursor at 15 of 19, the "Loading..." end of list. Cash figures in that file were read and deliberately omitted from this page under the standing rule.</li>
+    <li>Marketplace share pacing skill: ~/workspace/custom-skills/marketplace_share_pacing/SKILL.md (read in full). Pacing rule and stop-at-first-lock rule used on the status board.</li>
+    <li>Ecosystem Codex, live: https://ecosystem-codex.pages.dev/ (fetched 2026-11-14, crawled 06:46 UTC). No MIDDEN entry, no "thrift" mention. Tier definitions A/B/C quoted from the Codex itself.</li>
+    <li>Obsidian vault: ~/workspace/neuruh-obsidian-vault/ searched for MIDDEN, 2026-11-14. No dedicated note or dossier. The 04-Resale-Collectibles folder holds 12 notes; none is MIDDEN. The only hits are an unrelated archaeological use in a geointel spec and its IP Registry row.</li>
+    <li>Standing memory: MIDDEN is a provisional codename for a planned small-town estate/thrift retail format piloting in Michiana, meant to cash-flow, feed real-estate leads, and fund future robotics/recycling hardware.</li>
+  </ul>
+  <div class="note"><b>Design decisions (mine, labeled as such).</b> (1) Pricing formula:
+  multiplicative compounding markdowns, no fees, no tax, no shipping, no sale probability.
+  (2) Inventory cells read UNKNOWN instead of aggregating per-listing figures, and no cash
+  figures are restated. (3) Queue reorder is allowed with a visible rule-break warning
+  rather than a hard block, so the stated rule stays visible while the tool stays useful.
+  (4) No persistence: queue and simulator state reset on reload; nothing is stored and
+  nothing leaves the page. (5) The 19-group list is shown in full because it is the
+  standing share rule, not a valuation.</div>
+</section>
+
+</main>
+<footer>
+  MIDDEN Inventory Lab (SIMULATION) &middot; Tier B working demo, built 2026-11-14 in the
+  overnight Neuruh run &middot; Static HTML and JS, no backend, no data leaves the page
+  &middot; No dollar figure on this page is a quote or a valuation; modeled figures come
+  only from numbers the user types in &middot; No buyer names, no owner or property
+  information &middot; DESIGNED is not VERIFIED
+</footer>
+<script>
+"use strict";
+/* MIDDEN Inventory Lab logic. Pure functions first so they can be tested in Node. */
+
+var SCHEDULES = {
+  none: [],
+  m10d7: [{ day: 7, pct: 10 }],
+  m10d7_m25d14: [{ day: 7, pct: 10 }, { day: 14, pct: 25 }],
+  m25d7: [{ day: 7, pct: 25 }],
+  m50d14: [{ day: 14, pct: 50 }]
+};
+
+var SCHEDULE_LABELS = {
+  none: "No markdown",
+  m10d7: "10 percent off after 7 days",
+  m10d7_m25d14: "10 percent off after 7 days, then 25 percent off after 14 days",
+  m25d7: "25 percent off after 7 days",
+  m50d14: "50 percent off after 14 days"
+};
+
+var STATED_ORDER = ["Filing cabinets", "Chairs", "Desks", "Ladders", "Compressors",
+  "Tires", "Furniture", "Fixtures", "Collectibles", "Arcade"];
+
+var LAST_TWO = ["Collectibles", "Arcade"];
+
+/* My design decision: modeled price = list * product of (1 - pct/100) over markdowns applied. */
+function computeSchedule(listPrice, scheduleId) {
+  var steps = SCHEDULES[scheduleId];
+  if (!steps) { return null; }
+  var out = [{ day: 0, label: "Day 0: list price", factor: 1, price: round2(listPrice), dropPct: 0 }];
+  var factor = 1;
+  for (var i = 0; i < steps.length; i++) {
+    factor = factor * (1 - steps[i].pct / 100);
+    out.push({
+      day: steps[i].day,
+      label: "Day " + steps[i].day + ": " + steps[i].pct + " percent off applied",
+      factor: factor,
+      price: round2(listPrice * factor),
+      dropPct: round2((1 - factor) * 100)
+    });
+  }
+  return out;
+}
+
+function round2(n) { return Math.round(n * 100) / 100; }
+
+function money(n) { return "$" + n.toFixed(2); }
+
+function validatePrice(raw) {
+  if (raw === "" || raw === null || raw === undefined) { return "Type a list price first."; }
+  var v = Number(raw);
+  if (!isFinite(v)) { return "That is not a number. Type a list price in dollars."; }
+  if (v <= 0) { return "List price must be greater than 0."; }
+  if (v > 1000000) { return "List price is capped at 1,000,000 in this simulator to catch typos."; }
+  return null;
+}
+
+/* Queue logic: pure reorder over an array of category names. */
+function moveItem(order, index, dir) {
+  var next = order.slice();
+  var j = index + dir;
+  if (j < 0 || j >= next.length) { return next; }
+  var tmp = next[index];
+  next[index] = next[j];
+  next[j] = tmp;
+  return next;
+}
+
+function breaksLastRule(order) {
+  var tail = order.slice(order.length - 2);
+  return !(tail.indexOf("Collectibles") >= 0 && tail.indexOf("Arcade") >= 0);
+}
+
+/* --- Page wiring --- */
+var queueOrder = STATED_ORDER.slice();
+
+function renderQueue() {
+  var list = document.getElementById("queueList");
+  list.innerHTML = "";
+  queueOrder.forEach(function (name, i) {
+    var li = document.createElement("li");
+    var rank = document.createElement("span");
+    rank.className = "rank";
+    rank.textContent = (i + 1) + ".";
+    var nm = document.createElement("span");
+    nm.className = "name";
+    nm.textContent = name;
+    if (LAST_TWO.indexOf(name) >= 0) {
+      var flag = document.createElement("span");
+      flag.className = "tag last";
+      flag.textContent = "SELL LAST";
+      nm.appendChild(document.createTextNode(" "));
+      nm.appendChild(flag);
+    }
+    var up = document.createElement("button");
+    up.type = "button"; up.className = "small ghost"; up.textContent = "Move up";
+    up.disabled = (i === 0);
+    up.addEventListener("click", function () { queueOrder = moveItem(queueOrder, i, -1); renderQueue(); });
+    var down = document.createElement("button");
+    down.type = "button"; down.className = "small ghost"; down.textContent = "Move down";
+    down.disabled = (i === queueOrder.length - 1);
+    down.addEventListener("click", function () { queueOrder = moveItem(queueOrder, i, 1); renderQueue(); });
+    li.appendChild(rank);
+    li.appendChild(nm);
+    li.appendChild(up);
+    li.appendChild(down);
+    list.appendChild(li);
+  });
+  var warn = document.getElementById("queueWarn");
+  warn.style.display = breaksLastRule(queueOrder) ? "block" : "none";
+  document.getElementById("queuePlan").textContent =
+    "Posting plan (simulation): post in this order, one listing at a time, 19 groups each, " +
+    "slower pace on resume. Order now: " + queueOrder.join(" > ") + ".";
+}
+
+function runSimulator() {
+  var err = document.getElementById("simError");
+  var out = document.getElementById("simOut");
+  err.textContent = "";
+  out.innerHTML = "";
+  var raw = document.getElementById("simPrice").value;
+  var problem = validatePrice(raw);
+  if (problem) { err.textContent = problem; return; }
+  var price = Number(raw);
+  var cat = document.getElementById("simCategory").value;
+  var sched = document.getElementById("simSchedule").value;
+  var steps = computeSchedule(price, sched);
+  if (!steps) { err.textContent = "Unknown schedule. Pick one from the list."; return; }
+  var h = document.createElement("h3");
+  h.textContent = "Modeled outcome for " + cat + " (MODELED, NOT A QUOTE)";
+  out.appendChild(h);
+  var p = document.createElement("p");
+  p.textContent = "Schedule: " + SCHEDULE_LABELS[sched] + ". List price you typed: " + money(price) + ".";
+  out.appendChild(p);
+  var table = document.createElement("table");
+  var thead = document.createElement("thead");
+  thead.innerHTML = "<tr><th>Step</th><th>Modeled price</th><th>Drop from list</th></tr>";
+  table.appendChild(thead);
+  var tbody = document.createElement("tbody");
+  steps.forEach(function (s) {
+    var tr = document.createElement("tr");
+    var a = document.createElement("td"); a.textContent = s.label;
+    var b = document.createElement("td"); b.className = "modeled"; b.textContent = money(s.price) + " (MODELED)";
+    var c = document.createElement("td"); c.className = "modeled"; c.textContent = s.dropPct === 0 ? "0 percent" : s.dropPct + " percent";
+    tr.appendChild(a); tr.appendChild(b); tr.appendChild(c);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  out.appendChild(table);
+  var note = document.createElement("p");
+  note.className = "figcap";
+  note.textContent = "MODELED, NOT A QUOTE. These figures come only from the list price you typed and the formula on this page. They are not a valuation, not a listing price, and not a prediction that the item sells on any day.";
+  out.appendChild(note);
+}
+
+document.getElementById("simRun").addEventListener("click", runSimulator);
+document.getElementById("simClear").addEventListener("click", function () {
+  document.getElementById("simPrice").value = "";
+  document.getElementById("simError").textContent = "";
+  document.getElementById("simOut").innerHTML = "";
+});
+document.getElementById("queueReset").addEventListener("click", function () {
+  queueOrder = STATED_ORDER.slice();
+  renderQueue();
+});
+renderQueue();
+
+/* Expose pure functions for Node tests. */
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { computeSchedule: computeSchedule, validatePrice: validatePrice, moveItem: moveItem, breaksLastRule: breaksLastRule, STATED_ORDER: STATED_ORDER, round2: round2, money: money };
+}
+</script>
+</body>
+</html>
