@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="E5 Commercial Underwriting Engine v1.0: retail, office, industrial, and mixed-use commercial underwriting. NOI, lease abstraction, tenant exposure, cap rate, stabilized vs owner-user value, MAO, lease-up cost, with a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="Commercial Underwriting Engine E5 - Neuruh">
+<meta property="og:description" content="Evidence-first commercial underwriting: NOI, lease abstraction, tenant exposure, cap rate, stabilized and owner-user value, MAO, lease-up cost, with gates and a SHA-256 receipt chain. SIMULATION.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>Commercial Underwriting Engine E5 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace;text-align:right}
+.big{font-size:22px}
+.big b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+.tag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass);padding:1px 4px;white-space:nowrap}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.scroll{overflow-x:auto}
+.formula{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px}
+.working{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px;white-space:pre-wrap}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:150px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+figure{margin:14px 0;border:1px solid var(--line);background:var(--paper);padding:12px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+figcaption b{color:var(--ink)}
+@media (max-width:760px){.grid,.grid2,.meta{grid-template-columns:1fr}header.doc h1{font-size:24px}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}
+}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.passbox{background:#e6efe6;border:1px solid var(--green);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{#summarySection{border:2px solid #000}#summarySection .result{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E5</div>
+<h1>Commercial Underwriting Engine</h1>
+<p>Retail, office, industrial, and mixed-use commercial property. NOI, lease abstraction, tenant exposure, cap rate, stabilized value vs owner-user value, MAO, and lease-up cost, with gates, evidence lineage, and a SHA-256 receipt chain.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine 5 of 12 - SIMULATION</b></div>
+<div>Lineage<b>Codex V2 App. B, E5 + Residential v1.1 gates + E1 pattern</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not legal, tax, or lending advice. Verify leases, rent rolls, expenses, and title with the seller documents, the county, and a licensed professional before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: multi-tenant retail</button>
+<button id="btnSampleB" type="button">Sample B: anchor tenant</button>
+<button id="btnSampleC" type="button">Sample C: PASS</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (NOI, leases, WALT, cap rate, values, lease-up, MAO)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e5.js, run 2026-11-14. Sample A hand-computed expectations match: NOI $114,900.00, stabilized value $1,545,333.33, lease-up cost $49,000.00, investment MAO $1,017,733.33. Sample B: NOI $98,000.00, stabilized value $1,331,250.00, investment MAO $850,312.50. Sample C: both AUTO kills fire.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e5.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge verified">VERIFIED</span></td><td>HTTP 200 at neuruhai.github.io/neuruh-demos/e5-commercial/, live MD5 matches staged file. See build report.</td></tr>
+<tr><td>Market data (rents, cap rates, expenses, comparable sales)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every rent, lease term, expense, cap rate, and comparable sale is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E5 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E5 specification document was found in the vault. The subject (Commercial) and its mechanics come from the 2026-11-04 E5 build, itself live at e5-commercial.pages.dev. See section 14 for the gap. Kill conditions and risk flags are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests plus a jsdom DOM smoke test are the verification for this build. See build report.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change the cap rate in section 06.</li>
+<li><b>Step 3:</b> Watch stabilized value and MAO move in sections 06 and 08 and in the sticky panel at the top, then issue a receipt in section 12 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">NOI, actual (MODELED ESTIMATE)</span><b id="stickyNoi">N/A</b></div>
+<div><span class="sr-label">Stabilized value (MODELED ESTIMATE)</span><b id="stickyStab">N/A</b></div>
+<div><span class="sr-label">MAO used (MODELED ESTIMATE)</span><b id="stickyMao">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div class="small" id="missingHints" style="font-size:13px;color:var(--muted);margin-top:4px"></div></div>
+</div>
+
+<figure>
+<svg viewBox="0 0 900 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Commercial underwriting flow diagram">
+<rect x="10" y="20" width="900" height="170" fill="#fffdf6" stroke="#d8cfb8"/>
+<rect x="30" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="100" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">1. LEASES</text><text x="100" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">rent roll, verified</text>
+<rect x="200" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="270" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">2. NOI</text><text x="270" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">EGI minus expenses</text>
+<rect x="370" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="440" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">3. VALUE</text><text x="440" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">NOI / cap rate</text>
+<rect x="540" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="610" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">4. LEASE-UP</text><text x="610" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">cost to fill vacancy</text>
+<rect x="710" y="55" width="140" height="60" fill="#fffdf6" stroke="#1d1a16" stroke-width="2"/><text x="780" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">5. MAO</text><text x="780" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">value x buy %, less costs</text>
+<text x="170" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="340" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="510" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="680" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text>
+<text x="30" y="145" font-family="sans-serif" font-size="12" fill="#6b6257">If a lease row is unverified, the run ends at PASS. See section E13.</text>
+</svg>
+<figcaption><b>Figure 1.</b> The commercial underwriting sequence this engine runs. Each step needs its own evidence. An unverified lease or a concentrated tenant with a short term breaks the sequence at the kill switch.</figcaption>
+</figure>
+
+<section class="card" id="s1">
+<h2><span>02</span>Subject property</h2>
+<p class="sub">Address / parcel gate. Confirm the property from at least 2 public sources before any lease or rent number is used. Unverified means HOLD.</p>
+<div class="grid">
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcel">Parcel ID</label><input id="parcel" type="text" placeholder="Parcel ID"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="propType">Commercial type</label><select id="propType"><option value="">Select</option><option>Retail strip</option><option>Single-tenant retail</option><option>Office</option><option>Industrial / warehouse</option><option>Mixed-use</option><option>Other commercial</option></select></div>
+<div><label for="buildingSf">Building SF (gross)</label><input id="buildingSf" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="rentableSf">Rentable SF</label><input id="rentableSf" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="yearBuilt">Year built</label><input id="yearBuilt" type="number" min="1800" max="2026" step="1" placeholder="e.g. 1985"></div>
+<div><label for="landAcres">Land acres</label><input id="landAcres" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div><label for="exitFit">Exit fit</label><select id="exitFit"><option value="">Select</option><option>Buy and hold, leased</option><option>Value-add / lease-up</option><option>Owner-user</option><option>Wholesale / assign</option><option>Pass</option></select></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+<div><label for="parcelSourceNames">Parcel source names</label><input id="parcelSourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+<div><label for="incomeSource">Income and expense source</label><input id="incomeSource" type="text" placeholder="Example: Seller rent roll dated 2026-10-01, T12, leases in hand"></div>
+</div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>03</span>Income and expenses, actual</h2>
+<p class="sub">Gross potential rent comes from the lease table in section 04. Other income is stated separately. Vacancy loss applies to gross potential rent only, never to other income. Operating expenses are the sum of the five lines below. No line is estimated silently: a blank line is zero in the sum and is named in the receipt as unentered.</p>
+<div class="formula">EGI = Gross Potential Rent x (1 - Vacancy %) + Other Income<br>NOI = EGI - Operating Expenses<br>Operating Expenses = Taxes + Insurance + Maintenance + Management + Other OpEx</div>
+<div class="grid">
+<div><label for="otherIncome">Other income, annual ($) - MODELED ESTIMATE input</label><input id="otherIncome" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="vacancyPct">Vacancy and credit loss, actual (%)</label><input id="vacancyPct" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="opexTax">Taxes, annual ($) - MODELED ESTIMATE input</label><input id="opexTax" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="opexIns">Insurance, annual ($) - MODELED ESTIMATE input</label><input id="opexIns" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="opexMaint">Maintenance and repairs, annual ($) - MODELED ESTIMATE input</label><input id="opexMaint" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="opexMgmt">Management, annual ($) - MODELED ESTIMATE input</label><input id="opexMgmt" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="opexOther">Other operating expenses, annual ($) - MODELED ESTIMATE input</label><input id="opexOther" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="opexNotes">Expense notes (NNN recoveries, CAM, source, or N/A)</label><input id="opexNotes" type="text" placeholder="Example: NNN leases, tenants reimburse taxes and insurance"></div>
+</div>
+<div class="working" id="workNoi">Enter lease rows and expenses to see the working.</div>
+<div class="result" id="noiBox">
+<div class="row"><span>Gross potential rent (from section 04) <span class="tag">MODELED ESTIMATE</span></span><b id="outGpr">N/A</b></div>
+<div class="row"><span>Less vacancy and credit loss <span class="tag">MODELED ESTIMATE</span></span><b id="outVacLoss">N/A</b></div>
+<div class="row"><span>Plus other income <span class="tag">MODELED ESTIMATE</span></span><b id="outOther">N/A</b></div>
+<div class="row"><span>Effective gross income (EGI) <span class="tag">MODELED ESTIMATE</span></span><b id="outEgi">N/A</b></div>
+<div class="row"><span>Less operating expenses <span class="tag">MODELED ESTIMATE</span></span><b id="outOpex">N/A</b></div>
+<div class="row big"><span>NOI, actual <span class="tag">MODELED ESTIMATE</span></span><b id="outNoi">N/A</b></div>
+<div class="row"><span>NOI per rentable SF</span><b id="outNoiSf">N/A</b></div>
+<div class="row"><span>Operating expense ratio (OpEx / EGI)</span><b id="outOpexRatio">N/A</b></div>
+</div>
+<figure>
+<svg id="figNoi" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 190" width="100%" role="img" aria-label="NOI waterfall chart">
+<text x="0" y="14" font-size="12" font-weight="bold" fill="#1d1a16">Figure 2. NOI waterfall, actual year</text>
+<text x="0" y="44" font-size="11" fill="#6b6257">Gross potential rent</text><rect id="barGpr" x="170" y="32" width="0" height="14" fill="#9a7b2d"></rect><text id="lblGpr" x="540" y="44" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="70" font-size="11" fill="#6b6257">Effective gross income</text><rect id="barEgi" x="170" y="58" width="0" height="14" fill="#9a7b2d"></rect><text id="lblEgi" x="540" y="70" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="96" font-size="11" fill="#6b6257">Operating expenses</text><rect id="barOpex" x="170" y="84" width="0" height="14" fill="#8a2f24"></rect><text id="lblOpex" x="540" y="96" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="122" font-size="11" fill="#6b6257">NOI, actual</text><rect id="barNoi" x="170" y="110" width="0" height="14" fill="#2e5e3a"></rect><text id="lblNoi" x="540" y="122" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="150" font-size="11" fill="#6b6257">Bars scale to the largest of the four values. N/A values draw no bar.</text>
+</svg>
+<figcaption><b>Figure 2.</b> From gross potential rent to NOI. Vacancy loss and expenses are subtractions, not adjustments hidden inside the rent.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s3">
+<h2><span>04</span>Lease abstraction</h2>
+<p class="sub">One row per tenant. A row counts toward rent only when annual base rent is entered. Rent per SF is computed, never typed. Years remaining is the math input; lease end date is the evidence that backs it. A lease row marked Unverified contributes rent to the math but fires the lease-terms-unverified kill in section E13, so the run ends PASS, not READY. TI and LC are dollars per SF of that tenant's space, spent at signing or renewal.</p>
+<div class="scroll">
+<table>
+<thead><tr><th>Tenant</th><th>SF</th><th>Annual base rent ($)</th><th>Rent $/SF (auto)</th><th>Years remaining</th><th>Lease end</th><th>Escalation %/yr</th><th>Renewal option</th><th>TI $/SF</th><th>LC $/SF</th><th>Verified</th><th>Source</th></tr></thead>
+<tbody id="leaseBody">
+<tr>
+<td><input type="text" data-t="name" aria-label="Tenant 1 name"></td>
+<td><input type="number" data-t="sf" min="0" step="1" aria-label="Tenant 1 SF"></td>
+<td><input type="number" data-t="rent" min="0" step="0.01" aria-label="Tenant 1 annual base rent"></td>
+<td data-t="persf">N/A</td>
+<td><input type="number" data-t="yrs" min="0" step="0.1" aria-label="Tenant 1 years remaining"></td>
+<td><input type="date" data-t="end" aria-label="Tenant 1 lease end date"></td>
+<td><input type="number" data-t="esc" min="0" step="0.1" aria-label="Tenant 1 escalation percent per year"></td>
+<td><select data-t="renew" aria-label="Tenant 1 renewal option"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></td>
+<td><input type="number" data-t="ti" min="0" step="0.01" aria-label="Tenant 1 TI dollars per SF"></td>
+<td><input type="number" data-t="lc" min="0" step="0.01" aria-label="Tenant 1 LC dollars per SF"></td>
+<td><select data-t="ver" aria-label="Tenant 1 lease verified"><option value="">Select</option><option>Verified</option><option>Unverified</option></select></td>
+<td><input type="text" data-t="src" aria-label="Tenant 1 source" placeholder="Lease, rent roll, or N/A"></td>
+</tr>
+<tr>
+<td><input type="text" data-t="name" aria-label="Tenant 2 name"></td>
+<td><input type="number" data-t="sf" min="0" step="1" aria-label="Tenant 2 SF"></td>
+<td><input type="number" data-t="rent" min="0" step="0.01" aria-label="Tenant 2 annual base rent"></td>
+<td data-t="persf">N/A</td>
+<td><input type="number" data-t="yrs" min="0" step="0.1" aria-label="Tenant 2 years remaining"></td>
+<td><input type="date" data-t="end" aria-label="Tenant 2 lease end date"></td>
+<td><input type="number" data-t="esc" min="0" step="0.1" aria-label="Tenant 2 escalation percent per year"></td>
+<td><select data-t="renew" aria-label="Tenant 2 renewal option"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></td>
+<td><input type="number" data-t="ti" min="0" step="0.01" aria-label="Tenant 2 TI dollars per SF"></td>
+<td><input type="number" data-t="lc" min="0" step="0.01" aria-label="Tenant 2 LC dollars per SF"></td>
+<td><select data-t="ver" aria-label="Tenant 2 lease verified"><option value="">Select</option><option>Verified</option><option>Unverified</option></select></td>
+<td><input type="text" data-t="src" aria-label="Tenant 2 source" placeholder="Lease, rent roll, or N/A"></td>
+</tr>
+<tr>
+<td><input type="text" data-t="name" aria-label="Tenant 3 name"></td>
+<td><input type="number" data-t="sf" min="0" step="1" aria-label="Tenant 3 SF"></td>
+<td><input type="number" data-t="rent" min="0" step="0.01" aria-label="Tenant 3 annual base rent"></td>
+<td data-t="persf">N/A</td>
+<td><input type="number" data-t="yrs" min="0" step="0.1" aria-label="Tenant 3 years remaining"></td>
+<td><input type="date" data-t="end" aria-label="Tenant 3 lease end date"></td>
+<td><input type="number" data-t="esc" min="0" step="0.1" aria-label="Tenant 3 escalation percent per year"></td>
+<td><select data-t="renew" aria-label="Tenant 3 renewal option"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></td>
+<td><input type="number" data-t="ti" min="0" step="0.01" aria-label="Tenant 3 TI dollars per SF"></td>
+<td><input type="number" data-t="lc" min="0" step="0.01" aria-label="Tenant 3 LC dollars per SF"></td>
+<td><select data-t="ver" aria-label="Tenant 3 lease verified"><option value="">Select</option><option>Verified</option><option>Unverified</option></select></td>
+<td><input type="text" data-t="src" aria-label="Tenant 3 source" placeholder="Lease, rent roll, or N/A"></td>
+</tr>
+<tr>
+<td><input type="text" data-t="name" aria-label="Tenant 4 name"></td>
+<td><input type="number" data-t="sf" min="0" step="1" aria-label="Tenant 4 SF"></td>
+<td><input type="number" data-t="rent" min="0" step="0.01" aria-label="Tenant 4 annual base rent"></td>
+<td data-t="persf">N/A</td>
+<td><input type="number" data-t="yrs" min="0" step="0.1" aria-label="Tenant 4 years remaining"></td>
+<td><input type="date" data-t="end" aria-label="Tenant 4 lease end date"></td>
+<td><input type="number" data-t="esc" min="0" step="0.1" aria-label="Tenant 4 escalation percent per year"></td>
+<td><select data-t="renew" aria-label="Tenant 4 renewal option"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></td>
+<td><input type="number" data-t="ti" min="0" step="0.01" aria-label="Tenant 4 TI dollars per SF"></td>
+<td><input type="number" data-t="lc" min="0" step="0.01" aria-label="Tenant 4 LC dollars per SF"></td>
+<td><select data-t="ver" aria-label="Tenant 4 lease verified"><option value="">Select</option><option>Verified</option><option>Unverified</option></select></td>
+<td><input type="text" data-t="src" aria-label="Tenant 4 source" placeholder="Lease, rent roll, or N/A"></td>
+</tr>
+<tr>
+<td><input type="text" data-t="name" aria-label="Tenant 5 name"></td>
+<td><input type="number" data-t="sf" min="0" step="1" aria-label="Tenant 5 SF"></td>
+<td><input type="number" data-t="rent" min="0" step="0.01" aria-label="Tenant 5 annual base rent"></td>
+<td data-t="persf">N/A</td>
+<td><input type="number" data-t="yrs" min="0" step="0.1" aria-label="Tenant 5 years remaining"></td>
+<td><input type="date" data-t="end" aria-label="Tenant 5 lease end date"></td>
+<td><input type="number" data-t="esc" min="0" step="0.1" aria-label="Tenant 5 escalation percent per year"></td>
+<td><select data-t="renew" aria-label="Tenant 5 renewal option"><option value="">Select</option><option>Yes</option><option>No</option><option>Unknown</option></select></td>
+<td><input type="number" data-t="ti" min="0" step="0.01" aria-label="Tenant 5 TI dollars per SF"></td>
+<td><input type="number" data-t="lc" min="0" step="0.01" aria-label="Tenant 5 LC dollars per SF"></td>
+<td><select data-t="ver" aria-label="Tenant 5 lease verified"><option value="">Select</option><option>Verified</option><option>Unverified</option></select></td>
+<td><input type="text" data-t="src" aria-label="Tenant 5 source" placeholder="Lease, rent roll, or N/A"></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="small" style="color:var(--muted)">Need more than 5 tenants: add the rest as one combined row only with a note in Assumptions naming each tenant, or run a second copy of this tool for the remaining tenants. Do not silently drop a tenant from the rent total.</p>
+<div class="result">
+<div class="row"><span>Tenants with rent entered</span><b id="outTenantCount">0</b></div>
+<div class="row"><span>Leased SF (rent rows only)</span><b id="outLeasedSf">N/A</b></div>
+<div class="row"><span>Occupancy (leased SF / rentable SF)</span><b id="outOccupancy">N/A</b></div>
+<div class="row"><span>Weighted average lease term, WALT (rent-weighted years remaining)</span><b id="outWalt">N/A</b></div>
+<div class="row"><span>Rent-weighted average escalation</span><b id="outWEsc">N/A</b></div>
+<div class="row"><span>Verified lease rows / rent rows</span><b id="outVerified">0 / 0</b></div>
+</div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>05</span>Tenant exposure and rent schedule</h2>
+<p class="sub">Exposure is the top tenant's share of gross potential rent. A single tenant over 50 percent is a concentration flag on its own, and a kill when combined with under 2 years remaining and no renewal evidence. The 5-year schedule grows gross potential rent at the rent-weighted escalation rate only. It assumes no rollover, no vacancy change, and no new leasing. It is a schedule, not a forecast.</p>
+<div class="formula">Top tenant % = Top tenant annual rent / Gross Potential Rent x 100<br>WALT = Sum(rent x years remaining) / Gross Potential Rent<br>Year N rent = Year 1 rent x (1 + weighted escalation)^(N - 1)</div>
+<div class="result">
+<div class="row"><span>Top tenant</span><b id="outTopTenant">N/A</b></div>
+<div class="row"><span>Top tenant annual rent <span class="tag">MODELED ESTIMATE</span></span><b id="outTopRent">N/A</b></div>
+<div class="row"><span>Top tenant % of gross potential rent</span><b id="outTopPct">N/A</b></div>
+<div class="row"><span>Second tenant % of gross potential rent</span><b id="outSecondPct">N/A</b></div>
+</div>
+<figure>
+<svg id="figExposure" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 110" width="100%" role="img" aria-label="Tenant exposure chart">
+<text x="0" y="14" font-size="12" font-weight="bold" fill="#1d1a16">Figure 3. Tenant exposure, share of gross potential rent</text>
+<text x="0" y="44" font-size="11" fill="#6b6257">Top tenant</text><rect id="barTop" x="170" y="32" width="0" height="14" fill="#8a2f24"></rect><text id="lblTop" x="540" y="44" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="70" font-size="11" fill="#6b6257">All other tenants</text><rect id="barRest" x="170" y="58" width="0" height="14" fill="#9a7b2d"></rect><text id="lblRest" x="540" y="70" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="96" font-size="11" fill="#6b6257">Red bar over 50 percent means the top tenant is more than half the income.</text>
+</svg>
+<figcaption><b>Figure 3.</b> Concentration at a glance. The 50 percent line is a kill threshold only when term and renewal also fail.</figcaption>
+</figure>
+<table style="margin-top:12px">
+<thead><tr><th>Year</th><th>Gross potential rent (escalated) <span class="tag">MODELED ESTIMATE</span></th><th>Math</th></tr></thead>
+<tbody id="schedBody"></tbody>
+</table>
+</section>
+
+<section class="card" id="s5">
+<h2><span>06</span>Cap rate, stabilized value, owner-user value</h2>
+<p class="sub">Stabilized NOI uses stabilized vacancy and stabilized operating expenses, not the actual year. If either stabilized input is blank, stabilized NOI and stabilized value are N/A. The cap rate must carry a source: a comparable sale, a broker opinion with a named source, or a published market survey with a date. A cap rate with no source is a HOLD. Owner-user value is a separate answer from investment value: comparable sales price per SF times rentable SF. The two values answer different buyers.</p>
+<div class="formula">Stabilized EGI = Gross Potential Rent x (1 - Stabilized Vacancy %) + Other Income<br>Stabilized NOI = Stabilized EGI - Stabilized Operating Expenses<br>Stabilized Value = Stabilized NOI / Cap Rate<br>Owner-User Value = Comparable Sales $/SF x Rentable SF</div>
+<div class="grid">
+<div><label for="stabVacancy">Stabilized vacancy (%)</label><input id="stabVacancy" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="stabOpex">Stabilized operating expenses, annual ($) - MODELED ESTIMATE input</label><input id="stabOpex" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="capRate">Cap rate (%)</label><input id="capRate" type="number" min="0" max="30" step="0.05" placeholder="0"></div>
+<div><label for="capSource">Cap rate source</label><input id="capSource" type="text" placeholder="Example: 3 comparable sales, 7.0 to 8.0 percent, broker survey 2026-10"></div>
+<div><label for="ouPriceSf">Owner-user comparable sales ($/SF) - MODELED ESTIMATE input</label><input id="ouPriceSf" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="ouSource">Owner-user comp source</label><input id="ouSource" type="text" placeholder="Example: 2 comparable sales, county records, addresses in Assumptions"></div>
+</div>
+<div class="working" id="workStab">Enter stabilized vacancy, stabilized expenses, and cap rate to see the working.</div>
+<div class="result">
+<div class="row"><span>Stabilized EGI <span class="tag">MODELED ESTIMATE</span></span><b id="outStabEgi">N/A</b></div>
+<div class="row"><span>Stabilized NOI <span class="tag">MODELED ESTIMATE</span></span><b id="outStabNoi">N/A</b></div>
+<div class="row"><span>Stabilized NOI per rentable SF</span><b id="outStabNoiSf">N/A</b></div>
+<div class="row big"><span>Stabilized value (investment) <span class="tag">MODELED ESTIMATE</span></span><b id="outStabValue">N/A</b></div>
+<div class="row big"><span>Owner-user value <span class="tag">MODELED ESTIMATE</span></span><b id="outOuValue">N/A</b></div>
+<div class="row"><span>Value gap (stabilized minus owner-user) <span class="tag">MODELED ESTIMATE</span></span><b id="outValueGap">N/A</b></div>
+<div class="row"><span>Implied value per rentable SF (stabilized)</span><b id="outStabSf">N/A</b></div>
+</div>
+<figure>
+<svg id="figValue" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 110" width="100%" role="img" aria-label="Value comparison chart">
+<text x="0" y="14" font-size="12" font-weight="bold" fill="#1d1a16">Figure 4. Stabilized value vs owner-user value</text>
+<text x="0" y="44" font-size="11" fill="#6b6257">Stabilized (investment)</text><rect id="barStab" x="170" y="32" width="0" height="14" fill="#9a7b2d"></rect><text id="lblStab" x="540" y="44" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="70" font-size="11" fill="#6b6257">Owner-user</text><rect id="barOu" x="170" y="58" width="0" height="14" fill="#2e5e3a"></rect><text id="lblOu" x="540" y="70" font-size="11" text-anchor="end" fill="#1d1a16"></text>
+<text x="0" y="96" font-size="11" fill="#6b6257">Two different buyers, two different values. Neither is the MAO.</text>
+</svg>
+<figcaption><b>Figure 4.</b> The higher value does not win. The exit in section 02 decides which value the MAO is built on.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s6">
+<h2><span>07</span>Lease-up cost</h2>
+<p class="sub">The cost to fill vacant space. Tenant improvements and leasing commissions are dollars per SF of vacant space. Free rent is vacant SF times market rent per SF per month times free months. Broker commission is a percent of first-year gross rent on the vacant space. Vacant SF is rentable SF minus leased SF when both are known, or the typed vacant SF below. If the two disagree, the typed value is used and the disagreement is listed in Data conflicts.</p>
+<div class="formula">Lease-Up Cost = Vacant SF x (TI $/SF + LC $/SF) + Vacant SF x Market Rent $/SF/mo x Free Rent Months + Commission % x (Vacant SF x Market Rent $/SF/mo x 12)</div>
+<div class="grid">
+<div><label for="vacantSf">Vacant SF (blank = rentable SF minus leased SF)</label><input id="vacantSf" type="number" min="0" step="1" placeholder="Blank = computed"></div>
+<div><label for="luTi">TI, vacant space ($/SF) - MODELED ESTIMATE input</label><input id="luTi" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="luLc">LC, vacant space ($/SF) - MODELED ESTIMATE input</label><input id="luLc" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="luFreeMonths">Free rent (months)</label><input id="luFreeMonths" type="number" min="0" step="0.5" placeholder="0"></div>
+<div><label for="luRentMo">Market rent, vacant space ($/SF/month) - MODELED ESTIMATE input</label><input id="luRentMo" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="luCommission">Broker commission (% of first-year rent)</label><input id="luCommission" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+</div>
+<div class="working" id="workLu">Enter vacant space inputs to see the working.</div>
+<div class="result">
+<div class="row"><span>Vacant SF used</span><b id="outVacantUsed">N/A</b></div>
+<div class="row"><span>TI + LC cost <span class="tag">MODELED ESTIMATE</span></span><b id="outLuTiLc">N/A</b></div>
+<div class="row"><span>Free rent cost <span class="tag">MODELED ESTIMATE</span></span><b id="outLuFree">N/A</b></div>
+<div class="row"><span>Broker commission cost <span class="tag">MODELED ESTIMATE</span></span><b id="outLuComm">N/A</b></div>
+<div class="row big"><span>Total lease-up cost <span class="tag">MODELED ESTIMATE</span></span><b id="outLeaseUp">N/A</b></div>
+<div class="row"><span>Lease-up cost per vacant SF</span><b id="outLuPerSf">N/A</b></div>
+</div>
+<div class="warning" id="vacantWarn" hidden></div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>08</span>MAO</h2>
+<p class="sub">Two MAOs, one per value basis. The investment MAO uses stabilized value. The owner-user MAO uses owner-user value. Buy percent is applied to value, then lease-up cost and the assignment buffer are subtracted. The assignment buffer default is $15,000, a builder default, editable. If either value is N/A, its MAO is N/A. A MAO on a PASS run is a held number only, never a usable offer number.</p>
+<div class="formula">Investment MAO = (Stabilized Value x Buy %) - Lease-Up Cost - Assignment Buffer<br>Owner-User MAO = (Owner-User Value x Buy %) - Lease-Up Cost - Assignment Buffer</div>
+<div class="grid">
+<div><label for="buyPct">Buy percent (%)</label><input id="buyPct" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="assignBuffer">Assignment buffer ($, builder default 15,000, editable)</label><input id="assignBuffer" type="number" min="0" step="1" value="15000"></div>
+<div><label for="maoBasis">MAO basis for the recommendation</label><select id="maoBasis"><option value="investment">Investment (stabilized value)</option><option value="owner-user">Owner-user value</option></select></div>
+</div>
+<div class="result">
+<div class="row big"><span>Investment MAO <span class="tag">MODELED ESTIMATE</span></span><b id="outMaoInv">N/A</b></div>
+<div class="row big"><span>Owner-user MAO <span class="tag">MODELED ESTIMATE</span></span><b id="outMaoOu">N/A</b></div>
+<div class="row"><span>MAO used for the recommendation <span class="tag">MODELED ESTIMATE</span></span><b id="outMaoUsed">N/A</b></div>
+</div>
+<div id="maoBreakdown"></div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>09</span>Gates, fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass. The lease verification gate is separate from the tenant table: it is the operator stating the leases were seen and matched to the rent roll.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div class="hint" id="missingHints2">Missing for a GO: address, parcel, at least 1 verified lease row, cap rate with source, stabilized vacancy and expenses, buy percent.</div>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span>10</span>Results</h2>
+<p class="sub">Completeness counts the required fields in this run. A complete run can still be HOLD or PASS. Completeness is not a recommendation.</p>
+<div><label>Completeness</label><div class="meter"><div class="meter-fill" id="meterBar"></div></div><div class="small" id="meterText" style="font-size:13px;color:var(--muted)">0% complete.</div><div class="small" id="meterMissing" style="font-size:13px;color:var(--muted)"></div></div>
+<div class="result" style="margin-top:12px">
+<div class="row"><span>Gross potential rent <span class="tag">MODELED ESTIMATE</span></span><b id="resGpr">N/A</b></div>
+<div class="row"><span>NOI, actual <span class="tag">MODELED ESTIMATE</span></span><b id="resNoi">N/A</b></div>
+<div class="row"><span>Stabilized value <span class="tag">MODELED ESTIMATE</span></span><b id="resStab">N/A</b></div>
+<div class="row"><span>Owner-user value <span class="tag">MODELED ESTIMATE</span></span><b id="resOu">N/A</b></div>
+<div class="row"><span>Lease-up cost <span class="tag">MODELED ESTIMATE</span></span><b id="resLu">N/A</b></div>
+<div class="row"><span>Investment MAO <span class="tag">MODELED ESTIMATE</span></span><b id="resMaoInv">N/A</b></div>
+<div class="row"><span>Owner-user MAO <span class="tag">MODELED ESTIMATE</span></span><b id="resMaoOu">N/A</b></div>
+<div class="row"><span>Top tenant % / WALT</span><b id="resTop">N/A</b></div>
+<div class="row big"><span>Recommendation</span><b id="resRec">HOLD</b></div>
+</div>
+<div id="decisionBox" style="margin-top:12px"></div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>11</span>One-page summary, print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above. It is a summary of the receipt, not an offer.</p>
+<div class="result">
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Commercial type</span><b id="sumType">N/A</b></div>
+<div class="row"><span>Rentable SF / leased SF</span><b id="sumSf">N/A</b></div>
+<div class="row"><span>Gross potential rent <span class="tag">MODELED ESTIMATE</span></span><b id="sumGpr">N/A</b></div>
+<div class="row"><span>NOI, actual <span class="tag">MODELED ESTIMATE</span></span><b id="sumNoi">N/A</b></div>
+<div class="row"><span>Top tenant % / WALT</span><b id="sumTop">N/A</b></div>
+<div class="row"><span>Cap rate</span><b id="sumCap">N/A</b></div>
+<div class="row"><span>Stabilized value <span class="tag">MODELED ESTIMATE</span></span><b id="sumStab">N/A</b></div>
+<div class="row"><span>Owner-user value <span class="tag">MODELED ESTIMATE</span></span><b id="sumOu">N/A</b></div>
+<div class="row"><span>Lease-up cost <span class="tag">MODELED ESTIMATE</span></span><b id="sumLu">N/A</b></div>
+<div class="row big"><span>Investment MAO <span class="tag">MODELED ESTIMATE</span></span><b id="sumMao">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+<p class="small" style="font-size:13px;color:var(--muted)">MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Public-data underwriting only. No offer without Jeramie. Offer authorized: false.</p>
+</section>
+
+<section class="card" id="s10">
+<h2><span>12</span>Receipt and receipt chain</h2>
+<p class="sub">Generated from the inputs above. Offer authorized is always false in this tool. The receipt is evidence, not an offer. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e5-commercial-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<div class="toolbar no-print" style="position:static;border-bottom:0">
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+</div>
+<div id="chainStatus" class="hint" style="margin-top:12px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>13</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the property from at least 2 public sources, abstract every lease into the table in section 04, let the tool sum gross potential rent, apply vacancy, subtract the five expense lines to get NOI, then stabilize vacancy and expenses, divide stabilized NOI by the sourced cap rate for investment value, and price owner-user value separately from comparable sales per SF. Lease-up cost prices the vacant space. MAO applies buy percent to the chosen value basis and subtracts lease-up cost and the assignment buffer. Every number carries its source or is marked N/A. A share link encodes the whole deal in the URL so someone else can open the same numbers.</p>
+<p><b>What this is not:</b> not an appraisal, not a survey, not legal, tax, or lending advice, and not a replacement for reading the actual leases, a title commitment, an inspection, or a licensed professional. It does not invent tenants, rents, lease terms, cap rates, or prices. If a field cannot be verified, it stays N/A. A high MAO does not mean a deal is good, and a PASS does not mean a property is bad. It means the evidence in this run does not support proceeding on the stated exit. No offer is quoted without Jeramie.</p>
+<p><b>Sources read for this build:</b> (1) Commercial Underwriting Engine E5 v1.0, 2026-11-04, local file ~/workspace/e5-commercial-site/index.html (1037 lines), live at https://e5-commercial.pages.dev/ (HTTP 200, 77,575 bytes, MD5 3b4a2440e0cdfcd1e2f2fdda18f23593). Subject, inputs, outputs, gates, kill conditions, risk flags, and all three samples are carried from it. (2) E3 Rental / BRRRR Underwriting Engine v1.0, 2026-11-14, local file ~/workspace/e3-rental-brrrr/ (index.html, e3.js, tests/test-e3.js), live at https://neuruhai.github.io/neuruh-demos/e3-rental-brrrr/. Pattern followed: SIMULATION banner, status board, MODELED ESTIMATE labels, SHA-256 receipt chain, Node test suite. (3) Vault note ~/workspace/neuruh-obsidian-vault/02-Real-Estate-Land/UnderwriteX.md, line 52: "Underwriting engines Residential v1.1 and E1 Land and Zoning Unlock v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending." (4) Hub, 2026-11-14, https://neuruh-hub.pages.dev/: section A lists E5 Commercial at e5-commercial.pages.dev, added 2026-11-04. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. See section 14.</p>
+<p><b>Related engines:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://neuruhai.github.io/neuruh-demos/e2-small-multifamily/">E2 Small Multifamily (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e3-rental-brrrr/">E3 Rental / BRRRR (GitHub Pages)</a>. Use the Residential engine for ARV and MAO on the purchase side, and E1 when the deal is really a land deal.</p>
+<p><b>Builder defaults, labeled as the builder's defaults, editable, never market facts:</b> assignment buffer $15,000. No other defaults are baked in: vacancy, cap rate, buy percent, TI, LC, free rent, and commission are all entered by the user, and a blank field is N/A or zero as stated on the page, never a hidden market assumption.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>14</span>Honest gaps and limits</h2>
+<p class="sub">What this tool does not do, stated plainly.</p>
+<ul>
+<li>It does not underwrite debt: there is no DSCR, loan-to-value, or amortization math here, so a deal that passes this engine still needs lender underwriting. Use the E2 or E3 engine for debt math on the residential side.</li>
+<li>It does not read leases for you: co-tenancy clauses, exclusivity, percentage rent, CAM caps, assignment language, and guarantor strength are not modeled, and any of them can change the value.</li>
+<li>It does not verify tenant credit: a signed lease from a weak tenant is not the same as a signed lease from a strong one.</li>
+<li>It caps the lease table at 5 tenant rows. More tenants need a combined row with a note, or a second run.</li>
+<li>It uses one cap rate for the whole property, not a blended rate by tenant credit.</li>
+<li>It does not model rollover risk beyond WALT and top-tenant exposure. The 5-year schedule assumes no rollover at all.</li>
+<li>It does not model taxes, depreciation, or after-tax return. NOI here is pre-tax.</li>
+<li>It does not check title, zoning, environmental condition, or floodplain status. Those need the E8 Distressed Title engine and a licensed professional.</li>
+<li>No E5 specification document was found in the vault. Greps for E5 and Commercial across the vault returned only the UnderwriteX.md line cited in section 13, the 2026-11-04 E5 build itself, and unrelated hits (UUID fragments, drive-lane research files). The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. What would ground E5 further: the Codex V2 Appendix B document, or a written E5 spec from Jeramie stating the subject and mechanics.</li>
+<li>An empty run (no lease rows entered) fires the lease-terms-unverified kill, so a blank page reads PASS, not HOLD. This is the 2026-11-04 contract carried verbatim: with zero rent rows there is no verified lease row. Enter at least one verified lease row to leave that state.</li>
+<li>Layout was not eyeballed in a real browser. Math was tested in Node with hand-computed values, plus a jsdom DOM smoke test. See the build report.</li>
+<li>All sample deals are synthetic and labeled as such.</li>
+</ul>
+</section>
+
+<section class="card" id="e13">
+<h2><span>E13</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. The first two kills are computed from the lease table and cannot be unchecked away: if the math fires them, they fire. The remaining kills are operator-checked. A kill is a successful run, not a failed one. Recommendation on a kill is PASS. Do not soften it.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill-switch active</span><b id="killActive">No</b></div>
+<div class="row"><span>Kill reasons</span><b id="killReasons">None</b></div>
+<div class="row"><span>Risk flags (not kills)</span><b id="riskFlags">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="e13Rec">HOLD</b></div>
+</div>
+<div style="margin-top:12px"><b>Kill conditions (E5 contract, carried from the 2026-11-04 E5 build):</b></div>
+<ul>
+<li>Single tenant over 50% of income with under 2 years term and no renewal evidence (computed from the lease table).</li>
+<li>Lease terms unverified: any rent row marked Unverified, or no verified lease row (computed from the lease table).</li>
+<li>Unconfirmed address / parcel (operator-checked).</li>
+<li>Title defect with no cure cost (operator-checked).</li>
+<li>Environmental flag with no professional report (operator-checked).</li>
+<li>Any gate failure that leaves stabilized value or MAO as N/A on the stated exit (computed from the gates and the MAO).</li>
+</ul>
+<div><b>Risk flags (not kills by themselves):</b> top tenant over 50% of income with term or renewal keeping it from a kill, WALT under 3 years, occupancy under 85%, actual vacancy over 10%, cap rate source missing, stabilized value below owner-user value, second tenant over 30% of income, at least one renewal option unknown.</div>
+<div id="e13Box" style="margin-top:12px"></div>
+</section>
+
+<footer>
+<p>Commercial Underwriting Engine E5 v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. Offer authorized is always false. This file works offline except for the e5.js module it loads from the same directory. Print this page for the file copy. Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a>.</p>
+</footer>
+
+</div>
+
+<script src="e5.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var el=$(id);if(!el)return null;var v=parseFloat(el.value);return isFinite(v)?v:null;}
+function num0(id){var v=num(id);return v===null?0:v;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function pct2(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return v.toFixed(2)+"%";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function setText(id,t){var el=$(id);if(el)el.textContent=t;}
+function setVal(id,v){var el=$(id);if(el)el.value=v;}
+var runId="E5-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+setVal("runId",runId);
+setVal("runDate",new Date().toISOString().slice(0,10));
+var GATES=[
+ {id:"address_parcel",label:"Address / parcel gate: exact address and parcel confirmed against at least 2 public sources"},
+ {id:"source",label:"Source gate: every rent, lease term, expense, cap rate, and comp carries a full raw source reference and date"},
+ {id:"lease",label:"Lease verification gate: leases seen in hand and matched to the rent roll, not a seller rent roll alone"},
+ {id:"no_hallucination",label:"No-hallucination gate: unverified fields are N/A, nothing invented"},
+ {id:"authority",label:"Authority gate: underwriting opinion only, no offer without Jeramie, offer authorized stays false"}
+];
+var KILLS_AUTO=[
+ {id:"k_conc",label:"AUTO: Single tenant over 50% of income with under 2 years term and no renewal evidence"},
+ {id:"k_lease",label:"AUTO: Lease terms unverified (any rent row marked Unverified, or no verified lease row)"}
+];
+var KILLS_MANUAL=[
+ {id:"k_address",label:"Unconfirmed address / parcel"},
+ {id:"k_title",label:"Title defect with no cure cost"},
+ {id:"k_env",label:"Environmental flag with no professional report"}
+];
+function buildLists(){
+ var g=$("gateList");var html="";
+ GATES.forEach(function(gt){
+  html+='<div class="item"><label for="gate_'+gt.id+'" style="flex:1">'+esc(gt.label)+'</label><select id="gate_'+gt.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ g.innerHTML=html;
+ var k=$("killList");var kh="";
+ KILLS_AUTO.forEach(function(kk){
+  kh+='<div class="item"><input type="checkbox" id="'+kk.id+'" disabled><label for="'+kk.id+'">'+esc(kk.label)+' (computed, cannot be unchecked)</label></div>';
+ });
+ KILLS_MANUAL.forEach(function(kk){
+  kh+='<div class="item"><input type="checkbox" id="'+kk.id+'"><label for="'+kk.id+'">'+esc(kk.label)+'</label></div>';
+ });
+ k.innerHTML=kh;
+}
+buildLists();
+function getTenants(){
+ var out=[];
+ document.querySelectorAll("#leaseBody tr").forEach(function(tr){
+  function v(f){var el=tr.querySelector('[data-t="'+f+'"]');return el?el.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  var sf=n("sf"),rent=n("rent");
+  var persfEl=tr.querySelector('[data-t="persf"]');
+  persfEl.textContent=(rent!==null&&sf!==null&&sf>0)?"$"+(rent/sf).toFixed(2):"N/A";
+  out.push({name:v("name").trim(),sf:sf,rent:rent,yrs:n("yrs"),end:v("end"),esc:n("esc"),renew:v("renew"),ti:n("ti"),lc:n("lc"),ver:v("ver"),src:v("src").trim()});
+ });
+ return out;
+}
+function setTenant(i,name,sf,rent,yrs,end,escv,renew,ti,lc,ver,src){
+ var tr=document.querySelectorAll("#leaseBody tr")[i];if(!tr)return;
+ function s(f,val){var el=tr.querySelector('[data-t="'+f+'"]');if(el)el.value=val;}
+ s("name",name);s("sf",sf);s("rent",rent);s("yrs",yrs);s("end",end);s("esc",escv);s("renew",renew);s("ti",ti);s("lc",lc);s("ver",ver);s("src",src);
+}
+function clearTenants(){
+ document.querySelectorAll("#leaseBody tr").forEach(function(tr){
+  tr.querySelectorAll("input,select").forEach(function(el){el.value="";});
+ });
+}
+function resetGatesKills(){
+ GATES.forEach(function(gt){$("gate_"+gt.id).value="hold";});
+ KILLS_MANUAL.forEach(function(kk){$(kk.id).checked=false;});
+}
+var lastReceipt={};
+function calc(){
+ var tenants=getTenants();
+ var rentRows=E5.rentRows(tenants);
+ var gpr=E5.grossPotentialRent(tenants);
+ var leasedSf=E5.leasedSf(tenants);
+ var rentableSf=num("rentableSf"),buildingSf=num("buildingSf");
+ var occupancy=E5.occupancyPct(leasedSf,rentableSf);
+ var top=E5.topTenant(tenants);
+ var topPct=E5.tenantPct(top,gpr);
+ var secondPct=E5.secondTenantPct(tenants,gpr);
+ var walt=E5.walt(tenants);
+ var wEsc=E5.weightedEscalation(tenants);
+ var verifiedCount=E5.verifiedCount(tenants);
+ var completeRows=E5.completeRowCount(tenants);
+ var otherIncome=num("otherIncome");
+ var vacPct=num("vacancyPct");
+ var vacLoss=E5.vacancyLoss(gpr,vacPct);
+ var egi=E5.egi(gpr,vacPct,otherIncome);
+ var opexLines=["opexTax","opexIns","opexMaint","opexMgmt","opexOther"];
+ var opexVals=opexLines.map(function(id){return num(id);});
+ var opex=E5.opexTotal(opexVals);
+ var noi=E5.noi(egi,opex);
+ var noiSf=E5.perSf(noi,rentableSf);
+ var opexRatio=E5.opexRatio(opex,egi);
+ setText("outGpr",money(gpr));
+ setText("outVacLoss",vacLoss===null?"N/A":"-"+money(vacLoss));
+ setText("outOther",money(otherIncome));
+ setText("outEgi",money(egi));
+ setText("outOpex",opex===null?"N/A":"-"+money(opex));
+ setText("outNoi",money(noi));
+ setText("outNoiSf",noiSf===null?"N/A":"$"+noiSf.toFixed(2));
+ setText("outOpexRatio",pct2(opexRatio));
+ setText("outTenantCount",String(rentRows.length));
+ setText("outLeasedSf",leasedSf===null?"N/A":leasedSf.toLocaleString("en-US")+" SF");
+ setText("outOccupancy",pct2(occupancy));
+ setText("outWalt",walt===null?"N/A (every rent row needs years remaining)":walt.toFixed(2)+" years");
+ setText("outWEsc",wEsc===null?"N/A (every rent row needs an escalation %)":wEsc.toFixed(2)+"% per year");
+ setText("outVerified",verifiedCount+" / "+rentRows.length);
+ setText("outTopTenant",top?(top.name||"(unnamed tenant)"):"N/A");
+ setText("outTopRent",money(top?top.rent:null));
+ setText("outTopPct",pct2(topPct));
+ setText("outSecondPct",pct2(secondPct));
+ $("workNoi").textContent=(gpr===null||vacPct===null)?"NOI cannot be computed: gross potential rent or vacancy is missing.":("Gross potential rent = "+E5.fmt2(gpr)+"\nVacancy loss = "+E5.fmt2(gpr)+" x "+vacPct+"% = "+E5.fmt2(vacLoss)+"\nEGI = "+E5.fmt2(gpr)+" x (1 - "+vacPct+"% / 100) + "+E5.fmt2(otherIncome===null?0:otherIncome)+" = "+E5.fmt2(egi)+"\nOperating expenses = "+opexVals.map(function(x){return E5.fmt2(x===null?0:x);}).join(" + ")+" = "+E5.fmt2(opex)+"\nNOI = "+E5.fmt2(egi)+" - "+E5.fmt2(opex)+" = "+E5.fmt2(noi));
+ var sched=$("schedBody");sched.innerHTML="";
+ var schedVals=E5.rentSchedule(gpr,wEsc);
+ schedVals.forEach(function(row){
+  var tr=document.createElement("tr");
+  var math=(wEsc===null)?"N/A":(row.year===1?"Year 1 base rent":("Year 1 x (1 + "+wEsc.toFixed(2)+"% )^"+(row.year-1)));
+  tr.innerHTML="<td>Year "+row.year+"</td><td class=\"mono\">"+money(row.rent)+"</td><td class=\"mono\">"+(row.rent===null?"N/A, needs gross potential rent and an escalation on every rent row":esc(math))+"</td>";
+  sched.appendChild(tr);
+ });
+ var stabVac=num("stabVacancy"),stabOpex=num("stabOpex");
+ var stabEgi=E5.egi(gpr,stabVac,otherIncome);
+ var stabNoi=E5.noi(stabEgi,stabOpex);
+ var stabNoiSf=E5.perSf(stabNoi,rentableSf);
+ var capRate=num("capRate");
+ var stabValue=E5.stabilizedValue(stabNoi,capRate);
+ var ouPriceSf=num("ouPriceSf");
+ var ouValue=E5.ownerUserValue(ouPriceSf,rentableSf);
+ var valueGap=(stabValue!==null&&ouValue!==null)?stabValue-ouValue:null;
+ var stabSf=E5.perSf(stabValue,rentableSf);
+ setText("outStabEgi",money(stabEgi));
+ setText("outStabNoi",money(stabNoi));
+ setText("outStabNoiSf",stabNoiSf===null?"N/A":"$"+stabNoiSf.toFixed(2));
+ setText("outStabValue",money(stabValue));
+ setText("outOuValue",money(ouValue));
+ setText("outValueGap",valueGap===null?"N/A":(valueGap<0?"-":"")+money(Math.abs(valueGap)));
+ setText("outStabSf",stabSf===null?"N/A":"$"+stabSf.toFixed(2));
+ $("workStab").textContent=(stabNoi===null||capRate===null)?"Stabilized value cannot be computed: stabilized NOI or cap rate is missing.":("Stabilized EGI = "+E5.fmt2(gpr)+" x (1 - "+stabVac+"% / 100) + "+E5.fmt2(otherIncome===null?0:otherIncome)+" = "+E5.fmt2(stabEgi)+"\nStabilized NOI = "+E5.fmt2(stabEgi)+" - "+E5.fmt2(stabOpex)+" = "+E5.fmt2(stabNoi)+"\nStabilized value = "+E5.fmt2(stabNoi)+" / "+capRate+"% = "+E5.fmt2(stabValue)+"\nOwner-user value = "+E5.fmt2(ouPriceSf)+" x "+E5.fmt2(rentableSf)+" = "+E5.fmt2(ouValue));
+ var typedVac=num("vacantSf");
+ var computedVac=(rentableSf!==null&&leasedSf!==null)?Math.max(0,rentableSf-leasedSf):null;
+ var vacantUsed=E5.vacantSfUsed(typedVac,rentableSf,leasedSf);
+ var lu=E5.leaseUpCost(vacantUsed,num("luTi"),num("luLc"),num("luFreeMonths"),num("luRentMo"),num("luCommission"));
+ var leaseUp=lu.total;
+ setText("outVacantUsed",vacantUsed===null?"N/A":vacantUsed.toLocaleString("en-US")+" SF");
+ setText("outLuTiLc",money(lu.tiLc));
+ setText("outLuFree",money(lu.freeCost));
+ setText("outLuComm",money(lu.commCost));
+ setText("outLeaseUp",money(leaseUp));
+ setText("outLuPerSf",lu.perSf===null?"N/A":"$"+lu.perSf.toFixed(2));
+ var vw=$("vacantWarn");
+ if(typedVac!==null&&computedVac!==null&&typedVac!==computedVac){
+  vw.hidden=false;
+  vw.textContent="Warning: typed vacant SF ("+typedVac.toLocaleString("en-US")+") differs from rentable SF minus leased SF ("+computedVac.toLocaleString("en-US")+"). The typed value is used. Record the reason in Data conflicts.";
+ }else{vw.hidden=true;vw.textContent="";}
+ $("workLu").textContent=(vacantUsed===null)?"Lease-up cost cannot be computed: vacant SF is unknown.":("Vacant SF used = "+vacantUsed.toLocaleString("en-US")+"\nTI + LC = "+vacantUsed.toLocaleString("en-US")+" x ("+E5.fmt2(num("luTi")===null?0:num("luTi"))+" + "+E5.fmt2(num("luLc")===null?0:num("luLc"))+") = "+E5.fmt2(lu.tiLc)+"\nFree rent = "+vacantUsed.toLocaleString("en-US")+" x "+E5.fmt2(num("luRentMo")===null?0:num("luRentMo"))+" x "+(num("luFreeMonths")===null?0:num("luFreeMonths"))+" = "+E5.fmt2(lu.freeCost)+"\nCommission = "+(num("luCommission")===null?0:num("luCommission"))+"% x ("+vacantUsed.toLocaleString("en-US")+" x "+E5.fmt2(num("luRentMo")===null?0:num("luRentMo"))+" x 12) = "+E5.fmt2(lu.commCost)+"\nTotal lease-up cost = "+E5.fmt2(lu.tiLc)+" + "+E5.fmt2(lu.freeCost)+" + "+E5.fmt2(lu.commCost)+" = "+E5.fmt2(leaseUp));
+ var buyPct=num("buyPct");
+ var buffer=num("assignBuffer");
+ var maoInv=E5.mao(stabValue,buyPct,leaseUp,buffer);
+ var maoOu=E5.mao(ouValue,buyPct,leaseUp,buffer);
+ var basis=$("maoBasis").value;
+ var maoUsed=basis==="owner-user"?maoOu:maoInv;
+ var bufferUsed=buffer===null?15000:buffer;
+ setText("outMaoInv",money(maoInv));
+ setText("outMaoOu",money(maoOu));
+ setText("outMaoUsed",money(maoUsed)+" ("+(basis==="owner-user"?"owner-user basis":"investment basis")+")");
+ var mb=$("maoBreakdown");
+ if(maoInv!==null||maoOu!==null){
+  mb.innerHTML='<div class="formula">Investment MAO: '+money(stabValue)+' x '+(buyPct===null?"N/A":buyPct.toFixed(2)+'%')+' - '+money(leaseUp)+' - '+money(bufferUsed)+' = '+money(maoInv)+'<br>Owner-user MAO: '+money(ouValue)+' x '+(buyPct===null?"N/A":buyPct.toFixed(2)+'%')+' - '+money(leaseUp)+' - '+money(bufferUsed)+' = '+money(maoOu)+'</div>';
+ }else{
+  mb.innerHTML='<div class="formula">MAO needs a value, a buy percent, and a lease-up cost. Missing inputs are N/A, and MAO is N/A.</div>';
+ }
+ var gatesPassed=[],gatesFailed=[];
+ GATES.forEach(function(gt){
+  var v=$("gate_"+gt.id).value;
+  if(v==="pass")gatesPassed.push(gt.id);else gatesFailed.push(gt.id);
+ });
+ setText("gateStatus",gatesFailed.length?("HOLD - "+gatesFailed.length+" gate(s) failed or held"):"PASS - all gates pass");
+ $("gateStatus").className=gatesFailed.length?"hold":"ok";
+ setText("gatesPassed",gatesPassed.length?gatesPassed.join(", "):"None");
+ setText("gatesFailed",gatesFailed.length?gatesFailed.join(", "):"None");
+ var manualKills=[];
+ KILLS_MANUAL.forEach(function(kk){if($(kk.id).checked)manualKills.push(kk.label);});
+ var killEval=E5.evaluateKills({tenants:tenants,top:top,topPct:topPct,manualKills:manualKills});
+ var killConc=killEval.fired.some(function(f){return f.indexOf("Single tenant over 50%")===0;});
+ $("k_conc").checked=killConc;
+ $("k_lease").checked=killEval.fired.some(function(f){return f.indexOf("Lease terms unverified")===0;});
+ var kills=killEval.fired.slice();
+ if(gatesFailed.length>0&&(stabValue===null||maoUsed===null)){
+  kills.push("Gate failure leaves stabilized value or MAO as N/A on the stated exit");
+ }
+ var killActive=kills.length>0;
+ setText("killActive",killActive?"Yes":"No");
+ setText("killReasons",killActive?kills.join("; "):"None");
+ var flags=E5.riskFlags({
+  tenants:tenants,topPct:topPct,killConc:killConc,walt:walt,occupancy:occupancy,
+  vacancyPct:vacPct,capSource:$("capSource").value,stabValue:stabValue,ouValue:ouValue,
+  secondPct:secondPct,manualRisks:[]
+ });
+ setText("riskFlags",flags.length?flags.join("; "):"None");
+ var hasMao=maoUsed!==null;
+ var status,recText;
+ if(killActive){status="KILL";recText="PASS";}
+ else if(gatesFailed.length>0||!hasMao||rentRows.length===0){status="HOLD";recText="HOLD";}
+ else{status="READY FOR REVIEW";recText="READY FOR REVIEW";}
+ setText("e13Rec",recText);
+ $("e13Box").innerHTML=killActive?'<div class="warning">Recommendation: PASS. Kill-switch fired: '+esc(kills.join("; "))+'</div>':(status==="HOLD"?'<div class="hint">Status: HOLD. '+(gatesFailed.length?"Failed or held gates: "+gatesFailed.join(", ")+". ":"")+(rentRows.length===0?"No lease rows with rent entered. ":"")+(!hasMao?"MAO is N/A, missing value, buy percent, or lease-up cost. ":"")+'Risk flags: '+(flags.length?esc(flags.join("; ")):"None")+'. No offer without Jeramie.</div>':'<div class="passbox">Status: READY FOR REVIEW. All gates pass and MAO is computed on the stated basis. This is still an underwriting opinion only, not an offer. No offer without Jeramie.</div>');
+ $("decisionBox").innerHTML=$("e13Box").innerHTML;
+ setText("resGpr",money(gpr));
+ setText("resNoi",money(noi));
+ setText("resStab",money(stabValue));
+ setText("resOu",money(ouValue));
+ setText("resLu",money(leaseUp));
+ setText("resMaoInv",money(maoInv));
+ setText("resMaoOu",money(maoOu));
+ setText("resTop",(topPct===null?"N/A":topPct.toFixed(2)+"%")+" / "+(walt===null?"N/A":walt.toFixed(2)+" yr"));
+ setText("resRec",recText);
+ var items=[
+  ["Street address",!!($("address").value||"").trim()],
+  ["Parcel ID",!!($("parcel").value||"").trim()],
+  ["Commercial type",!!$("propType").value],
+  ["Rentable SF",rentableSf!==null],
+  ["At least 1 complete lease row",completeRows>=1],
+  ["Cap rate",capRate!==null],
+  ["Cap rate source",!!($("capSource").value||"").trim()],
+  ["Stabilized vacancy",stabVac!==null],
+  ["Stabilized operating expenses",stabOpex!==null],
+  ["Buy percent",buyPct!==null]
+ ];
+ var done=items.filter(function(x){return x[1];}).length;
+ var pctDone=Math.round(done/items.length*100);
+ var missing=items.filter(function(x){return !x[1];}).map(function(x){return x[0];});
+ $("meterBar").style.width=pctDone+"%";
+ $("stickyCompleteBar").style.width=pctDone+"%";
+ setText("meterText",pctDone+"% complete ("+done+" of "+items.length+" required fields).");
+ setText("stickyCompleteText",pctDone+" percent");
+ setText("meterMissing",missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.");
+ setText("missingHints",missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.");
+ setText("missingHints2",missing.length?"Missing for a GO: "+missing.join(", ")+".":"All required fields are filled.");
+ setText("stickyNoi",money(noi));
+ setText("stickyStab",money(stabValue));
+ setText("stickyMao",money(maoUsed));
+ setText("stickyRec",recText);
+ setText("sumAddress",($("address").value||"").trim()||"N/A");
+ setText("sumParcel",($("parcel").value||"").trim()||"N/A");
+ setText("sumType",$("propType").value||"N/A");
+ setText("sumSf",(rentableSf===null?"N/A":rentableSf.toLocaleString("en-US")+" SF")+" / "+(leasedSf===null?"N/A":leasedSf.toLocaleString("en-US")+" SF"));
+ setText("sumGpr",money(gpr));
+ setText("sumNoi",money(noi));
+ setText("sumTop",(topPct===null?"N/A":topPct.toFixed(2)+"%")+" / "+(walt===null?"N/A":walt.toFixed(2)+" yr"));
+ setText("sumCap",capRate===null?"N/A":capRate.toFixed(2)+"%");
+ setText("sumStab",money(stabValue));
+ setText("sumOu",money(ouValue));
+ setText("sumLu",money(leaseUp));
+ setText("sumMao",money(maoInv));
+ var conf=parseFloat($("confidence").value);if(!isFinite(conf))conf=null;
+ setText("sumConfidence",conf===null?"N/A":conf.toFixed(2));
+ setText("sumGates",gatesFailed.length?("HOLD ("+gatesFailed.length+" failed or held)"): "PASS");
+ setText("sumRec",recText);
+ var maxBar=Math.max(gpr||0,egi||0,opex||0,noi||0,1);
+ function bar(id,lbl,val){var el=$(id);if(el)el.setAttribute("width",val===null?0:Math.max(0,Math.round(val/maxBar*360)));setText(lbl,money(val));}
+ bar("barGpr","lblGpr",gpr);bar("barEgi","lblEgi",egi);bar("barOpex","lblOpex",opex);bar("barNoi","lblNoi",noi);
+ var bt=$("barTop");if(bt)bt.setAttribute("width",topPct===null?0:Math.round(topPct/100*360));
+ var br=$("barRest");if(br)br.setAttribute("width",topPct===null?0:Math.round((100-topPct)/100*360));
+ setText("lblTop",pct2(topPct));setText("lblRest",topPct===null?"N/A":(100-topPct).toFixed(2)+"%");
+ var maxVal=Math.max(stabValue||0,ouValue||0,1);
+ var bs=$("barStab");if(bs)bs.setAttribute("width",stabValue===null?0:Math.round(stabValue/maxVal*360));
+ var bo=$("barOu");if(bo)bo.setAttribute("width",ouValue===null?0:Math.round(ouValue/maxVal*360));
+ setText("lblStab",money(stabValue));setText("lblOu",money(ouValue));
+ var receipt={
+  schema_version:"e5-commercial-receipt.v1.0",
+  run_id:runId,
+  run_date:new Date().toISOString().slice(0,10),
+  engine:"E5 Commercial",
+  address:{street:($("address").value||"").trim()||null,parcel_id:($("parcel").value||"").trim()||null,county:($("county").value||"").trim()||null,verified:gatesFailed.indexOf("address_parcel")===-1&&!!($("address").value||"").trim()},
+  property:{type:$("propType").value||null,building_sf:buildingSf,rentable_sf:rentableSf,leased_sf:leasedSf,occupancy_pct:occupancy,year_built:num("yearBuilt"),land_acres:num("landAcres"),exit_fit:$("exitFit").value||null},
+  tenants:tenants,
+  income:{gross_potential_rent:gpr,other_income:otherIncome,vacancy_pct_actual:vacPct,vacancy_loss:vacLoss,effective_gross_income:egi},
+  expenses:{taxes:num("opexTax"),insurance:num("opexIns"),maintenance:num("opexMaint"),management:num("opexMgmt"),other:num("opexOther"),total:opex,unentered_lines:opexLines.filter(function(id){return num(id)===null;})},
+  noi_actual:noi,
+  noi_per_rentable_sf:noiSf,
+  opex_ratio_pct:opexRatio,
+  tenant_exposure:{top_tenant:top?top.name||null:null,top_tenant_pct:topPct,second_tenant_pct:secondPct,walt_years:walt,weighted_escalation_pct:wEsc,verified_rows:verifiedCount,rent_rows:rentRows.length},
+  cap_rate:{rate_pct:capRate,source:($("capSource").value||"").trim()||null},
+  stabilized:{vacancy_pct:stabVac,opex:stabOpex,egi:stabEgi,noi:stabNoi,value:stabValue},
+  owner_user:{price_per_sf:ouPriceSf,value:ouValue,source:($("ouSource").value||"").trim()||null},
+  lease_up:{vacant_sf_used:vacantUsed,vacant_sf_typed:typedVac,vacant_sf_computed:computedVac,ti_per_sf:num("luTi"),lc_per_sf:num("luLc"),free_rent_months:num("luFreeMonths"),market_rent_per_sf_month:num("luRentMo"),commission_pct:num("luCommission"),ti_lc_cost:lu.tiLc,free_rent_cost:lu.freeCost,commission_cost:lu.commCost,total:leaseUp},
+  mao:{buy_pct:buyPct,assignment_buffer:bufferUsed,investment:maoInv,owner_user:maoOu,basis:basis,used:maoUsed},
+  gates:{passed:gatesPassed,failed:gatesFailed},
+  kill_switch:{active:killActive,reasons:kills},
+  risk_flags:flags,
+  status:status,
+  recommendation:recText,
+  confidence:conf,
+  completeness_pct:pctDone,
+  missing_fields:missing,
+  offer_authorized:false,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value
+ };
+ lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ updateHash();
+}
+var FIELD_IDS=["address","parcel","county","propType","buildingSf","rentableSf","yearBuilt","landAcres","exitFit","parcelSources","parcelSourceNames","incomeSource","otherIncome","vacancyPct","opexTax","opexIns","opexMaint","opexMgmt","opexOther","opexNotes","stabVacancy","stabOpex","capRate","capSource","ouPriceSf","ouSource","vacantSf","luTi","luLc","luFreeMonths","luRentMo","luCommission","buyPct","assignBuffer","maoBasis","confidence","assumptions","missingData","conflicts"];
+function collectState(){
+ var s={fields:{},leases:[],gates:{},kills:{}};
+ FIELD_IDS.forEach(function(id){s.fields[id]=$(id).value;});
+ s.leases=getTenants();
+ GATES.forEach(function(gt){s.gates[gt.id]=$("gate_"+gt.id).value;});
+ KILLS_MANUAL.forEach(function(kk){s.kills[kk.id]=$(kk.id).checked;});
+ return s;
+}
+function applyState(s){
+ if(!s)return;
+ if(s.fields){FIELD_IDS.forEach(function(id){if(s.fields[id]!==undefined&&$(id))$(id).value=s.fields[id];});}
+ if(s.leases){
+  s.leases.forEach(function(t,i){
+   if(i<5)setTenant(i,t.name||"",t.sf==null?"":t.sf,t.rent==null?"":t.rent,t.yrs==null?"":t.yrs,t.end||"",t.esc==null?"":t.esc,t.renew||"",t.ti==null?"":t.ti,t.lc==null?"":t.lc,t.ver||"",t.src||"");
+  });
+ }
+ if(s.gates){GATES.forEach(function(gt){if(s.gates[gt.id]!==undefined)$("gate_"+gt.id).value=s.gates[gt.id];});}
+ if(s.kills){KILLS_MANUAL.forEach(function(kk){if(s.kills[kk.id]!==undefined)$(kk.id).checked=!!s.kills[kk.id];});}
+}
+function encodeState(s){return btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+function decodeState(h){
+ try{var b=h.replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";return JSON.parse(decodeURIComponent(escape(atob(b))));}catch(e){return null;}
+}
+function updateHash(){
+ var url=window.location.href.split("#")[0]+"#d="+encodeState(collectState());
+ try{history.replaceState(null,"",url);}catch(e){}
+ var sh=$("shareUrl");if(sh)sh.value=url;
+}
+function loadFromHash(){
+ if(window.location.hash&&window.location.hash.indexOf("#d=")===0){
+  var s=decodeState(window.location.hash.slice(3));
+  if(s){applyState(s);return true;}
+ }
+ return false;
+}
+function copyText(txt,msg){
+ function done(){var n=$("sampleNote");n.hidden=false;n.textContent=msg||"Copied.";}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallbackCopy(txt);done();});}
+ else{fallbackCopy(txt);done();}
+}
+function fallbackCopy(txt){
+ var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();
+ try{document.execCommand("copy");}catch(e){}
+ document.body.removeChild(ta);
+}
+function copyShareLink(){updateHash();copyText($("shareUrl").value,"Share link copied. Anyone opening it sees the same inputs and the same math.");}
+function copyReceipt(){copyText($("receiptOut").textContent,"Receipt JSON copied.");}
+function downloadReceipt(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e5-commercial-receipt.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+function showSampleNote(txt){var n=$("sampleNote");n.hidden=false;n.textContent=txt;}
+function clearAll(){
+ FIELD_IDS.forEach(function(id){
+  if(id==="assignBuffer")$(id).value="15000";
+  else if(id==="confidence")$(id).value="0.50";
+  else if(id==="parcelSources")$(id).value="0";
+  else if(id==="maoBasis")$(id).value="investment";
+  else $(id).value="";
+ });
+ clearTenants();
+ resetGatesKills();
+ $("sampleNote").hidden=true;
+ try{history.replaceState(null,"",window.location.href.split("#")[0]);}catch(e){}
+ $("shareUrl").value="";
+ calc();
+}
+function loadSample(kind){
+ kind=kind||"a";
+ clearAll();
+ GATES.forEach(function(gt){$("gate_"+gt.id).value="pass";});
+ if(kind==="b"){
+  setVal("address","88 Office Park Dr, St. Joseph, MI 49085");
+  setVal("parcel","SAMPLE-E5-B");
+  setVal("county","Berrien County, MI");
+  setVal("propType","Office");
+  setVal("buildingSf","10000");setVal("rentableSf","10000");setVal("yearBuilt","1998");setVal("landAcres","2");
+  setVal("exitFit","Buy and hold, leased");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("incomeSource","Seller rent roll dated 2026-10-01, leases in hand (synthetic sample)");
+  setVal("otherIncome","0");setVal("vacancyPct","10");
+  setVal("opexTax","15000");setVal("opexIns","5000");setVal("opexMaint","8000");setVal("opexMgmt","6750");setVal("opexOther","2250");
+  setVal("opexNotes","Office, landlord pays expenses, no NNN recovery (synthetic sample)");
+  setTenant(0,"Anchor Law Firm","8000","120000","6","2032-11-04","2","Yes","5","3","Verified","Lease in hand (synthetic)");
+  setTenant(1,"Suite B Tenant","2000","30000","1.5","2028-05-04","3","No","4","2","Verified","Lease in hand (synthetic)");
+  setVal("stabVacancy","5");setVal("stabOpex","36000");setVal("capRate","8");
+  setVal("capSource","3 comparable sales, 7.5 to 8.5 percent, broker survey 2026-10 (synthetic sample)");
+  setVal("ouPriceSf","120");setVal("ouSource","2 comparable sales, county records (synthetic sample)");
+  setVal("luTi","10");setVal("luLc","5");setVal("luFreeMonths","2");setVal("luRentMo","1.5");setVal("luCommission","6");
+  setVal("buyPct","65");setVal("assignBuffer","15000");setVal("maoBasis","investment");setVal("confidence","0.70");
+  setVal("assumptions","Sample deal only, not a real deal. Anchor tenant sample. 1. GPR 150000, EGI 135000, NOI 98000. 2. Stabilized NOI 106500 at 8 percent cap gives stabilized value 1331250. 3. Owner-user value 1200000. 4. Lease-up cost 0, building fully leased. 5. Investment MAO 850312.50, owner-user MAO 765000. 6. Top tenant 80 percent is a risk flag, not a kill: 6 years remaining with renewal evidence.");
+  showSampleNote("Sample B loaded. Synthetic sample, not a real deal. Anchor tenant at 80 percent of income with 6 years remaining and renewal evidence: a risk flag, not a kill. Expected: NOI $98,000.00, stabilized value $1,331,250.00, investment MAO $850,312.50.");
+ }else if(kind==="c"){
+  setVal("address","9 Single Tenant Rd, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-E5-C");
+  setVal("county","Berrien County, MI");
+  setVal("propType","Single-tenant retail");
+  setVal("buildingSf","10000");setVal("rentableSf","10000");setVal("yearBuilt","1975");setVal("landAcres","1");
+  setVal("exitFit","Pass");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("incomeSource","Seller rent roll only, no leases provided (synthetic sample)");
+  setVal("otherIncome","0");setVal("vacancyPct","5");
+  setVal("opexTax","12000");setVal("opexIns","4000");setVal("opexMaint","6000");setVal("opexMgmt","5000");setVal("opexOther","3000");
+  setTenant(0,"Sole Tenant LLC","9000","108000","1.2","2028-01-15","0","No","0","0","Unverified","Rent roll only, lease not provided (synthetic)");
+  setTenant(1,"Kiosk","1000","12000","0.8","2027-08-15","0","No","0","0","Unverified","Rent roll only, lease not provided (synthetic)");
+  setVal("stabVacancy","8");setVal("stabOpex","30000");setVal("capRate","9");
+  setVal("capSource","Broker survey 2026-10 (synthetic sample)");
+  setVal("ouPriceSf","95");setVal("ouSource","2 comparable sales, county records (synthetic sample)");
+  setVal("luTi","0");setVal("luLc","0");setVal("luFreeMonths","0");setVal("luRentMo","0");setVal("luCommission","0");
+  setVal("buyPct","70");setVal("assignBuffer","15000");setVal("maoBasis","investment");setVal("confidence","0.40");
+  $("gate_lease").value="fail";
+  setVal("assumptions","Sample deal only, not a real deal. PASS sample. 1. Top tenant 90 percent of income, 1.2 years remaining, no renewal evidence: concentration kill fires. 2. Both lease rows unverified: lease-terms-unverified kill fires. Expected result: recommendation PASS, status KILL. MAO is a held number only.");
+  showSampleNote("Sample C loaded. Synthetic sample, not a real deal. PASS sample: single tenant at 90 percent with 1.2 years left and no renewal, plus unverified leases. Expected result: recommendation PASS.");
+ }else{
+  setVal("address","123 Main St, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-E5-A");
+  setVal("county","Berrien County, MI");
+  setVal("propType","Retail strip");
+  setVal("buildingSf","12000");setVal("rentableSf","12000");setVal("yearBuilt","1985");setVal("landAcres","1.5");
+  setVal("exitFit","Buy and hold, leased");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("incomeSource","Seller rent roll dated 2026-10-01, leases in hand (synthetic sample)");
+  setVal("otherIncome","6000");setVal("vacancyPct","5");
+  setVal("opexTax","18000");setVal("opexIns","6000");setVal("opexMaint","9000");setVal("opexMgmt","8000");setVal("opexOther","4000");
+  setVal("opexNotes","NNN leases, tenants reimburse taxes and insurance (synthetic sample)");
+  setTenant(0,"Anchor Grocery","4000","72000","4.5","2031-04-04","3","Yes","10","5","Verified","Lease in hand (synthetic)");
+  setTenant(1,"Coffee Shop","3000","48000","3","2029-11-04","2.5","Yes","8","4","Verified","Lease in hand (synthetic)");
+  setTenant(2,"Salon","2000","30000","5","2031-11-04","3","Yes","6","3","Verified","Lease in hand (synthetic)");
+  setTenant(3,"Nail Bar","1000","12000","2","2028-11-04","2","Yes","5","2","Verified","Lease in hand (synthetic)");
+  setVal("stabVacancy","5");setVal("stabOpex","44000");setVal("capRate","7.5");
+  setVal("capSource","3 comparable sales, 7.0 to 8.0 percent, broker survey 2026-10 (synthetic sample)");
+  setVal("ouPriceSf","145");setVal("ouSource","2 comparable sales, county records (synthetic sample)");
+  setVal("luTi","15");setVal("luLc","5");setVal("luFreeMonths","3");setVal("luRentMo","1.25");setVal("luCommission","5");
+  setVal("buyPct","70");setVal("assignBuffer","15000");setVal("maoBasis","investment");setVal("confidence","0.75");
+  setVal("assumptions","Sample deal only, not a real deal. Multi-tenant retail sample. 1. GPR 162000, EGI 159900, NOI 114900. 2. Stabilized NOI 115900 at 7.5 percent cap gives stabilized value 1545333.33. 3. Owner-user value 1740000, 145 per SF times 12000 rentable SF. 4. Lease-up cost 49000 on 2000 vacant SF. 5. Investment MAO 1017733.33, owner-user MAO 1154000. 6. Top tenant 44.44 percent, WALT 3.96 years, weighted escalation 2.78 percent.");
+  showSampleNote("Sample A loaded. Synthetic sample, not a real deal. Multi-tenant retail. Expected: NOI $114,900.00, stabilized value $1,545,333.33, lease-up cost $49,000.00, investment MAO $1,017,733.33.");
+ }
+ calc();
+}
+/* Receipt chain v1.0: SHA-256, GENESIS first, canonical JSON with the
+   hash field stripped, Verify via Web Crypto with PASS/FAIL per receipt. */
+var chain=[];
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!lastReceipt||!lastReceipt.run_id){alert("No receipt to issue yet.");return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E5.buildReceipt(lastReceipt,prev,seq);
+ sha256HexBrowser(E5.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){alert("Could not hash receipt: "+e.message);});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E5.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e5-commercial-chain.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+document.querySelectorAll("input,select,textarea").forEach(function(el){
+ el.addEventListener("input",calc);
+ el.addEventListener("change",calc);
+});
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnShare").addEventListener("click",copyShareLink);
+$("btnClearShare").addEventListener("click",function(){try{history.replaceState(null,"",window.location.href.split("#")[0]);}catch(e){}$("shareUrl").value="";});
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",copyReceipt);
+$("btnDownloadReceipt").addEventListener("click",downloadReceipt);
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnPrint").addEventListener("click",function(){window.print();});
+window.loadSample=loadSample;
+window.clearAll=clearAll;
+window.calc=calc;
+window.copyShareLink=copyShareLink;
+window.collectState=collectState;
+window.applyState=applyState;
+window.issueReceipt=issueReceipt;
+window.verifyChain=verifyChain;
+window.getChain=function(){return chain;};
+window.getLastReceipt=function(){return lastReceipt;};
+loadFromHash();
+calc();
+renderChain();
+})();
+</script>
+</body>
+</html>
