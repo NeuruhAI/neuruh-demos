@@ -260,11 +260,22 @@
 
   var rotating = true, autoAngle = 0;
   var camX = 0, camY = 6; // camera look target; the load framing is (0, 6, 42)
-  var dragging = false, px = 0, py = 0, rotX = 0.12, rotY = -0.15, zoom = 42;
-  renderer.domElement.addEventListener('pointerdown', function(e){ dragging = true; px = e.clientX; py = e.clientY; });
-  window.addEventListener('pointerup', function(){ dragging = false; });
+  var dragging = false, dragPointerId = null, px = 0, py = 0, rotX = 0.12, rotY = -0.15, zoom = 42;
+  function endDrag(){ dragging = false; dragPointerId = null; }
+  renderer.domElement.addEventListener('pointerdown', function(e){
+    dragging = true; dragPointerId = (e.pointerId === undefined ? null : e.pointerId);
+    px = e.clientX; py = e.clientY;
+  });
+  window.addEventListener('pointerup', endDrag);
+  // A drag can end without a pointerup: the browser may cancel the pointer
+  // stream (pointercancel), or the pointer may be released outside the
+  // window (blur). Without these exits dragging stays true, and every later
+  // mouse move keeps rotating the view, which undoes a Reset after the click.
+  window.addEventListener('pointercancel', endDrag);
+  window.addEventListener('blur', endDrag);
   window.addEventListener('pointermove', function(e){
     if (!dragging) return;
+    if (dragPointerId !== null && e.pointerId !== undefined && e.pointerId !== dragPointerId) return;
     rotY += (e.clientX - px) * 0.005;
     rotX += (e.clientY - py) * 0.005;
     rotX = Math.max(-0.9, Math.min(0.9, rotX));
@@ -301,6 +312,10 @@
   });
 
   function applyView(view) {
+    // A drag that ended without a pointerup leaves dragging true; the next
+    // mouse move would re-rotate the view and undo the framing this reset
+    // just applied. End any drag before reframing.
+    endDrag();
     meshes.forEach(function(mm){
       var m = mm.userData.module;
       var show = view === 'all' ||
@@ -359,6 +374,10 @@
     this.textContent = rotating ? 'Pause rotation' : 'Resume rotation';
   });
   document.getElementById('btnReset').addEventListener('click', function(){
+    // End any drag first: a drag that ended without a pointerup leaves
+    // dragging true, and the mouse move after this click would rotate the
+    // view away from the baseline again. Reset must be the last word.
+    endDrag();
     // autoAngle is the rotation accumulated since load; it was never reset,
     // so the camera never returned to the load angle. Reset it with the rest.
     autoAngle = 0; rotX = 0.12; rotY = -0.15; zoom = 42;
