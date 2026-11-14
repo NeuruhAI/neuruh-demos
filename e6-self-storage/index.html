@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="E6 Self-Storage Underwriting Engine v1.0: evidence-first self-storage underwriting. Unit mix, occupancy, street rates, stabilized NOI, expansion upside, remote management, break-even occupancy, with a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="Self-Storage Underwriting Engine E6 - Neuruh">
+<meta property="og:description" content="Evidence-first self-storage underwriting: unit mix, occupancy, street rates, stabilized NOI, expansion, remote management, and break-even occupancy, with gates and a SHA-256 receipt chain. SIMULATION.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>Self-Storage Underwriting Engine E6 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace;text-align:right}
+.big{font-size:22px}
+.big b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+.tag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass);padding:1px 4px;white-space:nowrap}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.scroll{overflow-x:auto}
+.formula{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px}
+.working{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px;white-space:pre-wrap}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:150px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+figure{margin:14px 0;border:1px solid var(--line);background:var(--paper);padding:12px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+figcaption b{color:var(--ink)}
+@media (max-width:760px){.grid,.grid2,.meta{grid-template-columns:1fr}header.doc h1{font-size:24px}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}
+}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.passbox{background:#e6efe6;border:1px solid var(--green);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{#summarySection{border:2px solid #000}#summarySection .result{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E6</div>
+<h1>Self-Storage Underwriting Engine</h1>
+<p>Unit mix, occupancy, street rates, stabilized NOI, expansion upside, remote-management potential, and break-even occupancy for a self-storage facility, with gates, evidence lineage, and a SHA-256 receipt chain.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine 6 of 12 - SIMULATION</b></div>
+<div>Lineage<b>Codex V2 App. B, E6 + Residential v1.1 gates + E1 pattern</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not legal, tax, or lending advice. Verify the parcel, occupancy, rates, title, and zoning with the county, the rent roll, and a licensed professional before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: stabilized</button>
+<button id="btnSampleB" type="button">Sample B: lease-up value-add</button>
+<button id="btnSampleC" type="button">Sample C: PASS</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (unit mix, occupancy, street rates, stabilized NOI, value, break-even, expansion, remote)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e6.js, run 2026-11-14. Sample A hand-computed expectations match: 200 units, 180 occupied, 90.00 percent occupancy, PGI $338,400.00, stabilized NOI $224,560.00, value $3,208,000.00, break-even occupancy 23.64 percent, expansion added NOI $46,980.00, yield on cost 11.74 percent, remote saving $24,000.00. Sample B: PGI $309,600.00, stabilized NOI $193,940.00, value $2,585,866.67, break-even 27.36 percent. Sample C: both AUTO kills fire.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e6.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge verified">VERIFIED</span></td><td>HTTP 200 at neuruhai.github.io/neuruh-demos/e6-self-storage/, live MD5 matches staged file. See build report.</td></tr>
+<tr><td>Market data (rates, occupancy, expenses, cap rates)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every rate, occupancy figure, expense, and cap rate is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E6 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E6 specification document was found in the vault. The subject (Self-Storage) and its mechanics come from the 2026-11-04 E6 build, itself live at e6-self-storage.pages.dev. See section 14 for the gap. Kill conditions and risk flags are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests plus a jsdom DOM smoke test are the verification for this build. See build report.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change the stabilized occupancy in section 06.</li>
+<li><b>Step 3:</b> Watch stabilized NOI, value, and break-even occupancy move in the sticky panel at the top, then issue a receipt in section 12 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">Stabilized NOI (MODELED ESTIMATE)</span><b id="stickyNoi">N/A</b></div>
+<div><span class="sr-label">Break-even occupancy</span><b id="stickyBe">N/A</b></div>
+<div><span class="sr-label">Value at cap rate (MODELED ESTIMATE)</span><b id="stickyValue">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div class="small" id="missingHints" style="font-size:13px;color:var(--muted);margin-top:4px"></div></div>
+</div>
+
+<figure>
+<svg viewBox="0 0 900 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Self-storage underwriting flow diagram">
+<rect x="10" y="20" width="900" height="170" fill="#fffdf6" stroke="#d8cfb8"/>
+<rect x="30" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="100" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">1. UNIT MIX</text><text x="100" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">rent roll, verified</text>
+<rect x="200" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="270" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">2. RATES</text><text x="270" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">2 sources minimum</text>
+<rect x="370" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="440" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">3. NOI</text><text x="440" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">stabilized, at cap rate</text>
+<rect x="540" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="610" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">4. EXPANSION</text><text x="610" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">yield on cost</text>
+<rect x="710" y="55" width="140" height="60" fill="#fffdf6" stroke="#1d1a16" stroke-width="2"/><text x="780" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">5. BREAK-EVEN</text><text x="780" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">occupancy floor</text>
+<text x="170" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="340" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="510" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="680" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text>
+<text x="30" y="145" font-family="sans-serif" font-size="12" fill="#6b6257">If occupancy is unverified or rates rest on one source, the run ends at PASS. See section E13.</text>
+</svg>
+<figcaption><b>Figure 1.</b> The self-storage underwriting sequence this engine runs. Each step needs its own evidence. Unverified occupancy or a single rate source breaks the sequence at the kill switch.</figcaption>
+</figure>
+
+<section class="card" id="s1">
+<h2><span>02</span>Subject facility and parcel gate</h2>
+<p class="sub">Address / parcel gate. Confirm the facility and parcel from at least 2 public sources before any rate or occupancy number is used. An unverified parcel means HOLD.</p>
+<div class="grid">
+<div><label for="facilityName">Facility name</label><input id="facilityName" type="text" placeholder="Example: Sample Storage, Benton Harbor"></div>
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcelId">Parcel ID</label><input id="parcelId" type="text" placeholder="Parcel ID"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="siteAcres">Site acres</label><input id="siteAcres" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div><label for="yearBuilt">Year built / expanded</label><input id="yearBuilt" type="number" min="1800" max="2026" step="1" placeholder="e.g. 2005"></div>
+<div><label for="facilityType">Facility type</label><select id="facilityType"><option value="">Select</option><option>Drive-up, non-climate</option><option>Climate-controlled</option><option>Mixed drive-up and climate</option><option>Boat / RV / vehicle</option><option>Unknown</option></select></div>
+<div><label for="zoning">Zoning district</label><input id="zoning" type="text" placeholder="Example: C-1 Commercial, or N/A"></div>
+<div><label for="exitFit">Exit fit</label><select id="exitFit"><option value="">Select</option><option>Stabilized hold</option><option>Lease-up value-add</option><option>Expansion</option><option>Remote-managed hold</option><option>Pass</option></select></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+<div><label for="parcelSourceNames">Parcel source names</label><input id="parcelSourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+<div><label for="unitMixSource">Unit mix source</label><input id="unitMixSource" type="text" placeholder="Example: Rent roll dated 2026-10-15, or N/A"></div>
+</div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>03</span>Unit mix</h2>
+<p class="sub">Every row is one unit type. Count, occupied, and street rate are required for a row to count. Occupied can never exceed count. Street rates here are the subject facility rates; competitor rates go in section 05.</p>
+<div class="scroll"><table>
+<thead><tr><th>Unit type</th><th>Size (SF per unit)</th><th>Units</th><th>Occupied</th><th>Street rate ($/mo)</th><th>Auto: monthly PGI</th><th>Auto: monthly actual rent</th></tr></thead>
+<tbody id="unitBody"></tbody>
+</table></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button id="btnAddUnit" type="button">Add unit row</button></div>
+<div class="working" id="workUnits">Enter unit rows to see the working.</div>
+<div class="result">
+<div class="row"><span>Total units</span><b id="totalUnits">N/A</b></div>
+<div class="row"><span>Total occupied units</span><b id="totalOccupied">N/A</b></div>
+<div class="row"><span>Occupancy, from unit mix</span><b id="occPct">N/A</b></div>
+<div class="row"><span>Total rentable SF</span><b id="totalSF">N/A</b></div>
+<div class="row"><span>Potential gross income, monthly (100 percent occupancy at street rates) <span class="tag">MODELED ESTIMATE</span></span><b id="pgiMonthly">N/A</b></div>
+<div class="row"><span>Potential gross income, annual <span class="tag">MODELED ESTIMATE</span></span><b id="pgiAnnual">N/A</b></div>
+<div class="row"><span>Actual gross rent, monthly (occupied units at street rates) <span class="tag">MODELED ESTIMATE</span></span><b id="actualMonthly">N/A</b></div>
+<div class="row"><span>Actual gross rent, annual <span class="tag">MODELED ESTIMATE</span></span><b id="actualAnnual">N/A</b></div>
+<div class="row"><span>Vacancy loss at current occupancy, annual (PGI minus actual rent) <span class="tag">MODELED ESTIMATE</span></span><b id="vacancyLoss">N/A</b></div>
+</div>
+<div class="warning" id="unitWarning" hidden>Warning: a unit row has occupied units above total units, or a row is incomplete. Fix the row before relying on occupancy.</div>
+</section>
+
+<section class="card" id="s3">
+<h2><span>04</span>Occupancy evidence</h2>
+<p class="sub">Occupancy kill condition: occupancy is unverifiable. A rent roll in hand is evidence. An owner statement alone is a claim, not proof. Unverified means the kill-switch in section E13 fires and the recommendation is PASS.</p>
+<div class="grid">
+<div><label for="occVerify">Occupancy verification</label><select id="occVerify"><option value="">Select</option><option value="rent_roll">Verified rent roll in hand</option><option value="owner_statement">Owner statement only</option><option value="site_count">Site count / manager walk only</option><option value="unverified">Unverified / no rent roll</option></select></div>
+<div><label for="rentRollDate">Rent roll date</label><input id="rentRollDate" type="date"></div>
+<div><label for="occSourceNames">Occupancy source names</label><input id="occSourceNames" type="text" placeholder="Example: Rent roll, property manager, or N/A"></div>
+<div><label for="occTrend">Occupancy trend (12 months)</label><select id="occTrend"><option value="">Select</option><option>Stable</option><option>Rising</option><option>Falling</option><option>Unknown</option></select></div>
+<div><label for="delinquencyPct">Delinquency, percent of rent roll (%)</label><input id="delinquencyPct" type="number" min="0" max="100" step="0.1" placeholder="0"></div>
+<div><label for="avgTenancyMonths">Average tenancy (months)</label><input id="avgTenancyMonths" type="number" min="0" step="1" placeholder="0"></div>
+</div>
+<label style="margin-top:12px" for="occNotes">Occupancy notes (what was checked, what is missing, or N/A)</label>
+<textarea id="occNotes" placeholder="Rent roll date and source, delinquency detail, move-in / move-out trend, or N/A"></textarea>
+<div class="warning" id="occWarning" hidden>Warning: occupancy is unverified. This is a kill condition. See section E13.</div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>05</span>Street rates, competitor evidence</h2>
+<p class="sub">Street-rate kill condition: street rates from a single source. You need usable rate comps from at least 2 distinct sources. A row is usable only when facility, unit size, rate, source name, source date, and source reference are all filled. Do not use the subject facility as its own competitor comp.</p>
+<div class="scroll"><table>
+<thead><tr><th>Competitor facility</th><th>Unit size</th><th>Street rate ($/mo)</th><th>Source name</th><th>Source date</th><th>Source reference</th><th>Auto: usable?</th></tr></thead>
+<tbody id="rateBody"></tbody>
+</table></div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button id="btnAddRate" type="button">Add rate comp</button></div>
+<div class="result">
+<div class="row"><span>Usable rate comps</span><b id="rateUsableCount">0</b></div>
+<div class="row"><span>Distinct rate sources</span><b id="rateSourceCount">0</b></div>
+<div class="row"><span>Distinct source names</span><b id="rateSourceNames">None</b></div>
+<div class="row"><span>Competitor street-rate range ($/mo)</span><b id="rateRange">N/A</b></div>
+<div class="row"><span>Subject street-rate range, from unit mix ($/mo)</span><b id="subjectRateRange">N/A</b></div>
+<div class="row"><span>Rate check</span><b id="rateCheck">Add at least 3 usable rate comps from at least 2 distinct sources.</b></div>
+</div>
+<div class="warning" id="rateWarning" hidden>Warning: street rates rest on fewer than 2 distinct sources. This is a kill condition. See section E13.</div>
+</section>
+<section class="card" id="s5">
+<h2><span>06</span>Stabilized NOI and value</h2>
+<p class="sub">Deterministic math. Stabilized gross rent is PGI times stabilized occupancy. Stabilized EGI adds other income. NOI is EGI minus operating expenses. Value is NOI divided by the cap rate. No line is invented: a missing expense is N/A, and a missing cap rate leaves value N/A.</p>
+<div class="formula">Stabilized GPR = PGI annual x Stabilized occupancy<br>Stabilized EGI = Stabilized GPR + Other income<br>Stabilized NOI = Stabilized EGI - Total operating expenses<br>Value = Stabilized NOI / Cap rate<br>Break-even occupancy = (Total operating expenses - Other income) / PGI annual</div>
+<div class="grid">
+<div><label for="stabOcc">Stabilized occupancy (%)</label><input id="stabOcc" type="number" min="0" max="100" step="0.1" placeholder="e.g. 90"></div>
+<div><label for="otherIncome">Other income, annual ($) - MODELED ESTIMATE input</label><input id="otherIncome" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="capRate">Cap rate (%)</label><input id="capRate" type="number" min="0" step="0.1" placeholder="e.g. 7"></div>
+<div><label for="otherIncomeNotes">Other income detail</label><input id="otherIncomeNotes" type="text" placeholder="Example: Late fees, admin fees, tenant insurance, or N/A"></div>
+</div>
+<h3 style="margin:16px 0 4px;font-size:15px">Operating expenses, annual ($) - MODELED ESTIMATE inputs</h3>
+<div class="grid">
+<div><label for="opexTax">Real estate taxes</label><input id="opexTax" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="opexIns">Insurance</label><input id="opexIns" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="opexUtil">Utilities</label><input id="opexUtil" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="opexMaint">Repairs and maintenance</label><input id="opexMaint" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="opexMgmt">Management</label><input id="opexMgmt" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="opexMkt">Marketing and advertising</label><input id="opexMkt" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="opexAdmin">General and administrative</label><input id="opexAdmin" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="opexReserves">Reserves / capital</label><input id="opexReserves" type="number" min="0" step="1" placeholder="0"></div>
+</div>
+<div class="working" id="workStab">Enter unit mix, stabilized occupancy, expenses, and a cap rate to see the working.</div>
+<div class="result">
+<div class="row"><span>Stabilized gross rent, annual <span class="tag">MODELED ESTIMATE</span></span><b id="stabGPR">N/A</b></div>
+<div class="row"><span>Stabilized EGI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="stabEGI">N/A</b></div>
+<div class="row"><span>Actual EGI, annual (actual rent + other income) <span class="tag">MODELED ESTIMATE</span></span><b id="actualEGI">N/A</b></div>
+<div class="row"><span>Total operating expenses, annual <span class="tag">MODELED ESTIMATE</span></span><b id="totalOpex">N/A</b></div>
+<div class="row"><span>Operating expense ratio (opex / stabilized EGI)</span><b id="opexRatio">N/A</b></div>
+<div class="row"><span>Actual NOI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="actualNOI">N/A</b></div>
+<div class="row big"><span>Stabilized NOI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="stabNOI">N/A</b></div>
+<div class="row"><span>Stabilized NOI per unit, annual <span class="tag">MODELED ESTIMATE</span></span><b id="noiPerUnit">N/A</b></div>
+<div class="row"><span>Stabilized NOI per rentable SF, annual <span class="tag">MODELED ESTIMATE</span></span><b id="noiPerSF">N/A</b></div>
+<div class="row big"><span>Value at cap rate <span class="tag">MODELED ESTIMATE</span></span><b id="valueAtCap">N/A</b></div>
+<div class="row big"><span>Break-even occupancy</span><b id="beOcc">N/A</b></div>
+<div class="row"><span>Break-even rent, monthly (at current occupancy) <span class="tag">MODELED ESTIMATE</span></span><b id="beRent">N/A</b></div>
+</div>
+<figure>
+<figcaption><b>Figure 2.</b> Stabilized income waterfall, Sample A (synthetic). PGI $338,400.00, less vacancy at 10 percent $33,840.00, plus other income $6,000.00, equals EGI $310,560.00, less operating expenses $86,000.00, equals stabilized NOI $224,560.00.</figcaption>
+<svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Stabilized income waterfall for Sample A">
+<rect x="10" y="10" width="620" height="200" fill="#fffdf6" stroke="#d8cfb8"/>
+<text x="20" y="32" font-family="monospace" font-size="12" fill="#1d1a16">PGI $338,400</text><rect x="20" y="40" width="338" height="22" fill="#9a7b2d"/>
+<text x="20" y="84" font-family="monospace" font-size="12" fill="#1d1a16">Less vacancy $33,840</text><rect x="20" y="92" width="34" height="22" fill="#8a2f24"/>
+<text x="20" y="136" font-family="monospace" font-size="12" fill="#1d1a16">Plus other income $6,000</text><rect x="20" y="144" width="12" height="22" fill="#2e5e3a"/>
+<text x="380" y="84" font-family="monospace" font-size="12" fill="#1d1a16">EGI $310,560</text><rect x="380" y="92" width="240" height="22" fill="#6b6257"/>
+<text x="380" y="136" font-family="monospace" font-size="12" fill="#1d1a16">Less opex $86,000</text><rect x="380" y="144" width="86" height="22" fill="#8a2f24"/>
+<text x="20" y="196" font-family="monospace" font-size="13" font-weight="bold" fill="#1d1a16">Stabilized NOI $224,560</text>
+</svg>
+</figure>
+<figure>
+<figcaption><b>Figure 3.</b> Break-even occupancy scale. Sample A (synthetic) breaks even at 23.64 percent occupancy. The stabilized occupancy is 90.00 percent. The gap between the two is the operating cushion. The live marker below moves with the current deal.</figcaption>
+<svg viewBox="0 0 640 110" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Break-even occupancy scale from 0 to 100 percent">
+<rect x="10" y="10" width="620" height="90" fill="#fffdf6" stroke="#d8cfb8"/>
+<rect x="20" y="40" width="600" height="16" fill="#efe9dc" stroke="#d8cfb8"/>
+<rect id="beBar" x="20" y="40" width="142" height="16" fill="#9a7b2d"/>
+<text x="20" y="30" font-family="monospace" font-size="11" fill="#6b6257">0%</text>
+<text x="300" y="30" font-family="monospace" font-size="11" fill="#6b6257">50%</text>
+<text x="600" y="30" font-family="monospace" font-size="11" fill="#6b6257">100%</text>
+<text id="beMarkerText" x="20" y="80" font-family="monospace" font-size="12" fill="#1d1a16">Break-even: N/A. Stabilized: N/A.</text>
+</svg>
+</figure>
+</section>
+
+<section class="card" id="s6">
+<h2><span>07</span>Expansion upside</h2>
+<p class="sub">Expansion is priced only on land or space that is actually buildable and permitted, or marked N/A. Added rent uses the stabilized occupancy from section 06. Yield on cost is added NOI divided by expansion cost.</p>
+<div class="formula">Added annual rent = Expansion units x Avg monthly rate x 12 x Stabilized occupancy<br>Added NOI = Added annual rent - Added operating expenses<br>Yield on cost = Added NOI / Expansion cost</div>
+<div class="grid">
+<div><label for="expAcres">Expansion land available (acres)</label><input id="expAcres" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div><label for="expUnits">Expansion units (new)</label><input id="expUnits" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="expRate">Expansion avg monthly rate ($/mo) - MODELED ESTIMATE input</label><input id="expRate" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="expCost">Expansion cost, total ($) - MODELED ESTIMATE input</label><input id="expCost" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="expOpexPct">Added operating expenses (% of added rent)</label><input id="expOpexPct" type="number" min="0" max="100" step="0.1" placeholder="e.g. 25"></div>
+<div><label for="expPermit">Expansion permit / zoning status</label><select id="expPermit"><option value="">Select</option><option>Permitted by right</option><option>Conditional use needed</option><option>Rezoning needed</option><option>Not permitted / unknown</option><option>No expansion planned</option></select></div>
+</div>
+<label style="margin-top:12px" for="expNotes">Expansion notes (land source, permit evidence, or N/A)</label>
+<textarea id="expNotes" placeholder="Buildable area, permit status and source, cost basis, or N/A"></textarea>
+<div class="working" id="workExp">Enter expansion units, rate, cost, and expense percent to see the working.</div>
+<div class="result">
+<div class="row"><span>Added annual rent at stabilized occupancy <span class="tag">MODELED ESTIMATE</span></span><b id="expRent">N/A</b></div>
+<div class="row"><span>Added operating expenses <span class="tag">MODELED ESTIMATE</span></span><b id="expOpex">N/A</b></div>
+<div class="row"><span>Added NOI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="expNOI">N/A</b></div>
+<div class="row"><span>Expansion cost per new unit <span class="tag">MODELED ESTIMATE</span></span><b id="expCostPerUnit">N/A</b></div>
+<div class="row big"><span>Yield on cost</span><b id="expYield">N/A</b></div>
+<div class="row"><span>Expansion status</span><b id="expStatus">Enter expansion units, rate, cost, and expense percent.</b></div>
+</div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>08</span>Remote-management potential</h2>
+<p class="sub">Score is the count of remote-ready systems in place divided by 6. Cost saving is onsite management cost minus remote management cost. A high score with no cost saving is a capability note, not a profit claim.</p>
+<div class="checklist" id="remoteList"></div>
+<div class="grid" style="margin-top:12px">
+<div><label for="remoteOnsiteCost">Onsite manager cost, annual ($) - MODELED ESTIMATE input</label><input id="remoteOnsiteCost" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="remoteCost">Remote management cost, annual ($) - MODELED ESTIMATE input</label><input id="remoteCost" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="remoteNotes">Remote notes</label><input id="remoteNotes" type="text" placeholder="Kiosk, call center, vendor, or N/A"></div>
+</div>
+<div class="result">
+<div class="row"><span>Remote-ready systems in place</span><b id="remoteCount">0 of 6</b></div>
+<div class="row"><span>Remote readiness score</span><b id="remoteScore">N/A</b></div>
+<div class="row"><span>Annual management cost saving <span class="tag">MODELED ESTIMATE</span></span><b id="remoteSaving">N/A</b></div>
+<div class="row"><span>Remote verdict</span><b id="remoteVerdict">Check the remote systems in place above.</b></div>
+</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>09</span>Gates, fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass. Gates are set by the operator after checking the evidence, not by the math.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div class="hint" id="missingHints2">Missing for a GO: parcel, address, unit mix, occupancy verification, at least 2 street-rate sources, stabilized occupancy, operating expenses, cap rate.</div>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span>10</span>Results</h2>
+<p class="sub">Completeness counts the required fields in this run. A complete run can still be HOLD or PASS. Completeness is not a recommendation.</p>
+<div><label>Completeness</label><div class="meter"><div class="meter-fill" id="meterBar"></div></div><div class="small" id="meterText" style="font-size:13px;color:var(--muted)">0% complete.</div><div class="small" id="meterMissing" style="font-size:13px;color:var(--muted)"></div></div>
+<div class="result" style="margin-top:12px">
+<div class="row"><span>PGI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="resPgi">N/A</b></div>
+<div class="row"><span>Occupancy</span><b id="resOcc">N/A</b></div>
+<div class="row"><span>Stabilized NOI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="resNoi">N/A</b></div>
+<div class="row"><span>Value at cap rate <span class="tag">MODELED ESTIMATE</span></span><b id="resValue">N/A</b></div>
+<div class="row"><span>Break-even occupancy</span><b id="resBe">N/A</b></div>
+<div class="row"><span>Expansion added NOI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="resExp">N/A</b></div>
+<div class="row"><span>Expansion yield on cost</span><b id="resExpYield">N/A</b></div>
+<div class="row"><span>Remote readiness</span><b id="resRemote">N/A</b></div>
+<div class="row big"><span>Recommendation</span><b id="resRec">HOLD</b></div>
+</div>
+<div id="decisionBox" style="margin-top:12px"></div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>11</span>One-page summary, print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above. It is a summary of the receipt, not an offer.</p>
+<div class="result">
+<div class="row"><span>Facility</span><b id="sumFacility">N/A</b></div>
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Total units / occupied</span><b id="sumUnits">N/A</b></div>
+<div class="row"><span>Occupancy</span><b id="sumOcc">N/A</b></div>
+<div class="row"><span>PGI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="sumPGI">N/A</b></div>
+<div class="row"><span>Stabilized NOI, annual <span class="tag">MODELED ESTIMATE</span></span><b id="sumNOI">N/A</b></div>
+<div class="row"><span>Value at cap rate <span class="tag">MODELED ESTIMATE</span></span><b id="sumValue">N/A</b></div>
+<div class="row"><span>Break-even occupancy</span><b id="sumBE">N/A</b></div>
+<div class="row"><span>Expansion added NOI <span class="tag">MODELED ESTIMATE</span></span><b id="sumExp">N/A</b></div>
+<div class="row"><span>Remote readiness</span><b id="sumRemote">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+<p class="small" style="font-size:13px;color:var(--muted)">MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Public-data underwriting only. No offer without Jeramie. Offer authorized: false.</p>
+</section>
+
+<section class="card" id="s10">
+<h2><span>12</span>Receipt and receipt chain</h2>
+<p class="sub">Generated from the inputs above. Offer authorized is always false in this tool. The receipt is evidence, not an offer. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e6-self-storage-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<div class="toolbar no-print" style="position:static;border-bottom:0">
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+</div>
+<div id="chainStatus" class="hint" style="margin-top:12px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>13</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the facility and parcel from at least 2 public sources, enter the unit mix from the rent roll, verify occupancy from the rent roll, collect competitor street rates from at least 2 distinct sources, then let the tool compute PGI, stabilized EGI, stabilized NOI, value at the stated cap rate, and break-even occupancy from the exact formulas in section 06. Expansion and remote management are priced separately and never folded into stabilized NOI. A share link encodes the whole deal in the URL so someone else can open the same numbers.</p>
+<p><b>What this is not:</b> not an appraisal, not a survey, not legal, tax, or lending advice, and not a replacement for county verification, a title commitment, a rent roll audit, or a licensed professional. It does not invent occupancy, rates, comps, or prices. If a field cannot be verified, it stays N/A. A PASS does not mean the facility is bad. It means the evidence in this run does not support proceeding. No offer is quoted without Jeramie.</p>
+<p><b>Sources read for this build:</b> (1) Self-Storage Underwriting Engine E6 v1.0, 2026-11-04, local file ~/workspace/e6-self-storage-site/index.html (73,009 bytes), live at https://e6-self-storage.pages.dev/ (HTTP 200, MD5 155a97636d7bae39cdbd430f11c45087). Subject, inputs, outputs, gates, kill conditions, risk flags, and all three samples are carried from it. (2) E5 Commercial Underwriting Engine v1.0, 2026-11-14, local file ~/workspace/e5-commercial/ (index.html, e5.js, tests/test-e5.js), live at https://neuruhai.github.io/neuruh-demos/e5-commercial/. Pattern followed: SIMULATION banner, status board, MODELED ESTIMATE labels, SHA-256 receipt chain, Node test suite. (3) Vault note ~/workspace/neuruh-obsidian-vault/02-Real-Estate-Land/UnderwriteX.md, line 52: "Underwriting engines Residential v1.1 and E1 Land and Zoning Unlock v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending." (4) Hub, 2026-11-14, https://neuruh-hub.pages.dev/: section A lists E6 Self-Storage at e6-self-storage.pages.dev, added 2026-11-04. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. See section 14.</p>
+<p><b>Related engines:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://neuruhai.github.io/neuruh-demos/e2-small-multifamily/">E2 Small Multifamily (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e3-rental-brrrr/">E3 Rental / BRRRR (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e4-development-feasibility/">E4 Development Feasibility (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e5-commercial/">E5 Commercial (GitHub Pages)</a>. Use the Residential engine for ARV and MAO on the purchase side, and E1 when the deal is really a land deal.</p>
+<p><b>Builder defaults, labeled as the builder's defaults, editable, never market facts:</b> none. Every rate, occupancy figure, expense, cap rate, expansion rate, expansion cost, and management cost is entered by the user. A blank field is N/A or zero as stated on the page, never a hidden market assumption. The remote-readiness score divides by 6 because the 2026-11-04 build defines exactly 6 remote systems; that count is carried from the source, not a market fact.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>14</span>Honest gaps and limits</h2>
+<p class="sub">What this tool does not do, stated plainly.</p>
+<ul>
+<li>Break-even occupancy treats operating expenses as fixed at the entered level, so it understates break-even if expenses rise with occupancy.</li>
+<li>Stabilized NOI uses street rates for occupied units, not collected rent, so delinquency and concessions are not in the rent line; delinquency is recorded in section 04 as a flag, not deducted.</li>
+<li>Expansion yield uses a single expense percent and no lease-up timeline.</li>
+<li>Remote readiness is a systems count, not a guarantee that remote management will work at this site.</li>
+<li>Cap rate is an input, not a market finding; a wrong cap rate moves value directly.</li>
+<li>It does not underwrite debt: there is no DSCR, loan-to-value, or amortization math here, so a deal that passes this engine still needs lender underwriting.</li>
+<li>It does not model taxes, depreciation, or after-tax return. NOI here is pre-tax.</li>
+<li>It does not check title, zoning, environmental condition, or floodplain status beyond the operator-checked title kill. Those need a licensed professional.</li>
+<li>No E6 specification document was found in the vault. Greps for E6 and Self-Storage across the vault returned only the UnderwriteX.md line cited in section 13, the 2026-11-04 E6 build itself, and unrelated hits (an Anchorpoint board sprint label "E6 Docuseal peer sprint" and a 422 error-shape code "E6-shape", neither about self-storage). The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. What would ground E6 further: the Codex V2 Appendix B document, or a written E6 spec from Jeramie stating the subject and mechanics.</li>
+<li>A blank run reads HOLD, not PASS: no kill fires until occupancy is marked unverified or rate comps rest on a single source. That is the 2026-11-04 contract carried verbatim.</li>
+<li>Layout was not eyeballed in a real browser. Math was tested in Node with hand-computed values, plus a jsdom DOM smoke test. See the build report.</li>
+<li>All sample deals are synthetic and labeled as such.</li>
+</ul>
+</section>
+
+<section class="card" id="e13">
+<h2><span>E13</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. The first two kills are computed from the occupancy verification and the rate sources and cannot be unchecked away: if the math fires them, they fire. The remaining kill is operator-checked. A kill is a successful run, not a failed one. Recommendation on a kill is PASS. Do not soften it.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill-switch active</span><b id="killActive">No</b></div>
+<div class="row"><span>Kill reasons</span><b id="killReasons">None</b></div>
+<div class="row"><span>Risk flags (not kills)</span><b id="riskFlags">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="e13Rec">HOLD</b></div>
+</div>
+<div style="margin-top:12px"><b>Kill conditions (E6 contract, carried from the 2026-11-04 E6 build):</b></div>
+<ul>
+<li>Occupancy unverifiable (computed from the occupancy verification in section 04).</li>
+<li>Street rates from a single source (computed from the usable rate comps in section 05).</li>
+<li>Title defect with no cure cost (operator-checked).</li>
+</ul>
+<div><b>Risk flags (not kills by themselves):</b> occupancy from owner statement only, occupancy from site count only, occupancy falling over 12 months, delinquency above 5 percent, fewer than 3 usable rate comps, expansion not permitted or unknown, operating expense ratio above 50 percent, stabilized NOI negative, remote readiness below 50 percent, unit mix row incomplete or occupied above count.</div>
+<div id="e13Box" style="margin-top:12px"></div>
+</section>
+
+<footer>
+<p>Self-Storage Underwriting Engine E6 v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. Offer authorized is always false. This file works offline except for the e6.js module it loads from the same directory. Print this page for the file copy. Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a>.</p>
+</footer>
+
+</div>
+
+<script src="e6.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var el=$(id);if(!el)return null;var v=parseFloat(el.value);return isFinite(v)?v:null;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function money0(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+Math.round(v).toLocaleString("en-US");}
+function pct2(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return (v*100).toFixed(2)+"%";}
+function pctRaw(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return v.toFixed(2)+"%";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function setText(id,t){var el=$(id);if(el)el.textContent=t;}
+function setVal(id,v){var el=$(id);if(el)el.value=v;}
+var runId="E6-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+setVal("runId",runId);
+setVal("runDate",new Date().toISOString().slice(0,10));
+var GATES=[
+ {id:"address_parcel",label:"Address / parcel gate: facility, address, parcel ID, county, and site acres confirmed from at least 2 public sources"},
+ {id:"source",label:"Source gate: every rate comp, occupancy claim, expense, and cap rate carries a full raw source reference and date"},
+ {id:"occupancy",label:"Occupancy gate: occupancy from a rent roll in hand with a date, not an owner statement alone"},
+ {id:"street_rate",label:"Street-rate gate: competitor rates from at least 2 distinct sources, subject facility not used as its own comp"},
+ {id:"no_hallucination",label:"No-hallucination gate: no invented occupancy, rates, sale prices, or market stats; unverifiable fields are N/A"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no offer without Jeramie; offer authorized is false"}
+];
+var KILLS_AUTO=[
+ {id:"k_occ",label:"AUTO: Occupancy unverifiable"},
+ {id:"k_rates",label:"AUTO: Street rates from a single source"}
+];
+var KILLS_MANUAL=[
+ {id:"k_title",label:"Title defect with no cure cost"}
+];
+var REMOTE_ITEMS=[
+ "Online rentals and payments",
+ "Automated gate access",
+ "Remote camera monitoring",
+ "Kiosk or call-center leasing",
+ "Smart locks / lock automation",
+ "Remote maintenance dispatch"
+];
+function buildLists(){
+ var g=$("gateList");var html="";
+ GATES.forEach(function(gt){
+  html+='<div class="item"><label for="gate_'+gt.id+'" style="flex:1">'+esc(gt.label)+'</label><select id="gate_'+gt.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ g.innerHTML=html;
+ var k=$("killList");var kh="";
+ KILLS_AUTO.forEach(function(kk){
+  kh+='<div class="item"><input type="checkbox" id="'+kk.id+'" disabled><label for="'+kk.id+'">'+esc(kk.label)+' (computed, cannot be unchecked)</label></div>';
+ });
+ KILLS_MANUAL.forEach(function(kk){
+  kh+='<div class="item"><input type="checkbox" id="'+kk.id+'"><label for="'+kk.id+'">'+esc(kk.label)+'</label></div>';
+ });
+ k.innerHTML=kh;
+ var r=$("remoteList");var rh="";
+ REMOTE_ITEMS.forEach(function(txt,i){
+  rh+='<div class="item"><input type="checkbox" id="remote_'+i+'"><label for="remote_'+i+'">'+esc(txt)+'</label></div>';
+ });
+ r.innerHTML=rh;
+}
+buildLists();
+var unitIndex=0;
+function unitRow(c){
+ unitIndex++;
+ var tr=document.createElement("tr");
+ tr.setAttribute("data-unit",unitIndex);
+ tr.innerHTML=
+  '<td><input type="text" aria-label="Unit type" data-f="type" value="'+esc(c.type||"")+'" placeholder="Example: 10x10"></td>'+
+  '<td><input type="number" aria-label="Size in square feet per unit" data-f="size" min="0" step="1" value="'+(c.size||"")+'" placeholder="100"></td>'+
+  '<td><input type="number" aria-label="Unit count" data-f="count" min="0" step="1" value="'+(c.count||"")+'" placeholder="0"></td>'+
+  '<td><input type="number" aria-label="Occupied units" data-f="occupied" min="0" step="1" value="'+(c.occupied||"")+'" placeholder="0"></td>'+
+  '<td><input type="number" aria-label="Street rate dollars per month" data-f="rate" min="0" step="1" value="'+(c.rate||"")+'" placeholder="0"></td>'+
+  '<td class="mono" data-f="pgi">-</td>'+
+  '<td class="mono" data-f="actual">-</td>';
+ return tr;
+}
+function addUnit(c){$("unitBody").appendChild(unitRow(c||{}));}
+addUnit({});addUnit({});addUnit({});addUnit({});addUnit({});
+$("btnAddUnit").addEventListener("click",function(){addUnit({});calc();});
+var rateIndex=0;
+function rateRow(c){
+ rateIndex++;
+ var tr=document.createElement("tr");
+ tr.setAttribute("data-rate",rateIndex);
+ tr.innerHTML=
+  '<td><input type="text" aria-label="Competitor facility" data-f="facility" value="'+esc(c.facility||"")+'" placeholder="Facility name"></td>'+
+  '<td><input type="text" aria-label="Unit size" data-f="size" value="'+esc(c.size||"")+'" placeholder="Example: 10x10"></td>'+
+  '<td><input type="number" aria-label="Street rate dollars per month" data-f="rate" min="0" step="1" value="'+(c.rate||"")+'" placeholder="0"></td>'+
+  '<td><input type="text" aria-label="Source name" data-f="source" value="'+esc(c.source||"")+'" placeholder="Source name"></td>'+
+  '<td><input type="date" aria-label="Source date" data-f="date" value="'+esc(c.date||"")+'"></td>'+
+  '<td><input type="text" aria-label="Source reference" data-f="ref" value="'+esc(c.ref||"")+'" placeholder="Source reference"></td>'+
+  '<td class="mono" data-f="usable">-</td>';
+ return tr;
+}
+function addRate(c){$("rateBody").appendChild(rateRow(c||{}));}
+addRate({});addRate({});addRate({});
+$("btnAddRate").addEventListener("click",function(){addRate({});calc();});
+function getUnits(){
+ var out=[];
+ document.querySelectorAll("#unitBody tr").forEach(function(tr){
+  function v(f){var el=tr.querySelector('[data-f="'+f+'"]');return el?el.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  var size=n("size"),count=n("count"),occ=n("occupied"),rate=n("rate");
+  var pgi=(count!==null&&rate!==null)?count*rate:null;
+  var actual=(occ!==null&&rate!==null)?occ*rate:null;
+  var pgiEl=tr.querySelector('[data-f="pgi"]');if(pgiEl){pgiEl.textContent=pgi===null?"-":money0(pgi);}
+  var actEl=tr.querySelector('[data-f="actual"]');if(actEl){actEl.textContent=actual===null?"-":money0(actual);}
+  out.push({type:v("type"),size:size,count:count,occupied:occ,rate:rate});
+ });
+ return out;
+}
+function getRates(){
+ var out=[];
+ document.querySelectorAll("#rateBody tr").forEach(function(tr){
+  function v(f){var el=tr.querySelector('[data-f="'+f+'"]');return el?el.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  var rate=n("rate");
+  var usable=v("facility").trim()!==""&&v("size").trim()!==""&&rate!==null&&rate>0&&v("source").trim()!==""&&v("date")!==""&&v("ref").trim()!=="";
+  var uEl=tr.querySelector('[data-f="usable"]');if(uEl){uEl.textContent=usable?"Usable":"No";}
+  out.push({facility:v("facility"),size:v("size"),rate:rate,source:v("source"),date:v("date"),ref:v("ref")});
+ });
+ return out;
+}
+function setUnitRow(i,type,size,count,occupied,rate){
+ var tr=document.querySelectorAll("#unitBody tr")[i];if(!tr){return;}
+ function set(f,v){var el=tr.querySelector('[data-f="'+f+'"]');if(el){el.value=v;}}
+ set("type",type);set("size",size);set("count",count);set("occupied",occupied);set("rate",rate);
+}
+function setRateRow(i,facility,size,rate,source,date,ref){
+ var tr=document.querySelectorAll("#rateBody tr")[i];if(!tr){return;}
+ function set(f,v){var el=tr.querySelector('[data-f="'+f+'"]');if(el){el.value=v;}}
+ set("facility",facility);set("size",size);set("rate",rate);set("source",source);set("date",date);set("ref",ref);
+}
+var lastReceipt={};
+function calc(){
+ var units=getUnits();
+ var totals=E6.unitTotals(units);
+ var hasUnits=totals.hasUnits;
+ var occ=totals.occupancy;
+ setText("totalUnits",hasUnits?String(totals.totalUnits):"N/A");
+ setText("totalOccupied",hasUnits?String(totals.totalOccupied):"N/A");
+ setText("occPct",pct2(occ));
+ setText("totalSF",hasUnits?totals.totalSf.toLocaleString("en-US")+" SF":"N/A");
+ setText("pgiMonthly",hasUnits?money(totals.pgiMonthly):"N/A");
+ setText("pgiAnnual",money(totals.pgiAnnual));
+ setText("actualMonthly",hasUnits?money(totals.actualMonthly):"N/A");
+ setText("actualAnnual",money(totals.actualAnnual));
+ setText("vacancyLoss",money(totals.vacancyLoss));
+ $("unitWarning").hidden=!totals.unitError;
+ $("workUnits").textContent=!hasUnits?"Enter unit rows to see the working.":("Total units = "+totals.validRows.map(function(r){return r.count;}).join(" + ")+" = "+totals.totalUnits+"\nOccupied = "+totals.validRows.map(function(r){return r.occupied;}).join(" + ")+" = "+totals.totalOccupied+"\nOccupancy = "+totals.totalOccupied+" / "+totals.totalUnits+" = "+(occ*100).toFixed(2)+"%\nPGI monthly = "+totals.validRows.map(function(r){return r.count+" x $"+r.rate;}).join(" + ")+" = "+E6.fmt2(totals.pgiMonthly)+"\nPGI annual = "+E6.fmt2(totals.pgiMonthly)+" x 12 = "+E6.fmt2(totals.pgiAnnual));
+ var occVerify=$("occVerify").value;
+ $("occWarning").hidden=occVerify!=="unverified";
+ var rates=getRates();
+ var rt=E6.rateTotals(rates,totals.validRows);
+ setText("rateUsableCount",String(rt.usableCount));
+ setText("rateSourceCount",String(rt.distinctSources));
+ setText("rateSourceNames",rt.distinctSources?rt.sourceNames.join(", "):"None");
+ setText("rateRange",rt.rateRange?money0(rt.rateRange.low)+" to "+money0(rt.rateRange.high)+" /mo":"N/A");
+ setText("subjectRateRange",rt.subjectRateRange?money0(rt.subjectRateRange.low)+" to "+money0(rt.subjectRateRange.high)+" /mo":"N/A");
+ setText("rateCheck",rt.usableCount>=3&&rt.distinctSources>=2?("OK: "+rt.usableCount+" usable comps from "+rt.distinctSources+" distinct sources."):(rt.usableCount>0&&rt.distinctSources<2?"FAIL: only "+rt.distinctSources+" distinct source. Kill condition.":"Add at least 3 usable rate comps from at least 2 distinct sources."));
+ $("rateWarning").hidden=!(rt.usableCount>0&&rt.distinctSources<2);
+ var stabOcc=num("stabOcc");
+ var other=num("otherIncome");
+ var cap=num("capRate");
+ var opexFields=["opexTax","opexIns","opexUtil","opexMaint","opexMgmt","opexMkt","opexAdmin","opexReserves"];
+ var opexVals=opexFields.map(function(id){return num(id);});
+ var opexEntered=opexVals.some(function(x){return x!==null;});
+ var totalOpex=E6.opexTotal(opexVals);
+ var stab=E6.stabilized({
+  pgiAnnual:totals.pgiAnnual,actualAnnual:totals.actualAnnual,
+  totalUnits:totals.totalUnits,totalOccupied:totals.totalOccupied,totalSf:totals.totalSf,
+  stabOccPct:stabOcc,otherIncome:other,capPct:cap,opex:totalOpex
+ });
+ setText("stabGPR",money(stab.stabGPR));
+ setText("stabEGI",money(stab.stabEGI));
+ setText("actualEGI",money(stab.actualEGI));
+ setText("totalOpex",money(totalOpex));
+ setText("opexRatio",stab.opexRatio===null?"N/A":(stab.opexRatio*100).toFixed(2)+"%");
+ setText("actualNOI",money(stab.actualNOI));
+ setText("stabNOI",money(stab.stabNOI));
+ setText("noiPerUnit",money(stab.noiPerUnit));
+ setText("noiPerSF",money(stab.noiPerSF));
+ setText("valueAtCap",money(stab.value));
+ setText("beOcc",pct2(stab.beOcc));
+ setText("beRent",money(stab.beRent));
+ var beBar=$("beBar");
+ if(beBar){var w=(stab.beOcc!==null&&isFinite(stab.beOcc))?Math.max(0,Math.min(1,stab.beOcc))*600:0;beBar.setAttribute("width",String(w));}
+ var beTxt=$("beMarkerText");
+ if(beTxt){beTxt.textContent="Break-even: "+pct2(stab.beOcc)+". Stabilized: "+(stabOcc===null?"N/A":stabOcc.toFixed(2)+"%")+".";}
+ $("workStab").textContent=(totals.pgiAnnual===null||stabOcc===null)?"Stabilized value cannot be computed: PGI or stabilized occupancy is missing.":("Stabilized GPR = "+E6.fmt2(totals.pgiAnnual)+" x "+stabOcc+"% = "+E6.fmt2(stab.stabGPR)+"\nStabilized EGI = "+E6.fmt2(stab.stabGPR)+" + "+E6.fmt2(other===null?0:other)+" = "+E6.fmt2(stab.stabEGI)+"\nTotal operating expenses = "+opexVals.map(function(x){return E6.fmt2(x===null?0:x);}).join(" + ")+" = "+E6.fmt2(totalOpex)+"\nStabilized NOI = "+E6.fmt2(stab.stabEGI)+" - "+E6.fmt2(totalOpex)+" = "+E6.fmt2(stab.stabNOI)+"\nValue = "+E6.fmt2(stab.stabNOI)+" / "+(cap===null?"N/A":cap+"%")+" = "+E6.fmt2(stab.value)+"\nBreak-even occupancy = ("+E6.fmt2(totalOpex)+" - "+E6.fmt2(other===null?0:other)+") / "+E6.fmt2(totals.pgiAnnual)+" = "+pct2(stab.beOcc));
+ var exp=E6.expansion({
+  expUnits:num("expUnits"),expRate:num("expRate"),expCost:num("expCost"),
+  expOpexPct:num("expOpexPct"),stabOccPct:stabOcc
+ });
+ setText("expRent",money(exp.expRent));
+ setText("expOpex",money(exp.expOpex));
+ setText("expNOI",money(exp.expNOI));
+ setText("expCostPerUnit",money(exp.costPerUnit));
+ setText("expYield",exp.expYield===null?"N/A":(exp.expYield*100).toFixed(2)+"%");
+ var expPermit=$("expPermit").value;
+ setText("expStatus",expPermit==="Not permitted / unknown"?"Expansion not permitted or unknown. Added NOI is shown as math only and is not a usable upside claim.":expPermit==="No expansion planned"?"No expansion planned. Expansion math is N/A for this run.":exp.expRent===null?"Enter expansion units, rate, cost, and expense percent.":("Expansion math live for "+num("expUnits")+" unit(s) at "+(exp.expYield===null?"N/A":(exp.expYield*100).toFixed(2)+"%")+" yield on cost."));
+ $("workExp").textContent=exp.expRent===null?"Enter expansion units, rate, cost, and expense percent to see the working.":("Added annual rent = "+num("expUnits")+" x $"+num("expRate")+" x 12 x "+stabOcc+"% = "+E6.fmt2(exp.expRent)+"\nAdded operating expenses = "+E6.fmt2(exp.expRent)+" x "+num("expOpexPct")+"% = "+E6.fmt2(exp.expOpex)+"\nAdded NOI = "+E6.fmt2(exp.expRent)+" - "+E6.fmt2(exp.expOpex)+" = "+E6.fmt2(exp.expNOI)+"\nYield on cost = "+E6.fmt2(exp.expNOI)+" / "+E6.fmt2(num("expCost"))+" = "+(exp.expYield===null?"N/A":(exp.expYield*100).toFixed(2)+"%"));
+ var remoteCount=0;
+ REMOTE_ITEMS.forEach(function(t,i){var el=$("remote_"+i);if(el&&el.checked){remoteCount++;}});
+ var remote=E6.remote({remoteCount:remoteCount,onsiteCost:num("remoteOnsiteCost"),remoteCost:num("remoteCost")});
+ setText("remoteCount",remote.count+" of 6");
+ setText("remoteScore",pct2(remote.score));
+ setText("remoteSaving",money(remote.saving));
+ setText("remoteVerdict",remote.verdict);
+ var passed=[],failed=[];
+ GATES.forEach(function(g){var el=$("gate_"+g.id);if(el&&el.value==="pass"){passed.push(g.id);}else{failed.push(g.id);}});
+ var gatesOk=failed.length===0;
+ setText("gateStatus",gatesOk?"GO - all gates pass":"HOLD - gates not verified");
+ $("gateStatus").className=gatesOk?"ok":"hold";
+ setText("gatesPassed",passed.length?passed.join(", "):"None");
+ setText("gatesFailed",failed.length?failed.join(", "):"None");
+ var manualKills=[];
+ KILLS_MANUAL.forEach(function(kk){if($(kk.id).checked)manualKills.push(kk.label);});
+ var killEval=E6.evaluateKills({occVerify:occVerify,usableCount:rt.usableCount,distinctSources:rt.distinctSources,manualKills:manualKills});
+ $("k_occ").checked=killEval.fired.indexOf("Occupancy unverifiable")!==-1;
+ $("k_rates").checked=killEval.fired.indexOf("Street rates from a single source")!==-1;
+ var killActive=killEval.killActive;
+ setText("killActive",killActive?"Yes":"No");
+ setText("killReasons",killActive?killEval.fired.join("; "):"None");
+ var flags=E6.riskFlags({
+  occVerify:occVerify,occTrend:$("occTrend").value,delinquencyPct:num("delinquencyPct"),
+  usableCount:rt.usableCount,expPermit:expPermit,opexRatio:stab.opexRatio,
+  stabNOI:stab.stabNOI,remoteScore:remote.score,unitError:totals.unitError
+ });
+ setText("riskFlags",flags.length?flags.join("; "):"None");
+ var rec=E6.recommendation({killActive:killActive,gatesOk:gatesOk,hasUnits:hasUnits,usableCount:rt.usableCount});
+ setText("e13Rec",rec);
+ $("e13Box").innerHTML=killActive?'<div class="warning">Recommendation: PASS. Kill-switch fired: '+esc(killEval.fired.join("; "))+'</div>':(rec==="HOLD"||rec==="HOLD - evidence incomplete"?'<div class="hint">Status: HOLD. '+(failed.length?"Failed or held gates: "+failed.join(", ")+". ":"")+(!hasUnits?"No valid unit mix rows entered. ":"")+(rt.usableCount<3?"Only "+rt.usableCount+" usable rate comps, need at least 3. ":"")+'Risk flags: '+(flags.length?esc(flags.join("; ")):"None")+'. No offer without Jeramie.</div>':'<div class="passbox">Status: READY FOR HUMAN REVIEW. All gates pass and the evidence is complete. This is still an underwriting opinion only, not an offer. No offer without Jeramie.</div>');
+ $("decisionBox").innerHTML=$("e13Box").innerHTML;
+ setText("resPgi",money(totals.pgiAnnual));
+ setText("resOcc",pct2(occ));
+ setText("resNoi",money(stab.stabNOI));
+ setText("resValue",money(stab.value));
+ setText("resBe",pct2(stab.beOcc));
+ setText("resExp",money(exp.expNOI));
+ setText("resExpYield",exp.expYield===null?"N/A":(exp.expYield*100).toFixed(2)+"%");
+ setText("resRemote",pct2(remote.score)+" ("+remote.count+" of 6)");
+ setText("resRec",rec);
+ var items=[
+  ["Parcel ID",!!$("parcelId").value.trim()],
+  ["Address",!!$("address").value.trim()],
+  ["Unit mix",hasUnits],
+  ["Occupancy verified",occVerify==="rent_roll"],
+  ["At least 2 street-rate sources",rt.distinctSources>=2],
+  ["Stabilized occupancy",stabOcc!==null],
+  ["Operating expenses",opexEntered],
+  ["Cap rate",cap!==null]
+ ];
+ var done=items.filter(function(x){return x[1];}).length;
+ var pctDone=Math.round(done/items.length*100);
+ var missing=items.filter(function(x){return !x[1];}).map(function(x){return x[0];});
+ $("meterBar").style.width=pctDone+"%";
+ $("stickyCompleteBar").style.width=pctDone+"%";
+ setText("meterText",pctDone+"% complete ("+done+" of "+items.length+" required fields).");
+ setText("stickyCompleteText",pctDone+" percent");
+ setText("meterMissing",missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.");
+ setText("missingHints",missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.");
+ setText("missingHints2",missing.length?"Missing for a GO: "+missing.join(", ")+".":"All required fields are filled.");
+ setText("stickyNoi",money(stab.stabNOI));
+ setText("stickyBe",pct2(stab.beOcc));
+ setText("stickyValue",money(stab.value));
+ setText("stickyRec",rec);
+ setText("sumFacility",($("facilityName").value||"").trim()||"N/A");
+ setText("sumAddress",($("address").value||"").trim()||"N/A");
+ setText("sumParcel",($("parcelId").value||"").trim()||"N/A");
+ setText("sumUnits",hasUnits?totals.totalUnits+" / "+totals.totalOccupied:"N/A");
+ setText("sumOcc",pct2(occ));
+ setText("sumPGI",money(totals.pgiAnnual));
+ setText("sumNOI",money(stab.stabNOI));
+ setText("sumValue",money(stab.value));
+ setText("sumBE",pct2(stab.beOcc));
+ setText("sumExp",money(exp.expNOI));
+ setText("sumRemote",pct2(remote.score)+" ("+remote.count+" of 6)");
+ var confNow=parseFloat($("confidence").value);if(!isFinite(confNow)){confNow=0.5;}
+ setText("sumConfidence",confNow.toFixed(2));
+ setText("sumGates",gatesOk?"GO - all gates pass":"HOLD");
+ setText("sumRec",rec);
+ var confidence=parseFloat($("confidence").value);if(!isFinite(confidence)){confidence=0.5;}
+ var receipt={
+  schema_version:"e6-self-storage-receipt.v1.0",
+  run_id:runId,
+  run_date:$("runDate").value,
+  engine:"E6 Self-Storage",
+  facility:($("facilityName").value||"").trim()||null,
+  address:($("address").value||"").trim()||null,
+  parcel_id:($("parcelId").value||"").trim()||null,
+  county:($("county").value||"").trim()||null,
+  site_acres:num("siteAcres"),
+  zoning:($("zoning").value||"").trim()||null,
+  facility_type:$("facilityType").value||null,
+  exit_fit:$("exitFit").value||null,
+  unit_mix:totals.validRows.map(function(u){return {type:u.type,size_sf:u.size,units:u.count,occupied:u.occupied,street_rate_monthly:u.rate};}),
+  total_units:hasUnits?totals.totalUnits:null,
+  occupied_units:hasUnits?totals.totalOccupied:null,
+  occupancy_pct:occ,
+  total_rentable_sf:hasUnits?totals.totalSf:null,
+  occupancy_verification:occVerify||null,
+  rent_roll_date:$("rentRollDate").value||null,
+  street_rates:{usable_comps:rt.usable.map(function(r){return {facility:r.facility,size:r.size,rate_monthly:r.rate,source:r.source,date:r.date,reference:r.ref};}),distinct_sources:rt.distinctSources,rate_range:rt.rateRange},
+  pgi_annual:totals.pgiAnnual,
+  actual_gross_rent_annual:totals.actualAnnual,
+  stabilized_occupancy_pct:stabOcc===null?null:stabOcc/100,
+  stabilized_gpr_annual:stab.stabGPR,
+  stabilized_egi_annual:stab.stabEGI,
+  other_income_annual:other,
+  total_operating_expenses_annual:totalOpex,
+  operating_expense_ratio:stab.opexRatio,
+  actual_noi_annual:stab.actualNOI,
+  stabilized_noi_annual:stab.stabNOI,
+  noi_per_unit_annual:stab.noiPerUnit,
+  noi_per_sf_annual:stab.noiPerSF,
+  cap_rate_pct:cap===null?null:cap/100,
+  value_at_cap_rate:stab.value,
+  break_even_occupancy:stab.beOcc,
+  break_even_rent_monthly:stab.beRent,
+  expansion:{units:num("expUnits"),avg_rate_monthly:num("expRate"),cost:num("expCost"),added_rent_annual:exp.expRent,added_noi_annual:exp.expNOI,yield_on_cost:exp.expYield,permit_status:expPermit||null},
+  remote_management:{systems_in_place:remote.count,score:remote.score,onsite_cost_annual:num("remoteOnsiteCost"),remote_cost_annual:num("remoteCost"),annual_saving:remote.saving},
+  gates:{passed:passed,failed:failed},
+  kill_switch:{active:killActive,reasons:killEval.fired},
+  risk_flags:flags,
+  status:killActive?"KILL":(rec.indexOf("READY")===0?"READY FOR REVIEW":"HOLD"),
+  recommendation:rec,
+  confidence:confidence,
+  completeness_pct:pctDone,
+  missing_fields:missing,
+  offer_authorized:false,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value
+ };
+ lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ updateHash();
+}
+var FIELD_IDS=["facilityName","address","parcelId","county","siteAcres","yearBuilt","facilityType","zoning","exitFit","parcelSources","parcelSourceNames","unitMixSource","occVerify","rentRollDate","occSourceNames","occTrend","delinquencyPct","avgTenancyMonths","occNotes","stabOcc","otherIncome","capRate","otherIncomeNotes","opexTax","opexIns","opexUtil","opexMaint","opexMgmt","opexMkt","opexAdmin","opexReserves","expAcres","expUnits","expRate","expCost","expOpexPct","expPermit","expNotes","remoteOnsiteCost","remoteCost","remoteNotes","confidence","assumptions","missingData","conflicts"];
+function collectState(){
+ var s={fields:{},units:[],rates:[],gates:{},kills:{},remote:{}};
+ FIELD_IDS.forEach(function(id){s.fields[id]=$(id).value;});
+ s.units=getUnits();
+ s.rates=getRates();
+ GATES.forEach(function(gt){s.gates[gt.id]=$("gate_"+gt.id).value;});
+ KILLS_MANUAL.forEach(function(kk){s.kills[kk.id]=$(kk.id).checked;});
+ REMOTE_ITEMS.forEach(function(t,i){s.remote[i]=!!$("remote_"+i).checked;});
+ return s;
+}
+function applyState(s){
+ if(!s)return;
+ if(s.fields){FIELD_IDS.forEach(function(id){if(s.fields[id]!==undefined&&$(id))$(id).value=s.fields[id];});}
+ if(s.units&&s.units.length){
+  $("unitBody").innerHTML="";
+  s.units.forEach(function(c){addUnit(c);});
+ }
+ if(s.rates&&s.rates.length){
+  $("rateBody").innerHTML="";
+  s.rates.forEach(function(c){addRate(c);});
+ }
+ if(s.gates){GATES.forEach(function(gt){if(s.gates[gt.id]!==undefined)$("gate_"+gt.id).value=s.gates[gt.id];});}
+ if(s.kills){KILLS_MANUAL.forEach(function(kk){if(s.kills[kk.id]!==undefined)$(kk.id).checked=!!s.kills[kk.id];});}
+ if(s.remote){REMOTE_ITEMS.forEach(function(t,i){var el=$("remote_"+i);if(el&&s.remote[i]!==undefined)el.checked=!!s.remote[i];});}
+}
+function encodeState(s){return btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+function decodeState(h){
+ try{var b=h.replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";return JSON.parse(decodeURIComponent(escape(atob(b))));}catch(e){return null;}
+}
+function updateHash(){
+ var url=window.location.href.split("#")[0]+"#d="+encodeState(collectState());
+ try{history.replaceState(null,"",url);}catch(e){}
+ var sh=$("shareUrl");if(sh)sh.value=url;
+}
+function loadFromHash(){
+ if(window.location.hash&&window.location.hash.indexOf("#d=")===0){
+  var s=decodeState(window.location.hash.slice(3));
+  if(s){applyState(s);return true;}
+ }
+ return false;
+}
+function copyText(txt,msg){
+ function done(){var n=$("sampleNote");n.hidden=false;n.textContent=msg||"Copied.";}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallbackCopy(txt);done();});}
+ else{fallbackCopy(txt);done();}
+}
+function fallbackCopy(txt){
+ var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();
+ try{document.execCommand("copy");}catch(e){}
+ document.body.removeChild(ta);
+}
+function copyShareLink(){updateHash();copyText($("shareUrl").value,"Share link copied. Anyone opening it sees the same inputs and the same math.");}
+function copyReceipt(){copyText($("receiptOut").textContent,"Receipt JSON copied.");}
+function downloadReceipt(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e6-self-storage-receipt.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+function showSampleNote(txt){var n=$("sampleNote");n.hidden=false;n.textContent=txt;}
+function resetGatesKills(){
+ GATES.forEach(function(gt){$("gate_"+gt.id).value="pass";});
+ KILLS_MANUAL.forEach(function(kk){$(kk.id).checked=false;});
+}
+function setOpex(tax,ins,util,maint,mgmt,mkt,admin,res){setVal("opexTax",tax);setVal("opexIns",ins);setVal("opexUtil",util);setVal("opexMaint",maint);setVal("opexMgmt",mgmt);setVal("opexMkt",mkt);setVal("opexAdmin",admin);setVal("opexReserves",res);}
+function clearAll(){
+ FIELD_IDS.forEach(function(id){
+  if(id==="confidence")$(id).value="0.50";
+  else if(id==="parcelSources")$(id).value="0";
+  else $(id).value="";
+ });
+ document.querySelectorAll("#unitBody tr").forEach(function(tr){
+  tr.querySelectorAll("[data-f]").forEach(function(el){el.value="";});
+ });
+ document.querySelectorAll("#rateBody tr").forEach(function(tr){
+  tr.querySelectorAll("[data-f]").forEach(function(el){el.value="";});
+ });
+ REMOTE_ITEMS.forEach(function(t,i){var el=$("remote_"+i);if(el)el.checked=false;});
+ GATES.forEach(function(gt){$("gate_"+gt.id).value="hold";});
+ KILLS_MANUAL.forEach(function(kk){$(kk.id).checked=false;});
+ $("sampleNote").hidden=true;
+ try{history.replaceState(null,"",window.location.href.split("#")[0]);}catch(e){}
+ $("shareUrl").value="";
+ calc();
+}
+function loadSample(kind){
+ kind=kind||"a";
+ clearAll();
+ GATES.forEach(function(gt){$("gate_"+gt.id).value="pass";});
+ if(kind==="b"){
+  setVal("facilityName","Sample Lease-Up Storage (synthetic)");
+  setVal("address","200 Sample Storage Way, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-E6-002");
+  setVal("county","Berrien County, MI");
+  setVal("siteAcres","4.00");setVal("yearBuilt","2018");
+  setVal("facilityType","Drive-up, non-climate");setVal("zoning","C-1 Commercial");
+  setVal("exitFit","Lease-up value-add");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("unitMixSource","Rent roll dated 2026-10-15, synthetic sample");
+  setUnitRow(0,"5x5",25,50,38,60);setUnitRow(1,"5x10",50,70,52,90);setUnitRow(2,"10x10",100,60,45,135);setUnitRow(3,"10x20",200,40,30,210);
+  setVal("occVerify","rent_roll");setVal("rentRollDate","2026-10-15");setVal("occSourceNames","Rent roll, property manager");setVal("occTrend","Rising");setVal("delinquencyPct","4");setVal("avgTenancyMonths","12");
+  setVal("occNotes","Synthetic sample. Lease-up: 75 percent occupied, rising trend.");
+  setRateRow(0,"Rival Storage North","10x10",130,"SpareFoot","2026-10-01","sparefoot.example/rival-north-10x10");
+  setRateRow(1,"Rival Storage South","10x10",140,"StorageCafe","2026-10-02","storagecafe.example/rival-south-10x10");
+  setRateRow(2,"Rival Storage East","10x20",215,"Google listing survey","2026-10-03","google.example/rival-east-10x20");
+  setVal("stabOcc","90");setVal("otherIncome","4800");setVal("capRate","7.5");setVal("otherIncomeNotes","Late fees, admin fees");
+  setOpex(15000,8000,11000,9000,30000,9000,4000,3500);
+  setVal("expAcres","3.00");setVal("expUnits","60");setVal("expRate","95");setVal("expCost","360000");setVal("expOpexPct","30");setVal("expPermit","Permitted by right");
+  setVal("expNotes","Synthetic sample. 3 acres buildable, permitted by right per sample record.");
+  $("remote_0").checked=true;$("remote_1").checked=true;$("remote_2").checked=true;
+  setVal("remoteOnsiteCost","36000");setVal("remoteCost","15000");setVal("remoteNotes","Online rentals and gate automation in place, synthetic sample");
+  setVal("confidence","0.60");
+  setVal("assumptions","1. Synthetic sample only, not a real deal. 2. Stabilized occupancy 90 percent is an underwriting assumption, not a proven rate. 3. Operating expenses are treated as fixed for break-even occupancy.");
+  setVal("missingData","Lease-up plan, marketing budget detail, title commitment, cap-rate comps.");
+  setVal("conflicts","None in the sample.");
+  showSampleNote("Sample B loaded. Lease-up value-add sample, synthetic only, not a real deal. Expected: 220 units, 165 occupied, 75.00 percent occupancy, PGI $309,600.00, stabilized NOI $193,940.00, value $2,585,866.67, break-even occupancy 27.36 percent, expansion added NOI $43,092.00, yield on cost 11.97 percent, remote saving $21,000.00.");
+ }else if(kind==="c"){
+  setVal("facilityName","Sample Unverified Storage (synthetic)");
+  setVal("address","300 Sample Storage Way, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-E6-003");
+  setVal("county","Berrien County, MI");
+  setVal("siteAcres","2.00");setVal("yearBuilt","1998");
+  setVal("facilityType","Drive-up, non-climate");setVal("zoning","C-1 Commercial");
+  setVal("exitFit","Pass");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("unitMixSource","N/A - no rent roll");
+  setUnitRow(0,"5x5",25,30,24,70);setUnitRow(1,"5x10",50,40,30,100);setUnitRow(2,"10x10",100,30,21,150);
+  setVal("occVerify","unverified");setVal("rentRollDate","");setVal("occSourceNames","N/A");setVal("occTrend","Unknown");setVal("delinquencyPct","");setVal("avgTenancyMonths","");
+  setVal("occNotes","Synthetic sample. No rent roll. Occupancy cannot be verified.");
+  setRateRow(0,"Rival Storage North","10x10",140,"Single Rate Survey","2026-10-01","single-survey.example/rival-north-10x10");
+  setRateRow(1,"Rival Storage South","10x10",150,"Single Rate Survey","2026-10-01","single-survey.example/rival-south-10x10");
+  setVal("stabOcc","85");setVal("otherIncome","2400");setVal("capRate","7");setVal("otherIncomeNotes","Late fees");
+  setOpex(9000,5000,7000,5000,18000,4000,3000,2000);
+  setVal("expAcres","1.00");setVal("expUnits","20");setVal("expRate","120");setVal("expCost","200000");setVal("expOpexPct","25");setVal("expPermit","Not permitted / unknown");
+  setVal("expNotes","Synthetic sample. Permit status unknown, so expansion is not a usable upside claim.");
+  $("remote_0").checked=true;
+  setVal("remoteOnsiteCost","30000");setVal("remoteCost","24000");setVal("remoteNotes","Online rentals only, synthetic sample");
+  setVal("confidence","0.40");
+  setVal("assumptions","Sample C shows a kill: occupancy unverifiable and street rates from a single source. The NOI math still computes, but the deal is a PASS.");
+  setVal("missingData","Rent roll, second street-rate source, title commitment.");
+  setVal("conflicts","Occupancy conflicts with the stated exit.");
+  showSampleNote("Sample C loaded. PASS sample, synthetic only, not a real deal. Occupancy unverifiable and street rates from a single source, so the kill-switch fires and the recommendation is PASS even though stabilized NOI is $57,520.00.");
+ }else{
+  setVal("facilityName","Sample Storage, Benton Harbor (synthetic)");
+  setVal("address","100 Sample Storage Way, Benton Harbor, MI 49022");
+  setVal("parcelId","SAMPLE-E6-001");
+  setVal("county","Berrien County, MI");
+  setVal("siteAcres","3.50");setVal("yearBuilt","2005");
+  setVal("facilityType","Mixed drive-up and climate");setVal("zoning","C-1 Commercial");
+  setVal("exitFit","Stabilized hold");setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+  setVal("unitMixSource","Rent roll dated 2026-10-15, synthetic sample");
+  setUnitRow(0,"5x5",25,40,36,65);setUnitRow(1,"5x10",50,60,54,95);setUnitRow(2,"10x10",100,50,45,145);setUnitRow(3,"10x20",200,30,27,225);setUnitRow(4,"10x30",300,20,18,295);
+  setVal("occVerify","rent_roll");setVal("rentRollDate","2026-10-15");setVal("occSourceNames","Rent roll, property manager");setVal("occTrend","Stable");setVal("delinquencyPct","2");setVal("avgTenancyMonths","18");
+  setVal("occNotes","Synthetic sample. Rent roll in hand, dated 2026-10-15.");
+  setRateRow(0,"Rival Storage North","10x10",140,"SpareFoot","2026-10-01","sparefoot.example/rival-north-10x10");
+  setRateRow(1,"Rival Storage South","10x10",150,"StorageCafe","2026-10-02","storagecafe.example/rival-south-10x10");
+  setRateRow(2,"Rival Storage East","10x20",230,"Facility website survey","2026-10-03","facility-website.example/rival-east-10x20");
+  setVal("stabOcc","90");setVal("otherIncome","6000");setVal("capRate","7");setVal("otherIncomeNotes","Late fees, admin fees, tenant insurance");
+  setOpex(18000,9000,12000,8000,24000,6000,5000,4000);
+  setVal("expAcres","2.00");setVal("expUnits","40");setVal("expRate","145");setVal("expCost","400000");setVal("expOpexPct","25");setVal("expPermit","Permitted by right");
+  setVal("expNotes","Synthetic sample. 2 acres buildable, permitted by right per sample record.");
+  $("remote_0").checked=true;$("remote_1").checked=true;$("remote_2").checked=true;$("remote_3").checked=true;$("remote_4").checked=true;
+  setVal("remoteOnsiteCost","36000");setVal("remoteCost","12000");setVal("remoteNotes","Kiosk and call center, synthetic sample");
+  setVal("confidence","0.70");
+  setVal("assumptions","1. Synthetic sample only, not a real deal. 2. Occupied units are charged at street rates; collected rent is not used. 3. Operating expenses are treated as fixed for break-even occupancy. 4. Cap rate 7 percent is an input, not a market finding.");
+  setVal("missingData","Title commitment, expense audit, cap-rate comps.");
+  setVal("conflicts","None in the sample.");
+  showSampleNote("Sample A loaded. Stabilized sample, synthetic only, not a real deal. Expected: 200 units, 180 occupied, 90.00 percent occupancy, PGI $338,400.00, stabilized NOI $224,560.00, value $3,208,000.00, break-even occupancy 23.64 percent, expansion added NOI $46,980.00, yield on cost 11.74 percent, remote saving $24,000.00.");
+ }
+ calc();
+}
+/* Receipt chain v1.0: SHA-256, GENESIS first, canonical JSON with the
+   hash field stripped, Verify via Web Crypto with PASS/FAIL per receipt. */
+var chain=[];
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!lastReceipt||!lastReceipt.run_id){alert("No receipt to issue yet.");return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E6.buildReceipt(lastReceipt,prev,seq);
+ sha256HexBrowser(E6.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){alert("Could not hash receipt: "+e.message);});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E6.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e6-self-storage-chain.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+document.querySelectorAll("input,select,textarea").forEach(function(el){
+ el.addEventListener("input",calc);
+ el.addEventListener("change",calc);
+});
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnShare").addEventListener("click",copyShareLink);
+$("btnClearShare").addEventListener("click",function(){try{history.replaceState(null,"",window.location.href.split("#")[0]);}catch(e){}$("shareUrl").value="";});
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",copyReceipt);
+$("btnDownloadReceipt").addEventListener("click",downloadReceipt);
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnPrint").addEventListener("click",function(){window.print();});
+window.loadSample=loadSample;
+window.clearAll=clearAll;
+window.calc=calc;
+window.copyShareLink=copyShareLink;
+window.collectState=collectState;
+window.applyState=applyState;
+window.issueReceipt=issueReceipt;
+window.verifyChain=verifyChain;
+window.getChain=function(){return chain;};
+window.getLastReceipt=function(){return lastReceipt;};
+loadFromHash();
+calc();
+renderChain();
+})();
+</script>
+</body>
+</html>
