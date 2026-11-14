@@ -7,6 +7,13 @@
  *   copied VERBATIM from the live governance-loop demo
  *   (https://neuruhai.github.io/neuruh-demos/governance-loop/governance-loop.js),
  *   which states it is verbatim from the land-report store. No retyping.
+ *   One deliberate divergence, 2026-11-14: buildReceipt now carries
+ *   receipt_id (the pmla-20261114-NNNN id the page displays) inside the
+ *   hashed receipt object, so the JSONL export identifies its receipt.
+ *   The SAL pipeline receipt carries receipt_id the same way; the hash
+ *   still covers the whole receipt minus report_hash_sha256, and verify
+ *   still recomputes it. A fresh run therefore seals a different hash
+ *   than a run sealed before this change, by design.
  * - Write-gate constants, validate, evaluateWrite, illustrative thresholds
  *   (ev below 3 REJECT, contradicts QUARANTINE, ev below 6 QUARANTINE,
  *   else WRITE): adapted from the live memory-gate demo
@@ -124,6 +131,7 @@
     var o = opts || {};
     var receipt = {
       receipt_version: RECEIPT_VERSION,
+      receipt_id: o.receipt_id || null,
       type: o.type || "event",
       seq: o.seq || 0,
       payload: o.payload || {},
@@ -519,7 +527,9 @@
     var prevHash = s.receipts.length === 0
       ? GENESIS
       : s.receipts[s.receipts.length - 1].provenance.report_hash_sha256;
+    var receiptId = "pmla-20261114-" + ("0000" + turn).slice(-4);
     var receipt = buildReceipt({
+      receipt_id: receiptId,
       type: "pmla-memory-loop",
       seq: turn,
       payload: {
@@ -548,7 +558,7 @@
       storeState: storeState(s),
       willRecallNext: stored ? { turn: turn, prompt: promptText } : null,
       receipt: receipt,
-      receiptId: "pmla-20261114-" + ("0000" + turn).slice(-4)
+      receiptId: receiptId
     };
   }
 
