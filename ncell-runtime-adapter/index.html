@@ -255,6 +255,7 @@
     <button id="shareBtn" type="button">Generate share link</button>
     <button id="copyShareBtn" type="button" class="secondary">Copy share link</button>
   </div>
+  <p class="small" id="copyShareStatus" aria-live="polite"></p>
   <div class="sharebox mono" id="shareOut">No share link generated yet.</div>
 </section>
 
@@ -263,7 +264,7 @@
   <ol class="steps">
     <li><strong>Load Sample A.</strong> Press "Sample A: passes governance". The header stamps to <span class="mono">07 07 08 1F 07 CC 33 07</span> and the intersection equals the proposed set. Press "Emit receipt" and note receipt R-001 links to genesis hash <span class="mono">00000000</span>.</li>
     <li><strong>Load Sample B.</strong> The planner proposes the world.emit edge, but policy does not allow it. Compute the intersection: world.emit appears under "Blocked by policy" and the verdict drops to PARTIAL. Emit a receipt; its prevHash is R-001's hash.</li>
-    <li><strong>Load Sample C.</strong> Policy allows every proposed edge, but the QCM to N-Lab edge is unavailable (tool down). It appears under "Blocked by infrastructure".</li>
+    <li><strong>Load Sample C.</strong> Policy allows every proposed edge, but the QCM to MOTHER edge is unavailable (tool down). It appears under "Blocked by infrastructure".</li>
     <li><strong>Change one bit.</strong> Toggle any route bit and press "Stamp header" again. The header hex changes, and the receipt delta (XOR against the previous header) is shown in the receipt.</li>
     <li><strong>Verify the chain.</strong> Press "Verify whole chain". Then use "Tamper" on any receipt to see verification fail, and "Restore" to fix it.</li>
     <li><strong>Share it.</strong> Press "Generate share link", copy the link, open it in a new tab: the same state restores.</li>
@@ -662,6 +663,9 @@ function applyState(data){
   if(Array.isArray(data.receipts)) state.receipts = data.receipts;
   syncInputs(); refreshBitGroups(); buildEdgeTable();
   stampHeader(); computeIntersection(); renderReceipts();
+  verifyChain();
+  el("sampleNote").innerHTML = "<p><strong>State restored from shared link.</strong> Run, masks, sets, and " + state.receipts.length + " receipt(s) restored from the link.</p>";
+  el("shareOut").textContent = location.href;
   return true;
 }
 function shareLink(){
@@ -711,10 +715,31 @@ el("samplePassBtn").addEventListener("click", function(){ loadSample("pass"); })
 el("samplePolicyBtn").addEventListener("click", function(){ loadSample("policy"); });
 el("sampleInfraBtn").addEventListener("click", function(){ loadSample("infra"); });
 el("shareBtn").addEventListener("click", shareLink);
+function fallbackCopy(text, done){
+  try {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    done(!!ok);
+  } catch(e){ done(false); }
+}
 el("copyShareBtn").addEventListener("click", function(){
   shareLink();
   var t = el("shareOut").textContent;
-  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(t); }
+  var status = el("copyShareStatus");
+  function done(ok){
+    status.textContent = ok ? "Share link copied to clipboard." : "Copy failed. Select the link in the box below and copy it manually (Ctrl+C / Cmd+C).";
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(function(){ done(true); }, function(){ fallbackCopy(t, done); });
+  } else {
+    fallbackCopy(t, done);
+  }
 });
 
 /* init */
