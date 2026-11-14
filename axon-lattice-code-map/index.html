@@ -259,6 +259,7 @@
   });
 
   var rotating = true, autoAngle = 0;
+  var camX = 0, camY = 6; // camera look target; the load framing is (0, 6, 42)
   var dragging = false, px = 0, py = 0, rotX = 0.12, rotY = -0.15, zoom = 42;
   renderer.domElement.addEventListener('pointerdown', function(e){ dragging = true; px = e.clientX; py = e.clientY; });
   window.addEventListener('pointerup', function(){ dragging = false; });
@@ -314,6 +315,37 @@
       var vis = function(m){ return m._mesh.visible; };
       l.visible = vis(a) && vis(b);
     });
+    // Reset the rotation to the load angle so the framing is deterministic:
+    // autoAngle grows without bound while rotating, so a filtered view applied
+    // at an arbitrary rotation put the subset off center with labels cut off.
+    autoAngle = 0; rotX = 0.12; rotY = -0.15;
+    frameView(view);
+  }
+  // Center the camera on the visible modules and pull back until the subset
+  // (nodes plus their labels) fits with margin. The "all" view restores the
+  // exact load framing instead of a computed fit.
+  function frameView(view) {
+    if (view === 'all') { camX = 0; camY = 6; zoom = 42; return; }
+    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, any = false;
+    MODULES.forEach(function(m){
+      if (!m._mesh.visible) return;
+      any = true;
+      var hw = m._label.scale.x / 2;
+      minX = Math.min(minX, m.x - hw);
+      maxX = Math.max(maxX, m.x + hw);
+      minY = Math.min(minY, m.y - 0.9);
+      maxY = Math.max(maxY, m.y + 1.35 + 0.8);
+    });
+    if (!any) { camX = 0; camY = 6; zoom = 42; return; }
+    var aspect = viewer.clientWidth / 560;
+    if (!aspect || !isFinite(aspect)) aspect = 2;
+    var tanH = Math.tan(25 * Math.PI / 180); // camera fov 50, half-angle 25
+    var halfH = (maxY - minY) / 2 + 1.5;
+    var halfW = (maxX - minX) / 2 + 1.5;
+    var need = Math.max(halfH, halfW / aspect) / tanH;
+    camX = (minX + maxX) / 2;
+    camY = (minY + maxY) / 2;
+    zoom = Math.max(24, Math.min(70, need));
   }
   document.querySelectorAll('#toolbar [data-view]').forEach(function(btn){
     btn.addEventListener('click', function(){
@@ -327,7 +359,10 @@
     this.textContent = rotating ? 'Pause rotation' : 'Resume rotation';
   });
   document.getElementById('btnReset').addEventListener('click', function(){
-    rotX = 0.12; rotY = -0.15; zoom = 42;
+    // autoAngle is the rotation accumulated since load; it was never reset,
+    // so the camera never returned to the load angle. Reset it with the rest.
+    autoAngle = 0; rotX = 0.12; rotY = -0.15; zoom = 42;
+    camX = 0; camY = 6;
     applyView('all');
     document.querySelectorAll('#toolbar [data-view]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view') === 'all'); });
   });
@@ -337,7 +372,8 @@
     if (rotating) autoAngle += 0.0012;
     group.rotation.y = rotY + autoAngle;
     group.rotation.x = rotX;
-    camera.position.z = zoom;
+    camera.position.set(camX, camY, zoom);
+    camera.lookAt(camX, camY, 0);
     renderer.render(scene, camera);
   }
   animate();
