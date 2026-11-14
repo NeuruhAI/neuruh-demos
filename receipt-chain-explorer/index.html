@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Receipt-Chain Explorer | Neuruh</title>
+<style>
+  :root{
+    --paper:#f7f4ec; --paper2:#fffdf7; --ink:#1d1d1a; --ink2:#4a463d;
+    --green:#1e4d2c; --green2:#2c6b3f; --brass:#a67c2e; --brass2:#c9a24b;
+    --line:#d8d2c0; --red:#8a2f23; --amber:#8a6d1a; --ok:#2c6b3f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.55}
+  h1,h2,h3{font-family:"Archivo","Helvetica Neue",Arial,sans-serif;letter-spacing:-.01em}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 20px 60px}
+  .banner{background:#1d1d1a;color:#f7f4ec;padding:10px 20px;font-size:13px;
+    display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .banner b{color:#e8c97a}
+  .banner .tag{border:1px solid #e8c97a;color:#e8c97a;padding:1px 8px;border-radius:20px;
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.08em}
+  header.hero{padding:34px 0 8px}
+  .kicker{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;letter-spacing:.18em;
+    color:var(--brass);text-transform:uppercase}
+  header.hero h1{font-size:40px;line-height:1.05;margin:8px 0 6px;color:var(--green)}
+  header.hero p.sub{font-size:17px;color:var(--ink2);max-width:680px;margin:0}
+  .rule{height:3px;background:linear-gradient(90deg,var(--green) 0 60%,var(--brass) 60% 64%,var(--line) 64%);
+    margin:22px 0 0}
+  section{margin-top:36px}
+  section>h2{font-size:22px;color:var(--green);margin:0 0 4px}
+  section>p.lede{color:var(--ink2);margin:0 0 16px;max-width:720px}
+  .card{background:var(--paper2);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;word-break:break-all}
+  button,.btn{cursor:pointer;border:0;border-radius:4px;padding:11px 18px;font-size:15px;
+    font-weight:700;font-family:inherit}
+  .btn-primary{background:var(--green);color:#fff}
+  .btn-primary:hover{background:var(--green2)}
+  .btn-brass{background:var(--brass);color:#fff}
+  .btn-ghost{background:transparent;border:1px solid var(--green);color:var(--green)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn-small{padding:7px 12px;font-size:13px}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+  textarea{width:100%;min-height:180px;padding:10px;border:1px solid var(--line);border-radius:4px;
+    font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;background:#fff}
+  input[type=file]{font-size:13px}
+  label{display:block;font-size:13px;font-weight:700;margin:12px 0 3px}
+  .hint{font-size:12.5px;color:var(--ink2);margin-top:3px}
+  #verdict{font-weight:700;font-size:16px;padding:12px 14px;border-radius:6px;margin:14px 0 0}
+  #verdict.valid{background:#e7efe8;color:var(--green);border:1px solid var(--green)}
+  #verdict.broken{background:#fbe9e5;color:var(--red);border:1px solid var(--red)}
+  #verdict.idle{background:#efece2;color:var(--ink2);border:1px solid var(--line)}
+  .chain{display:flex;flex-direction:column;gap:0;margin-top:16px}
+  .rcard{background:var(--paper2);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+  .rcard.broken{border:2px solid var(--red)}
+  .rcard.ok{border-left:4px solid var(--green)}
+  .rcard.broken{border-left:4px solid var(--red)}
+  .rcard-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+  .rcard-head h3{margin:0;font-size:17px;color:var(--green)}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.06em}
+  .pill.pass{background:#e7efe8;color:var(--green)}
+  .pill.fail{background:#fbe9e5;color:var(--red)}
+  .pill.synth{background:#fdf3d7;color:var(--amber)}
+  .pill.real{background:#e7efe8;color:var(--green)}
+  .rgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;margin-top:10px;font-size:13.5px}
+  @media(max-width:760px){.rgrid{grid-template-columns:1fr}}
+  .rgrid .k{font-size:11px;letter-spacing:.1em;color:var(--brass);text-transform:uppercase;font-weight:700}
+  .linkline{text-align:center;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;
+    color:var(--ink2);padding:6px 0}
+  .linkline.broken{color:var(--red);font-weight:700}
+  .linkline.ok{color:var(--green)}
+  .tamper-note{background:#fdf3d7;border:1px solid var(--amber);border-radius:6px;
+    padding:12px 14px;margin-top:14px;font-size:14px;color:#6d5410}
+  .tamper-note b{color:var(--red)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+  th{background:#efece2;font-size:12px;letter-spacing:.06em}
+  footer{margin-top:44px;border-top:1px solid var(--line);padding-top:14px;font-size:12.5px;color:var(--ink2)}
+  footer p{margin:4px 0}
+  .docctl{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11.5px;color:var(--ink2)}
+  details{margin-top:10px}
+  summary{cursor:pointer;font-weight:700;color:var(--green)}
+</style>
+</head>
+<body>
+<div class="banner">
+  <span><b>NEURUH</b> / Receipt-Chain Explorer &middot; Receipt v1.0, SHA-256 hash chain</span>
+  <span class="tag">SIMULATION - VERIFIES RECEIPTS, NOT A LIVE LEDGER</span>
+</div>
+<div class="wrap">
+
+<header class="hero">
+  <div class="kicker">Neuruh / Receipts</div>
+  <h1>Receipt-Chain Explorer</h1>
+  <p class="sub">Paste or load receipt v1.0 JSONL, recompute every SHA-256 hash over canonical JSON with the hash field stripped, and see exactly where the chain holds or breaks. The sample chain starts with the real pipeline first-run receipt from 2026-11-14, then two synthetic follow-on receipts chained from it.</p>
+  <div class="rule"></div>
+</header>
+
+<section id="how">
+  <h2>How verification works</h2>
+  <p class="lede">Receipt format v1.0. For each receipt, the stored hash is recomputed from the canonical JSON (keys sorted, arrays in order) with the <span class="mono">provenance.report_hash_sha256</span> field stripped, so the hash never influences itself. A link passes when the receipt hash recomputes AND its <span class="mono">prev_receipt_hash</span> equals the previous receipt hash. The first receipt must start from <span class="mono">GENESIS</span>. SHA-256 only. No other hash is used anywhere on this page.</p>
+  <div class="card">
+    <table>
+      <tr><th>Check</th><th>What it means</th></tr>
+      <tr><td>Hash recomputes</td><td>The receipt content is exactly what was hashed. Any edit, even one character, changes the hash.</td></tr>
+      <tr><td>Link matches</td><td>The receipt points at the real previous receipt hash. A swapped or dropped receipt breaks the link.</td></tr>
+      <tr><td>GENESIS first</td><td>The first receipt in the chain must carry prev hash GENESIS. Anything else is not a chain start.</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="input">
+  <h2>Ingest receipts</h2>
+  <p class="lede">One receipt per line, JSONL. Paste below, load a file, or use the preloaded sample chain. Nothing leaves this browser. No fetch, no upload, no network call.</p>
+  <div class="card">
+    <label for="jsonlInput">Receipt JSONL (one receipt per line)</label>
+    <textarea id="jsonlInput" spellcheck="false" placeholder='{"receipt_version":"1.0","receipt_id":"rcpt-...","provenance":{...}}'></textarea>
+    <div class="btnrow">
+      <button class="btn btn-primary" id="loadSample">Load sample chain</button>
+      <button class="btn btn-brass" id="verifyChain">Verify chain</button>
+      <button class="btn btn-ghost" id="tamperDemo">Tamper demo</button>
+      <button class="btn btn-ghost" id="restoreSample">Restore sample</button>
+      <button class="btn btn-ghost" id="exportChain">Export chain (JSONL)</button>
+      <button class="btn btn-ghost" id="clearInput">Clear</button>
+    </div>
+    <div>
+      <label for="fileInput">Or load a .jsonl file</label>
+      <input type="file" id="fileInput" accept=".jsonl,.json,.txt">
+    </div>
+    <p class="hint" id="ingestNote">Sample chain preloaded: 3 receipts. Receipt 1 is the real pipeline first-run receipt (rcpt-20261114-0001, hash 5f46f39e...). Receipts 2 and 3 are synthetic follow-ons, labeled SYNTHETIC, with hashes computed for real over their content.</p>
+    <p id="parseError" style="color:var(--red);font-weight:700"></p>
+  </div>
+  <div id="verdict" class="idle">Not verified yet. Press Verify chain.</div>
+  <div id="tamperNote" class="tamper-note" style="display:none"></div>
+</section>
+
+<section id="chain">
+  <h2>The chain</h2>
+  <p class="lede">Each card is one receipt. The badge is the link verdict for that receipt: PASS means its hash recomputes and its prev hash matches the receipt before it. The first broken link is named by receipt id in the verdict banner above.</p>
+  <div class="chain" id="chainView"></div>
+</section>
+
+<section id="raw">
+  <h2>Raw JSONL</h2>
+  <p class="lede">Exactly what is being verified, as loaded. Export downloads this as a .jsonl file.</p>
+  <details>
+    <summary>Show raw JSONL</summary>
+    <pre id="rawView" class="mono" style="background:#1d1d1a;color:#e8e8e0;padding:12px;border-radius:4px;overflow:auto;font-size:12px;white-space:pre-wrap"></pre>
+  </details>
+</section>
+
+<footer>
+  <p><b>Honesty footer.</b> This page verifies receipts. It is not a live ledger, not a live chain, and not proof that any send or reply happened. Receipt 1 is real: the pipeline first-run queue receipt from 2026-11-14, verdict QUEUED-NOT-SENT, nothing sent. Receipts 2 and 3 are synthetic, constructed for this demo only, labeled SYNTHETIC on their cards and in their content. Their hashes are real SHA-256 values computed over their content, and they chain correctly, but the send and the reply they describe did not happen.</p>
+  <p><b>What is real:</b> the SHA-256 implementation (pure JS, copied verbatim from the Land Intelligence Report store and checked against NIST vectors), the canonical-JSON rule (sorted keys, arrays in order, hash field stripped), receipt 1 and its hash 5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0, and every hash recomputed in this page.</p>
+  <p class="docctl">DOC CONTROL: Receipt-Chain Explorer v1.0 &middot; 2026-11-14 &middot; Receipt format v1.0, SHA-256 &middot; Sample root: pipeline-signals.md, receipt rcpt-20261114-0001 &middot; No FNV-1a anywhere &middot; SIMULATION</p>
+</footer>
+</div>
+
+<script>
+"use strict";
+/* Receipt-Chain Explorer v1.0 - self-contained, no external calls, no fetch/XHR. */
+
+/* ---------- pure-JS SHA-256 (sync, ASCII byte string in) ---------- */
+/* Copied verbatim from the Land Intelligence Report store (land-report-store/index.html),
+   verified against NIST vectors. Do not edit. */
+function sha256(ascii){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  var mp=Math.pow,mw=mp(2,32),i,j,result='';
+  var words=[],bitLen=ascii.length*8;
+  var hash=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[];
+  var pc=k.length,isC={};
+  for(var cand=2;pc<64;cand++){
+    if(!isC[cand]){
+      for(i=0;i<313;i+=cand)isC[i]=cand;
+      hash[pc]=(mp(cand,.5)*mw)|0;
+      k[pc++]=(mp(cand,1/3)*mw)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){
+    j=ascii.charCodeAt(i);
+    if(j>>8)return null;
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=(bitLen/mw)|0;
+  words[words.length]=bitLen;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),old=hash;
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);
+      hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)hash[i]=(hash[i]+old[i])|0;
+  }
+  for(i=0;i<8;i++)for(j=3;j+1;j--){
+    var b=(hash[i]>>(j*8))&255;
+    result+=((b<16)?'0':'')+b.toString(16);
+  }
+  return result;
+}
+function toUtf8(str){
+  var out='';
+  for(var i=0;i<str.length;i++){
+    var c=str.charCodeAt(i);
+    if(c<128)out+=str.charAt(i);
+    else if(c<2048)out+=String.fromCharCode((c>>6)|192,(c&63)|128);
+    else if(c<55296||c>57343)out+=String.fromCharCode((c>>12)|224,((c>>6)&63)|128,(c&63)|128);
+    else{
+      i++;var c2=str.charCodeAt(i);
+      var cp=0x10000+(((c&0x3FF)<<10)|(c2&0x3FF));
+      out+=String.fromCharCode((cp>>18)|240,((cp>>12)&63)|128,((cp>>6)&63)|128,(cp&63)|128);
+    }
+  }
+  return out;
+}
+function hashStr(s){return sha256(toUtf8(s));}
+/* canonical JSON: sorted keys, arrays in order */
+function canonical(v){
+  if(v===null||typeof v!=='object')return JSON.stringify(v);
+  if(Array.isArray(v))return '['+v.map(canonical).join(',')+']';
+  return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+canonical(v[k]);}).join(',')+'}';
+}
+
+/* ---------- sample chain ---------- */
+/* Receipt 1 is the REAL pipeline first-run receipt (pipeline-signals.md).
+   Hash verified by recompute: 5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0.
+   Receipts 2 and 3 are SYNTHETIC follow-ons, chained from receipt 1, hashes computed
+   for real with Node crypto over canonical JSON with the hash field stripped. */
+var SAMPLE_CHAIN=[
+{
+  "receipt_version": "1.0",
+  "receipt_id": "rcpt-20261114-0001",
+  "run_id": "pipeline-first-run-20261114",
+  "signal_id": "sig-20261114-sjc-tax-001",
+  "content_ref": "pipeline-piece-20261114-tax-timeline-explainer",
+  "channel": "biggerpockets",
+  "queued_at": "2026-11-14T00:55:00-05:00",
+  "sent_at": null,
+  "sender": "jeramie",
+  "cta": "free 10-min call, cal.com/neuruh; Land Intelligence Report $29",
+  "outcome": "queued, awaiting per-draft approval",
+  "outcome_at": null,
+  "provenance": {
+    "report_hash_sha256": "5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0",
+    "verdict": "QUEUED-NOT-SENT",
+    "verdict_note": "Queue event only. No touch sent. Nothing published. No owner or property PII in the queued copy.",
+    "timestamp_utc": "2026-11-14T05:55:00Z",
+    "prev_receipt_hash": "GENESIS",
+    "sources": [
+      "https://gis.southbendin.gov/arcgis/rest/services/LandRecords/Parcels_County/MapServer/0 (St. Joseph County parcels, HTTP 200, count 119780)",
+      "https://engageblob.blob.core.windows.net/stjoseph/pdf/2026/71-05-09-476-039.000-011.pdf (2026 county property record card, HTTP 200)"
+    ]
+  }
+},
+{
+  "receipt_version": "1.0",
+  "receipt_id": "rcpt-20261114-0002",
+  "run_id": "pipeline-first-run-20261114",
+  "signal_id": "sig-20261114-sjc-tax-001",
+  "content_ref": "pipeline-piece-20261114-tax-timeline-explainer",
+  "channel": "biggerpockets",
+  "queued_at": "2026-11-14T00:55:00-05:00",
+  "sent_at": "2026-11-14T09:00:00-05:00",
+  "sender": "jeramie",
+  "cta": "free 10-min call, cal.com/neuruh; Land Intelligence Report $29",
+  "outcome": "sent, awaiting reply",
+  "outcome_at": null,
+  "synthetic": true,
+  "provenance": {
+    "report_hash_sha256": "d4e2de110595c337dcd48b6976eabd09a533c0e125ddecb22671626085516b06",
+    "verdict": "SENT",
+    "verdict_note": "SYNTHETIC follow-on receipt constructed for this demo only. Chains to rcpt-20261114-0001. No real send happened.",
+    "timestamp_utc": "2026-11-14T14:00:00Z",
+    "prev_receipt_hash": "5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0",
+    "sources": ["pipeline-signals.md receipt rcpt-20261114-0001 (prev hash)"]
+  }
+},
+{
+  "receipt_version": "1.0",
+  "receipt_id": "rcpt-20261114-0003",
+  "run_id": "pipeline-first-run-20261114",
+  "signal_id": "sig-20261114-sjc-tax-001",
+  "content_ref": "pipeline-piece-20261114-tax-timeline-explainer",
+  "channel": "biggerpockets",
+  "queued_at": "2026-11-14T00:55:00-05:00",
+  "sent_at": "2026-11-14T09:00:00-05:00",
+  "sender": "jeramie",
+  "cta": "free 10-min call, cal.com/neuruh; Land Intelligence Report $29",
+  "outcome": "reply received, 10-min call booked",
+  "outcome_at": "2026-11-14T15:30:00-05:00",
+  "synthetic": true,
+  "provenance": {
+    "report_hash_sha256": "563c7665d3c00c2da30c8599b76a41ed4ac6c2ee4c9b706777559fe7fabe41f1",
+    "verdict": "OUTCOME-RECORDED",
+    "verdict_note": "SYNTHETIC follow-on receipt constructed for this demo only. Chains to rcpt-20261114-0002. No real reply happened.",
+    "timestamp_utc": "2026-11-14T20:30:00Z",
+    "prev_receipt_hash": "d4e2de110595c337dcd48b6976eabd09a533c0e125ddecb22671626085516b06",
+    "sources": ["pipeline-signals.md receipt rcpt-20261114-0001 (chain root)"]
+  }
+}
+];
+
+/* ---------- state ---------- */
+function $(id){return document.getElementById(id);}
+var receipts=[];       /* parsed receipts, in file order */
+var results=[];        /* per-receipt verification results */
+var tampered=false;
+
+function trunc(h){
+  if(!h)return '(missing)';
+  if(h==='GENESIS')return 'GENESIS';
+  return h.slice(0,16)+'…'+h.slice(-8);
+}
+function toJsonl(list){
+  return list.map(function(r){return JSON.stringify(r);}).join('\n');
+}
+function parseInput(){
+  var text=$('jsonlInput').value;
+  var lines=text.split('\n').filter(function(l){return l.trim().length>0;});
+  var out=[];
+  for(var i=0;i<lines.length;i++){
+    try{out.push(JSON.parse(lines[i]));}
+    catch(e){
+      $('parseError').textContent='Parse error on line '+(i+1)+': '+e.message;
+      return null;
+    }
+  }
+  $('parseError').textContent='';
+  return out;
+}
+
+/* ---------- verification ---------- */
+function verifyOne(r, expectedPrev){
+  var prov=r.provenance||{};
+  var claimed=prov.report_hash_sha256||null;
+  var copy=JSON.parse(JSON.stringify(r));
+  if(copy.provenance)delete copy.provenance.report_hash_sha256;
+  var recomputed=hashStr(canonical(copy));
+  var hashOk=(claimed!==null&&recomputed===claimed);
+  var linkOk=(prov.prev_receipt_hash===expectedPrev);
+  var reason='';
+  if(!hashOk)reason='stored hash does not recompute from the receipt content';
+  else if(!linkOk)reason='prev hash does not match the previous receipt hash';
+  return {id:r.receipt_id||'(no id)', claimed:claimed, recomputed:recomputed,
+    hashOk:hashOk, linkOk:linkOk, ok:hashOk&&linkOk, reason:reason,
+    prev:prov.prev_receipt_hash||null, expectedPrev:expectedPrev};
+}
+function verifyChain(){
+  var parsed=parseInput();
+  if(parsed===null){return {valid:false,error:true,results:[]}; }
+  receipts=parsed;
+  results=[];
+  var expectedPrev='GENESIS';
+  var firstBroken=null;
+  for(var i=0;i<receipts.length;i++){
+    var res=verifyOne(receipts[i],expectedPrev);
+    results.push(res);
+    if(!res.ok&&!firstBroken)firstBroken=res;
+    expectedPrev=receipts[i] && receipts[i].provenance ? receipts[i].provenance.report_hash_sha256 : null;
+  }
+  var v=$('verdict');
+  if(!receipts.length){
+    v.className='idle';
+    v.textContent='No receipts loaded. Load the sample chain or paste JSONL.';
+  } else if(!firstBroken){
+    v.className='valid';
+    v.textContent='CHAIN VALID: '+receipts.length+' receipt'+(receipts.length===1?'':'s')+', every hash recomputes, every link matches, first prev hash is GENESIS.';
+  } else {
+    v.className='broken';
+    v.textContent='CHAIN BROKEN at '+firstBroken.id+': '+firstBroken.reason+'.';
+  }
+  renderChain();
+  $('rawView').textContent=toJsonl(receipts);
+  return {valid:!firstBroken&&receipts.length>0, firstBroken:firstBroken, results:results};
+}
+
+/* ---------- rendering ---------- */
+function renderChain(){
+  var view=$('chainView');
+  view.innerHTML='';
+  if(!receipts.length){
+    view.innerHTML='<div class="card">No receipts to show. Load the sample chain or paste JSONL, then press Verify chain.</div>';
+    return;
+  }
+  receipts.forEach(function(r,i){
+    var res=results[i]||{ok:null,hashOk:null,linkOk:null};
+    var prov=r.provenance||{};
+    var card=document.createElement('div');
+    card.className='rcard '+(res.ok===true?'ok':res.ok===false?'broken':'');
+    var synth=r.synthetic===true;
+    var badge='';
+    if(res.ok===true)badge='<span class="pill pass">PASS</span>';
+    else if(res.ok===false)badge='<span class="pill fail">FAIL</span>';
+    else badge='<span class="pill">NOT VERIFIED</span>';
+    var html='<div class="rcard-head"><h3>'+(i+1)+'. '+(r.receipt_id||'(no id)')+'</h3><span>'+badge+' '+
+      (synth?'<span class="pill synth">SYNTHETIC</span>':'<span class="pill real">REAL</span>')+'</span></div>';
+    html+='<div class="rgrid">'+
+      '<div><div class="k">Timestamp (UTC)</div><div class="mono">'+(prov.timestamp_utc||'(missing)')+'</div></div>'+
+      '<div><div class="k">Verdict</div><div>'+(prov.verdict||'(missing)')+'</div></div>'+
+      '<div><div class="k">Prev hash</div><div class="mono">'+trunc(prov.prev_receipt_hash)+'</div></div>'+
+      '<div><div class="k">Hash</div><div class="mono">'+trunc(prov.report_hash_sha256)+'</div></div>'+
+      '<div><div class="k">Signal / Channel</div><div>'+(r.signal_id||'(missing)')+' / '+(r.channel||'(missing)')+'</div></div>'+
+      '<div><div class="k">Outcome</div><div>'+(r.outcome||'(missing)')+'</div></div>'+
+      '</div>';
+    if(res.ok===true){
+      html+='<p class="hint" style="color:var(--green);font-weight:700">Link PASS: hash recomputes ('+res.recomputed.slice(0,16)+'…), prev hash matches '+(i===0?'GENESIS':'the previous receipt')+'.</p>';
+    } else if(res.ok===false){
+      html+='<p class="hint" style="color:var(--red);font-weight:700">Link FAIL: '+res.reason+'. Recomputed '+res.recomputed.slice(0,16)+'… vs stored '+(res.claimed?res.claimed.slice(0,16)+'…':'(missing)')+'.</p>';
+    }
+    if(prov.verdict_note)html+='<p class="hint">'+prov.verdict_note+'</p>';
+    card.innerHTML=html;
+    view.appendChild(card);
+    if(i<receipts.length-1){
+      var link=document.createElement('div');
+      var nextRes=results[i+1];
+      if(nextRes&&nextRes.ok===false&&nextRes.reason.indexOf('prev hash')===0){
+        link.className='linkline broken';
+        link.textContent='|  LINK BROKEN: next receipt prev hash does not match this hash  |';
+      } else if(nextRes&&nextRes.ok===false){
+        link.className='linkline broken';
+        link.textContent='|  next receipt is broken (its own hash does not recompute)  |';
+      } else if(nextRes&&nextRes.ok===true){
+        link.className='linkline ok';
+        link.textContent='|  chained: next prev hash = this hash  |';
+      } else {
+        link.className='linkline';
+        link.textContent='|';
+      }
+      view.appendChild(link);
+    }
+  });
+}
+
+/* ---------- actions ---------- */
+function loadSample(){
+  receipts=JSON.parse(JSON.stringify(SAMPLE_CHAIN));
+  $('jsonlInput').value=toJsonl(receipts);
+  tampered=false;
+  $('tamperNote').style.display='none';
+  $('ingestNote').textContent='Sample chain loaded: 3 receipts. Receipt 1 is the real pipeline first-run receipt (rcpt-20261114-0001). Receipts 2 and 3 are synthetic follow-ons, labeled SYNTHETIC.';
+  verifyChain();
+}
+function tamperDemo(){
+  var parsed=parseInput();
+  if(!parsed||parsed.length<2){
+    $('parseError').textContent='Tamper demo needs at least 2 receipts loaded. Load the sample chain first.';
+    return;
+  }
+  receipts=parsed;
+  /* Flip exactly one character in receipt 2 (index 1): outcome
+     "sent, awaiting reply" becomes "sent, awaiting replx" (y -> x).
+     The stored hash is left untouched, so the recompute must fail. */
+  var before=receipts[1].outcome;
+  receipts[1].outcome=before.replace('reply','replx');
+  tampered=true;
+  $('jsonlInput').value=toJsonl(receipts);
+  var res=verifyChain();
+  var tn=$('tamperNote');
+  tn.style.display='block';
+  tn.innerHTML='<b>TAMPER DEMO:</b> one character flipped in <span class="mono">rcpt-20261114-0002</span>: outcome changed from "sent, awaiting reply" to "sent, awaiting replx" (y to x). The stored hash was not updated, so the recompute fails and the chain breaks at exactly that link. Receipt 1 still passes. Receipt 3 still passes on its own hash, but its prev hash now points at the broken receipt 2 hash, so the chain is broken from link 2 onward. Press Restore sample to undo.';
+  return res;
+}
+function restoreSample(){
+  loadSample();
+}
+function exportChain(){
+  var parsed=parseInput();
+  if(parsed===null)return;
+  receipts=parsed;
+  var text=toJsonl(receipts);
+  var blob=new Blob([text],{type:'application/jsonl'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='receipt-chain.jsonl';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+}
+
+$('loadSample').addEventListener('click',loadSample);
+$('verifyChain').addEventListener('click',verifyChain);
+$('tamperDemo').addEventListener('click',tamperDemo);
+$('restoreSample').addEventListener('click',restoreSample);
+$('exportChain').addEventListener('click',exportChain);
+$('clearInput').addEventListener('click',function(){
+  $('jsonlInput').value='';
+  receipts=[];results=[];
+  $('verdict').className='idle';
+  $('verdict').textContent='Not verified yet. Press Verify chain.';
+  $('tamperNote').style.display='none';
+  renderChain();
+  $('rawView').textContent='';
+});
+$('fileInput').addEventListener('change',function(ev){
+  var f=ev.target.files&&ev.target.files[0];
+  if(!f)return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    $('jsonlInput').value=String(reader.result||'');
+    tampered=false;
+    $('tamperNote').style.display='none';
+    verifyChain();
+  };
+  reader.readAsText(f);
+});
+
+/* Expose internals for the Node/jsdom test harness. */
+window.__rce={
+  verifyChain:verifyChain, loadSample:loadSample, tamperDemo:tamperDemo,
+  restoreSample:restoreSample, exportChain:exportChain,
+  getReceipts:function(){return receipts;},
+  getResults:function(){return results;},
+  getSample:function(){return JSON.parse(JSON.stringify(SAMPLE_CHAIN));}
+};
+
+/* Preload the sample chain on first paint. */
+loadSample();
+</script>
+</body>
+</html>
