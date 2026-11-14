@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vault Concept Explorer (SIMULATION)</title>
+<style>
+  :root { --bone:#f4f1ea; --paper:#fbf9f4; --ink:#1c1a17; --muted:#6b655c;
+    --brass:#9a7b2d; --line:#d8d2c4; --dark:#221f1b; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink);
+    font-family:"Inter",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:15px; line-height:1.55; }
+  header { background:var(--dark); color:var(--bone); padding:28px 20px 22px; }
+  header .wrap, main, footer .wrap { max-width:1100px; margin:0 auto; }
+  h1 { font-family:"Archivo",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:30px; margin:0 0 6px; letter-spacing:-.01em; }
+  header p { margin:4px 0; color:#cfc8b8; }
+  .badge { display:inline-block; background:var(--brass); color:#fff; font-weight:700;
+    font-size:12px; letter-spacing:.08em; padding:3px 9px; border-radius:2px;
+    vertical-align:middle; }
+  .docmeta { font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+    font-size:12px; color:#a89f8c; margin-top:12px; }
+  main { padding:20px; }
+  .card { background:var(--paper); border:1px solid var(--line); border-radius:4px;
+    padding:16px 18px; margin-bottom:16px; }
+  .controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:12px; }
+  label { display:block; font-size:12px; font-weight:700; letter-spacing:.05em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+  input[type="text"], select { width:100%; padding:9px 10px; font-size:15px;
+    border:1px solid var(--line); border-radius:3px; background:#fff; color:var(--ink); }
+  .checkrow { display:flex; align-items:flex-end; gap:8px; padding-bottom:2px; }
+  .checkrow label { margin:0; text-transform:none; letter-spacing:0; font-size:15px;
+    font-weight:400; color:var(--ink); }
+  button { padding:9px 16px; font-size:14px; font-weight:700; background:var(--dark);
+    color:var(--bone); border:0; border-radius:3px; cursor:pointer; }
+  button:hover { background:#3a352d; }
+  #count { font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+    font-size:13px; color:var(--muted); margin:0 0 10px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th { text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--muted); border-bottom:2px solid var(--dark); padding:8px 8px; }
+  td { border-bottom:1px solid var(--line); padding:8px; vertical-align:top; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover, tbody tr:focus { background:#f0e9d6; outline:none; }
+  .mono { font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace; font-size:13px; }
+  .muted { color:var(--muted); }
+  .alias { color:var(--muted); font-size:13px; }
+  .tag { display:inline-block; font-size:11px; font-weight:700; letter-spacing:.06em;
+    padding:2px 7px; border-radius:2px; }
+  .tag-census { background:#e4ddc8; color:#5c4d1e; }
+  .tag-collision { background:#7a2e2e; color:#fff; }
+  .empty { color:var(--muted); }
+  #detail dl { display:grid; grid-template-columns:220px 1fr; gap:6px 16px; margin:0; }
+  #detail dt { font-weight:700; font-size:13px; color:var(--muted); }
+  #detail dd { margin:0; }
+  #detail h2 { margin-top:0; font-size:22px; }
+  footer { border-top:1px solid var(--line); padding:18px 20px 30px; color:var(--muted);
+    font-size:13px; }
+  footer h2 { font-size:14px; color:var(--ink); margin:16px 0 6px; }
+  footer ul { margin:4px 0; padding-left:20px; }
+  @media (max-width:640px) { #detail dl { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Vault Concept Explorer <span class="badge">SIMULATION</span></h1>
+    <p>A searchable, filterable browser over the 246 census concepts in the Neuruh Obsidian vault.</p>
+    <p>This is a demo browser over census data, not the vault itself. Vault notes are local files; this page lists them by vault path, never as links.</p>
+    <p class="docmeta">DATA SOURCE: ~/workspace/neuruh-obsidian-vault/Master-Data-List.json (246 rows) &middot; AS OF: 2026-11-14 &middot; BUILT: 2026-11-14</p>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="controls">
+      <div>
+        <label for="q">Search names, aliases, IDs, owners</label>
+        <input type="text" id="q" placeholder="e.g. SAL, recipe, CORE-028" autocomplete="off">
+      </div>
+      <div>
+        <label for="section">Section</label>
+        <select id="section">
+          <option value="all">All sections (10)</option>
+          <option value="Additional Historical Systems">Additional Historical Systems (31)</option>
+          <option value="Business / Operator AI">Business / Operator AI (20)</option>
+          <option value="Core / Architecture">Core / Architecture (62)</option>
+          <option value="Creator / IP / Media">Creator / IP / Media (15)</option>
+          <option value="Defense / Infrastructure / Edge">Defense / Infrastructure / Edge (16)</option>
+          <option value="Founder / Cognitive">Founder / Cognitive (20)</option>
+          <option value="Methods / Frameworks">Methods / Frameworks (24)</option>
+          <option value="Real Estate / Land">Real Estate / Land (40)</option>
+          <option value="Resale / Collectibles / Equipment">Resale / Collectibles / Equipment (12)</option>
+          <option value="Tax / Finance / Validation">Tax / Finance / Validation (6)</option>
+        </select>
+      </div>
+      <div>
+        <label for="classification">Classification (contains)</label>
+        <input type="text" id="classification" list="classifications" placeholder="e.g. COURT REQUIRED" autocomplete="off">
+        <datalist id="classifications">
+          <option value="ABSORBED into modern prompt/composer path">
+          <option value="ACQUISITION INTELLIGENCE FAMILY">
+          <option value="AGENT/PRODUCT FAMILY">
+          <option value="AGENT/PRODUCT LINEAGE">
+          <option value="ARCHITECTURE METHOD">
+          <option value="BUILD/COMMERCIAL LINEAGE">
+          <option value="BUILD/PRODUCTIZATION LINEAGE">
+          <option value="BUILT / COCKPIT ADAPTIVE SUBSYSTEM">
+          <option value="BUILT FRONTEND / OPERATOR SHELL">
+          <option value="BUILT PRODUCT - LAYER 1 LIVE AS FILE + DEMO; LAYERS 2-3 DESIGNED, NOT BUILT">
+          <option value="BUILT_NOT_DEPLOYED / bounded briefing lineage">
+          <option value="BUYER/MATCHING DONOR; current matcher held">
+          <option value="CANON/ARCHITECTURE LIBRARY">
+          <option value="CANONICAL_LIBRARY / ARCHIVAL">
+          <option value="COGNITIVE METHOD">
+          <option value="COGNITIVE/ROUTING METHOD">
+          <option value="COLLISION / SAL + routing + Signal-IQ lineages">
+          <option value="COMMERCIAL/AGENT-AS-SERVICE METHOD">
+          <option value="COMMERCIAL/DONOR">
+          <option value="COMMERCIAL/MODEL SERVICE METHOD">
+          <option value="COMPRESSION FORMULA / METHOD">
+          <option value="COMPRESSION OBJECTIVE / GATE DOCTRINE — CANONICAL JUDGE">
+          <option value="COURT REQUIRED">
+          <option value="CREATORVERSE LINEAGE / implementation depth open">
+          <option value="CURRENT ARCHITECTURAL ABSTRACTION">
+          <option value="CURRENT AUTHORITY FAMILY">
+          <option value="CURRENT CANON/MEMORY LINEAGE">
+          <option value="CURRENT COCKPIT GRAPH FAMILY">
+          <option value="CURRENT CONTINUITY FAMILY">
+          <option value="CURRENT CORE">
+          <option value="CURRENT FOUNDER SURFACE">
+          <option value="CURRENT FOUNDER/CONTINUITY FAMILY">
+          <option value="CURRENT INFERENCE AUTHORITY">
+          <option value="CURRENT INFERENCE/AUTHORITY-ADJACENT SOURCE">
+          <option value="CURRENT OBSERVER/WATCHDOG + HISTORICAL VARIANTS">
+          <option value="CURRENT OWNER FOUND">
+          <option value="CURRENT OWNER FOUND inside Factory">
+          <option value="CURRENT PRODUCTION">
+          <option value="CURRENT PRODUCTION PRODUCT">
+          <option value="CURRENT REPO EXISTS / observation authority">
+          <option value="CURRENT SHARED PRIMITIVE">
+          <option value="CURRENT SOURCE">
+          <option value="CURRENT SOURCE / INTEGRATIONS INCOMPLETE">
+          <option value="CURRENT SOURCE / READY_ON_DEMAND">
+          <option value="CURRENT SOURCE / release custody held">
+          <option value="CURRENT SOURCE / runtime-consumer binding open">
+          <option value="CURRENT SOURCE CANONICAL">
+          <option value="CURRENT SOURCE EXISTS">
+          <option value="CURRENT SPEC / PARTIAL IMPLEMENTATION - FLAT FILE + NOTION; 12 OF ~36 ENTITIES">
+          <option value="CURRENT/CONTINUITY DONOR">
+          <option value="CURRENT/HISTORICAL IMPLEMENTATION; ownership boundary conflicted">
+          <option value="CURRENTLY RELEVANT METHOD">
+          <option value="DECISION RESEARCH LINEAGE">
+          <option value="DEPLOYMENT TEMPLATE LINEAGE">
+          <option value="DESIGN + PARTIAL RUNTIME / COORDINATED EXECUTION PROVEN; CONTINUOUS AUTONOMY NOT PROVEN">
+          <option value="DESIGN LINEAGE / exact contract unresolved">
+          <option value="DESIGN/PHYSICAL LINEAGE">
+          <option value="DESIGNED - SELLABLE ARTIFACT, NOT LIVE">
+          <option value="DIGITAL ARCHAEOLOGY / RESEARCH LINEAGE">
+          <option value="DISTRIBUTION/CONTENT LINEAGE">
+          <option value="DOCTRINE + SCORING ENGINE BUILT; 37/49 SIGNALS LIVE; CV MODEL + AGGREGATOR KEY PENDING">
+          <option value="DONOR/PRODUCT LINEAGE">
+          <option value="ECONOMIC/VALIDATION LINEAGE">
+          <option value="EDGE PRODUCT FAMILY">
+          <option value="EDGE/NETWORK LINEAGE">
+          <option value="ENERGY/INFRA LINEAGE">
+          <option value="EVENT LINEAGE / much absorbed">
+          <option value="EXACT NOTION IP ENTRY FOUND">
+          <option value="FAMILY">
+          <option value="FAMILY / MULTIPLE DESCENDANTS">
+          <option value="FINANCE/DECISION LINEAGE">
+          <option value="FOUNDATIONAL FAMILY">
+          <option value="FOUNDER BRIEFING LINEAGE">
+          <option value="FOUNDER MEMORY/IDENTITY LINEAGE">
+          <option value="FOUNDER/BUILD DOCTRINE">
+          <option value="FOUNDER/COGNITIVE LINEAGE">
+          <option value="FOUNDER/METHOD LINEAGE">
+          <option value="FOUNDER/OPERATOR DONOR">
+          <option value="FRAMEWORK">
+          <option value="FRAMEWORK/DONOR">
+          <option value="HISTORICAL AGENT">
+          <option value="HISTORICAL CANON">
+          <option value="HISTORICAL CASE / ACCEPTED RECORD">
+          <option value="HISTORICAL IMPLEMENTATION">
+          <option value="HISTORICAL METHOD">
+          <option value="HISTORICAL PRODUCT FAMILY">
+          <option value="HISTORICAL/CURRENT DOCTRINE">
+          <option value="HISTORICAL/CURRENT PRODUCT FAMILY">
+          <option value="HISTORICAL/DONOR">
+          <option value="HISTORICAL/DONOR + memory lineage">
+          <option value="HISTORICAL/OPERATING ANCESTOR">
+          <option value="INFRASTRUCTURE DESIGN">
+          <option value="KNOWLEDGE ATOMIZATION LINEAGE">
+          <option value="KNOWLEDGE LINEAGE">
+          <option value="KNOWLEDGE/COMPREHENSION LINEAGE">
+          <option value="LARGE KNOWLEDGE/DEPLOYMENT BUNDLES FOUND">
+          <option value="LOCAL/COMPARABLE DONOR">
+          <option value="MAJOR HISTORICAL DONOR/COMMERCIAL LINEAGE">
+          <option value="MAJOR MULTI-DOCUMENT LINEAGE">
+          <option value="MARKETPLACE/LOCAL COMMERCE LINEAGE">
+          <option value="MEDIA LINEAGE">
+          <option value="METHOD">
+          <option value="METHOD/CREATIVE LINEAGE">
+          <option value="METHOD/FOUNDER LINEAGE">
+          <option value="METHOD/PRODUCT DONOR">
+          <option value="MODULE INSIDE LANDOS-ENGINE / ESTIMATE ENGINE — SCHEMA + SEED READY, BUILD STATUS UNVERIFIED">
+          <option value="MULTIPLE MVP/ARCHITECTURE DOCUMENTS FOUND">
+          <option value="NAMING COLLISION">
+          <option value="NAMING COLLISION / FAMILY">
+          <option value="NAMING FAMILY / Pulsar collision">
+          <option value="NAMING/DEFINITION EVOLUTION">
+          <option value="OPERATOR/DASHBOARD DONOR">
+          <option value="OUTPUT/COMMERCIAL DONOR">
+          <option value="OWNER NEEDS DEEPER COURT">
+          <option value="OWNER UNRESOLVED">
+          <option value="OWNER/ABSORPTION UNRESOLVED">
+          <option value="OWNER/DEFINITION UNRESOLVED">
+          <option value="PHASE 0 CODE-COMPLETE, RUNTIME PENDING; PHASE 1 NEXT (auth / RBAC / audit / ledger)">
+          <option value="PHYSICAL PRODUCT LINEAGE">
+          <option value="PHYSICAL/DEVELOPMENT LINEAGE">
+          <option value="PHYSICAL/EDGE LINEAGE">
+          <option value="PHYSICAL/RESEARCH LINEAGE">
+          <option value="PHYSICAL/SAFETY-SENSITIVE DESIGN LINEAGE">
+          <option value="PHYSICAL/SECURITY LINEAGE">
+          <option value="PILOT STAGED">
+          <option value="PLACE/DEVELOPMENT LINEAGE">
+          <option value="PRIMARY ARTIFACT FOUND">
+          <option value="PRIMARY ARTIFACTS + code-pack lineage; current owner relation open">
+          <option value="PRIMARY ARTIFACTS FOUND">
+          <option value="PRIMARY DESIGN + safe simulation lineage found">
+          <option value="PRIMARY DESIGN FOUND / runtime owner unresolved">
+          <option value="PRIMARY DRIVE/NOTION SOURCES FOUND">
+          <option value="PRIMARY FRAMEWORK LINEAGE">
+          <option value="PRIMARY LARGE ARTIFACT FOUND">
+          <option value="PRIMARY PRODUCT DOCUMENTS FOUND">
+          <option value="PRODUCT LINEAGE">
+          <option value="PRODUCT/CHANNEL LINEAGE">
+          <option value="PRODUCT/COMMERCIAL LINEAGE">
+          <option value="PRODUCT/CREATOR LINEAGE">
+          <option value="PRODUCT/DONOR">
+          <option value="PRODUCT/FORENSIC DONOR; current product owner unresolved">
+          <option value="PRODUCT/OUTPUT DONOR">
+          <option value="PRODUCT/WORKFLOW LINEAGE">
+          <option value="PROMPT/COMPOSITION LINEAGE">
+          <option value="PROMPT/KNOWLEDGE LINEAGE">
+          <option value="PROVEN REGISTRY">
+          <option value="PROVEN SOURCE / DONOR-HARVEST">
+          <option value="RECIPE/DONOR">
+          <option value="RECIPE/SOURCE DONOR">
+          <option value="RECOVERY VERB/DOCTRINE + possible named lineage">
+          <option value="RESEARCH/DESIGN LINEAGE">
+          <option value="RESEARCH/VALIDATION LINEAGE">
+          <option value="RETIRED REQUIRED RUNTIME / DONOR">
+          <option value="ROLE PROVEN / OWNER UNRESOLVED">
+          <option value="ROLE/ORCHESTRATION LINEAGE">
+          <option value="SELF-REWRITING ROUTING SUBSTRATE - PHASE 1 + PHASE 2, TRANSCRIPT-REPORTED, NOT INDEPENDENTLY VERIFIED HERE">
+          <option value="SEMANTIC COLLISION">
+          <option value="SENSOR/VALIDATION LINEAGE">
+          <option value="SHARED RE ORGAN">
+          <option value="SIMULATION / NO LIVE TRACE STORE">
+          <option value="SMB FUNDING ENGINE - DESIGNED (v0.9 + v1.1), HELD ON LICENSING, NOT A LIVE BUSINESS">
+          <option value="SOURCE EXISTS">
+          <option value="SOURCE/ENTITY DONOR">
+          <option value="SOURCE/OPPORTUNITY DONOR">
+          <option value="SOURCE/RECIPE DONOR">
+          <option value="SOVEREIGN COGNITIVE OPERATING SYSTEM - DESIGN SPECIFICATION V6, NOT A RUNNING SYSTEM">
+          <option value="SPECIALIST/DONOR LINEAGE">
+          <option value="STRATEGY LINEAGE">
+          <option value="SUBSTANTIAL PRODUCT LINEAGE / current live state needs court">
+          <option value="SUBSTANTIAL PRODUCT/REPO FAMILY">
+          <option value="SUBSTANTIAL REPO/PRODUCT LINEAGE; current deployment/Stripe/domain/paid-sale status must be recourted">
+          <option value="THESIS + SCORING ENGINE BUILT; A/B/C DECISION OPEN">
+          <option value="TIER 2 - REAL, ONE FIX FROM SELLABLE; DORMANT">
+          <option value="TWO STRONG HISTORICAL MEANINGS / SPLIT REQUIRED">
+          <option value="UNIVERSAL CORE SERVICE LINEAGE">
+          <option value="VERTICAL PRODUCT/DONOR">
+        </datalist>
+      </div>
+      <div>
+        <label for="runtime">Runtime</label>
+        <select id="runtime">
+          <option value="all">All runtimes</option>
+          <option value="repo">Repo evidenced</option>
+          <option value="norepo">No repo</option>
+          <option value="unknown">Unknown</option>
+          <option value="other">Other / described</option>
+        </select>
+      </div>
+      <div>
+        <label for="sort">Sort</label>
+        <select id="sort">
+          <option value="name-asc">Name A to Z</option>
+          <option value="name-desc">Name Z to A</option>
+          <option value="id-asc">ID ascending</option>
+          <option value="id-desc">ID descending</option>
+        </select>
+      </div>
+      <div class="checkrow">
+        <input type="checkbox" id="collision">
+        <label for="collision">Collision notes only (11)</label>
+      </div>
+      <div class="checkrow">
+        <button type="button" id="clear">Clear filters</button>
+      </div>
+    </div>
+  </div>
+
+  <p id="count">Loading 246 concepts...</p>
+  <div class="card" id="results"><p class="empty">Loading...</p></div>
+  <div class="card" id="detail">
+    <h2>Detail</h2>
+    <p class="empty">Click a row to see the concept's classification, evidence standard, source file, and recorded conflicts.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <h2>Sourcing and omissions</h2>
+    <ul>
+      <li>Rows shown: 246. Rows sourced from the census file (Master-Data-List.json): 246, all labeled CENSUS. Rows omitted: 0.</li>
+      <li>231 rows carry the R14B six-source census source type (2026-09-05) plus the GitHub/Notion/Drive lanes (2026-11-08). The other 15 rows were seeded later by census-gap recoveries and court-pass fixes; each row's detail view shows its own source type.</li>
+      <li>Every vault path was checked against the vault on disk at build time; all 246 resolve to a note file.</li>
+      <li>Collision notes: 15 exist in 00-Collisions/, all with court verdicts recorded 2026-11-09. 11 map to census concepts and are flagged COLLISION in the table. 4 collision names (A.G.E.N.T., L4, Pulsar, ReAuditor) have no census row; they are named here only and are not shown as concepts, because no concept row exists for them.</li>
+      <li>No tier field exists in the census data. The census records a final classification, a runtime, and an owner per concept, but no A/B/C/GATE tier. No tier filter is offered and no tier was assigned, because inventing one would falsify the record.</li>
+      <li>Runtime filter rule: "Repo evidenced" means the census runtime string contains REPO EXISTS; "No repo" means it is exactly NO REPO; "Unknown" means exactly UNKNOWN; anything else is "Other / described" and shown verbatim in the detail view.</li>
+    </ul>
+    <h2>Vault totals (from the Vault Overview, 2026-11-14)</h2>
+    <ul>
+      <li>246 census concepts &middot; 942 files in 11-Notion &middot; 39 databases &middot; 3,547 source rows &middot; 303 learnings ledger entries.</li>
+      <li>Full counts and the 19-item unresolved owner hunt are on the <a href="https://neuruhai.github.io/neuruh-demos/vault-overview/">Vault Overview</a>.</li>
+    </ul>
+    <p>SIMULATION. A static demo page. Data is a snapshot of the census as of 2026-11-14; it does not track later vault edits.</p>
+  </div>
+</footer>
+
+<script src="explorer.js"></script>
+<script>
+  fetch("concepts.json")
+    .then(function (r) { return r.json(); })
+    .then(function (data) { VaultExplorer.init(data); })
+    .catch(function () {
+      document.getElementById("results").innerHTML =
+        '<p class="empty">Could not load concepts.json. The data file must sit next to this page.</p>';
+      document.getElementById("count").textContent = "Data failed to load.";
+    });
+</script>
+</body>
+</html>
