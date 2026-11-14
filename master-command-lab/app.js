@@ -565,7 +565,11 @@ if (typeof document !== 'undefined') {
     }
   }
 
-  function runFabric() {
+  /* Panel handler. Named runFabricPanel (not runFabric) on purpose: the
+     pure runFabric(state, taskText, failAt) above is in scope here, and a
+     same-named wrapper would call itself instead of the pure function and
+     recurse until the stack overflows. */
+  function runFabricPanel() {
     var task = $('fabric-task').value.trim() || 'sample-fabric-task';
     var failAt = $('fabric-fail').value || null;
     if (failAt === 'none') { failAt = null; }
@@ -598,7 +602,7 @@ if (typeof document !== 'undefined') {
     $('run-direct').addEventListener('click', runDirect);
     $('run-failover').addEventListener('click', runFailover);
     $('run-assign').addEventListener('click', runAssign);
-    $('run-fabric').addEventListener('click', runFabric);
+    $('run-fabric').addEventListener('click', runFabricPanel);
     $('run-status').addEventListener('click', runHubStatus);
     $('verify-all').addEventListener('click', verifyAll);
   });
