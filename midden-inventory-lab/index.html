@@ -32,7 +32,7 @@
   .warn { background:var(--warn-bg); border-left:4px solid var(--warn-ink); padding:12px 14px; margin:14px 0; }
   .panel { background:var(--card); border:1px solid var(--line); padding:18px; margin-top:14px; }
   label { display:block; font-weight:600; margin:12px 0 4px; }
-  input[type="number"], select { width:100%; max-width:420px; padding:9px 10px; font-size:16px; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  input[type="number"], input[type="text"], select { width:100%; max-width:420px; padding:9px 10px; font-size:16px; border:1px solid var(--line); background:#fff; color:var(--ink); }
   button { font-family:"JetBrains Mono", ui-monospace, monospace; font-size:14px; background:var(--brass); color:#fff; border:0; padding:10px 16px; cursor:pointer; margin:14px 8px 0 0; }
   button:hover { background:var(--brass-dark); }
   button.ghost { background:transparent; color:var(--brass-dark); border:1px solid var(--brass); }
@@ -119,6 +119,17 @@
   <p class="figcap">Figure 1. Inventory by stated sell order. Only rank, category, group count,
   and the sell-last flag are stated facts. Price, quantity, and days to sell are UNKNOWN
   at category level in the sources read.</p>
+  <div class="panel">
+    <label for="addItemName">Add an inventory item (category name)</label>
+    <input type="text" id="addItemName" placeholder="Type a category name, for example Books" autocomplete="off">
+    <button id="addItemBtn" type="button">Add inventory item</button>
+    <div id="addItemStatus" class="small" role="status"></div>
+    <div id="addItemError" class="error" role="alert"></div>
+    <p class="figcap">Adds one row to this table only, as the next sell-order rank, with
+    19 cross-post groups and price, quantity, and days to sell UNKNOWN like the stated
+    rows. It does not touch the queue order in section 4, which stays the stated order
+    from the goal file.</p>
+  </div>
   <div class="note"><b>Why price, quantity, and days to sell read UNKNOWN.</b> The goal
   file records prices and counts per individual listing, not per category, and this demo
   does not aggregate them. Per the standing overnight rule, no cash figures from the goal
@@ -262,7 +273,10 @@
   rather than a hard block, so the stated rule stays visible while the tool stays useful.
   (4) No persistence: queue and simulator state reset on reload; nothing is stored and
   nothing leaves the page. (5) The 19-group list is shown in full because it is the
-  standing share rule, not a valuation.</div>
+  standing share rule, not a valuation. (6) Add inventory item appends a typed category
+  to the inventory table as the next row (19 groups, price, quantity, and days to sell
+  UNKNOWN like the stated rows). It does not touch the queue order, which stays the
+  stated order from the goal file.</div>
 </section>
 
 </main>
@@ -428,6 +442,44 @@ function runSimulator() {
   out.appendChild(note);
 }
 
+/* --- Add inventory item: appends one row to the inventory table only.
+ * The queue order in section 4 stays the stated order from the goal file. */
+function addInventoryItem() {
+  var nameInput = document.getElementById("addItemName");
+  var status = document.getElementById("addItemStatus");
+  var err = document.getElementById("addItemError");
+  err.textContent = "";
+  status.textContent = "";
+  var name = nameInput.value.trim();
+  if (!name) { err.textContent = "Type a category name first."; return false; }
+  var tbody = document.querySelector("#inventoryTable tbody");
+  var rank = tbody.rows.length + 1;
+  var tr = document.createElement("tr");
+  var cells = [String(rank), name, "19", "No", "UNKNOWN", "UNKNOWN", "UNKNOWN"];
+  cells.forEach(function (text, i) {
+    var td = document.createElement("td");
+    if (i === 1) { td.textContent = text; }
+    else if (i === 3) {
+      var flag = document.createElement("span");
+      flag.className = "tag";
+      flag.textContent = "No";
+      td.appendChild(flag);
+    } else if (i >= 4) {
+      td.className = "unknown-cell";
+      td.textContent = text;
+    } else {
+      td.className = "num";
+      td.textContent = text;
+    }
+    tr.appendChild(td);
+  });
+  tbody.appendChild(tr);
+  nameInput.value = "";
+  status.textContent = "Added " + name + " to the inventory table as row " + rank + ".";
+  return true;
+}
+
+document.getElementById("addItemBtn").addEventListener("click", addInventoryItem);
 document.getElementById("simRun").addEventListener("click", runSimulator);
 document.getElementById("simClear").addEventListener("click", function () {
   document.getElementById("simPrice").value = "";
@@ -442,7 +494,7 @@ renderQueue();
 
 /* Expose pure functions for Node tests. */
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { computeSchedule: computeSchedule, validatePrice: validatePrice, moveItem: moveItem, breaksLastRule: breaksLastRule, STATED_ORDER: STATED_ORDER, round2: round2, money: money };
+  module.exports = { computeSchedule: computeSchedule, validatePrice: validatePrice, moveItem: moveItem, breaksLastRule: breaksLastRule, STATED_ORDER: STATED_ORDER, round2: round2, money: money, addInventoryItem: addInventoryItem };
 }
 </script>
 </body>
