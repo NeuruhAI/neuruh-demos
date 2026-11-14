@@ -227,6 +227,10 @@ var receipts = [];
 var receiptSeq = 0;
 var lastQubit = null;
 var lastCentroid = null;
+/* Verification display state, keyed by receipt id. renderReceipts() rebuilds
+ * the receipt list on every emit; without this, a re-render wipes every
+ * earlier receipt's PASS heading back to "not verified yet". */
+var verdictState = {};
 
 function $(id) { return document.getElementById(id); }
 
@@ -242,6 +246,35 @@ function num(id) {
 function intNum(id) {
   var v = parseInt($(id).value, 10);
   return v;
+}
+
+/* Step-implied rounding (float32 spinbutton artifacts, e.g. 0.86 showing as
+ * 0.8600000143051147): round each number input to the decimals its step
+ * implies, at calc time when the input is not focused, and on change.
+ * The focused input is never disturbed mid-typing. */
+function stepDecimals(el) {
+  var step = el.getAttribute('step');
+  if (!step || step === 'any') return null;
+  var n = parseFloat(step);
+  if (!isFinite(n) || n <= 0) return null;
+  var dot = step.indexOf('.');
+  return dot === -1 ? 0 : step.length - dot - 1;
+}
+function roundStepValue(el) {
+  var d = stepDecimals(el);
+  if (d === null) return;
+  var v = parseFloat(el.value);
+  if (!isFinite(v)) return;
+  var f = Math.pow(10, d);
+  var r = Math.round(v * f) / f;
+  var s = String(r);
+  if (s !== el.value) el.value = s;
+}
+function normalizeInputs() {
+  var inputs = document.querySelectorAll('input[type="number"]');
+  for (var i = 0; i < inputs.length; i++) {
+    if (document.activeElement !== inputs[i]) roundStepValue(inputs[i]);
+  }
 }
 
 function setInputs(p) {
@@ -267,6 +300,7 @@ async function emitReceipt(kind, detail) {
 async function runEta() {
   var out = $('eta-output');
   try {
+    normalizeInputs();
     var iq = num('in-iq'), ir = num('in-ir'), iv = num('in-iv');
     var ew = intNum('in-ew'), cv = intNum('in-cv');
     var acc = num('in-accuracy');
@@ -326,6 +360,7 @@ async function runCodebook() {
 async function runQubit() {
   var out = $('qubit-output');
   try {
+    normalizeInputs();
     var group = $('in-qgroup').value.trim();
     var etaVal = num('in-qeta');
     var lossPct = num('in-qloss');
@@ -369,7 +404,11 @@ function renderReceipts() {
   receipts.forEach(function (r, idx) {
     var card = document.createElement('div');
     card.className = 'rcard';
-    card.innerHTML = '<h4>' + esc(r.id) + ' <span class="verdict" id="verdict-' + esc(r.id) + '">not verified yet</span></h4>'
+    var vs = verdictState[r.id];
+    var verdictHtml = vs
+      ? '<span class="verdict ' + vs.cls + '" id="verdict-' + esc(r.id) + '">' + esc(vs.text) + '</span>'
+      : '<span class="verdict" id="verdict-' + esc(r.id) + '">not verified yet</span>';
+    card.innerHTML = '<h4>' + esc(r.id) + ' ' + verdictHtml + '</h4>'
       + '<p>Kind: ' + esc(r.kind) + ' | Created: ' + esc(r.created) + '</p>'
       + '<p>Prev hash: <code>' + esc(r.prev_receipt_hash) + '</code></p>'
       + '<p>Receipt hash: <code>' + esc(r.provenance.report_hash_sha256) + '</code></p>'
@@ -384,9 +423,12 @@ function renderReceipts() {
       var r = receipts[idx];
       var prev = idx === 0 ? 'GENESIS' : receipts[idx - 1].provenance.report_hash_sha256;
       var v = await verifyReceipt(r, prev);
+      var text = v.pass ? 'PASS (hash recomputes, link matches)' : 'FAIL (hash_ok=' + v.hash_ok + ', link_ok=' + v.link_ok + ')';
+      var cls = v.pass ? 'pass' : 'fail';
+      verdictState[r.id] = { text: text, cls: cls };
       var el = $('verdict-' + r.id);
-      el.textContent = v.pass ? 'PASS (hash recomputes, link matches)' : 'FAIL (hash_ok=' + v.hash_ok + ', link_ok=' + v.link_ok + ')';
-      el.className = 'verdict ' + (v.pass ? 'pass' : 'fail');
+      el.textContent = text;
+      el.className = 'verdict ' + cls;
     });
   }
 }
@@ -402,11 +444,18 @@ if (typeof document !== 'undefined') {
     $('run-qubit').addEventListener('click', runQubit);
     $('fill-qeta').addEventListener('click', function () {
       try {
+        normalizeInputs();
         var calc = computeEta(num('in-iq'), num('in-ir'), num('in-iv'), intNum('in-ew'), intNum('in-cv'));
         $('in-qeta').value = calc.eta;
       } catch (e) {
         $('qubit-output').innerHTML = '<p class="fail">Error: ' + esc(e.message) + '</p>';
       }
+    });
+    /* Change backstop: a committed value is normalized even while focused;
+     * change fires on commit, never mid-typing. */
+    document.addEventListener('change', function (ev) {
+      var t = ev.target;
+      if (t && t.tagName === 'INPUT' && t.type === 'number') roundStepValue(t);
     });
   });
 }
