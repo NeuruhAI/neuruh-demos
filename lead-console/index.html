@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lead Console (SIMULATION) - Neuruh</title>
+<style>
+  :root{--bone:#f4f1ea;--paper:#fbf9f4;--ink:#1a1712;--mut:#6b6455;--brass:#9a7b2d;--line:#d8d2c2;--red:#9b2c2c;--green:#276749;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+  header.docctl{border-top:4px solid var(--brass);background:var(--paper);border:1px solid var(--line);padding:18px 20px}
+  .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+  h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+  .sub{color:var(--mut);margin:0 0 10px}
+  .badge{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;font-weight:700;padding:3px 8px;border:1px solid currentColor;border-radius:3px}
+  .badge.sim{color:#8a6d1b;background:#fdf3d0;border-color:#c9a227}
+  .badge.fresh{color:var(--green);background:#e6f4ea}
+  .badge.exp{color:var(--red);background:#fdecea}
+  .badge.ver{color:var(--green);background:#e6f4ea}
+  .badge.notver{color:#8a6d1b;background:#fdf3d0}
+  .badge.draft{color:#4a5568;background:#edf2f7}
+  .badge.pass{color:var(--green);background:#e6f4ea}
+  .badge.fail{color:var(--red);background:#fdecea}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+  .meta div{background:var(--paper);border:1px solid var(--line);padding:10px 12px}
+  .meta b{display:block;font-size:22px}
+  .meta span{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+  section{background:var(--paper);border:1px solid var(--line);padding:18px 20px;margin:16px 0}
+  h2{margin:0 0 4px;font-size:20px}
+  h3{margin:18px 0 6px;font-size:15px}
+  p{margin:8px 0}
+  .note{font-size:13px;color:var(--mut)}
+  table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#efeadd;font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+  td.mono,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12.5px}
+  .filters{margin:10px 0}
+  button{font:inherit;font-size:14px;padding:8px 14px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;border-radius:3px;margin:4px 6px 4px 0}
+  button.ghost{background:transparent;color:var(--ink)}
+  button:disabled{opacity:.5;cursor:default}
+  button.active{background:var(--brass);border-color:var(--brass)}
+  pre{background:#14110c;color:#e8e2d2;padding:14px;overflow:auto;font-size:12.5px;line-height:1.5;border-radius:3px}
+  .verdict{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:#f7f3e8;margin:10px 0;min-height:44px}
+  .callout{border-left:4px solid var(--brass);background:#f7f3e8;padding:10px 14px;margin:12px 0}
+  .callout.red{border-left-color:var(--red);background:#fdf0ef}
+  footer{font-size:13px;color:var(--mut)}
+  footer p{margin:6px 0}
+  @media(max-width:640px){.meta{grid-template-columns:repeat(2,1fr)}h1{font-size:24px}}
+  @media print{body{background:#fff}button{display:none}section{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="docctl">
+  <div class="kicker">Neuruh &middot; DeedSonar lead loop &middot; Tier B working demo</div>
+  <h1>Lead Console <span class="badge sim">SIMULATION</span></h1>
+  <p class="sub">The DeedSonar lead and CRM loop as a working browser demo. It replays the pipeline first run of 2026-11-14, shows the outreach queue, and verifies the receipt. It is not the production CRM. No data leaves this page. Nothing here sends, posts, or books anything.</p>
+  <p class="mono" style="font-size:12px">DOC CONTROL: Lead Console v1.0 &middot; 2026-11-14 &middot; Run pipeline-first-run-20261114 &middot; Receipt format v1.0, SHA-256 &middot; Sources: pipeline-signals.md, lead-drafts-2026-10-15.md, estate-sale-leads-2026-09-25.md (counts only), build-recipe-registry.md, build-territory-engine.md, build-receipt-explorer.md, build-organism-dashboard.md</p>
+</header>
+
+<div class="meta" id="counts">
+  <div><b>5</b><span>Signals pulled</span></div>
+  <div><b>3</b><span>Verified (2nd source)</span></div>
+  <div><b>1</b><span>Draft queued</span></div>
+  <div><b>0</b><span>Sent / replies / bookings</span></div>
+</div>
+
+<section>
+  <h2>1. Lead table: pipeline first run plus expired Berrien queue</h2>
+  <p>Five signals pulled 2026-11-14, 00:43 to 00:50 EST, from the St. Joseph County IN free ArcGIS endpoint (119,780 parcels, HTTP 200). Three verified against a second source (2026 county property record cards). Five older Berrien leads are shown as expired, never as actionable. No owner names, phone numbers, street addresses, or parcel IDs appear in this table. Per-signal property values from the source file are omitted here; only county-wide population counts are shown.</p>
+  <div class="filters" id="filters">
+    <button data-filter="all" class="active">All (10)</button>
+    <button data-filter="fresh">FRESH (5)</button>
+    <button data-filter="expired">EXPIRED (5)</button>
+    <button data-filter="verified">VERIFIED (3)</button>
+    <button data-filter="notverified">NOT VERIFIED (2)</button>
+  </div>
+  <table id="leadTable">
+    <thead><tr><th>Signal / lead</th><th>Signal type</th><th>Recipe</th><th>Confidence</th><th>Verification</th><th>TTL state</th><th>County context</th></tr></thead>
+    <tbody>
+      <tr data-ttl="fresh" data-ver="verified"><td class="mono">sig-20261114-sjc-tax-001</td><td>Past-due tax balance</td><td>R1/R5</td><td>0.70</td><td><span class="badge ver">VERIFIED</span><br><span class="note">Record card matches GIS. Past-due figure itself is single-sourced from the GIS field; the card has no tax-due section.</span></td><td><span class="badge fresh">FRESH</span><br><span class="note">Detected 2026-11-14 00:50 EST. Fresh until 2026-11-21 00:50 EST.</span></td><td>1,105 of 119,780 county parcels carry a past-due balance.</td></tr>
+      <tr data-ttl="fresh" data-ver="verified"><td class="mono">sig-20261114-sjc-absentee-001</td><td>Absentee owner, out-of-state mailing address (LLC owner)</td><td>R7</td><td>0.85</td><td><span class="badge ver">VERIFIED</span><br><span class="note">Record card matches GIS. One label difference, not a conflict: GIS site street and card street are the same road under two names.</span></td><td><span class="badge fresh">FRESH</span><br><span class="note">Detected 2026-11-14 00:50 EST. Fresh until 2026-11-21 00:50 EST.</span></td><td>8,812 parcels list an out-of-state mailing address; 6,481 of them residential.</td></tr>
+      <tr data-ttl="fresh" data-ver="notverified"><td class="mono">sig-20261114-sjc-vacant-001</td><td>Vacant land parcel</td><td>R7</td><td>0.60</td><td><span class="badge notver">NOT VERIFIED</span><br><span class="note">Single source (live county GIS). No second source attempted.</span></td><td><span class="badge fresh">FRESH</span><br><span class="note">Detected 2026-11-14 00:50 EST. Fresh until 2026-11-21 00:50 EST.</span></td><td>13,979 vacant-type parcels county-wide.</td></tr>
+      <tr data-ttl="fresh" data-ver="verified"><td class="mono">sig-20261114-sjc-transfer-001</td><td>Transfer recorded in 2026 (farm parcel, LLC owner)</td><td>transfer/velocity</td><td>0.85</td><td><span class="badge ver">VERIFIED</span><br><span class="note">Record card matches GIS, including the 2026 transfer document and the prior transfer.</span></td><td><span class="badge fresh">FRESH</span><br><span class="note">Detected 2026-11-14 00:50 EST. Fresh until 2026-11-21 00:50 EST.</span></td><td>Only 7 parcels in the layer show a 2026 transfer date. Thin signal; re-check before treating as a pattern.</td></tr>
+      <tr data-ttl="fresh" data-ver="notverified"><td class="mono">sig-20261114-sjc-nonhomestead-001</td><td>Residential, no homestead deduction (2 percent cap)</td><td>R7</td><td>0.60</td><td><span class="badge notver">NOT VERIFIED</span><br><span class="note">Single source (live county GIS). No second source attempted.</span></td><td><span class="badge fresh">FRESH</span><br><span class="note">Detected 2026-11-14 00:50 EST. Fresh until 2026-11-21 00:50 EST.</span></td><td>36,900 residential parcels sit at the 2 percent deduction.</td></tr>
+      <tr data-ttl="expired" data-ver="expired"><td class="mono">Berrien lead 1 of 5</td><td>Tax delinquent</td><td>Berrien90+</td><td>Score 42.4</td><td><span class="badge notver">HELD, UNVERIFIED HERE</span><br><span class="note">From the 2026-10-14 pull. No phone on file.</span></td><td><span class="badge exp">EXPIRED</span><br><span class="note">Pulled 2026-10-14, queued for 2026-10-15. 7-day TTL expired 2026-10-22. 23 days past expiry on 2026-11-14.</span></td><td>Berrien County MI, FIPS 26021. 0 outbound sends under the Oct 1 stop order.</td></tr>
+      <tr data-ttl="expired" data-ver="expired"><td class="mono">Berrien lead 2 of 5</td><td>Tax delinquent</td><td>Berrien90+</td><td>Score 42.4</td><td><span class="badge notver">HELD, UNVERIFIED HERE</span><br><span class="note">From the 2026-10-14 pull. No phone on file.</span></td><td><span class="badge exp">EXPIRED</span><br><span class="note">Pulled 2026-10-14, queued for 2026-10-15. 7-day TTL expired 2026-10-22. 23 days past expiry on 2026-11-14.</span></td><td>Berrien County MI, FIPS 26021. 0 outbound sends under the Oct 1 stop order.</td></tr>
+      <tr data-ttl="expired" data-ver="expired"><td class="mono">Berrien lead 3 of 5</td><td>Tax delinquent</td><td>Berrien90+</td><td>Score 42.4</td><td><span class="badge notver">HELD, UNVERIFIED HERE</span><br><span class="note">From the 2026-10-14 pull. No phone on file.</span></td><td><span class="badge exp">EXPIRED</span><br><span class="note">Pulled 2026-10-14, queued for 2026-10-15. 7-day TTL expired 2026-10-22. 23 days past expiry on 2026-11-14.</span></td><td>Berrien County MI, FIPS 26021. 0 outbound sends under the Oct 1 stop order.</td></tr>
+      <tr data-ttl="expired" data-ver="expired"><td class="mono">Berrien lead 4 of 5</td><td>Tax delinquent</td><td>Berrien90+</td><td>Score 42.4</td><td><span class="badge notver">HELD, UNVERIFIED HERE</span><br><span class="note">From the 2026-10-14 pull. No phone on file.</span></td><td><span class="badge exp">EXPIRED</span><br><span class="note">Pulled 2026-10-14, queued for 2026-10-15. 7-day TTL expired 2026-10-22. 23 days past expiry on 2026-11-14.</span></td><td>Berrien County MI, FIPS 26021. 0 outbound sends under the Oct 1 stop order.</td></tr>
+      <tr data-ttl="expired" data-ver="expired"><td class="mono">Berrien lead 5 of 5</td><td>Tax delinquent</td><td>Berrien90+</td><td>Score 42.4</td><td><span class="badge notver">HELD, UNVERIFIED HERE</span><br><span class="note">From the 2026-10-14 pull. No phone on file.</span></td><td><span class="badge exp">EXPIRED</span><br><span class="note">Pulled 2026-10-14, queued for 2026-10-15. 7-day TTL expired 2026-10-22. 23 days past expiry on 2026-11-14.</span></td><td>Berrien County MI, FIPS 26021. 0 outbound sends under the Oct 1 stop order.</td></tr>
+    </tbody>
+  </table>
+  <p class="note" id="filterNote">Showing 10 of 10 rows.</p>
+  <p class="note">TTL rule: signals expire 7 days after detection. The Berrien queue is not actionable until a fresh pull re-verifies it. Nothing in this table is a lead to contact today.</p>
+</section>
+
+<section>
+  <h2>2. Estate-sale outreach, counts only</h2>
+  <p>The 2026-09-25 estate-sale lead sheet holds owner names, street addresses, and listing links. None of that is reproduced here. Only the aggregates from its status log are shown.</p>
+  <table>
+    <thead><tr><th>Measure</th><th>Count</th><th>As of</th></tr></thead>
+    <tbody>
+      <tr><td>Step-1 messages sent</td><td>5</td><td>2026-09-25 17:16 ET</td></tr>
+      <tr><td>Replies received</td><td>2</td><td>2026-09-25 (first reply in 38 seconds)</td></tr>
+      <tr><td>Threads closed (graceful close sent)</td><td>3</td><td>2026-09-25 to 2026-10-08</td></tr>
+      <tr><td>Threads awaiting reply, no nudges per job rules</td><td>2</td><td>Last watch 2026-10-11 08:12 ET: zero new inbound messages</td></tr>
+      <tr><td>Deals from this batch</td><td>0</td><td>One property already sold to a neighbor before reply; one thread closed as not at that time</td></tr>
+    </tbody>
+  </table>
+  <p class="note">This is a historical outcome record, not a live feed. The reply watch last ran 2026-10-11. No status after that date is claimed.</p>
+</section>
+
+<section>
+  <h2>3. Outreach queue: 1 draft, NOT SENT</h2>
+  <p><span class="badge draft">DRAFT</span> <span class="badge exp">NOT SENT</span> <span id="approvalBadge"></span></p>
+  <h3>Queued cold first-touch draft, BiggerPockets forums</h3>
+  <p><b>Title:</b> Reading a St. Joseph County tax record before you buy, 3 numbers that matter</p>
+  <p><b>Body (as drafted, one clause omitted):</b> I pull St. Joseph County parcel records straight from the county GIS. Here is what I look at first on any deal in Michiana, and what most people skip. (1) Past-due balance. 1,105 of 119,780 parcels in the county carry one right now. A balance is not a foreclosure. It is a clock. (2) Mailing address vs property address. 8,812 parcels list an out-of-state mailing address. That does not mean distress. It means the owner is not in the house. (3) Homestead vs 2 percent cap. 36,900 residential parcels sit at the 2 percent cap with no homestead deduction on file. Same idea: non-owner-occupied until proven otherwise. All three are public record. None of them needs a paid database. If you are looking at a parcel in St. Joe County and want the record read straight, I do a free 10-minute call. No pitch, just the timeline. <span class="note">[One clause naming the one-page report price is omitted from this demo under the no dollar figures rule. Full draft text: pipeline-signals.md.]</span></p>
+  <p><b>Queued:</b> 2026-11-14 00:55 EST &middot; <b>From signal:</b> <span class="mono">sig-20261114-sjc-tax-001</span> (strongest verified signal) &middot; <b>Content ref:</b> <span class="mono">pipeline-piece-20261114-tax-timeline-explainer</span></p>
+  <div class="callout red">
+    <b>Approval gate.</b> Cold first-touch needs the founder's per-draft approval of this exact draft before anything sends. No claim is filed for a first-touch draft until it is approved and sent. After a send, the cold nudge cap is 2 with 72-hour spacing, window 07:00 to 22:00 Detroit.
+  </div>
+  <p id="approvalState"><b>Approval state:</b> AWAITING FOUNDER APPROVAL. Nothing has been sent.</p>
+  <button id="approveSim">Simulate founder approval</button>
+  <button id="resetSim" class="ghost">Reset simulation</button>
+  <p class="note" id="simNote">SIMULATION CONTROL. The button above changes only the on-page state. It does not post to BiggerPockets, does not send anything, and does not create a real send receipt. A simulated approval is labeled SIMULATED everywhere it appears.</p>
+</section>
+
+<section>
+  <h2>4. Receipt panel: the real queue receipt</h2>
+  <p>Receipt <span class="mono">rcpt-20261114-0001</span> chains the QUEUE event, not a send. <span class="mono">sent_at</span> is null because nothing was sent. Verdict: <b>QUEUED-NOT-SENT</b>. Previous receipt hash is GENESIS (first receipt in this chain). A send receipt will chain to this hash when the draft is approved and sent.</p>
+  <table>
+    <thead><tr><th>Field</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Receipt ID</td><td class="mono">rcpt-20261114-0001</td></tr>
+      <tr><td>Run ID</td><td class="mono">pipeline-first-run-20261114</td></tr>
+      <tr><td>Signal</td><td class="mono">sig-20261114-sjc-tax-001</td></tr>
+      <tr><td>Channel</td><td class="mono">biggerpockets</td></tr>
+      <tr><td>Queued at</td><td class="mono">2026-11-14T00:55:00-05:00</td></tr>
+      <tr><td>Sent at</td><td class="mono">null (nothing sent)</td></tr>
+      <tr><td>Recorded hash (SHA-256)</td><td class="mono" id="recordedHash">5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0</td></tr>
+      <tr><td>Previous receipt hash</td><td class="mono">GENESIS</td></tr>
+    </tbody>
+  </table>
+  <h3>Full receipt JSON (verbatim, as recorded)</h3>
+  <pre id="receiptJson"></pre>
+  <p class="note">The receipt is shown verbatim because the hash check below recomputes over these exact bytes (canonical JSON: sorted keys, arrays in order, hash field stripped). The only property reference inside it is the public county parcel key in the second source URL. No owner name, street address, or phone number appears anywhere on this page.</p>
+  <button id="verifyChain">Verify chain (recompute SHA-256)</button>
+  <button id="tamperDemo" class="ghost">Tamper test: flip one character</button>
+  <button id="restoreReceipt" class="ghost">Restore receipt</button>
+  <div class="verdict" id="verifyResult">Not yet verified in this session. Press "Verify chain".</div>
+  <p class="note" id="verifyMethod">Method: canonical JSON (sorted keys, arrays in order, hash field stripped), SHA-256. Primary path is the Web Crypto API; a pure-JS SHA-256 fallback runs where Web Crypto is unavailable. The page reports which path ran.</p>
+</section>
+
+<section>
+  <h2>5. Status board: what is down, what is designed</h2>
+  <p>Each row carries dated evidence and what would verify a change. Nothing on this board was upgraded on assertion alone.</p>
+  <table>
+    <thead><tr><th>System</th><th>Status</th><th>Dated evidence</th><th>What would verify a change</th></tr></thead>
+    <tbody>
+      <tr><td>DeedSonar</td><td><span class="badge exp">DOWN</span></td><td>deedsonar.com HTTP 503 DEPLOYMENT_PAUSED, 99 bytes. Live curl 2026-11-14 01:17 EST. First recorded 2026-11-04.</td><td>Live HTTP 200 from deedsonar.com plus a working login.</td></tr>
+      <tr><td>Production Supabase</td><td><span class="badge exp">DOWN</span></td><td>Unreachable since about Oct 16, 2026. Dated record 2026-11-04. No saved login, so no direct probe was possible from here.</td><td>Successful login and a query returning rows.</td></tr>
+      <tr><td>LANDOS engine</td><td><span class="badge exp">DOWN</span></td><td>landos-engine.fly.dev returned no response (curl HTTP 000). Live curl 2026-11-14 01:17 EST.</td><td>Live HTTP 200 from the engine endpoint.</td></tr>
+      <tr><td>Pipeline first run</td><td><span class="badge draft">DESIGNED</span></td><td>Run 2026-11-14 00:43 to 00:50 EST. 5 signals pulled, 3 verified, 1 draft queued, 0 sent. Acceptance needs 1 touch sent and 1 outcome recorded; both wait on founder approval.</td><td>Approved send plus a recorded outcome (reply or silence after the nudge window).</td></tr>
+      <tr><td>X (@NeuruhAI)</td><td><span class="badge draft">PAUSED</span></td><td>Oct 1, 2026 stop order, still in force. Drafts queued, nothing publishes.</td><td>Founder lifts the stop order.</td></tr>
+      <tr><td>Facebook</td><td><span class="badge exp">LOCKED</span></td><td>Skipped in the first run. Session signed out since 2026-09-30.</td><td>Successful login to the account.</td></tr>
+      <tr><td>Messenger estate watch</td><td><span class="badge notver">BLIND</span></td><td>Sync back with clean runs and no estate replies, but thread cache empty with 0 messages on all 5 threads since Oct 25, 2026. Cache anomaly unresolved.</td><td>Cache repopulates with messages on the watched threads.</td></tr>
+      <tr><td>Nightly lead pull</td><td><span class="badge exp">FAILING</span></td><td>28th straight nightly failure logged 2026-11-12. Pipeline still 8 of 50, unchanged since Sep 28, 2026. Notion log still blocked.</td><td>One clean nightly pull with a fresh lead count.</td></tr>
+      <tr><td>LaPorte County endpoint</td><td><span class="badge notver">NOT LOCATED</span></td><td>Not located in the 2026-11-14 run. Dossier says a SEH-hosted endpoint pulled 64,775 parcels previously; no URL is recorded in any workspace file.</td><td>URL from the landos-ingest repo config or the Mac.</td></tr>
+      <tr><td>Stripe</td><td><span class="badge draft">DISCONNECTED</span></td><td>Still disconnected as of 2026-11-14 00:46 EST. Needs the founder OAuth tap. No live payment links exist yet.</td><td>Founder OAuth tap plus a live payment link.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>6. Recipes and territories (reused, not re-derived)</h2>
+  <p>Recipe and territory facts are reused from the recipe-ingredient-registry and territory-engine demos. Nothing here re-derives them.</p>
+  <h3>4 active hunt recipes (Sep 22, 2026, HISTORICAL)</h3>
+  <ul>
+    <li><b>Berrien90+</b> LIVE_PROVEN, Berrien tax lien hunt. The only recipe whose source states a territory.</li>
+    <li><b>FLOW_C</b> multi-territory taxsale 20260916. Territories unstated in sources read.</li>
+    <li><b>FLOW_C</b> probate/estate. Territories unstated in sources read.</li>
+    <li><b>FLOW_C</b> multi-territory MI taxsale 20260916. Territories unstated in sources read.</li>
+  </ul>
+  <h3>5 territories</h3>
+  <p>Berrien County MI (FIPS 26021) &middot; St. Joseph County IN (FIPS 18141, live endpoint verified 2026-11-14) &middot; LaPorte County IN (FIPS 18091, endpoint not located) &middot; Elkhart County IN (FIPS 18039, pinned adapter exists, counts unknown) &middot; Davidson County NC (production estate, largest, FIPS unknown in sources read).</p>
+  <h3>49-signal model</h3>
+  <p>15 structure / 14 land / 14 owner-event / 6 market, family weights sum to 1.0. 40 signals named, 9 unknown. 49 vs 50 unresolved. 6 of 40 verified live at a Berrien County point. Hunt job 6071b7ad (2026-09-16): 153 leads scored, 153 synced to CRM.</p>
+  <p class="note">Sibling demos: <a href="https://neuruhai.github.io/neuruh-demos/receipt-chain-explorer/">Receipt-Chain Explorer</a> &middot; <a href="https://neuruhai.github.io/neuruh-demos/organism-state-dashboard/">Organism State Dashboard</a> &middot; <a href="https://neuruhai.github.io/neuruh-demos/territory-engine/">Territory Engine</a> &middot; <a href="https://neuruhai.github.io/neuruh-demos/recipe-ingredient-registry/">Recipe Ingredient Registry</a></p>
+</section>
+
+<section>
+  <h2>7. DESIGNED vs VERIFIED, and gaps</h2>
+  <p><b>DESIGNED</b> means specced or queued, not run to outcome. The pipeline is DESIGNED: 5 pulled, 3 verified, 1 queued, 0 sent. <b>VERIFIED</b> means checked against a second source or a live probe on the dated audit. <b>SIMULATION</b> means this page: it runs in the browser only, against recorded data, and proves nothing about the live systems.</p>
+  <h3>Gaps stated on the page, not hidden</h3>
+  <ol>
+    <li>LaPorte County free ArcGIS endpoint not located (2026-11-14). All 5 signals came from St. Joseph.</li>
+    <li>St. Joseph arithmetic does not reconcile: 162 scored plus 94 non-seed is 256, exceeding the stated 244 rows (Sep 22 snapshot). Both numbers reported as stated.</li>
+    <li>The 2026 transfer population in the St. Joseph layer is only 7 parcels; TRANSFERDA looks stale for most of the roll.</li>
+    <li>The past-due figure on the strongest signal is single-sourced from the GIS field; the record card has no tax-due section. Confidence 0.70, not higher, for that reason.</li>
+    <li>The 5 Berrien leads are expired and not actionable until a fresh pull re-verifies them.</li>
+    <li>Pipeline Section 6 template CTA mapping is stale against the 2026-11-10 reprice. This demo omits price clauses rather than repeating the stale mapping.</li>
+  </ol>
+</section>
+
+<footer>
+  <p><b>Honesty footer.</b> This page simulates a CRM console. It is not the production CRM, not a live ledger, and not proof that any send, reply, or booking happened. Nothing was sent in the pipeline first run. The BiggerPockets draft is QUEUED-NOT-SENT. The simulated approval control changes only on-page state and is labeled SIMULATED. The receipt is real: rcpt-20261114-0001, hash 5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0, recomputed in this page.</p>
+  <p><b>What is real:</b> the SHA-256 implementation (pure-JS copy from the Land Intelligence Report store, checked against NIST vectors), the canonical-JSON rule (sorted keys, arrays in order, hash field stripped), the receipt and its hash, the signal counts and verification outcomes from pipeline-signals.md, and every hash recomputed in this page.</p>
+  <p class="mono" style="font-size:12px">DOC CONTROL: Lead Console v1.0 &middot; 2026-11-14 &middot; No FNV-1a anywhere &middot; No owner PII &middot; No dollar figures outside the verbatim receipt CTA &middot; SIMULATION</p>
+</footer>
+
+</div>
+
+<script>
+"use strict";
+/* Lead Console v1.0 - self-contained, no external calls, no fetch/XHR. */
+
+/* ---------- pure-JS SHA-256 (sync) ---------- */
+/* Copied verbatim from the Receipt-Chain Explorer, which copied it verbatim
+   from the Land Intelligence Report store. Verified against NIST vectors. */
+function sha256(ascii){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  var mp=Math.pow,mw=mp(2,32),i,j,result='';
+  var words=[],bitLen=ascii.length*8;
+  var hash=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[];
+  var pc=k.length,isC={};
+  for(var cand=2;pc<64;cand++){
+    if(!isC[cand]){
+      for(i=0;i<313;i+=cand)isC[i]=cand;
+      hash[pc]=(mp(cand,.5)*mw)|0;
+      k[pc++]=(mp(cand,1/3)*mw)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){
+    j=ascii.charCodeAt(i);
+    if(j>>8)return null;
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=(bitLen/mw)|0;
+  words[words.length]=bitLen;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),old=hash;
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);
+      hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)hash[i]=(hash[i]+old[i])|0;
+  }
+  for(i=0;i<8;i++)for(j=3;j+1;j--){
+    var b=(hash[i]>>(j*8))&255;
+    result+=((b<16)?'0':'')+b.toString(16);
+  }
+  return result;
+}
+function toUtf8(str){
+  var out='';
+  for(var i=0;i<str.length;i++){
+    var c=str.charCodeAt(i);
+    if(c<128)out+=str.charAt(i);
+    else if(c<2048)out+=String.fromCharCode((c>>6)|192,(c&63)|128);
+    else if(c<55296||c>57343)out+=String.fromCharCode((c>>12)|224,((c>>6)&63)|128,(c&63)|128);
+    else{
+      i++;var c2=str.charCodeAt(i);
+      var cp=0x10000+(((c&0x3FF)<<10)|(c2&0x3FF));
+      out+=String.fromCharCode((cp>>18)|240,((cp>>12)&63)|128,((cp>>6)&63)|128,(cp&63)|128);
+    }
+  }
+  return out;
+}
+function hashStr(s){return sha256(toUtf8(s));}
+/* canonical JSON: sorted keys, arrays in order */
+function canonical(v){
+  if(v===null||typeof v!=='object')return JSON.stringify(v);
+  if(Array.isArray(v))return '['+v.map(canonical).join(',')+']';
+  return '{'+Object.keys(v).sort().map(function(k){return JSON.stringify(k)+':'+canonical(v[k]);}).join(',')+'}';
+}
+
+/* ---------- the real pipeline first-run receipt (verbatim) ---------- */
+var RECEIPT={
+  "receipt_version": "1.0",
+  "receipt_id": "rcpt-20261114-0001",
+  "run_id": "pipeline-first-run-20261114",
+  "signal_id": "sig-20261114-sjc-tax-001",
+  "content_ref": "pipeline-piece-20261114-tax-timeline-explainer",
+  "channel": "biggerpockets",
+  "queued_at": "2026-11-14T00:55:00-05:00",
+  "sent_at": null,
+  "sender": "jeramie",
+  "cta": "free 10-min call, cal.com/neuruh; Land Intelligence Report $29",
+  "outcome": "queued, awaiting per-draft approval",
+  "outcome_at": null,
+  "provenance": {
+    "report_hash_sha256": "5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0",
+    "verdict": "QUEUED-NOT-SENT",
+    "verdict_note": "Queue event only. No touch sent. Nothing published. No owner or property PII in the queued copy.",
+    "timestamp_utc": "2026-11-14T05:55:00Z",
+    "prev_receipt_hash": "GENESIS",
+    "sources": [
+      "https://gis.southbendin.gov/arcgis/rest/services/LandRecords/Parcels_County/MapServer/0 (St. Joseph County parcels, HTTP 200, count 119780)",
+      "https://engageblob.blob.core.windows.net/stjoseph/pdf/2026/71-05-09-476-039.000-011.pdf (2026 county property record card, HTTP 200)"
+    ]
+  }
+};
+var RECEIPT_HASH="5f46f39eedada8fd65556f0724c40fbb783af9f0b8595e8e090eacede2d206f0";
+var working=JSON.parse(JSON.stringify(RECEIPT));
+var lastVerify=null;
+var approvedSim=false;
+
+function hexFromBuffer(buf){
+  var bytes=new Uint8Array(buf),out='';
+  for(var i=0;i<bytes.length;i++){out+=((bytes[i]<16)?'0':'')+bytes[i].toString(16);}
+  return out;
+}
+async function hashCanonical(str){
+  if(window.crypto&&window.crypto.subtle&&window.crypto.subtle.digest){
+    var buf=await window.crypto.subtle.digest('SHA-256',new TextEncoder().encode(str));
+    return {hex:hexFromBuffer(buf),method:'Web Crypto API (crypto.subtle.digest)'};
+  }
+  return {hex:hashStr(str),method:'pure-JS SHA-256 fallback (Web Crypto unavailable here)'};
+}
+function receiptWithoutHash(r){
+  var copy=JSON.parse(JSON.stringify(r));
+  delete copy.provenance.report_hash_sha256;
+  return copy;
+}
+async function verifyChain(){
+  var canon=canonical(receiptWithoutHash(working));
+  var res=await hashCanonical(canon);
+  var ok=res.hex===RECEIPT_HASH;
+  var el=document.getElementById('verifyResult');
+  lastVerify={ok:ok,recomputed:res.hex,expected:RECEIPT_HASH,method:res.method,canonicalLength:canon.length};
+  if(ok){
+    el.innerHTML='<span class="badge pass">PASS</span> Receipt rcpt-20261114-0001 verifies. Recomputed hash matches the recorded hash.<br><span class="mono">recomputed: '+res.hex+'<br>recorded:&nbsp;&nbsp; '+RECEIPT_HASH+'<br>method: '+res.method+' &middot; canonical JSON length: '+canon.length+' chars &middot; prev hash: GENESIS</span>';
+  }else{
+    el.innerHTML='<span class="badge fail">FAIL</span> Receipt rcpt-20261114-0001 does NOT verify. The working copy differs from the recorded receipt.<br><span class="mono">recomputed: '+res.hex+'<br>recorded:&nbsp;&nbsp; '+RECEIPT_HASH+'<br>method: '+res.method+'</span>';
+  }
+  return lastVerify;
+}
+
+/* ---------- table filters ---------- */
+function applyFilter(f){
+  var rows=document.querySelectorAll('#leadTable tbody tr');
+  var shown=0;
+  rows.forEach(function(r){
+    var show=(f==='all')||(f==='fresh'&&r.getAttribute('data-ttl')==='fresh')||(f==='expired'&&r.getAttribute('data-ttl')==='expired')||(f==='verified'&&r.getAttribute('data-ver')==='verified')||(f==='notverified'&&r.getAttribute('data-ver')==='notverified');
+    r.style.display=show?'':'none';
+    if(show)shown++;
+  });
+  document.getElementById('filterNote').textContent='Showing '+shown+' of 10 rows.';
+  document.querySelectorAll('#filters button').forEach(function(b){
+    if(b.getAttribute('data-filter')===f){b.classList.add('active');}else{b.classList.remove('active');}
+  });
+  return shown;
+}
+
+/* ---------- simulated approval ---------- */
+function setApproval(sim){
+  approvedSim=sim;
+  var state=document.getElementById('approvalState');
+  var badge=document.getElementById('approvalBadge');
+  var note=document.getElementById('simNote');
+  if(sim){
+    state.innerHTML='<b>Approval state:</b> <span class="badge sim">APPROVED (SIMULATED)</span> Simulation only. The draft is still NOT SENT. No post was created, nothing was sent to BiggerPockets, and no real send receipt exists.';
+    badge.innerHTML='<span class="badge sim">APPROVED (SIMULATED)</span>';
+    note.textContent='SIMULATION CONTROL. Approval was simulated on this page only. In the real loop, a send receipt chaining to rcpt-20261114-0001 would be created only after an actual approved send.';
+  }else{
+    state.innerHTML='<b>Approval state:</b> AWAITING FOUNDER APPROVAL. Nothing has been sent.';
+    badge.innerHTML='';
+    note.textContent='SIMULATION CONTROL. The button above changes only the on-page state. It does not post to BiggerPockets, does not send anything, and does not create a real send receipt. A simulated approval is labeled SIMULATED everywhere it appears.';
+  }
+}
+
+/* ---------- wire up ---------- */
+document.getElementById('receiptJson').textContent=JSON.stringify(RECEIPT,null,2);
+document.getElementById('verifyChain').addEventListener('click',function(){verifyChain();});
+document.getElementById('tamperDemo').addEventListener('click',function(){
+  working.outcome='queued, awaiting per-draft approvaX';
+  document.getElementById('verifyResult').innerHTML='Tamper test: one character flipped in the working copy outcome ("approval" to "approvaX"). Press "Verify chain" to see it FAIL.';
+  verifyChain();
+});
+document.getElementById('restoreReceipt').addEventListener('click',function(){
+  working=JSON.parse(JSON.stringify(RECEIPT));
+  document.getElementById('verifyResult').textContent='Receipt restored to the recorded copy. Press "Verify chain".';
+  lastVerify=null;
+});
+document.getElementById('approveSim').addEventListener('click',function(){setApproval(true);});
+document.getElementById('resetSim').addEventListener('click',function(){setApproval(false);});
+document.querySelectorAll('#filters button').forEach(function(b){
+  b.addEventListener('click',function(){applyFilter(b.getAttribute('data-filter'));});
+});
+
+window.__lc={
+  getReceipt:function(){return JSON.parse(JSON.stringify(RECEIPT));},
+  getWorking:function(){return JSON.parse(JSON.stringify(working));},
+  getLastVerify:function(){return lastVerify;},
+  isApprovedSim:function(){return approvedSim;},
+  verifyChain:verifyChain,
+  applyFilter:applyFilter,
+  canonical:canonical,
+  hashStr:hashStr,
+  sha256:sha256,
+  toUtf8:toUtf8
+};
+</script>
+</body>
+</html>
