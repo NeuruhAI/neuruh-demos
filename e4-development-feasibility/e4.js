@@ -4,9 +4,9 @@
    Mechanics carried verbatim from the 2026-11-04 E4 build
    (e4-development-feasibility-site/index.html, live at
    e4-development-feasibility.pages.dev). Every money figure this
-   module computes is a MODELED ESTIMATE, NOT A VALUATION, NOT AN
-   APPRAISAL. No offer, no recommendation to buy or sell. Builder
-   defaults are labeled as such in index.html and are editable by
+   module computes is a MODELED ESTIMATE, NOT A VALUATION,
+   NOT AN APPRAISAL. No offer, no recommendation to buy or sell.
+   Builder defaults are labeled as such in index.html and are editable by
    the user. They are not market facts. */
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) {
