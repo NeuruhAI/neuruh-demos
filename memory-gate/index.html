@@ -31,6 +31,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 table{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px}
 th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 th{background:var(--paper);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px}
+.checks label{display:inline-block;margin:6px 16px 6px 0;font-weight:400}
 footer{max-width:960px;margin:0 auto;padding:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
 @media print{body{background:#fff}button{display:none}section.tool{break-inside:avoid}}
 @media (max-width:800px){header.doc h1{font-size:26px}}
@@ -42,7 +43,7 @@ footer{max-width:960px;margin:0 auto;padding:20px;border-top:1px solid var(--lin
 <h1>Memory Gate</h1>
 <p class="meta">Source: Jeramie General Intelligence (JGI V6), Sections 34 to 39 | Built from the JGI Memory Workbench | Founder working paper, not peer reviewed</p>
 <p class="meta">Package: <code>memory-gate</code> v1.0.0 | This page runs the same library code as the Node package (shared <code>lib/*.js</code> files, loaded below).</p>
-<p class="warn">Thresholds are illustrative. The JGI paper gives no numeric thresholds. The write-gate rule (evidence below 3 REJECT, contradiction QUARANTINE, evidence below 6 QUARANTINE, else WRITE) and the consolidation rule are illustrative implementations of the paper's concepts, not formulas from the paper.</p>
+<p class="warn">Thresholds are illustrative. The JGI paper gives no numeric thresholds. The write-gate rule (evidence below 3 REJECT, contradiction QUARANTINE, evidence below 6 QUARANTINE, else WRITE), the consolidation rule, and the context compiler rule (utility per token, greedy fill, half utility for a second item from the same source) are illustrative implementations of the paper's concepts, not formulas from the paper.</p>
 </header>
 <main>
 
@@ -147,6 +148,31 @@ footer{max-width:960px;margin:0 auto;padding:20px;border-top:1px solid var(--lin
 <div class="result" id="cp-result">Planner has not run.</div>
 </section>
 
+<section class="tool" id="t6"><h2>Tool 6. Context Compiler (Section 39)</h2>
+<p class="note">The paper says maximize relevant information utility subject to token budget, using relevance, source authority, freshness, confidence, directness, and diversity, with a redundancy penalty. It gives no formula.</p>
+<p class="warn">Illustrative rule: items are ranked by utility per token and fill greedily under the budget; a second item from the same source loses half its utility (rounded). Item tokens and utilities are the Workbench sample set, not live measurements.</p>
+<label for="cc-task">Task</label>
+<select id="cc-task">
+<option value="lead">Score a tax-delinquent lead</option>
+<option value="reply">Draft a founder reply</option>
+<option value="recover">Recover stranded work</option>
+</select>
+<label for="cc-budget">Token budget</label>
+<input type="number" id="cc-budget" min="100" step="50" value="2000">
+<div class="checks" id="cc-planes">
+<label><input type="checkbox" class="cc-plane" value="working" checked> Working</label>
+<label><input type="checkbox" class="cc-plane" value="episodic" checked> Episodic</label>
+<label><input type="checkbox" class="cc-plane" value="semantic" checked> Semantic</label>
+<label><input type="checkbox" class="cc-plane" value="procedural"> Procedural</label>
+<label><input type="checkbox" class="cc-plane" value="negative" checked> Negative</label>
+<label><input type="checkbox" class="cc-plane" value="strategic"> Strategic</label>
+<label><input type="checkbox" class="cc-plane" value="capability"> Capability</label>
+<label><input type="checkbox" class="cc-plane" value="epistemic" checked> Epistemic</label>
+</div>
+<button id="cc-build">Build context packet</button>
+<div class="result" id="cc-result">No packet built yet.</div>
+</section>
+
 </main>
 <footer>
 <p>Memory Gate. Built from Jeramie General Intelligence (JGI V6), Sections 34 to 39, via the JGI Memory Workbench. Founder working paper, not peer reviewed. JGI is an internal engineering objective, not an AGI claim. Tools run in your browser. Nothing here touches a live system. The paper gives no numeric thresholds; every threshold on this page is labeled illustrative.</p>
@@ -156,6 +182,7 @@ footer{max-width:960px;margin:0 auto;padding:20px;border-top:1px solid var(--lin
 <script src="contradiction.js"></script>
 <script src="negative-knowledge.js"></script>
 <script src="consolidation.js"></script>
+<script src="context-compiler.js"></script>
 <script>
 (function(){
 "use strict";
@@ -165,6 +192,7 @@ var DC = window.MemoryGate.Decay;
 var CG = window.MemoryGate.Contradiction;
 var NK = window.MemoryGate.NegativeKnowledge;
 var CP = window.MemoryGate.Consolidation;
+var CC = window.MemoryGate.ContextCompiler;
 
 /* Tool 1: Write gate. Same library code as the Node package. */
 var wgEv=$("wg-evidence"),wgOut=$("wg-evidence-out");
@@ -269,6 +297,17 @@ $("cp-run").addEventListener("click",function(){
     r.querySelector(".cp-rec").textContent=plan.items[i].recommendation;
   });
   $("cp-result").textContent="Planner done. "+Object.keys(plan.counts).map(function(k){return plan.counts[k]+" x "+k;}).join("; ")+". "+plan.rawEvidenceNote;
+});
+
+/* Tool 6: Context Compiler. Same library code as the Node package. */
+$("cc-build").addEventListener("click",function(){
+  var planes=Array.prototype.map.call(document.querySelectorAll(".cc-plane:checked"),function(c){return c.value;});
+  var r=CC.compileContext({
+    task:$("cc-task").selectedOptions[0].textContent,
+    budget:parseInt($("cc-budget").value,10),
+    planes:planes
+  });
+  $("cc-result").textContent=r.text;
 });
 })();
 </script>
