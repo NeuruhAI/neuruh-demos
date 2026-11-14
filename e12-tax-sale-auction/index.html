@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Tax Sale / Auction Bid Engine E12 v1.0: evidence-first tax sale underwriting. Auction and redemption rules, max bid, redemption risk, title risk, post-auction plan, holding cost, with gates, kill-switch, and a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="Tax Sale / Auction Bid Engine E12 - Neuruh">
+<meta property="og:description" content="Evidence-first tax sale underwriting: max bid, redemption risk, title risk, holding cost, with gates, kill-switch, and a receipt chain. SIMULATION.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>Tax Sale / Auction Bid Engine E12 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button.secondary{background:var(--paper)}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.small{font-size:13px;color:var(--muted)}
+.formula{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.6}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.big{font-size:22px}
+.big b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.scroll{overflow-x:auto}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:150px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+footer a{color:var(--brass)}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.killbox{background:#fdf3ef;border:2px solid var(--red);padding:12px 14px;margin-top:12px}
+.killbox b{color:var(--red)}
+.passbox{background:#eef5ee;border:2px solid var(--green);padding:12px 14px;margin-top:12px}
+figure{margin:16px 0 0;border:1px solid var(--line);background:var(--bone);padding:12px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:760px){.grid,.grid2,.meta{grid-template-columns:1fr}header.doc h1{font-size:24px}}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}
+#summarySection{border:2px solid #000}
+#summarySection .result{font-size:13px}
+.sticky-results{position:static}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E12</div>
+<h1>Tax Sale / Auction Bid Engine</h1>
+<p>Tax deed sales and tax lien certificate auctions. Auction and redemption rules for the jurisdiction, max bid, redemption risk, title risk, post-auction plan, and holding cost. Ends in the shared E13 Risk / Kill-Switch.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine 12 of 12 - SIMULATION</b></div>
+<div>Lineage<b>2026-11-04 E12 build + Residential v1.1 gates + E1 land engine</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not a survey, not legal or tax advice, and not a title opinion. Public-data underwriting only. Tax sale rules change by state and by county, and a wrong redemption period or a missed senior lien can erase the deal. Verify the auction rules, the redemption period, and title with the county treasurer, the county clerk, and a licensed title company or attorney before bidding. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run. A bid at auction is a binding purchase, not an offer to negotiate.</div>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: tax deed</button>
+<button id="btnSampleB" type="button">Sample B: tax lien</button>
+<button id="btnSampleC" type="button">Sample C: PASS</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnCopyPrompt" type="button">Copy system prompt</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<div class="scroll"><table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (holding total, title total, max bid, headroom, redemption payoff, net if redeemed, net if kept, expected value)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e12.js, run 2026-11-14. Sample A hand-computed expectations match: max bid $76,400.00, headroom $58,400.00, net if kept $60,400.00, net if redeemed -$1,000.00, expected value $45,050.00. Sample B: max bid $49,650.00, headroom $41,650.00, net if kept $56,650.00, net if redeemed $960.00, expected value $17,667.00. Sample C: max bid N/A, recommendation PASS.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e12.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge designed">DESIGNED</span></td><td>Staged for GitHub Pages at neuruhai.github.io/neuruh-demos/e12-tax-sale-auction/. Live HTTP 200 and MD5 check are in the build report, not yet run at the time this file was written.</td></tr>
+<tr><td>Market data (resale values, repair costs, redemption rates, lien amounts, holding costs)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every resale value, repair cost, redemption rate, lien amount, and holding cost is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E12 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E12 specification document was found in the vault. The subject (Tax Sale / Auction Bid) and its mechanics come from the 2026-11-04 E12 build, itself live at e12-tax-sale-auction.pages.dev. See section 14 for the gap. Kill conditions and risk flags are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests are the verification for this build, plus a jsdom DOM smoke test. See build report.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change Resale Value in section 04.</li>
+<li><b>Step 3:</b> Watch Max Bid, Net if Kept, and Expected Value move in the sticky results panel and in section 11, then issue a receipt in section 12 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">Max bid (MODELED ESTIMATE)</span><b id="stickyMaxBid">N/A</b></div>
+<div><span class="sr-label">Headroom over minimum bid</span><b id="stickyHeadroom">N/A</b></div>
+<div><span class="sr-label">Expected value (MODELED ESTIMATE)</span><b id="stickyEV">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div></div>
+</div>
+<div id="statusBanner"></div>
+
+<section class="card" id="s1">
+<h2><span>02</span>Parcel and auction identity</h2>
+<p class="sub">Address / parcel gate. Confirm the parcel from at least 2 public sources before any number is used. The auction listing itself is one source, not two.</p>
+<div class="grid">
+<div><label for="parcelId">Parcel ID</label><input id="parcelId" type="text" placeholder="Example: 11-22-33-444-005.00"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="address">Street address (if any)</label><input id="address" type="text" placeholder="Street address or N/A"></div>
+<div><label for="auctionDate">Auction date</label><input id="auctionDate" type="date"></div>
+<div><label for="auctionType">Auction type</label><select id="auctionType"><option value="">Select</option><option value="tax_deed">Tax deed sale</option><option value="tax_lien">Tax lien certificate</option><option value="sheriff">Sheriff / foreclosure sale</option><option value="other">Other auction (state type in notes)</option></select></div>
+<div><label for="saleSource">Auction source (platform or office)</label><input id="saleSource" type="text" placeholder="Example: County treasurer auction site"></div>
+<div><label for="auctionSourceUrl">Auction listing source reference</label><input id="auctionSourceUrl" type="text" placeholder="Full source reference or URL, or N/A"></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+<div><label for="parcelSourceNames">Parcel source names</label><input id="parcelSourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+</div>
+<div style="margin-top:12px"><label for="parcelNotes">Parcel and auction notes (what is being sold, deed or lien, occupancy if known)</label><textarea id="parcelNotes" placeholder="State exactly what the auction sells: a deed, a lien certificate, or something else. If that is not stated in the listing, write N/A."></textarea></div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>03</span>Auction and redemption rules for the jurisdiction</h2>
+<p class="sub">Jurisdiction rules gate. Tax sale rules are set by state statute and run by the county. A rule copied from another state is not a rule for this parcel. Every line needs a county or statute source, or it is N/A.</p>
+<div class="grid">
+<div><label for="redemptionMonths">Redemption period (months, 0 if none)</label><input id="redemptionMonths" type="number" min="0" step="1" placeholder="Blank = unknown"></div>
+<div><label for="redemptionRate">Redemption interest rate (% per year)</label><input id="redemptionRate" type="number" min="0" step="0.1" placeholder="Example: 12"></div>
+<div><label for="depositPct">Deposit due at auction (% of bid)</label><input id="depositPct" type="number" min="0" max="100" step="1" placeholder="Example: 10"></div>
+<div><label for="buyerPremiumPct">Buyer premium (% of bid, 0 if none)</label><input id="buyerPremiumPct" type="number" min="0" step="0.1" placeholder="0"></div>
+<div><label for="redemptionPremium">Redemption premium or penalty (if any)</label><input id="redemptionPremium" type="text" placeholder="Example: None, or $ amount / percent"></div>
+<div><label for="rulesSource">Rules source (county page, statute cite)</label><input id="rulesSource" type="text" placeholder="Full source reference or URL"></div>
+</div>
+<div class="checklist" style="margin-top:12px">
+<div class="item"><input type="checkbox" id="redemptionUnknown"><label for="redemptionUnknown"><b>Redemption period unknown.</b> Check this if the redemption period cannot be verified from a county or statute source. This is a contract kill condition: the run is a PASS.</label></div>
+<div class="item"><input type="checkbox" id="rulesVerified"><label for="rulesVerified">Auction and redemption rules verified against the county treasurer or statute source named above.</label></div>
+</div>
+<div style="margin-top:12px"><label for="rulesNotes">Rules notes (what happens on redemption, who pays what, deed timing, minimum bid rules)</label><textarea id="rulesNotes" placeholder="Write the redemption mechanics in plain words, with the source for each claim. If a mechanic is unverified, write N/A for that mechanic."></textarea></div>
+<div class="warning" id="redemptionWarning" hidden>Warning: the redemption period is unknown. That is a kill condition for E12. The recommendation is PASS. Do not bid until the redemption period is verified.</div>
+</section>
+
+<section class="card" id="s3">
+<h2><span>04</span>Value, repairs, minimum bid</h2>
+<p class="sub">Value gate. Resale value is the after-repair value of the property, from comps, not from the auction listing. Repairs are a scope, not a guess. The minimum bid is the auction opening bid from the listing. Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="grid">
+<div><label for="resaleValue">Resale value, after repair ($) - MODELED ESTIMATE input</label><input id="resaleValue" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="resaleSource">Resale value source</label><input id="resaleSource" type="text" placeholder="Example: Residential engine run, comps, or N/A"></div>
+<div><label for="repairs">Repairs to resale condition ($) - MODELED ESTIMATE input</label><input id="repairs" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="minBid">Minimum bid / opening bid ($) - MODELED ESTIMATE input</label><input id="minBid" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="delinquentTax">Delinquent tax in the sale ($)</label><input id="delinquentTax" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="seniorLiens">Senior liens that survive the sale ($)</label><input id="seniorLiens" type="number" min="0" step="1" placeholder="0"></div>
+</div>
+<div style="margin-top:12px"><label for="valueNotes">Value and lien notes (comp basis, repair scope, which liens survive and the source for each)</label><textarea id="valueNotes" placeholder="List senior liens by type and amount with source, or write N/A if no lien search has been done. A lien search not done is a missing item, not a zero."></textarea></div>
+<div class="warning" id="lienWarning" hidden>Warning: senior liens are entered as 0 but no lien search is recorded in the notes. Confirm the lien search was actually done, or write N/A in the notes and treat the run as HOLD.</div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>05</span>Max bid</h2>
+<p class="sub">Deterministic math. Max bid is the highest hammer bid that still leaves the stated profit after repairs, holding, title, and senior liens. Senior liens are paid on top of the bid, so they come out of the max bid dollar for dollar. Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="formula">Max Bid = Resale Value - Repairs - Holding Total - Title Costs Total - Desired Profit - Senior Liens<br>Headroom = Max Bid - Minimum Bid<br>Desired Profit = Resale Value x Profit Percent / 100<br>Max bid is the hammer bid before any buyer premium. Buyer premium is shown separately in section 06.</div>
+<div class="grid">
+<div><label for="profitPct">Desired profit (% of resale value)</label><input id="profitPct" type="number" min="0" step="0.5" placeholder="Example: 20"></div>
+<div><label for="plannedBid">Planned bid ($, must be at or below max bid) - MODELED ESTIMATE input</label><input id="plannedBid" type="number" min="0" step="1" placeholder="Blank = use max bid"></div>
+</div>
+<div class="result">
+<div class="row"><span>Resale value (MODELED ESTIMATE)</span><b id="outResale">N/A</b></div>
+<div class="row"><span>Less repairs (MODELED ESTIMATE)</span><b id="outRepairs">N/A</b></div>
+<div class="row"><span>Less holding total (section 08) (MODELED ESTIMATE)</span><b id="outHolding">N/A</b></div>
+<div class="row"><span>Less title costs total (section 07) (MODELED ESTIMATE)</span><b id="outTitle">N/A</b></div>
+<div class="row"><span>Less desired profit (<span id="outProfitPct">0</span>%) (MODELED ESTIMATE)</span><b id="outProfit">N/A</b></div>
+<div class="row"><span>Less senior liens (MODELED ESTIMATE)</span><b id="outSenior">N/A</b></div>
+<div class="row big"><span>Max bid (MODELED ESTIMATE)</span><b id="outMaxBid">N/A</b></div>
+<div class="row"><span>Minimum bid (MODELED ESTIMATE)</span><b id="outMinBid">N/A</b></div>
+<div class="row big"><span>Headroom over minimum bid (MODELED ESTIMATE)</span><b id="outHeadroom">N/A</b></div>
+<div class="row"><span>Planned bid used in section 06 (MODELED ESTIMATE)</span><b id="outPlannedBid">N/A</b></div>
+</div>
+<div class="warning" id="maxBidWarning" hidden></div>
+<div class="formula" id="workingLines">Working lines (builder addition, live values): max bid = resale - repairs - holding total - title costs total - desired profit - senior liens. Fill the inputs above to see the live working lines.</div>
+<figure>
+<figcaption>Figure 1. Max bid waterfall, Sample A numbers. Resale value $120,000 less repairs $15,000, holding $3,600, title $1,000, profit $24,000, and senior liens $0 gives a max bid of $76,400. The waterfall is illustrative; the live numbers are in the table above.</figcaption>
+<svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Max bid waterfall for Sample A">
+<rect x="0" y="0" width="640" height="240" fill="#f6f1e6"/>
+<text x="20" y="24" font-family="monospace" font-size="12" fill="#1d1a16">MAX BID WATERFALL, SAMPLE A (dollars)</text>
+<rect x="20" y="40" width="480" height="22" fill="#9a7b2d"/><text x="510" y="56" font-family="monospace" font-size="12" fill="#1d1a16">Resale 120,000</text>
+<rect x="20" y="70" width="60" height="22" fill="#8a2f24"/><text x="90" y="86" font-family="monospace" font-size="12" fill="#1d1a16">Repairs 15,000</text>
+<rect x="20" y="100" width="14" height="22" fill="#8a2f24"/><text x="44" y="116" font-family="monospace" font-size="12" fill="#1d1a16">Holding 3,600</text>
+<rect x="20" y="130" width="4" height="22" fill="#8a2f24"/><text x="34" y="146" font-family="monospace" font-size="12" fill="#1d1a16">Title 1,000</text>
+<rect x="20" y="160" width="96" height="22" fill="#8a2f24"/><text x="126" y="176" font-family="monospace" font-size="12" fill="#1d1a16">Profit 24,000</text>
+<rect x="20" y="190" width="306" height="22" fill="#2e5e3a"/><text x="336" y="206" font-family="monospace" font-size="12" fill="#1d1a16">Max bid 76,400</text>
+<text x="20" y="232" font-family="monospace" font-size="11" fill="#6b6257">Bar length is resale value scaled to 480 px. Senior liens 0 in Sample A.</text>
+</svg>
+</figure>
+</section>
+
+<section class="card" id="s5">
+<h2><span>06</span>Redemption risk</h2>
+<p class="sub">Redemption math. If the owner redeems, the bidder gets the bid back plus interest, and keeps none of the property upside. The model is conservative: redemption payoff is bid plus interest only, and costs paid at purchase are not reimbursed. Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="formula">Interest Earned = Planned Bid x Redemption Rate / 100 x Redemption Months / 12<br>Redemption Payoff = Planned Bid + Interest Earned<br>Net if Redeemed = Interest Earned - (Monthly Holding x Redemption Months) - Costs at Purchase - Buyer Premium<br>Net if Kept = Resale Value - Repairs - Holding Total - Title Costs Total - Planned Bid - Buyer Premium<br>Expected Value = (1 - Redemption Probability) x Net if Kept + Redemption Probability x Net if Redeemed</div>
+<div class="grid">
+<div><label for="redemptionProb">Estimated redemption probability (%)</label><input id="redemptionProb" type="number" min="0" max="100" step="1" placeholder="Example: 25"></div>
+<div><label for="redemptionProbSource">Probability basis</label><input id="redemptionProbSource" type="text" placeholder="Example: Owner occupied, tax history, or N/A"></div>
+</div>
+<div class="result">
+<div class="row"><span>Redemption interest earned (MODELED ESTIMATE)</span><b id="outInterest">N/A</b></div>
+<div class="row"><span>Redemption payoff (bid plus interest) (MODELED ESTIMATE)</span><b id="outPayoff">N/A</b></div>
+<div class="row"><span>Buyer premium on planned bid (MODELED ESTIMATE)</span><b id="outPremium">N/A</b></div>
+<div class="row"><span>Deposit due at auction (MODELED ESTIMATE)</span><b id="outDeposit">N/A</b></div>
+<div class="row big"><span>Net if redeemed (MODELED ESTIMATE)</span><b id="outNetRedeemed">N/A</b></div>
+<div class="row big"><span>Net if kept (MODELED ESTIMATE)</span><b id="outNetKept">N/A</b></div>
+<div class="row big"><span>Expected value (MODELED ESTIMATE)</span><b id="outEV">N/A</b></div>
+</div>
+<div class="hint" id="redemptionNote">Enter a redemption probability to compute expected value. A probability with no basis in the notes is a guess: write the basis or leave it N/A.</div>
+<figure>
+<figcaption>Figure 2. Redemption timeline, Sample A. Auction at month 0, redemption expires at month 6, quiet title and marketing run months 6 to 9, exit at month 9. If the owner redeems in months 0 to 6, the bidder is repaid bid plus interest and the deal ends. The timeline is illustrative; the live months are in section 08.</figcaption>
+<svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Redemption timeline for Sample A">
+<rect x="0" y="0" width="640" height="150" fill="#f6f1e6"/>
+<line x1="40" y1="75" x2="600" y2="75" stroke="#1d1a16" stroke-width="2"/>
+<circle cx="60" cy="75" r="8" fill="#9a7b2d"/><text x="40" y="105" font-family="monospace" font-size="12" fill="#1d1a16">Month 0</text><text x="30" y="122" font-family="monospace" font-size="12" fill="#1d1a16">Auction</text>
+<circle cx="300" cy="75" r="8" fill="#8a2f24"/><text x="255" y="105" font-family="monospace" font-size="12" fill="#1d1a16">Month 6</text><text x="225" y="122" font-family="monospace" font-size="12" fill="#1d1a16">Redemption ends</text>
+<circle cx="420" cy="75" r="8" fill="#9a7b2d"/><text x="380" y="105" font-family="monospace" font-size="12" fill="#1d1a16">Month 6-9</text><text x="375" y="122" font-family="monospace" font-size="12" fill="#1d1a16">Title + market</text>
+<circle cx="580" cy="75" r="8" fill="#2e5e3a"/><text x="555" y="105" font-family="monospace" font-size="12" fill="#1d1a16">Month 9</text><text x="565" y="122" font-family="monospace" font-size="12" fill="#1d1a16">Exit</text>
+<text x="40" y="30" font-family="monospace" font-size="12" fill="#1d1a16">REDEMPTION WINDOW: MONTHS 0 TO 6, INTEREST 12% PER YEAR</text>
+</svg>
+</figure>
+</section>
+
+<section class="card" id="s6">
+<h2><span>07</span>Title risk</h2>
+<p class="sub">Title gate. A tax deed does not guarantee insurable title. Quiet title is a real cost and a real timeline. If title is uninsurable and there is no quiet-title budget, the run is a PASS. Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="grid">
+<div><label for="titleStatus">Title status</label><select id="titleStatus"><option value="">Select</option><option value="insurable">Insurable now</option><option value="quiet_title">Insurable after quiet title</option><option value="uninsurable">Uninsurable</option><option value="unknown">Unknown</option></select></div>
+<div><label for="titleSearch">Title search cost ($)</label><input id="titleSearch" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="quietTitle">Quiet title budget ($, 0 if not needed)</label><input id="quietTitle" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="quietTitleMonths">Quiet title timeline (months)</label><input id="quietTitleMonths" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="recordingFee">Recording and deed fees ($)</label><input id="recordingFee" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="closingCosts">Closing costs ($)</label><input id="closingCosts" type="number" min="0" step="1" placeholder="0"></div>
+</div>
+<div class="result">
+<div class="row"><span>Title costs total (MODELED ESTIMATE)</span><b id="outTitleTotal">N/A</b></div>
+<div class="row"><span>Costs at purchase (sunk if redeemed) (MODELED ESTIMATE)</span><b id="outCostsAtPurchase">N/A</b></div>
+<div class="row"><span>Quiet title cost (spent only if not redeemed) (MODELED ESTIMATE)</span><b id="outQuiet">N/A</b></div>
+</div>
+<div style="margin-top:12px"><label for="titleNotes">Title notes (title company or attorney, commitment status, what quiet title must cure)</label><textarea id="titleNotes" placeholder="Name the title source and what it said, or write N/A if no title review has been done."></textarea></div>
+<div class="warning" id="titleWarning" hidden>Warning: title is uninsurable with no quiet-title budget. That is a kill condition for E12. The recommendation is PASS.</div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>08</span>Holding cost</h2>
+<p class="sub">Holding math. Holding months are the redemption months plus the post-redemption months (quiet title, marketing, and exit). If the redemption period is unknown, holding months and holding total are N/A, and max bid is N/A. Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="formula">Monthly Holding = Taxes + Insurance + Maintenance + Interest + Other<br>Holding Months = Redemption Months + Post-Redemption Months<br>Holding Total = Monthly Holding x Holding Months</div>
+<div class="grid">
+<div><label for="holdTax">Taxes ($/month)</label><input id="holdTax" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="holdInsurance">Insurance ($/month)</label><input id="holdInsurance" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="holdMaint">Maintenance ($/month)</label><input id="holdMaint" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="holdInterest">Interest / financing ($/month)</label><input id="holdInterest" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="holdOther">Other holding ($/month)</label><input id="holdOther" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="postMonths">Post-redemption months (title, marketing, exit)</label><input id="postMonths" type="number" min="0" step="1" placeholder="Example: 3"></div>
+</div>
+<div class="result">
+<div class="row"><span>Monthly holding (MODELED ESTIMATE)</span><b id="outMonthlyHold">N/A</b></div>
+<div class="row"><span>Holding months (redemption + post-redemption)</span><b id="outHoldMonths">N/A</b></div>
+<div class="row big"><span>Holding total (MODELED ESTIMATE)</span><b id="outHoldTotal">N/A</b></div>
+<div class="row"><span>Holding during redemption only (MODELED ESTIMATE)</span><b id="outHoldRedemption">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>09</span>Post-auction plan</h2>
+<p class="sub">A bid with no post-auction plan is a speculation, not an underwrite. State the plan, the timeline, and who does the work. If the property is occupied, state the possession plan or mark it missing.</p>
+<div class="grid">
+<div><label for="postPlan">Post-auction plan</label><select id="postPlan"><option value="">Select</option><option value="flip">Flip after repair</option><option value="rental">Hold as rental</option><option value="wholesale">Wholesale / assign the deed</option><option value="hold_redemption">Hold through redemption, then decide</option><option value="land_hold">Hold land, no structure work</option><option value="other">Other (state in notes)</option></select></div>
+<div><label for="postTimeline">Post-auction timeline (months to exit)</label><input id="postTimeline" type="number" min="0" step="1" placeholder="Example: 9"></div>
+<div><label for="occupancy">Occupancy at auction</label><select id="occupancy"><option value="">Select</option><option value="vacant">Vacant</option><option value="owner_occupied">Owner-occupied</option><option value="tenant_occupied">Tenant-occupied</option><option value="unknown">Unknown</option></select></div>
+<div><label for="possessionPlan">Possession plan (if occupied)</label><input id="possessionPlan" type="text" placeholder="Example: Cash for keys, eviction counsel, or N/A"></div>
+</div>
+<div style="margin-top:12px"><label for="planNotes">Post-auction plan notes (repair crew, resale channel, rental fallback, what happens if redemption runs long)</label><textarea id="planNotes" placeholder="Write the plan in plain words. If a step has no owner, write that it has no owner."></textarea></div>
+<div class="checklist" style="margin-top:12px">
+<div class="item"><input type="checkbox" id="flagOccupied"><label for="flagOccupied">Occupied property with no possession plan or budget.</label></div>
+<div class="item"><input type="checkbox" id="flagNoPlan"><label for="flagNoPlan">No post-auction plan selected or no exit channel named.</label></div>
+</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span>10</span>Gates - fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass. A kill in section 14 overrides a pass here: a PASS is still a PASS.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div class="hint" id="missingHints">Missing for a GO: parcel, county, auction date, auction type, resale value, minimum bid, redemption period, title status.</div>
+</section>
+
+<section class="card" id="s10">
+<h2><span>11</span>Results</h2>
+<p class="sub">All outputs in one place. A number is N/A when an input it depends on is N/A. N/A is a correct answer, not a gap to fill with a guess. Every dollar figure below is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div><label>Completeness</label><div class="meter" role="progressbar" aria-label="Completeness"><div class="meter-fill" id="meterBar"></div></div><div class="small mono" id="meterText">0 percent complete.</div><div class="small" id="missingList"></div></div>
+<div class="result">
+<div class="row big"><span>Max bid (MODELED ESTIMATE)</span><b id="resMaxBid">N/A</b></div>
+<div class="row"><span>Headroom over minimum bid (MODELED ESTIMATE)</span><b id="resHeadroom">N/A</b></div>
+<div class="row"><span>Planned bid (MODELED ESTIMATE)</span><b id="resPlannedBid">N/A</b></div>
+<div class="row"><span>Holding total (MODELED ESTIMATE)</span><b id="resHoldTotal">N/A</b></div>
+<div class="row"><span>Title costs total (MODELED ESTIMATE)</span><b id="resTitleTotal">N/A</b></div>
+<div class="row big"><span>Net if kept (MODELED ESTIMATE)</span><b id="resNetKept">N/A</b></div>
+<div class="row big"><span>Net if redeemed (MODELED ESTIMATE)</span><b id="resNetRedeemed">N/A</b></div>
+<div class="row big"><span>Expected value (MODELED ESTIMATE)</span><b id="resEV">N/A</b></div>
+<div class="row big"><span>Recommendation</span><b id="resRec">HOLD</b></div>
+</div>
+<div id="decisionBox" style="margin-top:12px"></div>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="s11">
+<h2><span>12</span>Receipt and receipt chain</h2>
+<p class="sub">Generated from the inputs above. Matches the tax-sale-receipt v1.0 schema fields. Offer authorized is always false in this tool. A bid at auction is a binding purchase, so this receipt is evidence, not permission to bid. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="tax-sale-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<div style="margin-top:12px">
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+</div>
+<div class="sub" id="chainStatus" style="margin-top:10px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>13</span>One-page summary - print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above. Every dollar figure is a MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</p>
+<div class="result">
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>County</span><b id="sumCounty">N/A</b></div>
+<div class="row"><span>Auction date</span><b id="sumAuctionDate">N/A</b></div>
+<div class="row"><span>Auction type</span><b id="sumAuctionType">N/A</b></div>
+<div class="row"><span>Redemption period</span><b id="sumRedemption">N/A</b></div>
+<div class="row"><span>Title status</span><b id="sumTitle">N/A</b></div>
+<div class="row"><span>Max bid (MODELED ESTIMATE)</span><b id="sumMaxBid">N/A</b></div>
+<div class="row"><span>Headroom (MODELED ESTIMATE)</span><b id="sumHeadroom">N/A</b></div>
+<div class="row"><span>Net if kept (MODELED ESTIMATE)</span><b id="sumNetKept">N/A</b></div>
+<div class="row"><span>Expected value (MODELED ESTIMATE)</span><b id="sumEV">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+</section>
+
+<section class="card" id="s13">
+<h2><span>14</span>E13 Risk / Kill-Switch (shared)</h2>
+<p class="sub">Every engine ends here. List the kill conditions that fired, the risk flags, and the explicit PASS recommendation if any fired. A PASS is a successful run, not a failed one.</p>
+<div class="checklist" id="killList"></div>
+<div class="result">
+<div class="row"><span>Kill-switch active</span><b id="killActive">No</b></div>
+<div class="row"><span>Kill reasons</span><b id="killReasons">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="killRecommendation">HOLD</b></div>
+</div>
+<div id="killBox"></div>
+<div style="margin-top:12px"><label>Risk flags</label><div class="result"><div class="row"><span>Flags raised in this run</span><b id="riskFlagsOut">None</b></div></div></div>
+<p style="font-size:13px;color:var(--muted);margin-top:12px">E12 contract kill conditions: (1) redemption period unknown, (2) title uninsurable with no quiet-title budget. The other kills in the list above are engine-level kills: max bid below the minimum bid means no profitable bid exists, unverified auction rules mean the redemption math has no basis, and an unpriced senior lien means the max bid is built on an unknown cost. The two auto kills (title, max bid) are checked automatically by the page when their conditions are met; the other three are operator-checked. This is a fix over the 2026-11-04 build, where the auto kill boxes never showed as checked even when the kill fired. See section 14.</p>
+</section>
+
+<section class="card" id="s14">
+<h2><span>15</span>System prompt</h2>
+<p class="sub">The full E12 system prompt text is embedded in this file for copying. Use the Copy system prompt button above. It is not sent anywhere by this tool. Carried from the 2026-11-04 E12 build.</p>
+<details><summary>Show system prompt text</summary><pre id="promptView"></pre></details>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>14</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the parcel from at least 2 public sources, verify the auction and redemption rules for the county from the county or statute source, enter resale value from comps, repairs, title costs, and monthly holding costs. The tool computes holding total, title total, desired profit, max bid, headroom, redemption payoff, net if redeemed, net if kept, and expected value from the exact formulas in sections 05, 06, and 08. Gates fail closed. A kill means PASS. The receipt records what was entered, what passed, and what was N/A. A share link encodes the whole deal in the URL so someone else can open the same numbers. The working-lines block in section 05 shows the live max bid arithmetic for the current inputs.</p>
+<p><b>What this is not:</b> not an appraisal, not a survey, not legal or tax advice, and not a title opinion. It does not check the auction listing for you, does not confirm the redemption period, does not run a title search, and does not guarantee the property is vacant, the title is insurable, or the owner will not redeem. It does not invent rules, prices, comps, or source claims. If a field cannot be verified, it stays N/A. No bid is placed without Jeramie.</p>
+<p><b>Sources read for this build:</b> (1) Tax Sale / Auction Bid Engine E12 v1.0, 2026-11-04, local file ~/workspace/e12-tax-sale-auction-site/index.html (986 lines, 73,954 bytes, MD5 eb154a70ca1aa98810c24f581f1d49ed), live at https://e12-tax-sale-auction.pages.dev/ (HTTP 200, 73,954 bytes, MD5 eb154a70ca1aa98810c24f581f1d49ed, byte-identical to the local file). Subject, inputs, outputs, gates, kill conditions, risk flags, and all three samples are carried from it. (2) E11 Agricultural / Timber / Recreation Underwriting Engine v1.0, 2026-11-14, local files ~/workspace/e11-agricultural-timber/ (index.html, e11.js, tests/test-e11.js), live at https://neuruhai.github.io/neuruh-demos/e11-agricultural-timber/. Pattern followed: SIMULATION banner, status board, MODELED ESTIMATE labels, SHA-256 receipt chain, Node test suite. (3) Vault note ~/workspace/neuruh-obsidian-vault/02-Real-Estate-Land/UnderwriteX.md, line 52: "Underwriting engines Residential v1.1 and E1 Land and Zoning Unlock v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending." (4) Hub, 2026-11-14, https://neuruh-hub.pages.dev/: section A lists E12 Tax Sale / Auction Bid at e12-tax-sale-auction.pages.dev, added 2026-11-04. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. See the gaps list below.</p>
+<p><b>Related engines:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://neuruhai.github.io/neuruh-demos/e11-agricultural-timber/">E11 Agricultural / Timber / Recreation (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e7-mobile-home-park/">E7 Mobile Home Park (GitHub Pages)</a>. Resale value for a house deal comes from the Residential Underwriting Engine. Land value, zoning, and split math come from E1 Land and Zoning Unlock. Title defects that need a cure-cost workup go to E8 Distressed Title.</p>
+<p><b>Builder defaults, labeled as the builder's defaults, editable, never market facts:</b> confidence 0.50 (the 2026-11-04 build pre-fills 0.50; change it per deal). No other defaults are baked in: resale values, repair costs, redemption rates, lien amounts, holding costs, profit percent, and redemption probability are all entered by the user, and a blank field is N/A or zero as stated on the page, never a hidden market assumption. The receipt chain design (SHA-256, GENESIS first, canonical JSON with sorted keys and the hash field stripped, Web Crypto Verify in the browser) is the builder's addition: the 2026-11-04 E12 receipt had no hash chain. The working-lines block in section 05 is also the builder's addition. The two fixes listed in the gaps below (auto kill checkbox sync, dead promptView line removed) are the builder's fixes to the 2026-11-04 page script.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>14</span>Honest gaps and limits</h2>
+<p class="sub">What this tool does not do, stated plainly.</p>
+<ul>
+<li>This engine does not pull live county data: every rule, bid, and lien must be typed in from a source you checked. It does not model bidding competition, so a max bid is a ceiling, not a prediction of the winning bid. It does not model senior lien priority beyond the dollar amount you enter; lien priority is a title question. It does not model eviction cost or timeline beyond the possession plan note. Redemption probability is your estimate, not a measured rate; expected value moves with it, so state the basis. Layout was not eyeballed in a real browser. Sample deals are synthetic and labeled as such; they use example county names and example source references, not real records.</li>
+<li>Fixes over the 2026-11-04 page script, recorded here: (1) The auto kill checkboxes (title uninsurable, max bid below minimum) are now checked by the page when their conditions are met. In the 2026-11-04 build the labels said "(checked automatically when the condition is met)" but calc() never set the boxes, so the kill fired in the recommendation while its box stayed unchecked. The recommendation logic is unchanged; only the displayed checkbox state now matches it. (2) A dead line referencing a nonexistent element id "promptView" was removed from the 2026-11-04 script; it was a harmless no-op. The system prompt is now shown in the section 15 details block instead.</li>
+<li>Quirk carried verbatim: monthly holding is always a number, even $0.00 on an empty form, because a blank monthly line counts as 0 in the 2026-11-04 formula. Holding total is still N/A until redemption months are entered, and max bid is still N/A until every one of its six inputs is entered, including blank repairs. A farm of blank lines does not produce a max bid.</li>
+<li>Sample C fires three kill reasons, not two: the two contract kills (redemption period unknown, title uninsurable with no quiet-title budget) plus the operator-checked rules kill (auction rules unverified). The 2026-11-04 sample note says "both contract kills fire", which is true for the two contract kills; the third reason is the checked rules box firing as written.</li>
+<li>Title total is N/A only when all four title parts are blank, and costs at purchase is N/A only when search, recording, and closing are all blank. A blank quiet-title budget counts as no budget for the title kill, so an uninsurable title with a blank quiet-title budget is a kill, not a hold.</li>
+<li>No E12 specification document was found in the vault. Greps for E12 as a whole word across the vault returned only the UnderwriteX.md line cited above and the 2026-11-04 E12 build itself. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. What would ground E12 further: the Codex V2 Appendix B document, or a written E12 spec from Jeramie stating the subject and mechanics.</li>
+<li>Layout was not eyeballed in a real browser. Math was tested in Node with hand-computed values plus a jsdom DOM smoke test. See the build report.</li>
+<li>All sample deals are synthetic and labeled as such.</li>
+</ul>
+</section>
+
+<footer>
+<p>Tax Sale / Auction Bid Engine E12 v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal or tax advice. Not a title opinion. Public-data underwriting only. No offer without Jeramie. Offer authorized is false on every run. This file works offline except for the e12.js module it loads from the same directory. Print this page for the file copy. Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a></p>
+</footer>
+
+</div>
+
+<script type="text/plain" id="systemPromptText">
+# SYSTEM: TAX SALE / AUCTION BID ENGINE v1.0 (E12)
+
+# Architecture: Evidence-first | Deterministic calculations | Non-waivable gates | Receipt required
+# Domain: Tax deed sales and tax lien certificate auctions, plus sheriff / foreclosure sales where the same math applies
+# Status: Not an appraisal. Not legal or tax advice. Not a title opinion. Public-data underwriting only.
+# Lineage: Codex V2 Appendix B, Engine E12 Tax Sale / Auction Bid + Residential Underwriting Engine v1.1 core gates + E1 land engine pattern
+# Version: v1.0, 2026-11-04. Engine 12 of 12 in the non-residential sequence.
+
+You are a tax sale underwriter. Follow every rule exactly. Do not guess. Do not invent facts. If information is unavailable after a documented search, retain the field and write "N/A".
+
+Before any other text, output exactly one line:
+TAXSALE {{PARCEL ID}} | {{TODAYS DATE}}
+
+## 1. NON-NEGOTIABLE GATES (fail closed)
+
+- ADDRESS / PARCEL GATE: Confirm exact parcel ID, county, state, and street address if any. Cross-check at least 2 public sources. The auction listing is one source, not two. If conflict exists, stop, show both sources, propose the likely correction, and wait.
+- JURISDICTION RULES GATE: Auction type, redemption period, redemption interest rate, deposit, buyer premium, and deed timing are verified from the county treasurer or the state statute, with a full source reference. A rule copied from another state is not a rule for this parcel.
+- SOURCE GATE: Every rule, bid, lien, value, and cost carries a full raw source reference and access date. No source, no use. No hallucinated sale prices, redemption periods, interest rates, or lien amounts. Ever.
+- TITLE GATE: Title status is stated from a title review or marked Unknown. A tax deed does not guarantee insurable title. Quiet title cost and timeline are stated or marked N/A with the missing source named.
+- NO HALLUCINATION GATE: If a field cannot be verified, write N/A and list it in Data Conflicts. N/A is a correct answer. An invented number is a failed run.
+- AUTHORITY GATE: This engine produces an underwriting opinion, not a bid. No bid is placed without Jeramie. Offer authorized = false on every run. A bid at auction is a binding purchase, not an offer to negotiate.
+
+## 2. REQUIRED OUTPUTS (E12 contract)
+
+1. Auction / redemption rules for the jurisdiction, sourced.
+2. Max bid, from the deterministic formula in section 3.
+3. Redemption risk: payoff, net if redeemed, probability with basis, expected value.
+4. Title risk: status, quiet title budget and timeline, title costs total.
+5. Post-auction plan: plan, timeline, occupancy and possession plan.
+6. Holding cost: monthly lines, holding months, holding total.
+
+## 3. DETERMINISTIC MATH (exact)
+
+- Monthly Holding = Taxes + Insurance + Maintenance + Interest + Other (all per month)
+- Holding Months = Redemption Months + Post-Redemption Months. If redemption months is unknown, holding months and holding total are N/A, and max bid is N/A.
+- Holding Total = Monthly Holding x Holding Months
+- Title Costs Total = Title Search + Quiet Title Budget + Recording + Closing
+- Costs at Purchase = Title Search + Recording + Closing (sunk if redeemed; quiet title is spent only if not redeemed)
+- Desired Profit = Resale Value x Profit Percent / 100
+- Max Bid = Resale Value - Repairs - Holding Total - Title Costs Total - Desired Profit - Senior Liens
+- Headroom = Max Bid - Minimum Bid
+- Buyer Premium = Planned Bid x Buyer Premium Percent / 100
+- Deposit Due = Planned Bid x Deposit Percent / 100
+- Interest Earned = Planned Bid x Redemption Rate / 100 x Redemption Months / 12
+- Redemption Payoff = Planned Bid + Interest Earned
+- Net if Redeemed = Interest Earned - (Monthly Holding x Redemption Months) - Costs at Purchase - Buyer Premium
+- Net if Kept = Resale Value - Repairs - Holding Total - Title Costs Total - Planned Bid - Buyer Premium
+- Expected Value = (1 - Redemption Probability) x Net if Kept + Redemption Probability x Net if Redeemed
+
+## 4. KILL CONDITIONS (E12 contract, plus engine kills)
+
+Recommend PASS, do not soften, on: redemption period unknown; title uninsurable with no quiet-title budget; max bid below the minimum bid; auction rules unverified with no county source; senior lien unpriced or exceeding equity. A kill is a successful run, not a failed one.
+
+## 5. E13 RISK / KILL-SWITCH (shared, ends every engine)
+
+List the kill conditions that fired, the risk flags, and the explicit PASS recommendation if any fired. A PASS is a successful run.
+</script>
+
+<script src="e12.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var el=$(id);if(!el)return null;var v=parseFloat(el.value);return isFinite(v)?v:null;}
+function numOr0(id){var v=num(id);return v===null?0:v;}
+function money(v){return E12.money(v);}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+var runId="E12-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+$("promptView").textContent=$("systemPromptText").textContent.replace(/^\n+/,"").replace(/\s+$/,"")+"\n";
+
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: parcel ID, county, and address confirmed from at least 2 public sources"},
+ {id:"jurisdiction_rules",label:"Jurisdiction rules gate: auction type, redemption period, rate, deposit, and premium verified from the county or statute source"},
+ {id:"source",label:"Source gate: every rule, bid, lien, value, and cost carries a full raw source reference and date"},
+ {id:"title",label:"Title gate: title status stated from a title review or marked Unknown; quiet title cost and timeline stated or N/A"},
+ {id:"no_hallucination",label:"No-hallucination gate: no invented redemption periods, rates, prices, or lien amounts; unverifiable fields are N/A"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no bid is placed without Jeramie; offer authorized is false"}
+];
+var kills=[
+ {id:"k_redemption_unknown",label:E12.KILLS[0],auto:false},
+ {id:"k_title",label:E12.KILLS[1],auto:true},
+ {id:"k_maxbid",label:E12.KILLS[2],auto:true},
+ {id:"k_rules",label:E12.KILLS[3],auto:false},
+ {id:"k_senior",label:E12.KILLS[4],auto:false}
+];
+var lastReceipt=null;
+var chain=[];
+
+function buildLists(){
+ var html="";
+ gates.forEach(function(g){
+  html+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ $("gateList").innerHTML=html;
+ var kh="";
+ kills.forEach(function(k){
+  kh+='<div class="item"><input type="checkbox" id="'+k.id+'" data-kill="'+k.id+'"><label for="'+k.id+'">'+esc(k.label)+(k.auto?" (checked automatically when the condition is met)":"")+'</label></div>';
+ });
+ $("killList").innerHTML=kh;
+}
+buildLists();
+
+function gateVal(id){var el=document.querySelector('[data-gate="'+id+'"]');return el?el.value:"hold";}
+
+function calc(){
+ var resale=num("resaleValue"), repairs=num("repairs"), minBid=num("minBid");
+ var senior=num("seniorLiens");
+ var profitPct=num("profitPct");
+ var redemptionUnknown=$("redemptionUnknown").checked;
+ var redemptionMonths=redemptionUnknown?null:num("redemptionMonths");
+ var redemptionRate=num("redemptionRate");
+ var postMonths=num("postMonths");
+ var hold=E12.holding({tax:num("holdTax"),insurance:num("holdInsurance"),maint:num("holdMaint"),interest:num("holdInterest"),other:num("holdOther"),redemptionMonths:redemptionMonths,postMonths:postMonths});
+ var title=E12.titleCosts({search:num("titleSearch"),quiet:num("quietTitle"),recording:num("recordingFee"),closing:num("closingCosts")});
+ var mb=E12.maxBidCalc({resale:resale,repairs:repairs,holdTotal:hold.holdTotal,titleTotal:title.titleTotal,profitPct:profitPct,senior:senior,minBid:minBid,plannedBid:num("plannedBid")});
+ var prob=num("redemptionProb");
+ var red=E12.redemption({plannedBid:mb.plannedBid,premiumPct:num("buyerPremiumPct"),depositPct:num("depositPct"),rate:redemptionRate,months:redemptionMonths,prob:prob,holdRedemption:hold.holdRedemption,costsAtPurchase:title.costsAtPurchase,resale:resale,repairs:repairs,holdTotal:hold.holdTotal,titleTotal:title.titleTotal});
+ var profit=E12.round2(mb.profit);
+ var holdTotal=E12.round2(hold.holdTotal);
+ var holdRedemption=E12.round2(hold.holdRedemption);
+ var titleTotal=E12.round2(title.titleTotal);
+ var costsAtPurchase=E12.round2(title.costsAtPurchase);
+ var maxBid=E12.round2(mb.maxBid);
+ var headroom=E12.round2(mb.headroom);
+ var premium=E12.round2(red.premium);
+ var deposit=E12.round2(red.deposit);
+ var interest=E12.round2(red.interest);
+ var payoff=E12.round2(red.payoff);
+ var netRedeemed=E12.round2(red.netRedeemed);
+ var netKept=E12.round2(red.netKept);
+ var ev=E12.round2(red.expectedValue);
+ var plannedBid=mb.plannedBid;
+ var monthlyHold=hold.monthlyHold;
+ var holdMonths=hold.holdMonths;
+ var quietTitle=num("quietTitle");
+
+ $("outResale").textContent=money(resale);
+ $("outRepairs").textContent=money(repairs);
+ $("outHolding").textContent=money(holdTotal);
+ $("outTitle").textContent=money(titleTotal);
+ $("outProfitPct").textContent=(profitPct===null?"0":profitPct);
+ $("outProfit").textContent=money(profit);
+ $("outSenior").textContent=money(senior);
+ $("outMaxBid").textContent=money(maxBid);
+ $("outMinBid").textContent=money(minBid);
+ $("outHeadroom").textContent=money(headroom);
+ $("outPlannedBid").textContent=money(plannedBid);
+ $("outMonthlyHold").textContent="$"+monthlyHold.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+ $("outHoldMonths").textContent=(holdMonths===null?"N/A":holdMonths+" months");
+ $("outHoldTotal").textContent=money(holdTotal);
+ $("outHoldRedemption").textContent=money(holdRedemption);
+ $("outTitleTotal").textContent=money(titleTotal);
+ $("outCostsAtPurchase").textContent=money(costsAtPurchase);
+ $("outQuiet").textContent=money(quietTitle);
+ $("outInterest").textContent=money(interest);
+ $("outPayoff").textContent=money(payoff);
+ $("outPremium").textContent=money(premium);
+ $("outDeposit").textContent=money(deposit);
+ $("outNetRedeemed").textContent=money(netRedeemed);
+ $("outNetKept").textContent=money(netKept);
+ $("outEV").textContent=money(ev);
+
+ var titleStatus=$("titleStatus").value;
+ var tk=E12.titleKill({titleStatus:titleStatus,quiet:quietTitle});
+ var mk=E12.maxBidKill({maxBid:mb.maxBid,minBid:minBid});
+ $("k_title").checked=tk;
+ $("k_maxbid").checked=mk;
+ $("titleWarning").hidden=!tk;
+ $("redemptionWarning").hidden=!redemptionUnknown;
+ var lienNote=$("valueNotes").value.trim();
+ $("lienWarning").hidden=!(senior===0&&lienNote==="");
+ var plannedInput=num("plannedBid");
+ var mw=$("maxBidWarning");
+ if(mk){mw.hidden=false;mw.textContent="Warning: max bid "+money(maxBid)+" is below the minimum bid "+money(minBid)+". No profitable bid exists at the stated profit. That is a kill condition.";}
+ else if(plannedInput!==null&&maxBid!==null&&plannedInput>maxBid){mw.hidden=false;mw.textContent="Warning: planned bid "+money(plannedInput)+" is above max bid "+money(maxBid)+". A bid above max bid does not leave the stated profit.";}
+ else{mw.hidden=true;mw.textContent="";}
+ $("redemptionNote").textContent=(prob===null)?"Enter a redemption probability to compute expected value. A probability with no basis in the notes is a guess: write the basis or leave it N/A.":"Redemption probability "+prob+" percent, basis: "+($("redemptionProbSource").value.trim()||"N/A, no basis stated")+".";
+ $("workingLines").textContent=(maxBid===null)?"Working lines (builder addition, live values): max bid is N/A until resale value, repairs, holding total, title total, desired profit, and senior liens are all entered.":"Working lines (builder addition, live values): max bid = "+money(resale)+" resale - "+money(repairs)+" repairs - "+money(holdTotal)+" holding - "+money(titleTotal)+" title - "+money(profit)+" profit - "+money(senior)+" senior liens = "+money(maxBid)+". Headroom = "+money(maxBid)+" - "+money(minBid)+" minimum bid = "+money(headroom)+".";
+
+ var gateVals={};
+ E12.GATE_IDS.forEach(function(id){gateVals[id]=gateVal(id);});
+ var gateEval=E12.evaluateGates(gateVals);
+ var gatesOk=gateEval.ok;
+ $("gateStatus").textContent=gatesOk?"GO - all gates pass":"HOLD - gates not verified";
+ $("gateStatus").className=gatesOk?"ok":"hold";
+ $("gatesPassed").textContent=gateEval.passed.length?gateEval.passed.join(", "):"None";
+ $("gatesFailed").textContent=gateEval.failed.length?gateEval.failed.join(", "):"None";
+
+ var manualKills=[];
+ if(redemptionUnknown||$("k_redemption_unknown").checked){manualKills.push(E12.KILLS[0]);}
+ if($("k_rules").checked){manualKills.push(E12.KILLS[3]);}
+ if($("k_senior").checked){manualKills.push(E12.KILLS[4]);}
+ var killEval=E12.evaluateKills({manualKills:manualKills,redemptionUnknown:redemptionUnknown,titleKill:tk,maxBidKill:mk});
+ var killReasons=killEval.fired;
+ var killActive=killEval.killActive;
+ $("killActive").textContent=killActive?"Yes":"No";
+ $("killReasons").textContent=killActive?killReasons.join("; "):"None";
+ var incomplete=(resale===null||minBid===null||redemptionMonths===null||titleStatus===""||maxBid===null||plannedBid===null);
+ var recObj=E12.recommendation({killActive:killActive,gatesOk:gatesOk,incomplete:incomplete});
+ var rec=recObj.text;
+ $("killRecommendation").textContent=rec;
+ $("killBox").innerHTML=killActive?'<div class="killbox"><b>Recommendation: PASS.</b> Kill-switch fired: '+esc(killReasons.join("; "))+'</div>':"";
+ $("resRec").textContent=rec;
+ $("stickyRec").textContent=rec;
+
+ var flags=E12.riskFlags({prob:prob,titleStatus:titleStatus,flagOccupied:$("flagOccupied").checked,flagNoPlan:$("flagNoPlan").checked,occupancy:$("occupancy").value,monthlyHold:monthlyHold,holdTotal:hold.holdTotal,senior:senior,redemptionMonths:redemptionMonths,redemptionUnknown:redemptionUnknown,plannedInput:plannedInput,maxBid:mb.maxBid,expectedValue:red.expectedValue});
+ $("riskFlagsOut").textContent=flags.length?flags.join("; "):"None";
+
+ $("resMaxBid").textContent=money(maxBid);
+ $("resHeadroom").textContent=money(headroom);
+ $("resPlannedBid").textContent=money(plannedBid);
+ $("resHoldTotal").textContent=money(holdTotal);
+ $("resTitleTotal").textContent=money(titleTotal);
+ $("resNetKept").textContent=money(netKept);
+ $("resNetRedeemed").textContent=money(netRedeemed);
+ $("resEV").textContent=money(ev);
+ $("stickyMaxBid").textContent=money(maxBid);
+ $("stickyHeadroom").textContent=money(headroom);
+ $("stickyEV").textContent=money(ev);
+ $("decisionBox").innerHTML=killActive?'<div class="killbox"><b>Recommendation: PASS.</b> Kill-switch fired. Do not bid. A kill is a successful run, not a failed one.</div>':(incomplete||!gatesOk)?'<div class="hint"><b>Status: HOLD.</b> '+(incomplete?"Max bid or redemption inputs are incomplete. ":"")+(!gatesOk?"Gates not all passing: "+gateEval.failed.join(", ")+". ":"")+'No bid without Jeramie.</div>':'<div class="passbox"><b>Status: READY FOR HUMAN REVIEW.</b> All gates pass and the math is complete. This is still an underwriting opinion only, not permission to bid. No bid without Jeramie.</div>';
+
+ var required=[
+  ["Parcel ID",!!$("parcelId").value.trim()],
+  ["County, State",!!$("county").value.trim()],
+  ["Auction date",!!$("auctionDate").value],
+  ["Auction type",!!$("auctionType").value],
+  ["Resale value",resale!==null],
+  ["Minimum bid",minBid!==null],
+  ["Redemption period (entered or marked unknown)",redemptionMonths!==null||redemptionUnknown],
+  ["Title status",titleStatus!==""]
+ ];
+ var comp=E12.completeness(required.map(function(x){return {label:x[0],done:x[1]};}));
+ var pct=comp.pct;
+ $("stickyCompleteText").textContent=pct+" percent";
+ $("stickyCompleteBar").style.width=pct+"%";
+ $("meterBar").style.width=pct+"%";
+ $("meterText").textContent=pct+" percent complete ("+comp.done+" of "+comp.total+" required fields).";
+ $("missingList").textContent=comp.missing.length?"Missing: "+comp.missing.join(", ")+".":"All required fields are filled.";
+ $("missingHints").textContent=comp.missing.length?("Missing for a GO: "+comp.missing.join(", ")+"."):"Nothing missing for a GO on required fields. Gates still need to be set to Pass.";
+
+ $("sumParcel").textContent=$("parcelId").value.trim()||"N/A";
+ $("sumCounty").textContent=$("county").value.trim()||"N/A";
+ $("sumAuctionDate").textContent=$("auctionDate").value||"N/A";
+ $("sumAuctionType").textContent=$("auctionType").value?$("auctionType").selectedOptions[0].text:"N/A";
+ $("sumRedemption").textContent=redemptionUnknown?"Unknown - KILL":(redemptionMonths===null?"N/A":redemptionMonths+" months");
+ $("sumTitle").textContent=titleStatus?$("titleStatus").selectedOptions[0].text:"N/A";
+ $("sumMaxBid").textContent=money(maxBid);
+ $("sumHeadroom").textContent=money(headroom);
+ $("sumNetKept").textContent=money(netKept);
+ $("sumEV").textContent=money(ev);
+ var conf=parseFloat($("confidence").value);if(!isFinite(conf))conf=0.5;
+ $("sumConfidence").textContent=conf.toFixed(2);
+ $("sumGates").textContent=gatesOk?"GO - all gates pass":"HOLD";
+ $("sumRec").textContent=rec;
+
+ var receipt={
+  schema_version:"tax-sale-receipt.v1.0",
+  run_id:runId,
+  run_date:$("runDate").value,
+  parcel_id:$("parcelId").value.trim()||null,
+  county:$("county").value.trim()||null,
+  address:$("address").value.trim()||null,
+  auction:{date:$("auctionDate").value||null,type:$("auctionType").value||null,source:$("saleSource").value.trim()||null,source_reference:$("auctionSourceUrl").value.trim()||null},
+  jurisdiction_rules:{
+   redemption_months:redemptionMonths,
+   redemption_unknown:redemptionUnknown,
+   redemption_rate_pct:redemptionRate,
+   deposit_pct:num("depositPct"),
+   buyer_premium_pct:num("buyerPremiumPct"),
+   redemption_premium:$("redemptionPremium").value.trim()||null,
+   rules_source:$("rulesSource").value.trim()||null,
+   rules_verified:$("rulesVerified").checked
+  },
+  value:{resale_value:resale,resale_source:$("resaleSource").value.trim()||null,repairs:repairs,minimum_bid:minBid,delinquent_tax:num("delinquentTax"),senior_liens:senior},
+  max_bid:maxBid,
+  headroom:headroom,
+  planned_bid:plannedBid,
+  buyer_premium:premium,
+  deposit_due:deposit,
+  desired_profit:profit,
+  profit_pct:profitPct,
+  redemption:{
+   probability_pct:prob,
+   probability_basis:$("redemptionProbSource").value.trim()||null,
+   interest_earned:interest,
+   payoff:payoff,
+   net_if_redeemed:netRedeemed,
+   net_if_kept:netKept,
+   expected_value:ev
+  },
+  title:{
+   status:titleStatus||null,
+   search_cost:num("titleSearch"),
+   quiet_title_budget:quietTitle,
+   quiet_title_months:num("quietTitleMonths"),
+   recording:num("recordingFee"),
+   closing:num("closingCosts"),
+   total:titleTotal,
+   costs_at_purchase:costsAtPurchase
+  },
+  holding:{
+   monthly:{taxes:num("holdTax"),insurance:num("holdInsurance"),maintenance:num("holdMaint"),interest:num("holdInterest"),other:num("holdOther"),total:monthlyHold},
+   redemption_months:redemptionMonths,
+   post_redemption_months:postMonths,
+   holding_months:holdMonths,
+   holding_total:holdTotal,
+   holding_during_redemption:holdRedemption
+  },
+  post_auction_plan:{plan:$("postPlan").value||null,timeline_months:num("postTimeline"),occupancy:$("occupancy").value||null,possession_plan:$("possessionPlan").value.trim()||null},
+  gates:{address_parcel:gateVal("address_parcel"),jurisdiction_rules:gateVal("jurisdiction_rules"),source:gateVal("source"),title:gateVal("title"),no_hallucination:gateVal("no_hallucination"),authority:gateVal("authority")},
+  kill_switch:killActive,
+  kill_reasons:killReasons,
+  risk_flags:flags,
+  confidence:conf,
+  offer_authorized:false,
+  recommendation:rec,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value,
+  receipt:{run_id:runId,sources_checked:parseInt($("parcelSources").value||"0",10)||0}
+ };
+ lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ updateHash();
+ return receipt;
+}
+
+function setVal(id,v){var el=$(id);if(el)el.value=v;}
+function setSampleNote(text){var n=$("sampleNote");n.textContent=text;n.hidden=false;}
+function resetAll(){
+ document.querySelectorAll('[data-gate]').forEach(function(el){el.value="hold";});
+ document.querySelectorAll('[data-kill]').forEach(function(el){el.checked=false;});
+ $("redemptionUnknown").checked=false;
+ $("rulesVerified").checked=false;
+ $("flagOccupied").checked=false;
+ $("flagNoPlan").checked=false;
+}
+function clearAll(){
+ document.querySelectorAll("input,select,textarea").forEach(function(el){
+  if(el.id==="runId"||el.id==="runDate"||el.id==="shareUrl")return;
+  if(el.hasAttribute("data-gate"))return;
+  if(el.hasAttribute("data-kill"))return;
+  if(el.type==="checkbox"){el.checked=false;}
+  else if(el.id==="confidence"){el.value="0.50";}
+  else if(el.id==="parcelSources"){el.value="0";}
+  else{el.value="";}
+ });
+ $("sampleNote").hidden=true;
+ resetAll();
+ calc();
+}
+function loadSampleA(){
+ clearAll();resetAll();
+ setVal("parcelId","SAMPLE-E12-A");setVal("county","Berrien County, MI");
+ setVal("address","123 Sample Tax Deed Rd, Benton Harbor, MI 49022");
+ setVal("auctionDate","2026-11-20");setVal("auctionType","tax_deed");
+ setVal("saleSource","County treasurer auction site, synthetic example");
+ setVal("auctionSourceUrl","county.example/auction/listing-sample-a");
+ setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+ setVal("parcelNotes","Sample deal only, not a real deal. Tax deed sale, synthetic example.");
+ setVal("redemptionMonths","6");setVal("redemptionRate","12");
+ setVal("depositPct","10");setVal("buyerPremiumPct","0");
+ setVal("redemptionPremium","None");
+ setVal("rulesSource","County treasurer rules page, synthetic example");
+ setVal("rulesNotes","Sample rules only: 6 month redemption, 12 percent per year, deed after redemption expires. Verify real rules with the county.");
+ $("rulesVerified").checked=true;
+ setVal("resaleValue","120000");setVal("resaleSource","Residential engine run, synthetic comps");
+ setVal("repairs","15000");setVal("minBid","18000");setVal("delinquentTax","18000");setVal("seniorLiens","0");
+ setVal("valueNotes","Lien search done in the sample: no senior liens survive. Sample only.");
+ setVal("profitPct","20");setVal("plannedBid","40000");
+ setVal("redemptionProb","25");setVal("redemptionProbSource","Owner-occupied, tax history in the sample");
+ setVal("titleStatus","insurable");
+ setVal("titleSearch","350");setVal("quietTitle","0");setVal("quietTitleMonths","0");
+ setVal("recordingFee","150");setVal("closingCosts","500");
+ setVal("titleNotes","Title review in the sample: insurable now. Sample only.");
+ setVal("holdTax","150");setVal("holdInsurance","120");setVal("holdMaint","80");
+ setVal("holdInterest","0");setVal("holdOther","50");setVal("postMonths","3");
+ setVal("postPlan","flip");setVal("postTimeline","9");setVal("occupancy","vacant");
+ setVal("possessionPlan","N/A, vacant");
+ setVal("planNotes","Sample plan: repair and flip after redemption expires at month 6, exit month 9.");
+ setVal("confidence","0.65");
+ setVal("assumptions","1. Sample deal only, not a real deal. 2. Redemption 6 months at 12 percent per year. 3. Title insurable now, no quiet title needed. 4. Redemption payoff is bid plus interest only, costs at purchase are not reimbursed.");
+ setVal("missingData","Real county rules, real title commitment, real repair bids.");
+ setVal("conflicts","None in the sample.");
+ document.querySelectorAll('[data-gate]').forEach(function(el){el.value="pass";});
+ setSampleNote("Sample A loaded. Tax deed sample, not a real deal. Expected: Max Bid $76,400.00, Headroom $58,400.00, Net if Kept $60,400.00, Net if Redeemed -$1,000.00, Expected Value $45,050.00.");
+ calc();
+}
+function loadSampleB(){
+ clearAll();resetAll();
+ setVal("parcelId","SAMPLE-E12-B");setVal("county","Berrien County, MI");
+ setVal("address","456 Sample Lien St, Benton Harbor, MI 49022");
+ setVal("auctionDate","2026-11-20");setVal("auctionType","tax_lien");
+ setVal("saleSource","County treasurer auction site, synthetic example");
+ setVal("auctionSourceUrl","county.example/auction/listing-sample-b");
+ setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+ setVal("parcelNotes","Sample deal only, not a real deal. Tax lien certificate, synthetic example.");
+ setVal("redemptionMonths","12");setVal("redemptionRate","18");
+ setVal("depositPct","10");setVal("buyerPremiumPct","0");
+ setVal("redemptionPremium","None");
+ setVal("rulesSource","County treasurer rules page, synthetic example");
+ setVal("rulesNotes","Sample rules only: 12 month redemption, 18 percent per year, foreclosure after redemption expires. Verify real rules with the county.");
+ $("rulesVerified").checked=true;
+ setVal("resaleValue","95000");setVal("resaleSource","Residential engine run, synthetic comps");
+ setVal("repairs","20000");setVal("minBid","8000");setVal("delinquentTax","12000");setVal("seniorLiens","0");
+ setVal("valueNotes","Lien search done in the sample: no senior liens survive. Sample only.");
+ setVal("profitPct","20");setVal("plannedBid","12000");
+ setVal("redemptionProb","70");setVal("redemptionProbSource","Owner-occupied, high redemption history in the sample");
+ setVal("titleStatus","quiet_title");
+ setVal("titleSearch","250");setVal("quietTitle","5000");setVal("quietTitleMonths","4");
+ setVal("recordingFee","150");setVal("closingCosts","500");
+ setVal("titleNotes","Title review in the sample: insurable after quiet title / foreclosure, budget $5,000. Sample only.");
+ setVal("holdTax","0");setVal("holdInsurance","0");setVal("holdMaint","0");
+ setVal("holdInterest","0");setVal("holdOther","25");setVal("postMonths","6");
+ setVal("postPlan","flip");setVal("postTimeline","18");setVal("occupancy","owner_occupied");
+ setVal("possessionPlan","Foreclosure counsel after redemption, sample only");
+ setVal("planNotes","Sample plan: collect interest if redeemed, foreclose and flip if not. Exit month 18.");
+ setVal("confidence","0.60");
+ setVal("assumptions","1. Sample deal only, not a real deal. 2. Redemption 12 months at 18 percent per year. 3. Foreclosure / quiet title $5,000 after redemption. 4. Redemption payoff is bid plus interest only.");
+ setVal("missingData","Real county rules, real title commitment, real foreclosure cost.");
+ setVal("conflicts","None in the sample.");
+ document.querySelectorAll('[data-gate]').forEach(function(el){el.value="pass";});
+ setSampleNote("Sample B loaded. Tax lien sample, not a real deal. Expected: Max Bid $49,650.00, Headroom $41,650.00, Net if Kept $56,650.00, Net if Redeemed $960.00, Expected Value $17,667.00.");
+ calc();
+}
+function loadSampleC(){
+ clearAll();resetAll();
+ setVal("parcelId","SAMPLE-E12-C");setVal("county","Berrien County, MI");
+ setVal("address","789 Sample Pass Rd, Benton Harbor, MI 49022");
+ setVal("auctionDate","2026-11-20");setVal("auctionType","tax_deed");
+ setVal("saleSource","County treasurer auction site, synthetic example");
+ setVal("auctionSourceUrl","county.example/auction/listing-sample-c");
+ setVal("parcelSources","2");setVal("parcelSourceNames","County assessor, County GIS");
+ setVal("parcelNotes","Sample deal only, not a real deal. PASS sample.");
+ setVal("redemptionRate","12");
+ setVal("depositPct","10");setVal("buyerPremiumPct","0");
+ setVal("redemptionPremium","Unknown");
+ setVal("rulesSource","N/A, rules not verified");
+ setVal("rulesNotes","Redemption period unknown in the sample. Rules not verified.");
+ $("redemptionUnknown").checked=true;
+ setVal("resaleValue","150000");setVal("resaleSource","Residential engine run, synthetic comps");
+ setVal("repairs","25000");setVal("minBid","30000");setVal("delinquentTax","30000");setVal("seniorLiens","0");
+ setVal("valueNotes","Lien search not done in the sample.");
+ setVal("profitPct","20");setVal("plannedBid","35000");
+ setVal("redemptionProb","50");setVal("redemptionProbSource","N/A, no basis");
+ setVal("titleStatus","uninsurable");
+ setVal("titleSearch","400");setVal("quietTitle","0");setVal("quietTitleMonths","0");
+ setVal("recordingFee","200");setVal("closingCosts","600");
+ setVal("titleNotes","Title review in the sample: uninsurable, no quiet-title budget. Sample only.");
+ setVal("holdTax","200");setVal("holdInsurance","150");setVal("holdMaint","100");
+ setVal("holdInterest","100");setVal("holdOther","50");setVal("postMonths","3");
+ setVal("postPlan","flip");setVal("postTimeline","9");setVal("occupancy","unknown");
+ setVal("possessionPlan","N/A");
+ setVal("planNotes","Sample plan only. No bid: both contract kills fired.");
+ setVal("confidence","0.40");
+ setVal("assumptions","1. Sample deal only, not a real deal. 2. PASS sample: redemption period unknown and title uninsurable with no quiet-title budget.");
+ setVal("missingData","Redemption period, title cure path, lien search.");
+ setVal("conflicts","None in the sample.");
+ document.querySelectorAll('[data-gate]').forEach(function(el){el.value="pass";});
+ var g=document.querySelector('[data-gate="jurisdiction_rules"]');if(g)g.value="fail";
+ var gt=document.querySelector('[data-gate="title"]');if(gt)gt.value="fail";
+ $("k_rules").checked=true;
+ setSampleNote("Sample C loaded. PASS sample, not a real deal. Redemption period unknown and title uninsurable with no quiet-title budget, so both contract kills fire. Expected: Max Bid N/A, Recommendation PASS.");
+ calc();
+}
+
+function collectState(){
+ var fields={};
+ document.querySelectorAll("input[id],select[id],textarea[id]").forEach(function(el){
+  if(el.id==="runId"||el.id==="runDate"||el.id==="shareUrl")return;
+  if(el.type==="checkbox"){fields[el.id]=el.checked;}
+  else{fields[el.id]=el.value;}
+ });
+ return fields;
+}
+function restoreState(fields){
+ Object.keys(fields).forEach(function(id){
+  var el=$(id);if(!el)return;
+  if(el.type==="checkbox"){el.checked=!!fields[id];}
+  else{el.value=fields[id];}
+ });
+}
+function encodeState(){
+ var json=JSON.stringify(collectState());
+ return btoa(unescape(encodeURIComponent(json)));
+}
+function updateHash(){
+ try{
+  var h="#d="+encodeState();
+  if(window.history&&window.history.replaceState){window.history.replaceState(null,"",h);}
+ }catch(e){}
+}
+function loadFromHash(){
+ if(!window.location.hash||window.location.hash.indexOf("#d=")!==0)return false;
+ try{
+  var json=decodeURIComponent(escape(atob(window.location.hash.slice(3))));
+  restoreState(JSON.parse(json));
+  return true;
+ }catch(e){return false;}
+}
+function copyText(text,msg){
+ function done(){var n=$("sampleNote");n.hidden=false;n.textContent=msg;}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallback();});}
+ else{fallback();}
+ function fallback(){
+  var ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();
+  try{document.execCommand("copy");}catch(e){}
+  document.body.removeChild(ta);done();
+ }
+}
+function copyShareLink(){
+ var url=window.location.origin+window.location.pathname+"#d="+encodeState();
+ $("shareUrl").value=url;
+ copyText(url,"Share link copied. Opening it restores the same inputs and the same math in the browser. Nothing is uploaded.");
+}
+function clearShareLink(){
+ if(window.history&&window.history.replaceState){window.history.replaceState(null,"",window.location.pathname);}
+ $("shareUrl").value="";
+ var n=$("sampleNote");n.hidden=false;n.textContent="Share link cleared.";
+}
+function copyReceipt(){
+ copyText($("receiptOut").textContent,"Receipt JSON copied.");
+}
+function downloadReceipt(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e12-tax-sale-receipt.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+function copyPrompt(){
+ copyText($("systemPromptText").textContent.replace(/^\n+/,"").replace(/\s+$/,"")+"\n","System prompt copied. It is not sent anywhere by this tool.");
+}
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!lastReceipt||!lastReceipt.run_id){var n=$("sampleNote");n.hidden=false;n.textContent="No receipt to issue yet.";return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E12.buildReceipt(lastReceipt,prev,seq);
+ sha256HexBrowser(E12.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){var m=$("sampleNote");m.hidden=false;m.textContent="Could not hash receipt: "+e.message;});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E12.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e12-tax-sale-auction-chain.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+document.addEventListener("input",function(e){if(e.target&&e.target.id){calc();}});
+document.addEventListener("change",function(e){if(e.target&&e.target.id){calc();}});
+$("btnSampleA").addEventListener("click",function(){loadSampleA();});
+$("btnSampleB").addEventListener("click",function(){loadSampleB();});
+$("btnSampleC").addEventListener("click",function(){loadSampleC();});
+$("btnWalkSample").addEventListener("click",function(){loadSampleA();});
+$("btnShare").addEventListener("click",copyShareLink);
+$("btnClearShare").addEventListener("click",clearShareLink);
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",copyReceipt);
+$("btnDownloadReceipt").addEventListener("click",downloadReceipt);
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnCopyPrompt").addEventListener("click",copyPrompt);
+$("btnPrint").addEventListener("click",function(){window.print();});
+
+window.__e12={calc:calc,loadSampleA:loadSampleA,loadSampleB:loadSampleB,loadSampleC:loadSampleC,clearAll:clearAll,collectState:collectState,restoreState:restoreState,encodeState:encodeState,loadFromHash:loadFromHash,issueReceipt:issueReceipt,verifyChain:verifyChain,getChain:function(){return chain;},getLastReceipt:function(){return lastReceipt;}};
+if(!loadFromHash()){calc();}
+renderChain();
+})();
+</script>
+</body>
+</html>
