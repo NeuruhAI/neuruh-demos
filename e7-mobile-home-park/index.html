@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Mobile Home Park Underwriting Engine E7 v1.0: pad count, lot rents, park-owned vs tenant-owned homes, infrastructure risk, infill upside, price per pad, with gates, kill-switch, and a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="Mobile Home Park Underwriting Engine E7 - Neuruh">
+<meta property="og:description" content="Evidence-first mobile home park underwriting: pads, lot rents, POH vs TOH, infrastructure risk, infill upside, price per pad, with gates, kill-switch, and a SHA-256 receipt chain. SIMULATION.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>Mobile Home Park Underwriting Engine E7 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace;text-align:right}
+.big{font-size:22px}
+.big b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+.tag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass);padding:1px 4px;white-space:nowrap}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.scroll{overflow-x:auto}
+.formula{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px}
+.working{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px;white-space:pre-wrap}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:150px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+footer a{color:var(--brass)}
+figure{margin:14px 0 4px;border:1px solid var(--line);background:var(--paper);padding:12px}
+figure svg{max-width:100%;height:auto;display:block}
+figcaption{font-size:12px;color:var(--muted);margin-top:8px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:760px){.grid,.grid2,.meta{grid-template-columns:1fr}header.doc h1{font-size:24px}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}
+}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.passbox{background:#e6efe6;border:1px solid var(--green);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{#summarySection{border:2px solid #000}#summarySection .result{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E7</div>
+<h1>Mobile Home Park Underwriting Engine</h1>
+<p>Pad count, lot rents, park-owned vs tenant-owned homes, infrastructure risk, infill upside, and price per pad. Built for a live park deal, not for browsing listings.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine E7 of 12 - SIMULATION</b></div>
+<div>Lineage<b>2026-11-04 E7 build + Residential v1.1 gates + E1 land engine</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not a survey, not legal, tax, or lending advice. Public-data underwriting only. Verify the parcel, title, utilities, and rent roll with the county and a licensed professional before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: 40-pad park</button>
+<button id="btnSampleB" type="button">Sample B: 25-pad TOH park</button>
+<button id="btnSampleC" type="button">Sample C: PASS</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnCopyPrompt" type="button">Copy system prompt</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<div class="scroll"><table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (pads, lot rent income, NOI, cap rate, price per pad, infill, MAO)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e7.js, run 2026-11-14. Sample A hand-computed expectations match: NOI $112,740.00, value $1,409,250.00, stabilized NOI $146,340.00, stabilized value $1,829,250.00, MAO $1,725,250.00. Sample B: NOI $88,728.00, value $1,183,040.00, MAO $1,229,706.67. Sample C: NOI $89,960.00, value $1,124,500.00, MAO N/A, all three AUTO kills fire.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e7.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge verified">VERIFIED</span></td><td>HTTP 200 at neuruhai.github.io/neuruh-demos/e7-mobile-home-park/, live MD5 matches staged file. See build report.</td></tr>
+<tr><td>Market data (rents, cap rates, expenses, comparable sales)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every rent, cap rate, expense, and price is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E7 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E7 specification document was found in the vault. The subject (Mobile Home Park) and its mechanics come from the 2026-11-04 E7 build, itself live at e7-mobile-home-park.pages.dev. See section 14 for the gap. Kill conditions and risk flags are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests are the verification for this build. See build report.</td></tr>
+</tbody>
+</table></div>
+</section>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change the lot rent in section 04.</li>
+<li><b>Step 3:</b> Watch NOI, value, price per pad, and MAO move in the sticky results panel at the top, then issue a receipt in section 12 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">NOI, current (MODELED ESTIMATE)</span><b id="stickyNOI">N/A</b></div>
+<div><span class="sr-label">Value at cap rate (MODELED ESTIMATE)</span><b id="stickyValue">N/A</b></div>
+<div><span class="sr-label">Price per pad (MODELED ESTIMATE)</span><b id="stickyPPP">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div style="font-size:12px;color:var(--muted);margin-top:4px" id="missingHints">Missing: address, parcel ID, total pads, occupied pads, lot rent, lot rent verification, cap rate, asking price, infrastructure liability priced.</div></div>
+</div>
+
+<section class="card" id="s1">
+<h2><span>02</span>Park and parcel</h2>
+<p class="sub">Address / parcel gate. Confirm the park from at least 2 public sources before any rent or pad count is used. A seller-stated pad count is a claim, not a fact.</p>
+<div class="grid">
+<div><label for="parkName">Park name</label><input id="parkName" type="text" placeholder="Example: Sample Mobile Home Park"></div>
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcelId">Parcel ID</label><input id="parcelId" type="text" placeholder="Example: 11-22-33-444-005.00"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="acres">Acres</label><input id="acres" type="number" min="0" step="0.01" placeholder="0.00"></div>
+<div><label for="zoning">Zoning district</label><input id="zoning" type="text" placeholder="Example: MHP, Mobile Home Park"></div>
+<div><label for="utilities">Utilities</label><select id="utilities"><option value="">Select</option><option value="public">Public water and sewer</option><option value="public_water_private_sewer">Public water, private sewer</option><option value="private_water_public_sewer">Private water, public sewer</option><option value="private">Private water and sewer</option><option value="well_septic">Well and septic</option><option value="unknown">Unknown</option></select></div>
+<div><label for="access">Access type</label><select id="access"><option value="">Select</option><option>Public road</option><option>Private road</option><option>Easement</option><option>Unknown</option></select></div>
+<div><label for="exitFit">Exit fit</label><select id="exitFit"><option value="">Select</option><option>Buy and hold, lot rent only</option><option>Buy, infill vacant pads</option><option>Buy, convert POH to TOH</option><option>Wholesale / assign</option><option>Pass</option></select></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+<div><label for="parcelSourceNames">Parcel source names</label><input id="parcelSourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+<div><label for="parkAge">Park age / year built</label><input id="parkAge" type="text" placeholder="Example: 1972, or N/A"></div>
+</div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>03</span>Pad count and occupancy</h2>
+<p class="sub">Pads are the asset. Homes are not. Count every pad, including vacant and unusable pads, and say which vacant pads can actually be filled. Occupancy = occupied pads divided by total pads.</p>
+<div class="grid">
+<div><label for="totalPads">Total pads</label><input id="totalPads" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="occupiedPads">Occupied pads</label><input id="occupiedPads" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="unusablePads">Unusable pads (flood, access, no hookup)</label><input id="unusablePads" type="number" min="0" step="1" value="0"></div>
+<div><label for="pohCount">Park-owned homes (POH)</label><input id="pohCount" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="homeRent">POH home rent ($/mo per home, above lot rent)</label><input id="homeRent" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="pohCondition">POH condition</label><select id="pohCondition"><option value="">Select</option><option>Good</option><option>Fair</option><option>Poor</option><option>Mixed</option><option>Unknown</option><option>No POH</option></select></div>
+<div><label for="pohAge">POH average age (years)</label><input id="pohAge" type="number" min="0" step="1" placeholder="0"></div>
+<div><label for="tohNotes">TOH / POH notes (source each claim, or N/A)</label><textarea id="tohNotes" placeholder="Example: 26 TOH per rent roll dated 2026-10-01; 6 POH, 1980s vintage, Fair condition"></textarea></div>
+</div>
+<div class="result">
+<div class="row"><span>Vacant pads (total minus occupied)</span><b id="outVacant">N/A</b></div>
+<div class="row"><span>Fillable vacant pads (vacant minus unusable)</span><b id="outFillable">N/A</b></div>
+<div class="row"><span>Tenant-owned homes (TOH = occupied minus POH)</span><b id="outTOH">N/A</b></div>
+<div class="row"><span>Occupancy</span><b id="outOccupancy">N/A</b></div>
+<div class="row"><span>POH share of occupied pads</span><b id="outPOHShare">N/A</b></div>
+</div>
+<div class="working" id="workPads">Pad math: vacant pads = total pads - occupied pads. Fillable vacant pads = vacant pads - unusable pads. TOH = occupied pads - POH count. Occupancy = occupied pads / total pads.</div>
+<div class="warning" id="padWarning" hidden></div>
+<figure>
+<svg id="padFig" viewBox="0 0 600 120" role="img" aria-label="Pad mix diagram">
+<rect x="10" y="20" width="580" height="34" fill="#efe9dc" stroke="#d8cfb8"></rect>
+<rect id="figTOH" x="10" y="20" width="0" height="34" fill="#9a7b2d"></rect>
+<rect id="figPOH" x="10" y="20" width="0" height="34" fill="#1d1a16"></rect>
+<rect id="figVacant" x="10" y="20" width="0" height="34" fill="#ffffff" stroke="#d8cfb8"></rect>
+<text id="figTOHLabel" x="16" y="42" font-size="12" fill="#ffffff" font-family="monospace">TOH</text>
+<text id="figPOHLabel" x="16" y="42" font-size="12" fill="#ffffff" font-family="monospace"></text>
+<text id="figVacLabel" x="16" y="42" font-size="12" fill="#1d1a16" font-family="monospace"></text>
+<text x="10" y="80" font-size="12" fill="#6b6257" font-family="monospace">Brass = tenant-owned occupied pads. Ink = park-owned occupied pads. White = vacant pads.</text>
+<text id="figCaption" x="10" y="100" font-size="12" fill="#1d1a16" font-family="monospace">Enter total pads, occupied pads, and POH count to draw the pad mix.</text>
+</svg>
+<figcaption>Figure 1. Pad mix. The bar is drawn from the pad counts above. A park with mostly park-owned homes is a different business than a park with mostly tenant-owned homes: POH rent looks like income and behaves like a maintenance liability.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s3">
+<h2><span>04</span>Lot rents and rent roll</h2>
+<p class="sub">Lot rent is the income that is valued. Home rent on park-owned homes is separate and is not lot rent. Lot rent is unverifiable until the rent roll ties to bank deposits or a signed rent roll with a named source and date. Unverified lot rent is a kill condition, not a discount.</p>
+<div class="grid">
+<div><label for="lotRent">Current lot rent ($/mo per pad)</label><input id="lotRent" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="marketRent">Market lot rent ($/mo per pad)</label><input id="marketRent" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="rentVerification">Lot rent verification</label><select id="rentVerification"><option value="">Select</option><option value="verified_deposits">Verified - rent roll plus bank deposits</option><option value="verified_roll">Verified - rent roll only</option><option value="partial">Partially verified</option><option value="unverified">Unverified - seller claim only</option></select></div>
+<div><label for="rentSource">Rent source (name and date)</label><input id="rentSource" type="text" placeholder="Example: Rent roll 2026-10-01, bank statements Sep 2026"></div>
+<div><label for="lastIncrease">Last lot rent increase (date and amount)</label><input id="lastIncrease" type="text" placeholder="Example: 2026-01-01, $325 to $350, or N/A"></div>
+<div><label for="rentNotes">Rent notes</label><textarea id="rentNotes" placeholder="Rent control, lot rent caps, delinquency, concessions, or N/A"></textarea></div>
+</div>
+<table style="margin-top:14px">
+<thead><tr><th>Pad / lot</th><th>Home type</th><th>Occupied</th><th>Lot rent ($/mo)</th><th>Source reference</th></tr></thead>
+<tbody id="rollBody"></tbody>
+</table>
+<div style="margin-top:10px"><button id="btnAddRoll" type="button">Add rent roll row</button></div>
+<div class="result">
+<div class="row"><span>Usable rent roll rows (pad, lot rent, source filled)</span><b id="rollUsable">0</b></div>
+<div class="row"><span>Rent roll note</span><span id="rollNote">Add at least 3 usable rent roll rows. The roll is evidence for the lot rent above; it does not replace the verification select.</span></div>
+</div>
+<div class="warning" id="rentWarning" hidden>Warning: lot rent is unverified. This is a kill condition. The recommendation is PASS until the rent roll ties to a named source.</div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>05</span>Income and expenses</h2>
+<p class="sub">Deterministic math. Gross lot rent income is occupied pads times lot rent times 12. POH home rent is POH count times home rent times 12 and is shown on its own line so it can never be mistaken for lot rent. If POH home rent is blank while POH count is above zero, income is N/A.</p>
+<div class="grid">
+<div><label for="otherIncome">Other income ($/yr, laundry, fees, storage)</label><input id="otherIncome" type="number" min="0" step="1" value="0"></div>
+<div><label for="lossPct">Vacancy and collection loss (%)</label><input id="lossPct" type="number" min="0" max="100" step="0.1" value="5"></div>
+<div><label for="opexAnnual">Operating expenses ($/yr, excl. debt service)</label><input id="opexAnnual" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="opexNotes">Expense notes (source each line, or N/A)</label><textarea id="opexNotes" placeholder="Example: Taxes, insurance, water/sewer, trash, management, repairs, from 2025 P and L"></textarea></div>
+</div>
+<div class="result">
+<div class="row"><span>Gross lot rent income ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outLotIncome">N/A</b></div>
+<div class="row"><span>POH home rent income ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outHomeIncome">N/A</b></div>
+<div class="row"><span>Other income ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outOtherIncome">N/A</b></div>
+<div class="row"><span>Gross income ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outGross">N/A</b></div>
+<div class="row"><span>Less vacancy and collection loss <span class="tag">MODELED ESTIMATE</span></span><b id="outLoss">N/A</b></div>
+<div class="row"><span>Effective gross income ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outEGI">N/A</b></div>
+<div class="row"><span>Less operating expenses ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outOpex">N/A</b></div>
+<div class="row big"><span>NOI, current ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outNOI">N/A</b></div>
+<div class="row"><span>Operating expense per pad ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outOpexPerPad">N/A</b></div>
+<div class="row"><span>NOI per occupied pad ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outNOIPerPad">N/A</b></div>
+</div>
+<div class="working" id="workIncome">NOI cannot be computed yet: lot rent income, POH home rent, or operating expenses are missing.</div>
+</section>
+
+<section class="card" id="s5">
+<h2><span>06</span>Infrastructure risk: water, sewer, roads</h2>
+<p class="sub">Infrastructure is where park deals die. Private water or sewer with no inspection is a kill condition. An infrastructure liability with no price is a kill condition. Enter 0 only when the liability has actually been priced at zero, with the inspection or bid that supports it.</p>
+<div class="grid">
+<div><label for="waterSystem">Water system</label><select id="waterSystem"><option value="">Select</option><option value="public">Public water</option><option value="private">Private water system</option><option value="well">Private well(s)</option><option value="unknown">Unknown</option></select></div>
+<div><label for="sewerSystem">Sewer system</label><select id="sewerSystem"><option value="">Select</option><option value="public">Public sewer</option><option value="private">Private sewer / treatment plant</option><option value="septic">Septic / lagoon</option><option value="unknown">Unknown</option></select></div>
+<div><label for="roadsCondition">Roads condition</label><select id="roadsCondition"><option value="">Select</option><option>Good</option><option>Fair</option><option>Poor</option><option>Unknown</option></select></div>
+<div><label for="inspectionStatus">Infrastructure inspection</label><select id="inspectionStatus"><option value="">Select</option><option value="inspected">Inspected - report in hand</option><option value="pending">Inspected - report pending</option><option value="scheduled">Scheduled, not yet done</option><option value="not_inspected">Not inspected</option></select></div>
+<div><label for="inspectionDate">Inspection date</label><input id="inspectionDate" type="date"></div>
+<div><label for="infraLiability">Infrastructure liability, priced ($)</label><input id="infraLiability" type="number" min="0" step="1" placeholder="Blank = unpriced, which is a kill"></div>
+<div><label for="infraCapex">Annual infrastructure reserve ($/yr)</label><input id="infraCapex" type="number" min="0" step="1" value="0"></div>
+<div><label for="infraNotes">Infrastructure notes (source each item, or N/A)</label><textarea id="infraNotes" placeholder="Example: Private sewer plant, 2024 inspection, $25,000 of priced repairs; roads Fair, repave bid $40,000"></textarea></div>
+</div>
+<div class="warning" id="infraWarning" hidden></div>
+<div class="result">
+<div class="row"><span>Utilities are private (any system)</span><b id="outPrivateUtil">N/A</b></div>
+<div class="row"><span>Infrastructure liability priced</span><b id="outLiabilityPriced">No - blank</b></div>
+<div class="row"><span>Infrastructure liability ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outLiability">N/A</b></div>
+<div class="row"><span>Infrastructure liability per pad ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outLiabilityPerPad">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s6">
+<h2><span>07</span>Infill upside</h2>
+<p class="sub">Infill is valued only on fillable vacant pads: vacant pads minus unusable pads. Stabilized NOI adds the market lot rent on each fillable pad, less the added operating expense per infilled pad. Infill cost is priced per pad and subtracted in full from MAO in section 08.</p>
+<div class="grid">
+<div><label for="infillCostPerPad">Infill cost per pad ($, home, transport, set, hookup)</label><input id="infillCostPerPad" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="addedOpexPerPad">Added opex per infilled pad ($/yr)</label><input id="addedOpexPerPad" type="number" min="0" step="1" value="0"></div>
+<div><label for="monthsToFill">Months to fill the vacant pads</label><input id="monthsToFill" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="infillNotes">Infill notes (source each claim, or N/A)</label><textarea id="infillNotes" placeholder="Example: 8 fillable pads, home vendor quote $8,000 per pad, county permits 60 days"></textarea></div>
+</div>
+<div class="result">
+<div class="row"><span>Fillable vacant pads</span><b id="outInfillPads">N/A</b></div>
+<div class="row"><span>Added lot rent income at market rent ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outInfillIncome">N/A</b></div>
+<div class="row"><span>Less added opex ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outInfillOpex">N/A</b></div>
+<div class="row"><span>Net added NOI from infill ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outInfillNet">N/A</b></div>
+<div class="row"><span>Total infill cost ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outInfillCost">N/A</b></div>
+<div class="row big"><span>Stabilized NOI ($/yr) <span class="tag">MODELED ESTIMATE</span></span><b id="outStabNOI">N/A</b></div>
+<div class="row"><span>Stabilized value at cap rate ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outStabValue">N/A</b></div>
+</div>
+<div class="working" id="workInfill">Infill cannot be computed yet: fillable pads, market lot rent, or current NOI are missing.</div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>08</span>Valuation: cap rate, price per pad, MAO</h2>
+<p class="sub">Value = NOI divided by cap rate. Price per pad = asking price divided by total pads. Price per occupied pad = asking price divided by occupied pads. MAO = stabilized value minus infrastructure liability minus total infill cost minus assignment buffer. If the liability is unpriced, MAO is N/A.</p>
+<div class="grid">
+<div><label for="capRate">Cap rate (%)</label><input id="capRate" type="number" min="0" step="0.1" placeholder="Blank = N/A"></div>
+<div><label for="capSource">Cap rate source</label><input id="capSource" type="text" placeholder="Example: 3 park sales, county records, or N/A"></div>
+<div><label for="askingPrice">Asking price ($)</label><input id="askingPrice" type="number" min="0" step="1" placeholder="Blank = N/A"></div>
+<div><label for="assignBuffer">Assignment buffer ($, builder default 15,000)</label><input id="assignBuffer" type="number" min="0" step="1" value="15000"></div>
+</div>
+<div class="result">
+<div class="row"><span>Value at cap rate, current NOI ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outValue">N/A</b></div>
+<div class="row"><span>Value per pad ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outValuePerPad">N/A</b></div>
+<div class="row"><span>Value per occupied pad ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outValuePerOcc">N/A</b></div>
+<div class="row"><span>Price per pad, asking ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outPricePerPad">N/A</b></div>
+<div class="row"><span>Price per occupied pad, asking ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outPricePerOcc">N/A</b></div>
+<div class="row"><span>Asking price vs current value ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outAskVsValue">N/A</b></div>
+<div class="row"><span>Less infrastructure liability ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outMaoLiability">N/A</b></div>
+<div class="row"><span>Less total infill cost ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outMaoInfill">N/A</b></div>
+<div class="row"><span>Less assignment buffer ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outMaoBuffer">N/A</b></div>
+<div class="row big"><span>Wholesale MAO ($) <span class="tag">MODELED ESTIMATE</span></span><b id="outMAO">N/A</b></div>
+</div>
+<div class="working" id="workValue">Value cannot be computed yet: NOI or cap rate is missing. MAO cannot be computed yet: stabilized value, priced liability, or infill cost is missing.</div>
+<figure>
+<svg viewBox="0 0 600 190" role="img" aria-label="Valuation flow diagram">
+<rect x="10" y="14" width="120" height="44" fill="#fffdf6" stroke="#1d1a16"></rect><text x="70" y="32" font-size="12" text-anchor="middle" fill="#1d1a16" font-family="monospace">LOT RENT</text><text x="70" y="48" font-size="12" text-anchor="middle" fill="#6b6257" font-family="monospace">x occupied pads</text>
+<rect x="160" y="14" width="120" height="44" fill="#fffdf6" stroke="#1d1a16"></rect><text x="220" y="32" font-size="12" text-anchor="middle" fill="#1d1a16" font-family="monospace">EGI</text><text x="220" y="48" font-size="12" text-anchor="middle" fill="#6b6257" font-family="monospace">less loss</text>
+<rect x="310" y="14" width="120" height="44" fill="#fffdf6" stroke="#1d1a16"></rect><text x="370" y="32" font-size="12" text-anchor="middle" fill="#1d1a16" font-family="monospace">NOI</text><text x="370" y="48" font-size="12" text-anchor="middle" fill="#6b6257" font-family="monospace">less opex</text>
+<rect x="460" y="14" width="130" height="44" fill="#e8ddba" stroke="#9a7b2d"></rect><text x="525" y="32" font-size="12" text-anchor="middle" fill="#1d1a16" font-family="monospace">VALUE</text><text x="525" y="48" font-size="12" text-anchor="middle" fill="#6b6257" font-family="monospace">NOI / cap rate</text>
+<rect x="10" y="96" width="120" height="44" fill="#fffdf6" stroke="#1d1a16"></rect><text x="70" y="114" font-size="12" text-anchor="middle" fill="#1d1a16" font-family="monospace">INFILL</text><text x="70" y="130" font-size="12" text-anchor="middle" fill="#6b6257" font-family="monospace">stabilized NOI</text>
+<rect x="160" y="96" width="120" height="44" fill="#fffdf6" stroke="#1d1a16"></rect><text x="220" y="114" font-size="12" text-anchor="middle" fill="#1d1a16" font-family="monospace">STAB. VALUE</text><text x="220" y="130" font-size="12" text-anchor="middle" fill="#6b6257" font-family="monospace">stab. NOI / cap</text>
+<rect x="310" y="96" width="120" height="44" fill="#fffdf6" stroke="#1d1a16"></rect><text x="370" y="114" font-size="12" text-anchor="middle" fill="#1d1a16" font-family="monospace">LESS COSTS</text><text x="370" y="130" font-size="12" text-anchor="middle" fill="#6b6257" font-family="monospace">liability + infill</text>
+<rect x="460" y="96" width="130" height="44" fill="#9a7b2d" stroke="#9a7b2d"></rect><text x="525" y="114" font-size="12" text-anchor="middle" fill="#ffffff" font-family="monospace">MAO</text><text x="525" y="130" font-size="12" text-anchor="middle" fill="#ffffff" font-family="monospace">less buffer</text>
+<text x="140" y="42" font-size="16" fill="#9a7b2d" font-family="monospace">&gt;</text>
+<text x="290" y="42" font-size="16" fill="#9a7b2d" font-family="monospace">&gt;</text>
+<text x="440" y="42" font-size="16" fill="#9a7b2d" font-family="monospace">&gt;</text>
+<text x="140" y="124" font-size="16" fill="#9a7b2d" font-family="monospace">&gt;</text>
+<text x="290" y="124" font-size="16" fill="#9a7b2d" font-family="monospace">&gt;</text>
+<text x="440" y="124" font-size="16" fill="#9a7b2d" font-family="monospace">&gt;</text>
+<text x="10" y="168" font-size="12" fill="#6b6257" font-family="monospace">Every box is computed from the inputs above. No box is filled from a guess.</text>
+</svg>
+<figcaption>Figure 2. Valuation flow. Lot rent income becomes NOI, NOI becomes value at the cap rate, infill lifts NOI to stabilized value, and MAO is stabilized value less the priced infrastructure liability, total infill cost, and the assignment buffer.</figcaption>
+</figure>
+</section>
+
+<section class="card" id="s8">
+<h2><span>09</span>Gates - fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span>10</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">A kill is a successful run, not a failed one. Recommendation on a kill is PASS. Do not soften it. This section is the end of every engine run.</p>
+<div class="result">
+<div class="row"><span>Kill 1: Private utilities with no inspection</span><b id="killAuto1">Not fired</b></div>
+<div class="row"><span>Kill 2: Lot rent unverifiable</span><b id="killAuto2">Not fired</b></div>
+<div class="row"><span>Kill 3: Infrastructure liability unpriced</span><b id="killAuto3">Not fired</b></div>
+</div>
+<div class="checklist" style="margin-top:12px">
+<div class="item"><input type="checkbox" id="k_title"><label for="k_title">Title defect with no cure cost</label></div>
+<div class="item"><input type="checkbox" id="k_occupancy"><label for="k_occupancy">Occupancy below 60 percent with no lease-up or infill plan</label></div>
+<div class="item"><input type="checkbox" id="k_flood"><label for="k_flood">Flood or environmental flag with no professional report</label></div>
+</div>
+<div class="result">
+<div class="row"><span>Kill-switch active</span><b id="killActive">No</b></div>
+<div class="row"><span>Kill reasons</span><b id="killReasons">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="recommendation">HOLD</b></div>
+</div>
+<div style="margin-top:12px"><strong>Risk flags</strong><ul id="riskFlags" style="margin:8px 0;padding-left:20px"><li>None recorded yet.</li></ul></div>
+<div style="margin-top:12px" class="grid2">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>11</span>One-page summary - print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above.</p>
+<div class="result">
+<div class="row"><span>Park</span><b id="sumPark">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Total pads / occupied / vacant</span><b id="sumPads">N/A</b></div>
+<div class="row"><span>Occupancy</span><b id="sumOccupancy">N/A</b></div>
+<div class="row"><span>POH / TOH</span><b id="sumPOHTOH">N/A</b></div>
+<div class="row"><span>Lot rent / market lot rent</span><b id="sumRent">N/A</b></div>
+<div class="row"><span>NOI, current <span class="tag">MODELED ESTIMATE</span></span><b id="sumNOI">N/A</b></div>
+<div class="row"><span>Value at cap rate <span class="tag">MODELED ESTIMATE</span></span><b id="sumValue">N/A</b></div>
+<div class="row"><span>Price per pad / per occupied pad <span class="tag">MODELED ESTIMATE</span></span><b id="sumPPP">N/A</b></div>
+<div class="row"><span>Stabilized NOI / stabilized value <span class="tag">MODELED ESTIMATE</span></span><b id="sumStab">N/A</b></div>
+<div class="row big"><span>Wholesale MAO <span class="tag">MODELED ESTIMATE</span></span><b id="sumMAO">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+</section>
+
+<section class="card" id="s10">
+<h2><span>12</span>Receipt and receipt chain</h2>
+<p class="sub">Generated from the inputs above. Matches the e7-mobile-home-park-receipt v1.0 schema fields. Offer authorized is always false in this tool. The receipt is evidence, not an offer. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e7-mobile-home-park-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<div class="toolbar no-print" style="position:static;border-bottom:0">
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+</div>
+<div id="chainStatus" class="hint" style="margin-top:12px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+</section>
+
+<section class="card" id="s11">
+<h2><span>13</span>System prompt</h2>
+<p class="sub">The full system prompt text is embedded in this file for copying. Use the Copy system prompt button above. It is not sent anywhere by this tool. Carried from the 2026-11-04 E7 build.</p>
+<details><summary>Show system prompt text</summary><pre id="promptView"></pre></details>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>14</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the park and parcel from at least 2 public sources, count every pad and split park-owned from tenant-owned homes, verify lot rent against a rent roll and a named source, price the infrastructure liability from an inspection or bid, run income to NOI at the stated cap rate, then value the infill upside on fillable pads only and subtract the liability, the infill cost, and the assignment buffer to reach MAO. Every number carries its source or is marked N/A. A share link encodes the whole deal in the URL so someone else can open the same numbers.</p>
+<p><b>What this is not:</b> not an appraisal, not a survey, not legal, tax, or lending advice, and not a replacement for county verification, a title commitment, a utility inspection, a perc test, or a licensed professional. It does not invent pad counts, rents, cap rates, or prices. If a field cannot be verified, it stays N/A. A high MAO does not mean a deal is good, and a PASS does not mean a property is bad. It means the evidence in this run does not support proceeding on the stated exit. No offer is quoted without Jeramie.</p>
+<p><b>Sources read for this build:</b> (1) Mobile Home Park Underwriting Engine E7 v1.0, 2026-11-04, local file ~/workspace/e7-mobile-home-park-site/index.html (1142 lines, 77,303 bytes, MD5 de604172d65d629de06f2d33d3d895fb), live at https://e7-mobile-home-park.pages.dev/ (HTTP 200, byte-identical to the local file). Subject, inputs, outputs, gates, kill conditions, risk flags, and all three samples are carried from it. (2) E5 Commercial Underwriting Engine v1.0, 2026-11-14, local files ~/workspace/e5-commercial/ (index.html, e5.js, tests/test-e5.js), live at https://neuruhai.github.io/neuruh-demos/e5-commercial/. Pattern followed: SIMULATION banner, status board, MODELED ESTIMATE labels, SHA-256 receipt chain, Node test suite. (3) Vault note ~/workspace/neuruh-obsidian-vault/02-Real-Estate-Land/UnderwriteX.md, line 52: "Underwriting engines Residential v1.1 and E1 Land and Zoning Unlock v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending." (4) Hub, 2026-11-14, https://neuruh-hub.pages.dev/: section A lists E7 Mobile Home Park at e7-mobile-home-park.pages.dev, added 2026-11-04. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. See the gaps list below.</p>
+<p><b>Related engines:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://neuruhai.github.io/neuruh-demos/e2-small-multifamily/">E2 Small Multifamily (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e3-rental-brrrr/">E3 Rental / BRRRR (GitHub Pages)</a> | <a href="https://neuruhai.github.io/neuruh-demos/e5-commercial/">E5 Commercial (GitHub Pages)</a>. Use the Residential engine for ARV and MAO on the purchase side, and E1 when the deal is really a land deal.</p>
+<p><b>Builder defaults, labeled as the builder's defaults, editable, never market facts:</b> assignment buffer $15,000. No other defaults are baked in: lot rent, market rent, cap rate, vacancy and collection loss, opex, infill cost, and liability are all entered by the user, and a blank field is N/A or zero as stated on the page, never a hidden market assumption. The receipt chain design (SHA-256, GENESIS first, canonical JSON with sorted keys and the hash field stripped, Web Crypto Verify in the browser) is the builder's addition: the 2026-11-04 E7 receipt had no hash chain. The working-lines blocks in sections 03, 05, 07, and 08 are also the builder's addition.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>14</span>Honest gaps and limits</h2>
+<p class="sub">What this tool does not do, stated plainly.</p>
+<ul>
+<li>It does not pull live county records, rent rolls, or bank statements; every fact is entered by hand and must be checked at its source.</li>
+<li>It does not model rent control, local park ordinances, eviction timelines, or tenant relocation costs.</li>
+<li>It values lot rent income only; the homes themselves are not appraised here, and park-owned home values are not in MAO.</li>
+<li>Cap rate is entered by hand and is only as good as its source.</li>
+<li>Infill math assumes the fillable pads can actually be permitted and filled on the stated timeline.</li>
+<li>It does not underwrite debt: there is no DSCR, loan-to-value, or amortization math here, so a deal that passes this engine still needs lender underwriting.</li>
+<li>It does not check title, zoning, environmental condition, or floodplain status beyond the operator-checked kill boxes. Those need the E8 Distressed Title engine and a licensed professional.</li>
+<li>No E7 specification document was found in the vault. Greps for E7 and Mobile Home Park across the vault returned only the UnderwriteX.md line cited in section 14, the 2026-11-04 E7 build itself, and unrelated hits (UUID fragments, drive-lane research files, Lakeshore taxonomy mentions). The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. What would ground E7 further: the Codex V2 Appendix B document, or a written E7 spec from Jeramie stating the subject and mechanics.</li>
+<li>The carried kill 3 contract has an empty-run quirk: infrastructure liability unpriced only fires once NOI exists, so a blank page does not fire kill 3. This is the 2026-11-04 contract carried verbatim. Enter income to leave that state.</li>
+<li>Layout was not eyeballed in a real browser. Math was tested in Node with hand-computed values. See the build report.</li>
+<li>All sample deals are synthetic and labeled as such.</li>
+</ul>
+</section>
+
+<footer>
+<p>Mobile Home Park Underwriting Engine E7 v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. Offer authorized is always false. This file works offline except for the e7.js module it loads from the same directory. Print this page for the file copy. Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a>.</p>
+</footer>
+
+</div>
+
+<script type="text/plain" id="systemPromptText">
+# SYSTEM: MOBILE HOME PARK UNDERWRITING ENGINE E7 v1.0
+
+# Architecture: Evidence-first | Deterministic calculations | Non-waivable gates | Receipt required
+# Domain: Mobile home parks, pad income, lot rents, park-owned vs tenant-owned homes, private utilities, infill
+# Status: Not an appraisal. Not a survey. Not legal, tax, or lending advice. Public-data underwriting only.
+# Lineage: Codex V2 Appendix B, Engine E7 Mobile Home Park + Residential Underwriting Engine v1.1 core gates + E1 Land and Zoning Unlock
+# Version: v1.0, 2026-11-04. Engine E7 of 12 in the non-residential sequence.
+
+You are a mobile home park underwriter. Follow every rule exactly. Do not guess. Do not invent facts. If information is unavailable after a documented search, retain the field and write "N/A".
+
+Before any other text, output exactly one line:
+PARK {{PARK NAME OR PARCEL ID}} | {{TODAYS DATE}}
+
+## 1. NON-NEGOTIABLE GATES (fail closed)
+
+- ADDRESS / PARCEL GATE: Confirm exact park name, street address, parcel ID, county, state, and acreage. Cross-check at least 2 public sources. If conflict exists, stop valuation, show both sources, propose the likely correction, and wait. Never underwrite an unconfirmed park.
+- SOURCE GATE: Every pad count, rent, cap rate, expense, and infrastructure claim carries a full raw source reference and date. No source, no use. No hallucinated rents, occupancies, cap rates, or sale prices. Ever.
+- LOT RENT GATE: Lot rent is verified against a rent roll plus bank deposits, or a rent roll alone, and the verification level is stated. A seller claim only is unverified and is a kill condition, not a discount.
+- INFRASTRUCTURE GATE: Water, sewer, and roads are each stated as public or private, with an inspection status and date, and a priced liability. Private utilities with no inspection is a kill. An unpriced liability is a kill.
+- NO HALLUCINATION GATE: If a field cannot be verified, write N/A and list it in Data Conflicts. N/A is a correct answer. An invented number is a failed run.
+- AUTHORITY GATE: This engine produces an underwriting opinion, not an offer. No offer is quoted without Jeramie. Offer authorized = false on every run unless a human approval record is attached.
+
+## 2. SOURCE HIERARCHY (strongest first)
+
+1. County assessor / recorder / GIS (parcel, acreage, ownership, tax)
+2. Rent roll plus bank deposits (lot rent, occupancy, delinquency)
+3. Closed park sale record via a named source (cap rate, price per pad)
+4. Licensed professional report (utility inspection, engineer, survey, title commitment) with author and date
+5. Public listing with URL and date
+6. Seller / agent statement (claim only, never a fact)
+7. Model estimate / AVM (reference only, never a comp)
+
+When sources conflict, the higher source wins. Record the conflict, do not erase it.
+
+## 3. REQUIRED OUTPUTS
+
+- Pad count: total pads, occupied pads, vacant pads, fillable vacant pads, occupancy percent.
+- Lot rents: current lot rent, market lot rent, verification level, rent roll evidence.
+- Park-owned vs tenant-owned homes: POH count, TOH count, POH home rent, POH condition and age, POH share of occupied pads.
+- Infrastructure risk: water system, sewer system, roads condition, inspection status and date, priced liability, liability per pad, annual reserve.
+- Infill upside: fillable pads, added income at market rent, added opex, net added NOI, total infill cost, stabilized NOI, stabilized value.
+- Price per pad: asking price per pad, asking price per occupied pad, value per pad, value per occupied pad, asking price vs value.
+- NOI, cap rate value, wholesale MAO, gates, kill-switch, receipt.
+
+## 4. DETERMINISTIC MATH (exact)
+
+- Vacant pads = total pads - occupied pads. Fillable vacant pads = vacant pads - unusable pads.
+- TOH = occupied pads - POH count. Occupancy = occupied pads / total pads.
+- Gross lot rent income = occupied pads x lot rent x 12.
+- POH home rent income = POH count x home rent x 12. If POH count is above zero and home rent is blank, income is N/A.
+- Gross income = gross lot rent income + POH home rent income + other income.
+- Effective gross income = gross income x (1 - vacancy and collection loss percent).
+- NOI = effective gross income - operating expenses.
+- Value = NOI / cap rate. Value per pad = value / total pads.
+- Price per pad = asking price / total pads. Price per occupied pad = asking price / occupied pads.
+- Added infill income = fillable vacant pads x market lot rent x 12. Net added NOI = added infill income - (fillable pads x added opex per pad).
+- Stabilized NOI = current NOI + net added NOI. Stabilized value = stabilized NOI / cap rate.
+- Total infill cost = fillable vacant pads x infill cost per pad.
+- Wholesale MAO = stabilized value - infrastructure liability - total infill cost - assignment buffer (default $15,000). If the liability is unpriced, MAO is N/A.
+
+## 5. RISK / KILL-SWITCH (E13)
+
+Recommend PASS, do not soften, on: private utilities with no inspection, lot rent unverifiable, infrastructure liability unpriced, title defect with no cure cost, occupancy below 60 percent with no lease-up or infill plan, or flood / environmental flag with no professional report. A kill is a successful run, not a failed one. Every engine ends here.
+
+## 6. RECEIPT
+
+run_id, park, parcel_id, county, total pads, occupied pads, vacant pads, occupancy, POH / TOH, lot rent, market lot rent, NOI, cap rate, value, price per pad, stabilized NOI, stabilized value, infrastructure liability, infill cost, wholesale MAO, gates passed / failed, kill conditions fired, risk flags, confidence, offer_authorized: false.
+</script>
+
+<script src="e7.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var v=parseFloat($(id).value);return isFinite(v)?v:null;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function money0(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+Math.round(v).toLocaleString("en-US");}
+function pct(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return v.toFixed(1)+"%";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function safeAlert(m){try{alert(m);}catch(e){}}
+function setTxt(id,t){var e=$(id);if(e){e.textContent=t;}}
+
+var runId="E7-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: park name, address, parcel ID, county confirmed from at least 2 public sources"},
+ {id:"source",label:"Source gate: every pad count, rent, cap rate, expense, and infrastructure claim carries a full raw source reference and date"},
+ {id:"rent_verification",label:"Lot rent gate: lot rent verified against a rent roll and a named source, verification level stated"},
+ {id:"infrastructure",label:"Infrastructure gate: water, sewer, roads each stated public or private, with inspection status and a priced liability"},
+ {id:"no_hallucination",label:"No-hallucination gate: no invented rents, occupancies, cap rates, or prices; unverifiable fields are N/A"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no offer without Jeramie; offer authorized is false"}
+];
+var manualKills=[
+ {id:"k_title",label:"Title defect with no cure cost"},
+ {id:"k_occupancy",label:"Occupancy below 60 percent with no lease-up or infill plan"},
+ {id:"k_flood",label:"Flood or environmental flag with no professional report"}
+];
+
+function buildGates(){
+ var html="";
+ gates.forEach(function(g){
+  html+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ $("gateList").innerHTML=html;
+ $("promptView").textContent=$("systemPromptText").textContent;
+}
+buildGates();
+
+var rollIndex=0;
+function rollRow(c){
+ rollIndex++;
+ var tr=document.createElement("tr");
+ tr.setAttribute("data-roll",rollIndex);
+ tr.innerHTML=
+  '<td><input type="text" aria-label="Pad or lot" data-f="pad" value="'+esc(c.pad||"")+'" placeholder="Pad 12"></td>'+
+  '<td><select aria-label="Home type" data-f="type"><option value="TOH"'+((c.type||"TOH")==="TOH"?" selected":"")+'>TOH</option><option value="POH"'+(c.type==="POH"?" selected":"")+'>POH</option><option value="Vacant"'+(c.type==="Vacant"?" selected":"")+'>Vacant</option></select></td>'+
+  '<td><select aria-label="Occupied" data-f="occupied"><option value="Yes"'+((c.occupied||"Yes")==="Yes"?" selected":"")+'>Yes</option><option value="No"'+(c.occupied==="No"?" selected":"")+'>No</option></select></td>'+
+  '<td><input type="number" aria-label="Lot rent in dollars per month" data-f="rent" min="0" step="1" value="'+(c.rent||"")+'" placeholder="0"></td>'+
+  '<td><input type="text" aria-label="Source reference" data-f="source" value="'+esc(c.source||"")+'" placeholder="Source reference"></td>';
+ return tr;
+}
+function addRoll(c){$("rollBody").appendChild(rollRow(c||{}));}
+addRoll({});addRoll({});addRoll({});addRoll({});
+$("btnAddRoll").addEventListener("click",function(){addRoll({});calc();});
+
+function getRoll(){
+ var out=[];
+ document.querySelectorAll("#rollBody tr").forEach(function(tr){
+  function v(f){var el=tr.querySelector('[data-f="'+f+'"]');return el?el.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  var rent=n("rent");
+  var usable=v("pad").trim()!==""&&rent!==null&&rent>0&&v("source").trim()!=="";
+  out.push({pad:v("pad"),type:v("type"),occupied:v("occupied"),rent:rent,source:v("source"),usable:usable});
+ });
+ return out;
+}
+
+var lastReceipt=null;
+
+function calc(){
+ var total=num("totalPads"), occ=num("occupiedPads"), unusable=num("unusablePads")||0;
+ var poh=num("pohCount"), homeRent=num("homeRent");
+ var pads=E7.padMath({total:total,occupied:occ,unusable:unusable,poh:poh});
+ var vacant=pads.vacant, fillable=pads.fillable, toh=pads.toh;
+ var occPct=pads.occupancyPct, pohShare=pads.pohSharePct;
+ setTxt("outVacant",vacant===null?"N/A":String(vacant));
+ setTxt("outFillable",fillable===null?"N/A":String(fillable));
+ setTxt("outTOH",toh===null?"N/A":String(toh));
+ setTxt("outOccupancy",pct(occPct));
+ setTxt("outPOHShare",pct(pohShare));
+ setTxt("workPads",(total===null||occ===null)?"Pad math: vacant pads = total pads - occupied pads. Fillable vacant pads = vacant pads - unusable pads. TOH = occupied pads - POH count. Occupancy = occupied pads / total pads.":("Vacant pads = "+total+" - "+occ+" = "+(vacant===null?"N/A (occupied exceeds total)":vacant)+"\nFillable vacant pads = "+(vacant===null?"N/A":vacant)+" - "+unusable+" = "+(fillable===null?"N/A":fillable)+"\nTOH = "+occ+" - "+(poh===null?"N/A":poh)+" = "+(toh===null?"N/A":toh)+"\nOccupancy = "+occ+" / "+total+" = "+pct(occPct)));
+ var padWarn="";
+ if(total!==null&&occ!==null&&occ>total){padWarn="Error: occupied pads exceed total pads. Fix the pad counts before relying on any number.";}
+ if(occ!==null&&poh!==null&&poh>occ){padWarn="Error: park-owned homes exceed occupied pads. Fix the counts before relying on any number.";}
+ if(total!==null&&occ!==null&&vacant!==null&&unusable>vacant){padWarn="Warning: unusable pads exceed vacant pads. Fillable vacant pads are shown as 0.";}
+ $("padWarning").hidden=!padWarn;
+ $("padWarning").textContent=padWarn;
+
+ var lotRent=num("lotRent"), marketRent=num("marketRent");
+ var inc=E7.income({occupied:occ,lotRent:lotRent,poh:poh,homeRent:homeRent,otherIncome:num("otherIncome"),lossPct:num("lossPct"),opex:num("opexAnnual"),total:total});
+ var lotIncome=inc.lotIncome, homeIncome=inc.homeIncome, other=inc.otherIncome;
+ var gross=inc.gross, loss=inc.loss, egi=inc.egi, opex=num("opexAnnual"), noi=inc.noi;
+ setTxt("outLotIncome",money(lotIncome));
+ setTxt("outHomeIncome",money(homeIncome));
+ setTxt("outOtherIncome",money(other));
+ setTxt("outGross",money(gross));
+ setTxt("outLoss",money(loss));
+ setTxt("outEGI",money(egi));
+ setTxt("outOpex",money(opex));
+ setTxt("outNOI",money(noi));
+ setTxt("outOpexPerPad",money(inc.opexPerPad));
+ setTxt("outNOIPerPad",money(inc.noiPerPad));
+ setTxt("workIncome",(lotIncome===null||homeIncome===null||opex===null)?"NOI cannot be computed yet: lot rent income, POH home rent, or operating expenses are missing.":("Gross lot rent income = "+occ+" x "+E7.fmt2(lotRent)+" x 12 = "+E7.fmt2(lotIncome)+"\nPOH home rent income = "+poh+" x "+E7.fmt2(homeRent)+" x 12 = "+E7.fmt2(homeIncome)+"\nGross income = "+E7.fmt2(lotIncome)+" + "+E7.fmt2(homeIncome)+" + "+E7.fmt2(other)+" = "+E7.fmt2(gross)+"\nVacancy and collection loss = "+E7.fmt2(gross)+" x "+(num("lossPct")===null?0:num("lossPct"))+"% = "+E7.fmt2(loss)+"\nEffective gross income = "+E7.fmt2(gross)+" - "+E7.fmt2(loss)+" = "+E7.fmt2(egi)+"\nNOI = "+E7.fmt2(egi)+" - "+E7.fmt2(opex)+" = "+E7.fmt2(noi)));
+
+ var privateUtil=E7.isPrivateUtil({utilities:$("utilities").value,waterSystem:$("waterSystem").value,sewerSystem:$("sewerSystem").value});
+ var liability=num("infraLiability");
+ var liabilityPriced=liability!==null;
+ setTxt("outPrivateUtil",privateUtil?"Yes":"No");
+ setTxt("outLiabilityPriced",liabilityPriced?"Yes":"No - blank");
+ setTxt("outLiability",money(liability));
+ setTxt("outLiabilityPerPad",(liability===null||total===null||total===0)?"N/A":money(liability/total));
+ var infraWarn="";
+ if(privateUtil&&$("inspectionStatus").value!=="inspected"){infraWarn="Kill: private utilities with no inspection in hand. The recommendation is PASS until an inspection report is in hand.";}
+ else if(liability===null&&noi!==null){infraWarn="Kill: infrastructure liability is unpriced. Enter a priced liability, or 0 only with the inspection or bid that supports it.";}
+ $("infraWarning").hidden=!infraWarn;
+ $("infraWarning").textContent=infraWarn;
+
+ var inf=E7.infill({fillable:fillable,marketRent:marketRent,addedOpexPerPad:num("addedOpexPerPad"),infillCostPerPad:num("infillCostPerPad"),noi:noi,capRatePct:num("capRate")});
+ setTxt("outInfillPads",fillable===null?"N/A":String(fillable));
+ setTxt("outInfillIncome",money(inf.infillIncome));
+ setTxt("outInfillOpex",money(inf.infillOpex));
+ setTxt("outInfillNet",money(inf.infillNet));
+ setTxt("outInfillCost",money(inf.infillCostTotal));
+ setTxt("outStabNOI",money(inf.stabNoi));
+ setTxt("outStabValue",money(inf.stabValue));
+ setTxt("workInfill",(inf.infillIncome===null||inf.infillNet===null)?"Infill cannot be computed yet: fillable pads, market lot rent, or current NOI are missing.":("Added lot rent income = "+fillable+" x "+E7.fmt2(marketRent)+" x 12 = "+E7.fmt2(inf.infillIncome)+"\nAdded opex = "+fillable+" x "+E7.fmt2(num("addedOpexPerPad")===null?0:num("addedOpexPerPad"))+" = "+E7.fmt2(inf.infillOpex)+"\nNet added NOI = "+E7.fmt2(inf.infillIncome)+" - "+E7.fmt2(inf.infillOpex)+" = "+E7.fmt2(inf.infillNet)+"\nTotal infill cost = "+fillable+" x "+E7.fmt2(num("infillCostPerPad"))+" = "+E7.fmt2(inf.infillCostTotal)+"\nStabilized NOI = "+E7.fmt2(noi)+" + "+E7.fmt2(inf.infillNet)+" = "+E7.fmt2(inf.stabNoi)+"\nStabilized value = "+E7.fmt2(inf.stabNoi)+" / "+num("capRate")+"% = "+E7.fmt2(inf.stabValue)));
+
+ var capRate=num("capRate");
+ var val=E7.valuation({noi:noi,capRatePct:capRate,asking:num("askingPrice"),total:total,occupied:occ,stabValue:inf.stabValue,liability:liability,infillCostTotal:inf.infillCostTotal,buffer:num("assignBuffer")});
+ var value=val.value, asking=num("askingPrice"), buffer=val.buffer;
+ setTxt("outValue",money(value));
+ setTxt("outValuePerPad",money(val.valuePerPad));
+ setTxt("outValuePerOcc",money(val.valuePerOcc));
+ setTxt("outPricePerPad",money(val.pricePerPad));
+ setTxt("outPricePerOcc",money(val.pricePerOcc));
+ setTxt("outAskVsValue",money(val.askVsValue));
+ setTxt("outMaoLiability",money(liability));
+ setTxt("outMaoInfill",money(inf.infillCostTotal));
+ setTxt("outMaoBuffer",money(buffer));
+ setTxt("outMAO",money(val.mao));
+ setTxt("workValue",(value===null&&val.mao===null)?"Value cannot be computed yet: NOI or cap rate is missing. MAO cannot be computed yet: stabilized value, priced liability, or infill cost is missing.":("Value = "+E7.fmt2(noi)+" / "+capRate+"% = "+E7.fmt2(value)+"\nValue per pad = "+E7.fmt2(value)+" / "+total+" = "+E7.fmt2(val.valuePerPad)+"\nPrice per pad = "+E7.fmt2(asking)+" / "+total+" = "+E7.fmt2(val.pricePerPad)+"\nAsking price vs value = "+E7.fmt2(asking)+" - "+E7.fmt2(value)+" = "+E7.fmt2(val.askVsValue)+"\nMAO = "+E7.fmt2(inf.stabValue)+" - "+E7.fmt2(liability)+" - "+E7.fmt2(inf.infillCostTotal)+" - "+E7.fmt2(buffer)+" = "+E7.fmt2(val.mao)));
+
+ var roll=getRoll();
+ var rollUsable=E7.rollUsableCount(roll);
+ setTxt("rollUsable",String(rollUsable));
+ setTxt("rollNote",rollUsable>=3?("Rent roll evidence: "+rollUsable+" usable rows. The roll supports the lot rent above; it does not replace the verification select."):"Add at least 3 usable rent roll rows. The roll is evidence for the lot rent above; it does not replace the verification select.");
+ var rentVer=$("rentVerification").value;
+ var rentUnverified=(rentVer==="unverified");
+ $("rentWarning").hidden=!rentUnverified;
+ if(rentUnverified){$("rentWarning").textContent="Warning: lot rent is unverified. This is a kill condition. The recommendation is PASS until the rent roll ties to a named source.";}
+
+ var gateValues={};
+ gates.forEach(function(g){var el=document.querySelector('[data-gate="'+g.id+'"]');gateValues[g.id]=el?el.value:"hold";});
+ var gateEval=E7.evaluateGates(gateValues);
+ var gatesOk=gateEval.ok;
+ setTxt("gateStatus",gatesOk?"GO - all gates pass":"HOLD - gates not verified");
+ $("gateStatus").className=gatesOk?"ok":"hold";
+ setTxt("gatesPassed",gateEval.passed.length?gateEval.passed.join(", "):"None");
+ setTxt("gatesFailed",gateEval.failed.length?gateEval.failed.join(", "):"None");
+
+ var manualLabels=[];
+ manualKills.forEach(function(k){var el=document.getElementById(k.id);if(el&&el.checked){manualLabels.push(k.label);}});
+ var killEval=E7.evaluateKills({privateUtil:privateUtil,inspectionStatus:$("inspectionStatus").value,rentVerification:rentVer,liabilityPriced:liabilityPriced,noi:noi,manualKills:manualLabels});
+ var killReasons=killEval.fired;
+ setTxt("killAuto1",(privateUtil&&$("inspectionStatus").value!=="inspected")?"FIRED":"Not fired");
+ $("killAuto1").className=(privateUtil&&$("inspectionStatus").value!=="inspected")?"hold":"ok";
+ setTxt("killAuto2",rentUnverified?"FIRED":"Not fired");
+ $("killAuto2").className=rentUnverified?"hold":"ok";
+ setTxt("killAuto3",(!liabilityPriced&&noi!==null)?"FIRED":"Not fired");
+ $("killAuto3").className=(!liabilityPriced&&noi!==null)?"hold":"ok";
+ var killActive=killEval.killActive;
+ setTxt("killActive",killActive?"Yes":"No");
+ setTxt("killReasons",killActive?killReasons.join("; "):"None");
+ var rec=E7.recommendation({killActive:killActive,gatesOk:gatesOk,noi:noi,value:value});
+ setTxt("recommendation",rec);
+
+ var flags=E7.riskFlags({pohSharePct:pohShare,occupancyPct:occPct,privateUtil:privateUtil,roadsCondition:$("roadsCondition").value,pohCondition:$("pohCondition").value,rollUsable:rollUsable,fillable:fillable,monthsToFill:num("monthsToFill"),liability:liability,value:value,pricePerPad:val.pricePerPad,valuePerPad:val.valuePerPad,poh:poh,homeRent:homeRent,lotRent:lotRent,vacant:vacant,unusable:unusable});
+ var rf=$("riskFlags");
+ rf.innerHTML=flags.length?flags.map(function(f){return "<li>"+esc(f)+"</li>";}).join(""):"<li>None recorded.</li>";
+
+ var required=[
+  ["address",$("address").value.trim()!==""],
+  ["parcel ID",$("parcelId").value.trim()!==""],
+  ["total pads",total!==null],
+  ["occupied pads",occ!==null],
+  ["lot rent",lotRent!==null],
+  ["lot rent verification",rentVer!==""],
+  ["cap rate",capRate!==null],
+  ["asking price",asking!==null],
+  ["infrastructure liability priced",liabilityPriced]
+ ];
+ var done=required.filter(function(x){return x[1];}).length;
+ var pctDone=Math.round(done/required.length*100);
+ $("stickyCompleteBar").style.width=pctDone+"%";
+ setTxt("stickyCompleteText",pctDone+" percent");
+ var missing=required.filter(function(x){return !x[1];}).map(function(x){return x[0];});
+ setTxt("missingHints",missing.length?("Missing: "+missing.join(", ")+"."):"All required fields are filled. Gates still need to be set to Pass.");
+
+ setTxt("stickyNOI",money(noi));
+ setTxt("stickyValue",money(value));
+ setTxt("stickyPPP",money(val.pricePerPad));
+ setTxt("stickyRec",rec);
+
+ setTxt("sumPark",$("parkName").value.trim()||"N/A");
+ setTxt("sumParcel",$("parcelId").value.trim()||"N/A");
+ setTxt("sumPads",(total===null?"N/A":total)+" / "+(occ===null?"N/A":occ)+" / "+(vacant===null?"N/A":vacant));
+ setTxt("sumOccupancy",pct(occPct));
+ setTxt("sumPOHTOH",(poh===null?"N/A":poh)+" / "+(toh===null?"N/A":toh));
+ setTxt("sumRent",(lotRent===null?"N/A":money0(lotRent)+" / mo")+" / "+(marketRent===null?"N/A":money0(marketRent)+" / mo"));
+ setTxt("sumNOI",money(noi));
+ setTxt("sumValue",money(value));
+ setTxt("sumPPP",(val.pricePerPad===null?"N/A":money0(val.pricePerPad))+" / "+(val.pricePerOcc===null?"N/A":money0(val.pricePerOcc)));
+ setTxt("sumStab",money(inf.stabNoi)+" / "+money(inf.stabValue));
+ setTxt("sumMAO",money(val.mao));
+ var confNow=parseFloat($("confidence").value);if(!isFinite(confNow)){confNow=0.50;}
+ setTxt("sumConfidence",confNow.toFixed(2));
+ setTxt("sumGates",gatesOk?"GO - all gates pass":"HOLD");
+ setTxt("sumRec",rec);
+
+ updateFigure(total,occ,poh,vacant);
+
+ var receipt={
+  schema_version:"e7-mobile-home-park-receipt.v1.0",
+  run_id:runId,
+  run_date:$("runDate").value,
+  park:$("parkName").value.trim()||null,
+  address:$("address").value.trim()||null,
+  parcel_id:$("parcelId").value.trim()||null,
+  county:$("county").value.trim()||null,
+  acres:num("acres"),
+  zoning:$("zoning").value.trim()||null,
+  utilities:$("utilities").value||null,
+  water_system:$("waterSystem").value||null,
+  sewer_system:$("sewerSystem").value||null,
+  roads_condition:$("roadsCondition").value||null,
+  inspection_status:$("inspectionStatus").value||null,
+  inspection_date:$("inspectionDate").value||null,
+  pads:{total:total,occupied:occ,vacant:vacant,fillable:fillable,unusable:unusable,occupancy_pct:occPct,poh:poh,toh:toh,poh_share_pct:pohShare},
+  lot_rent:{current:lotRent,market:marketRent,verification:rentVer||null,source:$("rentSource").value.trim()||null},
+  rent_roll_usable:roll.filter(function(r){return r.usable;}).map(function(r){return {pad:r.pad,type:r.type,occupied:r.occupied,lot_rent:r.rent,source:r.source};}),
+  rent_roll_usable_count:rollUsable,
+  income:{lot_rent_annual:lotIncome,poh_home_rent_annual:homeIncome,other_income_annual:other,gross_income:gross,vacancy_collection_loss:loss,effective_gross_income:egi,operating_expenses:opex,noi:noi},
+  cap_rate_pct:capRate,
+  cap_rate_source:$("capSource").value.trim()||null,
+  value:value,
+  value_per_pad:val.valuePerPad,
+  value_per_occupied_pad:val.valuePerOcc,
+  asking_price:asking,
+  price_per_pad:val.pricePerPad,
+  price_per_occupied_pad:val.pricePerOcc,
+  asking_minus_value:val.askVsValue,
+  infrastructure_liability:liability,
+  infrastructure_liability_priced:liabilityPriced,
+  infrastructure_liability_per_pad:val.liabilityPerPad,
+  infill:{fillable_pads:fillable,infill_cost_per_pad:num("infillCostPerPad"),total_infill_cost:inf.infillCostTotal,added_income_annual:inf.infillIncome,added_opex_annual:inf.infillOpex,net_added_noi:inf.infillNet,months_to_fill:num("monthsToFill"),stabilized_noi:inf.stabNoi,stabilized_value:inf.stabValue},
+  assignment_buffer:buffer,
+  wholesale_mao:val.mao,
+  gates:gateValues,
+  kill_switch:killActive,
+  kill_conditions_fired:killReasons,
+  risk_flags:flags,
+  confidence:confNow,
+  offer_authorized:false,
+  status:rec,
+  exit_fit:$("exitFit").value||null,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value
+ };
+ lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ return receipt;
+}
+
+function updateFigure(total,occ,poh,vacant){
+ var bar=580;
+ var tohW=0, pohW=0, vacW=0;
+ if(total&&total>0&&occ!==null&&vacant!==null&&poh!==null){
+  var toh=Math.max(0,occ-poh);
+  tohW=bar*toh/total; pohW=bar*poh/total; vacW=bar*vacant/total;
+ }
+ var tohEl=$("figTOH"), pohEl=$("figPOH"), vacEl=$("figVacant");
+ tohEl.setAttribute("width",tohW);
+ pohEl.setAttribute("x",10+tohW); pohEl.setAttribute("width",pohW);
+ vacEl.setAttribute("x",10+tohW+pohW); vacEl.setAttribute("width",Math.max(0,vacW-0));
+ var tohL=$("figTOHLabel"), pohL=$("figPOHLabel"), vacL=$("figVacLabel");
+ tohL.setAttribute("x",16); tohL.textContent=tohW>60?("TOH "+Math.round(tohW/bar*(total||0))):"";
+ pohL.setAttribute("x",16+tohW); pohL.textContent=pohW>60?("POH "+Math.round(pohW/bar*(total||0))):"";
+ vacL.setAttribute("x",16+tohW+pohW); vacL.textContent=vacW>60?("Vacant "+Math.round(vacW/bar*(total||0))):"";
+ setTxt("figCaption",(total===null||total===0)?"Enter total pads, occupied pads, and POH count to draw the pad mix.":(total+" pads: "+Math.max(0,(occ||0)-(poh||0))+" TOH, "+(poh||0)+" POH, "+(vacant===null?"N/A":vacant)+" vacant."));
+}
+
+function setVal(id,v){var el=$(id);if(el){el.value=v;}}
+function setRollRow(i,pad,type,occupied,rent,source){
+ var tr=document.querySelectorAll("#rollBody tr")[i];if(!tr)return;
+ tr.querySelector('[data-f="pad"]').value=pad;
+ tr.querySelector('[data-f="type"]').value=type;
+ tr.querySelector('[data-f="occupied"]').value=occupied;
+ tr.querySelector('[data-f="rent"]').value=rent;
+ tr.querySelector('[data-f="source"]').value=source;
+}
+function setSampleNote(text){var n=$("sampleNote");n.innerHTML=text;n.hidden=false;}
+function resetGatesKills(){
+ document.querySelectorAll("[data-gate]").forEach(function(el){el.value="hold";});
+ manualKills.forEach(function(k){var el=document.getElementById(k.id);if(el){el.checked=false;}});
+}
+function setGate(id,v){var el=document.querySelector('[data-gate="'+id+'"]');if(el){el.value=v;}}
+
+function loadSampleA(){
+ clearAll();
+ setVal("parkName","Sample Mobile Home Park");
+ setVal("address","100 Sample Park Rd, Benton Harbor, MI 49022");
+ setVal("parcelId","SAMPLE-PARK-001");
+ setVal("county","Berrien County, MI");
+ setVal("acres","8.00");
+ setVal("zoning","MHP, Mobile Home Park");
+ setVal("utilities","public");
+ setVal("access","Public road");
+ setVal("exitFit","Buy, infill vacant pads");
+ setVal("parcelSources","2");
+ setVal("parcelSourceNames","County assessor, County GIS");
+ setVal("parkAge","1972");
+ setVal("totalPads","40");
+ setVal("occupiedPads","32");
+ setVal("unusablePads","0");
+ setVal("pohCount","6");
+ setVal("homeRent","450");
+ setVal("pohCondition","Fair");
+ setVal("pohAge","35");
+ setVal("tohNotes","26 TOH per rent roll dated 2026-10-01; 6 POH, 1980s vintage, Fair condition. Sample only.");
+ setVal("lotRent","350");
+ setVal("marketRent","400");
+ setVal("rentVerification","verified_deposits");
+ setVal("rentSource","Rent roll 2026-10-01, bank statements Sep 2026");
+ setVal("lastIncrease","2026-01-01, $325 to $350");
+ setRollRow(0,"Pad 1","TOH","Yes","350","Rent roll 2026-10-01");
+ setRollRow(1,"Pad 2","TOH","Yes","350","Rent roll 2026-10-01");
+ setRollRow(2,"Pad 3","POH","Yes","350","Rent roll 2026-10-01");
+ setRollRow(3,"Pad 4","Vacant","No","350","Rent roll 2026-10-01");
+ setVal("otherIncome","2400");
+ setVal("lossPct","5");
+ setVal("opexAnnual","48000");
+ setVal("opexNotes","Taxes, insurance, water/sewer, trash, management, repairs, from 2025 P and L. Sample only.");
+ setVal("waterSystem","public");
+ setVal("sewerSystem","public");
+ setVal("roadsCondition","Fair");
+ setVal("inspectionStatus","inspected");
+ setVal("inspectionDate","2026-09-15");
+ setVal("infraLiability","25000");
+ setVal("infraCapex","6000");
+ setVal("infraNotes","Public water and sewer. $25,000 of priced road repairs from 2026-09-15 inspection. Sample only.");
+ setVal("infillCostPerPad","8000");
+ setVal("addedOpexPerPad","600");
+ setVal("monthsToFill","12");
+ setVal("infillNotes","8 fillable pads, home vendor quote $8,000 per pad. Sample only.");
+ setVal("capRate","8");
+ setVal("capSource","3 park sales, county records. Sample only.");
+ setVal("askingPrice","1200000");
+ setVal("assignBuffer","15000");
+ setVal("confidence","0.70");
+ setVal("assumptions","1. Lot rent $350 verified by rent roll plus bank deposits. 2. Cap rate 8 percent from 3 park sales. 3. Infill cost $8,000 per pad from a vendor quote. Sample deal only, not a real deal.");
+ setVal("missingData","Title commitment, survey, full 2025 P and L.");
+ setVal("conflicts","None in the sample.");
+ ["address_parcel","source","rent_verification","infrastructure","no_hallucination","authority"].forEach(function(id){setGate(id,"pass");});
+ setSampleNote("<b>Sample A loaded.</b> This is a sample, not a real deal. 40 pads, 32 occupied, 6 POH, lot rent $350, market $400. Expected: NOI $112,740.00, value $1,409,250.00, price per pad $30,000.00, stabilized NOI $146,340.00, stabilized value $1,829,250.00, MAO $1,725,250.00.");
+ calc();
+}
+function loadSampleB(){
+ clearAll();
+ setVal("parkName","Sample TOH Park");
+ setVal("address","200 Sample Park Ln, Benton Harbor, MI 49022");
+ setVal("parcelId","SAMPLE-PARK-002");
+ setVal("county","Berrien County, MI");
+ setVal("acres","5.00");
+ setVal("zoning","MHP, Mobile Home Park");
+ setVal("utilities","public");
+ setVal("access","Public road");
+ setVal("exitFit","Buy and hold, lot rent only");
+ setVal("parcelSources","2");
+ setVal("parcelSourceNames","County assessor, County GIS");
+ setVal("parkAge","1985");
+ setVal("totalPads","25");
+ setVal("occupiedPads","24");
+ setVal("unusablePads","0");
+ setVal("pohCount","0");
+ setVal("homeRent","");
+ setVal("pohCondition","No POH");
+ setVal("pohAge","");
+ setVal("tohNotes","24 TOH per rent roll dated 2026-10-01. No park-owned homes. Sample only.");
+ setVal("lotRent","425");
+ setVal("marketRent","450");
+ setVal("rentVerification","verified_roll");
+ setVal("rentSource","Rent roll 2026-10-01");
+ setVal("lastIncrease","2026-03-01, $400 to $425");
+ setRollRow(0,"Pad 1","TOH","Yes","425","Rent roll 2026-10-01");
+ setRollRow(1,"Pad 2","TOH","Yes","425","Rent roll 2026-10-01");
+ setRollRow(2,"Pad 3","TOH","Yes","425","Rent roll 2026-10-01");
+ setRollRow(3,"Pad 4","Vacant","No","425","Rent roll 2026-10-01");
+ setVal("otherIncome","0");
+ setVal("lossPct","3");
+ setVal("opexAnnual","30000");
+ setVal("opexNotes","Taxes, insurance, water/sewer, trash, management, from 2025 P and L. Sample only.");
+ setVal("waterSystem","public");
+ setVal("sewerSystem","public");
+ setVal("roadsCondition","Good");
+ setVal("inspectionStatus","inspected");
+ setVal("inspectionDate","2026-09-20");
+ setVal("infraLiability","0");
+ setVal("infraCapex","3000");
+ setVal("infraNotes","Public water and sewer, inspection 2026-09-20, no priced liability. Sample only.");
+ setVal("infillCostPerPad","5000");
+ setVal("addedOpexPerPad","400");
+ setVal("monthsToFill","6");
+ setVal("infillNotes","1 fillable pad, vendor quote $5,000. Sample only.");
+ setVal("capRate","7.5");
+ setVal("capSource","3 park sales, county records. Sample only.");
+ setVal("askingPrice","900000");
+ setVal("assignBuffer","15000");
+ setVal("confidence","0.75");
+ setVal("assumptions","1. Lot rent $425 verified by rent roll. 2. Cap rate 7.5 percent from 3 park sales. 3. Infrastructure liability priced at $0 from the 2026-09-20 inspection. Sample deal only, not a real deal.");
+ setVal("missingData","Title commitment, survey.");
+ setVal("conflicts","None in the sample.");
+ ["address_parcel","source","rent_verification","infrastructure","no_hallucination","authority"].forEach(function(id){setGate(id,"pass");});
+ setSampleNote("<b>Sample B loaded.</b> This is a sample, not a real deal. 25 pads, 24 occupied, all tenant-owned, lot rent $425. Expected: NOI $88,728.00, value $1,183,040.00, price per pad $36,000.00, stabilized NOI $93,728.00, stabilized value $1,249,706.67, MAO $1,229,706.67.");
+ calc();
+}
+function loadSampleC(){
+ clearAll();
+ setVal("parkName","Sample Problem Park");
+ setVal("address","300 Sample Park Rd, Benton Harbor, MI 49022");
+ setVal("parcelId","SAMPLE-PARK-003");
+ setVal("county","Berrien County, MI");
+ setVal("acres","6.00");
+ setVal("zoning","MHP, Mobile Home Park");
+ setVal("utilities","private");
+ setVal("access","Private road");
+ setVal("exitFit","Pass");
+ setVal("parcelSources","2");
+ setVal("parcelSourceNames","County assessor, County GIS");
+ setVal("parkAge","1965");
+ setVal("totalPads","30");
+ setVal("occupiedPads","18");
+ setVal("unusablePads","2");
+ setVal("pohCount","12");
+ setVal("homeRent","500");
+ setVal("pohCondition","Poor");
+ setVal("pohAge","45");
+ setVal("tohNotes","12 POH, Poor condition, 1970s vintage. 6 TOH. Sample only.");
+ setVal("lotRent","300");
+ setVal("marketRent","350");
+ setVal("rentVerification","unverified");
+ setVal("rentSource","Seller statement only");
+ setVal("lastIncrease","N/A");
+ setRollRow(0,"Pad 1","POH","Yes","300","Seller statement");
+ setRollRow(1,"Pad 2","POH","Yes","300","Seller statement");
+ setRollRow(2,"Pad 3","TOH","Yes","300","Seller statement");
+ setRollRow(3,"Pad 4","Vacant","No","300","Seller statement");
+ setVal("otherIncome","0");
+ setVal("lossPct","5");
+ setVal("opexAnnual","40000");
+ setVal("opexNotes","Seller stated expenses, no P and L. Sample only.");
+ setVal("waterSystem","private");
+ setVal("sewerSystem","private");
+ setVal("roadsCondition","Poor");
+ setVal("inspectionStatus","not_inspected");
+ setVal("inspectionDate","");
+ setVal("infraLiability","");
+ setVal("infraCapex","0");
+ setVal("infraNotes","Private water and sewer, never inspected. Liability unpriced. Sample only.");
+ setVal("infillCostPerPad","10000");
+ setVal("addedOpexPerPad","600");
+ setVal("monthsToFill","");
+ setVal("infillNotes","12 vacant pads, 2 unusable, 10 fillable. No vendor quote. Sample only.");
+ setVal("capRate","8");
+ setVal("capSource","N/A");
+ setVal("askingPrice","750000");
+ setVal("assignBuffer","15000");
+ setVal("confidence","0.40");
+ setVal("assumptions","Sample C shows three kill conditions at once: private utilities with no inspection, lot rent unverifiable, infrastructure liability unpriced. The math still computes, but the recommendation is PASS and MAO is N/A. Sample deal only, not a real deal.");
+ setVal("missingData","Inspection, rent roll, bank deposits, priced liability, title commitment.");
+ setVal("conflicts","Seller lot rent claim conflicts with no supporting record.");
+ ["address_parcel","source","rent_verification","infrastructure","no_hallucination","authority"].forEach(function(id){setGate(id,"pass");});
+ setSampleNote("<b>Sample C loaded.</b> This is a sample, not a real deal. PASS sample: private utilities with no inspection, lot rent unverified, infrastructure liability unpriced. Expected: NOI $89,960.00, value $1,124,500.00, MAO N/A, recommendation PASS.");
+ calc();
+}
+
+function collectState(){
+ var fields={};
+ document.querySelectorAll("input[id],select[id],textarea[id]").forEach(function(el){
+  if(el.id==="runId"||el.id==="runDate"||el.id==="shareUrl"){return;}
+  if(el.type==="checkbox"){fields[el.id]={checked:el.checked};}
+  else{fields[el.id]=el.value;}
+ });
+ var roll=[];
+ document.querySelectorAll("#rollBody tr").forEach(function(tr){
+  var o={};
+  tr.querySelectorAll("[data-f]").forEach(function(el){o[el.getAttribute("data-f")]=el.value;});
+  roll.push(o);
+ });
+ return {v:1,fields:fields,roll:roll};
+}
+function applyState(s){
+ if(!s||!s.fields){return false;}
+ Object.keys(s.fields).forEach(function(id){
+  var el=document.getElementById(id);if(!el){return;}
+  var v=s.fields[id];
+  if(el.type==="checkbox"){el.checked=!!(v&&v.checked);}
+  else{el.value=(typeof v==="string")?v:(v==null?"":v);}
+ });
+ if(s.roll&&s.roll.length){
+  $("rollBody").innerHTML="";
+  s.roll.forEach(function(c){addRoll(c);});
+ }
+ $("sampleNote").hidden=true;
+ calc();
+ return true;
+}
+function encodeState(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(collectState()))));}catch(e){return "";}}
+function decodeState(str){try{return JSON.parse(decodeURIComponent(escape(atob(str))));}catch(e){return null;}}
+function restoreFromHash(){
+ if(!location.hash||location.hash.indexOf("#d=")!==0){return;}
+ var s=decodeState(location.hash.slice(3));
+ if(s){
+  applyState(s);
+  $("sampleNote").hidden=false;
+  $("sampleNote").textContent="Shared deal loaded from the link. This is the deal encoded in the URL, not a sample. Verify every field against its source before relying on the numbers.";
+ }
+}
+function clearAll(){
+ document.querySelectorAll("input,textarea,select").forEach(function(el){
+  if(el.id==="assignBuffer"){el.value="15000";return;}
+  if(el.id==="confidence"){el.value="0.50";return;}
+  if(el.id==="otherIncome"){el.value="0";return;}
+  if(el.id==="lossPct"){el.value="5";return;}
+  if(el.id==="unusablePads"){el.value="0";return;}
+  if(el.id==="addedOpexPerPad"){el.value="0";return;}
+  if(el.id==="infraCapex"){el.value="0";return;}
+  if(el.id==="parcelSources"){el.value="0";return;}
+  if(el.id==="runId"||el.id==="runDate"){return;}
+  if(el.type==="checkbox"){el.checked=false;return;}
+  if(el.tagName==="SELECT"){el.selectedIndex=0;return;}
+  el.value="";
+ });
+ $("sampleNote").hidden=true;
+ calc();
+}
+function copyText(t,msg){
+ function done(){safeAlert(msg);}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,function(){fallback();});}
+ else{fallback();}
+ function fallback(){
+  try{
+   var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();
+   if(document.execCommand){document.execCommand("copy");}
+   document.body.removeChild(ta);
+  }catch(e){}
+  done();
+ }
+}
+
+/* Receipt chain v1.0: SHA-256, GENESIS first, canonical JSON with the
+   hash field stripped, Verify via Web Crypto with PASS/FAIL per receipt. */
+var chain=[];
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!lastReceipt||!lastReceipt.run_id){safeAlert("No receipt to issue yet.");return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E7.buildReceipt(lastReceipt,prev,seq);
+ sha256HexBrowser(E7.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){safeAlert("Could not hash receipt: "+e.message);});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E7.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e7-mobile-home-park-chain.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+
+document.addEventListener("input",calc);
+document.addEventListener("change",calc);
+$("btnSampleA").addEventListener("click",loadSampleA);
+$("btnSampleB").addEventListener("click",loadSampleB);
+$("btnSampleC").addEventListener("click",loadSampleC);
+$("btnWalkSample").addEventListener("click",loadSampleA);
+$("btnShare").addEventListener("click",function(){
+ var enc=encodeState();if(!enc){safeAlert("Could not build a share link.");return;}
+ var url=location.href.split("#")[0]+"#d="+enc;
+ try{history.replaceState(null,"",url);}catch(e){}
+ $("shareUrl").value=url;
+ copyText(url,"Share link copied. Anyone with the link can open this deal in their browser.");
+});
+$("btnClearShare").addEventListener("click",function(){
+ try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+ $("shareUrl").value="";clearAll();
+});
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",function(){copyText($("receiptOut").textContent,"Receipt JSON copied.");});
+$("btnDownloadReceipt").addEventListener("click",function(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e7-mobile-home-park-receipt-"+$("runId").value+".json";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+});
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnCopyPrompt").addEventListener("click",function(){
+ var t=document.getElementById("systemPromptText").textContent.replace(/^\n+/,"").replace(/\s+$/,"")+"\n";
+ copyText(t,"System prompt copied.");
+});
+$("btnPrint").addEventListener("click",function(){window.print();});
+window.loadSampleA=loadSampleA;
+window.loadSampleB=loadSampleB;
+window.loadSampleC=loadSampleC;
+window.clearAll=clearAll;
+window.calc=calc;
+window.issueReceipt=issueReceipt;
+window.verifyChain=verifyChain;
+window.getChain=function(){return chain;};
+window.getLastReceipt=function(){return lastReceipt;};
+restoreFromHash();
+calc();
+renderChain();
+})();
+</script>
+</body>
+</html>
