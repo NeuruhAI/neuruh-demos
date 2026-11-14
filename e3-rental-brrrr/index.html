@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="E3 Rental / BRRRR Underwriting Engine v1.0: market rent graded, cash flow by scenario, refinance math, DSCR, break-even occupancy, with a SHA-256 receipt chain. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.">
+<meta property="og:title" content="Rental / BRRRR Underwriting Engine E3 - Neuruh">
+<meta property="og:description" content="Evidence-first rental and BRRRR underwriting: graded market rent, scenario cash flow, refinance math, DSCR, break-even occupancy, with gates and a SHA-256 receipt chain. SIMULATION.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#9a7b2d">
+<title>Rental / BRRRR Underwriting Engine E3 - Neuruh</title>
+<style>
+:root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1d1a16;--muted:#6b6257;--brass:#9a7b2d;--brass-soft:#e8ddba;--line:#d8cfb8;--red:#8a2f24;--green:#2e5e3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Archivo,Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding:24px 20px 64px}
+header.doc{border:2px solid var(--ink);background:var(--paper);padding:18px 20px}
+header.doc .kicker{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+header.doc h1{margin:6px 0 4px;font-size:30px;line-height:1.15}
+header.doc p{margin:4px 0;color:var(--muted)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.meta div{font-size:12px}
+.meta b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--ink)}
+.sim-banner{margin:16px 0;border:2px solid var(--brass);background:#fdf6d8;padding:12px 14px;font-weight:700;font-size:14px}
+.disclaimer{margin:16px 0;border:2px solid var(--red);background:#fdf3ef;padding:12px 14px}
+.disclaimer b{color:var(--red)}
+.toolbar{position:sticky;top:0;z-index:5;background:var(--bone);padding:12px 0;display:flex;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink)}
+button{font-family:Archivo,Inter,system-ui,sans-serif;font-size:13px;font-weight:700;padding:9px 12px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+button.primary{background:var(--brass);border-color:var(--brass);color:#fff}
+button:hover{outline:2px solid var(--brass)}
+section.card{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:18px;margin-top:18px}
+section.card h2{margin:0 0 4px;font-size:19px}
+section.card h2 span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--brass);margin-right:8px}
+section.card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+label{display:block;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;font-family:Inter,system-ui,sans-serif;font-size:14px;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brass)}
+textarea{min-height:70px}
+.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.result{border:1px solid var(--line);background:var(--bone);padding:12px 14px;margin-top:12px}
+.result .row{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .row:last-child{border-bottom:0}
+.result .row b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.big{font-size:22px}
+.big b{font-family:"JetBrains Mono",ui-monospace,monospace}
+.na{color:var(--red);font-weight:700}
+.ok{color:var(--green);font-weight:700}
+.hold{color:var(--red);font-weight:700}
+.tag{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass);padding:1px 4px;white-space:nowrap}
+.badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;font-weight:700;padding:2px 6px;border:1px solid var(--ink);white-space:nowrap}
+.badge.sim{background:#fdf6d8;border-color:var(--brass);color:var(--ink)}
+.badge.verified{background:#e6efe6;border-color:var(--green);color:var(--green)}
+.badge.designed{background:var(--bone);border-color:var(--muted);color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px;vertical-align:top;text-align:left}
+th{background:var(--bone);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+td input,td select{padding:6px}
+.formula{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px}
+.working{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;background:var(--bone);border:1px solid var(--line);padding:10px 12px;margin:8px 0;font-size:13px;white-space:pre-wrap}
+.checklist label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink)}
+.checklist .item{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.checklist input{width:18px;height:18px;margin-top:2px}
+.checklist select{width:150px;flex:none}
+pre#receiptOut,pre#chainOut{background:#14110d;color:#f3ead2;padding:16px;overflow:auto;font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:12px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+.sample-note{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+footer{margin-top:24px;color:var(--muted);font-size:12px}
+figure{margin:14px 0;border:1px solid var(--line);background:var(--paper);padding:12px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);margin-top:8px}
+figcaption b{color:var(--ink)}
+@media (max-width:760px){.grid,.grid2,.meta{grid-template-columns:1fr}header.doc h1{font-size:24px}}
+@media print{
+body{background:#fff}
+.toolbar,.no-print{display:none!important}
+.wrap{max-width:100%;padding:0}
+section.card{break-inside:avoid;border:1px solid #999}
+pre#receiptOut,pre#chainOut{background:#fff;color:#000;border:1px solid #999}
+}
+.walkthrough ol{margin:8px 0 12px;padding-left:20px}
+.walkthrough li{margin:4px 0}
+.sticky-results{position:sticky;top:0;z-index:6;background:var(--paper);border:2px solid var(--ink);padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.sticky-results .sr-label{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.sticky-results b{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:15px}
+.sticky-results .meter-wrap{grid-column:1/-1}
+.meter{height:10px;background:var(--bone);border:1px solid var(--line);margin-top:4px}
+.meter-fill{height:100%;background:var(--brass);width:0%}
+.share-row{display:flex;gap:8px;align-items:center;margin-top:12px}
+.share-row label{margin:0;white-space:nowrap}
+.share-row input{flex:1}
+.warning{background:#fdf3ef;border:1px solid var(--red);color:var(--red);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+.hint{background:#fdf6d8;border:1px solid var(--brass);padding:10px 12px;margin-top:12px;font-size:13px}
+.passbox{background:#e6efe6;border:1px solid var(--green);padding:10px 12px;margin-top:12px;font-weight:700;font-size:13px}
+:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+@media (max-width:800px){.grid,.grid2,.meta,.sticky-results{grid-template-columns:1fr}.sticky-results{position:static}.share-row{flex-direction:column;align-items:stretch}}
+@media print{#summarySection{border:2px solid #000}#summarySection .result{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="doc">
+<div class="kicker">Neuruh - Evidence-first underwriting - Engine E3</div>
+<h1>Rental / BRRRR Underwriting Engine</h1>
+<p>Buy, Rehab, Rent, Refinance, Repeat. Market rent graded, cash flow by scenario, refinance math, DSCR, and break-even occupancy, with gates, evidence lineage, and a SHA-256 receipt chain.</p>
+<div class="meta">
+<div>Version<b>v1.0</b></div>
+<div>Date<b>2026-11-14</b></div>
+<div>Status<b>Engine 3 of 12 - SIMULATION</b></div>
+<div>Lineage<b>Codex V2 App. B, E3 + Residential v1.1 gates + E1 pattern</b></div>
+</div>
+</header>
+
+<div class="sim-banner">SIMULATION - This page computes modeled estimates from numbers you type. It is not connected to any live data source. Nothing leaves the page.</div>
+
+<div class="disclaimer"><b>MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL.</b> Every dollar figure on this page is a modeled estimate computed from inputs you enter. It is not a valuation, not an appraisal, not legal, tax, or lending advice. Verify rent, ARV, repairs, title, and loan terms with the county, a licensed professional, and the lender before closing. <b>This tool presents NO offer and NO recommendation to buy or sell.</b> No offer without Jeramie. Offer authorized is false on every run unless a human approval record is attached.</div>
+
+<div class="toolbar no-print">
+<button class="primary" id="btnSampleA" type="button">Sample A: solid BRRRR</button>
+<button id="btnSampleB" type="button">Sample B: weak cash flow</button>
+<button id="btnSampleC" type="button">Sample C: PASS / kill</button>
+<button id="btnShare" type="button">Copy share link</button>
+<button id="btnClearShare" type="button">Clear share link</button>
+<button id="btnClear" type="button">Clear all</button>
+<button id="btnCopyReceipt" type="button">Copy receipt JSON</button>
+<button id="btnDownloadReceipt" type="button">Download receipt JSON</button>
+<button id="btnIssueReceipt" type="button">Issue receipt</button>
+<button id="btnVerifyChain" type="button">Verify chain</button>
+<button id="btnPrint" type="button">Print</button>
+</div>
+<div class="share-row no-print"><label for="shareUrl">Share link</label><input id="shareUrl" type="text" readonly placeholder="Click Copy share link to generate a shareable URL for this deal"></div>
+<div class="sample-note" id="sampleNote" hidden></div>
+
+<section class="card" id="statusBoard">
+<h2><span>00</span>Status board <span class="badge sim">SIMULATION</span></h2>
+<p class="sub">DESIGNED means the design exists in this file. VERIFIED means a check ran and passed on the stated date. Nothing here claims live market data.</p>
+<table>
+<thead><tr><th>Item</th><th>Status</th><th>Evidence</th></tr></thead>
+<tbody>
+<tr><td>Calculator math (scenarios, refinance, DSCR, break-even)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e3.js, run 2026-11-14. Sample A hand-computed expectations match: NOI $1,016.00/mo, refinance loan $150,000.00, cash left $9,000.00, DSCR 1.018, break-even 94.00%. Sample B: NOI $630.00/mo, cash left $41,500.00, DSCR 0.715.</td></tr>
+<tr><td>Receipt chain (SHA-256, GENESIS first, Verify button)</td><td><span class="badge verified">VERIFIED</span></td><td>Node test suite, tests/test-e3.js, run 2026-11-14. Chaining, canonical JSON, and tamper detection covered. In-browser Verify uses Web Crypto.</td></tr>
+<tr><td>Live page</td><td><span class="badge verified">VERIFIED</span></td><td>HTTP 200 at neuruhai.github.io/neuruh-demos/e3-rental-brrrr/, live MD5 matches staged file. See build report.</td></tr>
+<tr><td>Market data (rents, ARV, expenses, refinance terms)</td><td><span class="badge designed">DESIGNED</span></td><td>No live data connection. Every rent, ARV, repair cost, expense, and loan term is typed in by hand and is only as good as its source.</td></tr>
+<tr><td>E3 specification from the vault</td><td><span class="badge designed">DESIGNED</span></td><td>No E3 specification document was found in the vault. The subject (Rental / BRRRR) and its mechanics come from the 2026-11-04 E3 build, itself live at e3-rental-brrrr.pages.dev. See section 12 for the gap. Scenario adjustments and kill conditions are carried from that build, labeled as such.</td></tr>
+<tr><td>Live-browser click-through</td><td><span class="badge designed">DESIGNED</span></td><td>Not run. Node tests plus a jsdom DOM smoke test are the verification for this build. See build report.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="card walkthrough no-print" id="walkthrough">
+<h2><span>01</span>Try it in 60 seconds</h2>
+<p class="sub">Three steps. No sign-up, no data leaves your browser.</p>
+<ol>
+<li><b>Step 1:</b> Load Sample A with the button below.</li>
+<li><b>Step 2:</b> Change Market rent in section 03, or ARV in section 04.</li>
+<li><b>Step 3:</b> Watch cash flow, refinance cash left in deal, DSCR, and break-even occupancy move in sections 07, 08, and 10 and in the sticky panel at the top, then issue a receipt in section 12 and press Verify chain.</li>
+</ol>
+<button class="primary" id="btnWalkSample" type="button">Start with Sample A</button>
+</section>
+
+<div class="sticky-results no-print" id="stickyResults" role="region" aria-label="Results summary">
+<div><span class="sr-label">Base cash flow / mo (MODELED ESTIMATE)</span><b id="stickyCF">N/A</b></div>
+<div><span class="sr-label">Cash left in deal (MODELED ESTIMATE)</span><b id="stickyCashLeft">N/A</b></div>
+<div><span class="sr-label">DSCR (base)</span><b id="stickyDSCR">N/A</b></div>
+<div><span class="sr-label">Recommendation</span><b id="stickyRec">HOLD</b></div>
+<div class="meter-wrap"><span class="sr-label">Completeness <span id="stickyCompleteText">0 percent</span></span><div class="meter"><div class="meter-fill" id="stickyCompleteBar"></div></div><div class="small" id="missingHints" style="font-size:13px;color:var(--muted);margin-top:4px"></div></div>
+</div>
+
+<figure>
+<svg viewBox="0 0 900 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="BRRRR flow diagram">
+<rect x="10" y="20" width="900" height="170" fill="#fffdf6" stroke="#d8cfb8"/>
+<rect x="30" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="100" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">1. BUY</text><text x="100" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">price + closing</text>
+<rect x="200" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="270" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">2. REHAB</text><text x="270" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">repair scope, base</text>
+<rect x="370" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="440" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">3. RENT</text><text x="440" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">graded market rent</text>
+<rect x="540" y="55" width="140" height="60" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="610" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">4. REFINANCE</text><text x="610" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">ARV x LTV, cash left</text>
+<rect x="710" y="55" width="140" height="60" fill="#fffdf6" stroke="#1d1a16" stroke-width="2"/><text x="780" y="80" text-anchor="middle" font-family="monospace" font-size="14" font-weight="bold" fill="#1d1a16">5. REPEAT</text><text x="780" y="100" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#6b6257">only if cash left works</text>
+<text x="170" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="340" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="510" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text><text x="680" y="90" text-anchor="middle" font-size="20" fill="#9a7b2d">&#8594;</text>
+<text x="30" y="145" font-family="sans-serif" font-size="12" fill="#6b6257">If step 4 cannot be computed, the run stops at PASS. See section 14.</text>
+</svg>
+<figcaption><b>Figure 1.</b> The BRRRR sequence this engine underwrites. Each step needs its own evidence. A missing ARV or repair scope breaks step 4, and the kill condition in section 14 fires.</figcaption>
+</figure>
+
+<section class="card" id="s1">
+<h2><span>02</span>Subject property</h2>
+<p class="sub">Address / parcel gate. Confirm the address and parcel from at least 2 public sources before any number is used. Unverified means HOLD.</p>
+<div class="grid">
+<div><label for="address">Street address</label><input id="address" type="text" placeholder="Street number, street, city, state, ZIP"></div>
+<div><label for="parcel">Parcel ID</label><input id="parcel" type="text" placeholder="Parcel ID"></div>
+<div><label for="county">County, State</label><input id="county" type="text" placeholder="Example: Berrien County, MI"></div>
+<div><label for="propType">Property type</label><select id="propType"><option>Single-family</option><option>Duplex</option><option>Triplex</option><option>Fourplex</option><option>Other small rental</option></select></div>
+<div><label for="beds">Beds</label><input id="beds" type="number" min="0" step="1"></div>
+<div><label for="baths">Baths</label><input id="baths" type="number" min="0" step="0.5"></div>
+<div><label for="units">Rental units</label><input id="units" type="number" min="1" step="1" value="1"></div>
+<div><label for="yearBuilt">Year built</label><input id="yearBuilt" type="number" min="1800" max="2026" step="1"></div>
+<div><label for="occupancy">Occupancy now</label><select id="occupancy"><option>Vacant</option><option>Tenant-occupied</option><option>Owner-occupied</option><option>Estate</option></select></div>
+<div><label for="exitFit">Exit fit</label><select id="exitFit"><option>BRRRR / hold as rental</option><option>Buy and hold, no refinance</option><option>Flip if rent fails</option><option>Pass</option></select></div>
+<div><label for="parcelSources">Parcel sources checked (count)</label><input id="parcelSources" type="number" min="0" step="1" value="0"></div>
+<div><label for="parcelSourceNames">Parcel source names</label><input id="parcelSourceNames" type="text" placeholder="Example: County assessor, County GIS"></div>
+</div>
+</section>
+
+<section class="card" id="s2">
+<h2><span>03</span>Market rent, graded</h2>
+<p class="sub">Grade A is a signed lease in hand. B is a listed rent with a verifiable listing. C is a market rent estimate from a named source. D is a seller claim only, labelled lease proxy, never used as proven income. Market rent, lease-proxy rent, and proven rent are three separate numbers.</p>
+<div class="grid">
+<div><label for="rentGrade">Rental truth grade</label><select id="rentGrade"><option value="N/A">N/A</option><option value="A">A, signed lease</option><option value="B">B, listed rent</option><option value="C">C, market estimate</option><option value="D">D, seller claim only</option></select></div>
+<div><label for="marketRent">Market rent ($/mo)</label><input id="marketRent" type="number" min="0" step="0.01" placeholder="e.g. 1800"></div>
+<div><label for="provenRent">Proven rent ($/mo)</label><input id="provenRent" type="number" min="0" step="0.01" placeholder="Signed lease rent, or blank"></div>
+<div><label for="rentSource">Market rent source</label><input id="rentSource" type="text" placeholder="Named source and date, or N/A"></div>
+<div><label for="rentSourceUrl">Market rent source URL</label><input id="rentSourceUrl" type="text" placeholder="Full raw URL, or N/A"></div>
+<div><label for="vacancyPct">Vacancy assumption, base scenario (%) - builder default 5, editable</label><input id="vacancyPct" type="number" min="0" max="100" step="0.5" placeholder="e.g. 5"></div>
+</div>
+<div class="small" id="rentNote" style="margin-top:8px;font-size:13px;color:var(--muted)"></div>
+<table style="margin-top:12px">
+<thead><tr><th>Rent comp address</th><th>Rent ($/mo)</th><th>Grade</th><th>Source reference</th><th>Date</th></tr></thead>
+<tbody id="rentCompsBody">
+<tr><td><input data-r="addr" type="text" aria-label="Rent comp address"></td><td><input data-r="rent" type="number" min="0" step="0.01" aria-label="Rent comp rent in dollars per month"></td><td><select data-r="grade" aria-label="Rent comp grade"><option value="">Select</option><option>A</option><option>B</option><option>C</option><option>D</option></select></td><td><input data-r="source" type="text" placeholder="Listing or lease source" aria-label="Rent comp source"></td><td><input data-r="date" type="date" aria-label="Rent comp date"></td></tr>
+<tr><td><input data-r="addr" type="text" aria-label="Rent comp address"></td><td><input data-r="rent" type="number" min="0" step="0.01" aria-label="Rent comp rent in dollars per month"></td><td><select data-r="grade" aria-label="Rent comp grade"><option value="">Select</option><option>A</option><option>B</option><option>C</option><option>D</option></select></td><td><input data-r="source" type="text" placeholder="Listing or lease source" aria-label="Rent comp source"></td><td><input data-r="date" type="date" aria-label="Rent comp date"></td></tr>
+<tr><td><input data-r="addr" type="text" aria-label="Rent comp address"></td><td><input data-r="rent" type="number" min="0" step="0.01" aria-label="Rent comp rent in dollars per month"></td><td><select data-r="grade" aria-label="Rent comp grade"><option value="">Select</option><option>A</option><option>B</option><option>C</option><option>D</option></select></td><td><input data-r="source" type="text" placeholder="Listing or lease source" aria-label="Rent comp source"></td><td><input data-r="date" type="date" aria-label="Rent comp date"></td></tr>
+</tbody>
+</table>
+<button type="button" class="secondary" id="btnAddRentComp" style="margin-top:10px">Add rent comp row</button>
+<div class="small" id="rentCompCount" style="margin-top:8px"></div>
+<div class="formula">Usable rent comp = address + rent + grade + source + date. Minimum 2 usable rent comps for a GO. 3 preferred. A D-grade comp is a seller claim, not evidence of market rent.</div>
+</section>
+
+<section class="card" id="s3">
+<h2><span>04</span>Purchase, rehab, and all-in cash</h2>
+<p class="sub">ARV and repair scope are the two numbers the kill condition protects. If either is N/A, cash left in deal is N/A and the run is PASS. See section 14.</p>
+<div class="grid">
+<div><label for="purchasePrice">Purchase price ($) - MODELED ESTIMATE input</label><input id="purchasePrice" type="number" min="0" step="0.01" placeholder="e.g. 120000"></div>
+<div><label for="arv">After repair value, ARV ($) - MODELED ESTIMATE input</label><input id="arv" type="number" min="0" step="0.01" placeholder="e.g. 200000"></div>
+<div><label for="arvSource">ARV source</label><input id="arvSource" type="text" placeholder="Comps, appraisal, or N/A"></div>
+<div><label for="repLow">Repairs low ($)</label><input id="repLow" type="number" min="0" step="0.01"></div>
+<div><label for="repBase">Repairs base ($)</label><input id="repBase" type="number" min="0" step="0.01" placeholder="e.g. 30000"></div>
+<div><label for="repHigh">Repairs high ($)</label><input id="repHigh" type="number" min="0" step="0.01"></div>
+<div><label for="purchClosing">Purchase closing costs ($)</label><input id="purchClosing" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="holdingCost">Holding costs during rehab ($)</label><input id="holdingCost" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="initialLoan">Initial loan balance / payoff at refinance ($)</label><input id="initialLoan" type="number" min="0" step="0.01" placeholder="0 if cash purchase"></div>
+</div>
+<label style="margin-top:12px" for="repairNotes">Repair scope notes (buckets, bids, photo evidence, or N/A)</label>
+<textarea id="repairNotes" rows="2" placeholder="Roof, HVAC, plumbing, electrical, kitchen, baths, flooring, exterior, structural, site. A scope with an empty bucket is incomplete."></textarea>
+<div class="formula">All-in cost = Purchase price + Repairs base + Purchase closing + Holding costs<br>Total cash invested = (Purchase price - Initial loan) + Repairs base + Purchase closing + Holding costs</div>
+<div class="working" id="workAllIn">Enter purchase price and repairs base to see the working.</div>
+<div class="result">
+<div class="row"><span>All-in cost <span class="tag">MODELED ESTIMATE</span></span><b id="outAllIn">N/A</b></div>
+<div class="row"><span>Total cash invested <span class="tag">MODELED ESTIMATE</span></span><b id="outCashInvested">N/A</b></div>
+<div class="row"><span>Repairs band <span class="tag">MODELED ESTIMATE</span></span><b id="outRepBand">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s4">
+<h2><span>05</span>Operating expenses</h2>
+<p class="sub">Fixed monthly costs are entered as dollars. Maintenance, capital expenditure, and management are entered as a percent of gross scheduled rent. Blank percent fields count as 0 in the math and are listed as missing data.</p>
+<div class="grid">
+<div><label for="taxes">Property taxes ($/mo)</label><input id="taxes" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="insurance">Insurance ($/mo)</label><input id="insurance" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="hoa">HOA ($/mo)</label><input id="hoa" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="utilities">Landlord-paid utilities ($/mo)</label><input id="utilities" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="otherExp">Other monthly expenses ($/mo)</label><input id="otherExp" type="number" min="0" step="0.01" placeholder="0"></div>
+<div><label for="maintPct">Maintenance (% of gross rent) - builder default 5, editable</label><input id="maintPct" type="number" min="0" max="100" step="0.5" placeholder="e.g. 5"></div>
+<div><label for="capexPct">Capital expenditure reserve (% of gross rent) - builder default 5, editable</label><input id="capexPct" type="number" min="0" max="100" step="0.5" placeholder="e.g. 5"></div>
+<div><label for="mgmtPct">Property management (% of gross rent) - builder default 8, editable</label><input id="mgmtPct" type="number" min="0" max="100" step="0.5" placeholder="e.g. 8"></div>
+</div>
+<div class="formula">Operating expenses, monthly = Taxes + Insurance + HOA + Utilities + Other + Gross rent x (Maintenance % + CapEx % + Management %) / 100<br>NOI, monthly = Effective gross income - Operating expenses. Debt service is not an operating expense.</div>
+<div class="result">
+<div class="row"><span>Fixed monthly expenses <span class="tag">MODELED ESTIMATE</span></span><b id="outFixedExp">N/A</b></div>
+<div class="row"><span>Variable monthly expenses, base rent <span class="tag">MODELED ESTIMATE</span></span><b id="outVarExp">N/A</b></div>
+<div class="row"><span>Total operating expenses, monthly (base) <span class="tag">MODELED ESTIMATE</span></span><b id="outOpEx">N/A</b></div>
+</div>
+</section>
+
+<section class="card" id="s5">
+<h2><span>06</span>Refinance math</h2>
+<p class="sub">Refinance loan is ARV times LTV. Net refinance proceeds pay off the initial loan and refinance closing costs. Cash left in deal is total cash invested minus net refinance proceeds.</p>
+<div class="grid">
+<div><label for="ltvPct">Refinance loan-to-value, LTV (%) - builder default 75, editable</label><input id="ltvPct" type="number" min="0" max="100" step="0.5" placeholder="e.g. 75"></div>
+<div><label for="refiRate">Refinance rate, annual (%)</label><input id="refiRate" type="number" min="0" step="0.01" placeholder="e.g. 7"></div>
+<div><label for="refiTerm">Refinance term (years)</label><input id="refiTerm" type="number" min="0" step="1" placeholder="e.g. 30"></div>
+<div><label for="refiClosing">Refinance closing costs ($)</label><input id="refiClosing" type="number" min="0" step="0.01" placeholder="0"></div>
+</div>
+<div class="formula">Refinance loan = ARV x LTV %<br>Monthly payment = P x r x (1+r)^n / ((1+r)^n - 1), where r = annual rate / 12 and n = term in years x 12. If rate is 0, payment = P / n.<br>Net refinance proceeds = Refinance loan - Initial loan payoff - Refinance closing costs<br>Cash left in deal = Total cash invested - Net refinance proceeds</div>
+<div class="working" id="workRefi">Enter ARV, LTV, rate, and term to see the working.</div>
+<div class="result">
+<div class="row"><span>Refinance loan (ARV x LTV) <span class="tag">MODELED ESTIMATE</span></span><b id="outRefiLoan">N/A</b></div>
+<div class="row"><span>Refinance payment ($/mo) <span class="tag">MODELED ESTIMATE</span></span><b id="outRefiPayment">N/A</b></div>
+<div class="row"><span>Net refinance proceeds <span class="tag">MODELED ESTIMATE</span></span><b id="outRefiNet">N/A</b></div>
+<div class="row big"><span>Cash left in deal <span class="tag">MODELED ESTIMATE</span></span><b id="outCashLeft">N/A</b></div>
+<div class="row"><span>Cash left meaning</span><span id="cashLeftNote">Enter ARV, purchase price, and repairs base.</span></div>
+</div>
+<div class="warning" id="cashLeftWarning" hidden>Warning: cash left in deal cannot be computed because ARV or repair scope is N/A. This is the E3 kill condition. See section 14.</div>
+</section>
+
+<section class="card" id="s6">
+<h2><span>07</span>Cash flow by scenario</h2>
+<p class="sub">Base uses the entered market rent and vacancy. Optimistic uses rent plus 5 percent and vacancy halved. Pessimistic uses rent minus 10 percent and vacancy plus 10 points, capped at 50 percent. All three use the same operating expenses and the same refinance payment. Scenario adjustments are builder defaults carried from the 2026-11-04 E3 build, not market facts.</p>
+<figure>
+<svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cash flow waterfall diagram">
+<rect x="10" y="10" width="880" height="200" fill="#fffdf6" stroke="#d8cfb8"/>
+<text x="30" y="40" font-family="monospace" font-size="13" font-weight="bold" fill="#1d1a16">BASE, MONTHLY</text>
+<text x="30" y="70" font-family="sans-serif" font-size="13" fill="#1d1a16">Gross scheduled rent</text><text x="870" y="70" text-anchor="end" font-family="monospace" font-size="13" fill="#1d1a16">100%</text>
+<text x="30" y="95" font-family="sans-serif" font-size="13" fill="#6b6257">Less vacancy: effective gross income</text><text x="870" y="95" text-anchor="end" font-family="monospace" font-size="13" fill="#1d1a16">EGI</text>
+<text x="30" y="120" font-family="sans-serif" font-size="13" fill="#6b6257">Less operating expenses: NOI</text><text x="870" y="120" text-anchor="end" font-family="monospace" font-size="13" fill="#1d1a16">NOI</text>
+<text x="30" y="145" font-family="sans-serif" font-size="13" fill="#6b6257">Less refinance payment: cash flow</text><text x="870" y="145" text-anchor="end" font-family="monospace" font-size="13" fill="#9a7b2d">CASH FLOW</text>
+<text x="30" y="180" font-family="sans-serif" font-size="12" fill="#6b6257">If cash flow is negative in the base scenario, the deal does not carry its own debt. That is a risk flag in section 14, not a kill by itself.</text>
+</svg>
+<figcaption><b>Figure 2.</b> Cash flow waterfall, base scenario, monthly. The same waterfall runs for the optimistic and pessimistic scenarios in the table below, with only rent and vacancy changed.</figcaption>
+</figure>
+<table>
+<thead><tr><th>Scenario</th><th>Rent ($/mo)</th><th>Vacancy</th><th>Effective gross income ($/mo)</th><th>Operating expenses ($/mo)</th><th>NOI ($/mo)</th><th>Debt service ($/mo)</th><th>Cash flow ($/mo)</th><th>Cash flow ($/yr)</th></tr></thead>
+<tbody>
+<tr><td><b>Optimistic</b></td><td id="scOptRent">N/A</td><td id="scOptVac">N/A</td><td id="scOptEGI">N/A</td><td id="scOptOpEx">N/A</td><td id="scOptNOI">N/A</td><td id="scOptDebt">N/A</td><td id="scOptCF">N/A</td><td id="scOptCFYr">N/A</td></tr>
+<tr><td><b>Base</b></td><td id="scBaseRent">N/A</td><td id="scBaseVac">N/A</td><td id="scBaseEGI">N/A</td><td id="scBaseOpEx">N/A</td><td id="scBaseNOI">N/A</td><td id="scBaseDebt">N/A</td><td id="scBaseCF">N/A</td><td id="scBaseCFYr">N/A</td></tr>
+<tr><td><b>Pessimistic</b></td><td id="scPesRent">N/A</td><td id="scPesVac">N/A</td><td id="scPesEGI">N/A</td><td id="scPesOpEx">N/A</td><td id="scPesNOI">N/A</td><td id="scPesDebt">N/A</td><td id="scPesCF">N/A</td><td id="scPesCFYr">N/A</td></tr>
+</tbody>
+</table>
+<div class="formula">Effective gross income, monthly = Rent x (1 - Vacancy / 100)<br>Cash flow, monthly = NOI - Refinance payment. Annual cash flow = Monthly cash flow x 12.</div>
+<div class="working" id="workBase">Enter market rent and vacancy to see the base working, step by step.</div>
+</section>
+
+<section class="card" id="s7">
+<h2><span>08</span>DSCR, break-even occupancy, and returns</h2>
+<p class="sub">DSCR and break-even occupancy use base-scenario NOI and the refinance payment. If the refinance payment is N/A, DSCR and break-even occupancy are N/A.</p>
+<div class="formula">DSCR = Annual NOI (base) / Annual debt service (refinance payment x 12)<br>Break-even occupancy = (Annual operating expenses + Annual debt service) / Gross scheduled annual rent<br>Cap rate = Annual NOI (base) / All-in cost<br>Cash-on-cash return = Annual cash flow (base) / Cash left in deal, only when cash left in deal is greater than 0. If cash left is 0 or negative, cash-on-cash is N/A because the capital is already out.</div>
+<div class="result">
+<div class="row"><span>Annual NOI, base <span class="tag">MODELED ESTIMATE</span></span><b id="outNOIAnnual">N/A</b></div>
+<div class="row"><span>Annual debt service, refinance <span class="tag">MODELED ESTIMATE</span></span><b id="outDebtAnnual">N/A</b></div>
+<div class="row big"><span>DSCR, base</span><b id="outDSCR">N/A</b></div>
+<div class="row big"><span>Break-even occupancy</span><b id="outBreakEven">N/A</b></div>
+<div class="row"><span>Cap rate, on all-in cost</span><b id="outCapRate">N/A</b></div>
+<div class="row"><span>Cash-on-cash return, base</span><b id="outCoC">N/A</b></div>
+<div class="row"><span>Rent to all-in cost, monthly</span><b id="outRentRatio">N/A</b></div>
+</div>
+<div class="hint" id="dscrNote">DSCR below 1.00 means base NOI does not cover debt service. Break-even occupancy above 100 percent means the property cannot break even even fully occupied at market rent. DSCR bands (builder defaults): below 1.00 kill, 1.00 to 1.25 thin, 1.25 and above comfortable.</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span>09</span>Gates, fail closed</h2>
+<p class="sub">Any gate at fail or hold shows HOLD. Do not round a hold up to a pass. Gates start at Hold until verified.</p>
+<div class="checklist" id="gateList"></div>
+<div class="result">
+<div class="row"><span>Gate status</span><b id="gateStatus" class="hold">HOLD - gates not verified</b></div>
+<div class="row"><span>Gates passed</span><b id="gatesPassed">None</b></div>
+<div class="row"><span>Gates failed or held</span><b id="gatesFailed">All</b></div>
+</div>
+<div class="grid2" style="margin-top:12px">
+<div><label for="confidence">Confidence (0.00 to 1.00)</label><input id="confidence" type="number" min="0" max="1" step="0.05" value="0.50"></div>
+<div><label for="assumptions">Assumptions (numbered, each tied to a source or marked assumption)</label><textarea id="assumptions" placeholder="1. ..."></textarea></div>
+<div><label for="missingData">Missing data (what would change the number)</label><textarea id="missingData" placeholder="List missing items"></textarea></div>
+<div><label for="conflicts">Data conflicts / unverified items</label><textarea id="conflicts" placeholder="List conflicts, or None"></textarea></div>
+</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span>10</span>Results</h2>
+<p class="sub">Completeness counts the required fields in this run. A complete run can still be HOLD or PASS. Completeness is not a recommendation.</p>
+<div><label>Completeness</label><div class="meter"><div class="meter-fill" id="meterBar"></div></div><div class="small" id="meterText" style="font-size:13px;color:var(--muted)">0% complete.</div><div class="small" id="meterMissing" style="font-size:13px;color:var(--muted)"></div></div>
+<div class="result" style="margin-top:12px">
+<div class="row"><span>Market rent, graded</span><b id="resRent">N/A</b></div>
+<div class="row"><span>Base cash flow, monthly <span class="tag">MODELED ESTIMATE</span></span><b id="resCF">N/A</b></div>
+<div class="row"><span>Base cash flow, annual <span class="tag">MODELED ESTIMATE</span></span><b id="resCFYr">N/A</b></div>
+<div class="row"><span>Refinance loan <span class="tag">MODELED ESTIMATE</span></span><b id="resRefiLoan">N/A</b></div>
+<div class="row"><span>Cash left in deal <span class="tag">MODELED ESTIMATE</span></span><b id="resCashLeft">N/A</b></div>
+<div class="row"><span>DSCR, base</span><b id="resDSCR">N/A</b></div>
+<div class="row"><span>Break-even occupancy</span><b id="resBreakEven">N/A</b></div>
+<div class="row big"><span>Recommendation</span><b id="resRec">HOLD</b></div>
+</div>
+<div id="decisionBox" style="margin-top:12px"></div>
+</section>
+
+<section class="card" id="summarySection">
+<h2><span>11</span>One-page summary, print this</h2>
+<p class="sub">The deal on one page. Print this section for the file copy. It updates live from the inputs above. It is a summary of the receipt, not an offer.</p>
+<div class="result">
+<div class="row"><span>Address</span><b id="sumAddress">N/A</b></div>
+<div class="row"><span>Parcel ID</span><b id="sumParcel">N/A</b></div>
+<div class="row"><span>Market rent (grade)</span><b id="sumRent">N/A</b></div>
+<div class="row"><span>ARV <span class="tag">MODELED ESTIMATE</span></span><b id="sumARV">N/A</b></div>
+<div class="row"><span>All-in cost <span class="tag">MODELED ESTIMATE</span></span><b id="sumAllIn">N/A</b></div>
+<div class="row"><span>Refinance loan <span class="tag">MODELED ESTIMATE</span></span><b id="sumRefi">N/A</b></div>
+<div class="row"><span>Cash left in deal <span class="tag">MODELED ESTIMATE</span></span><b id="sumCashLeft">N/A</b></div>
+<div class="row"><span>Base cash flow / mo <span class="tag">MODELED ESTIMATE</span></span><b id="sumCF">N/A</b></div>
+<div class="row"><span>DSCR</span><b id="sumDSCR">N/A</b></div>
+<div class="row"><span>Break-even occupancy</span><b id="sumBreakEven">N/A</b></div>
+<div class="row"><span>Confidence</span><b id="sumConfidence">0.50</b></div>
+<div class="row"><span>Gates</span><b id="sumGates">HOLD</b></div>
+<div class="row big"><span>Recommendation</span><b id="sumRec">HOLD</b></div>
+</div>
+<p class="small" style="font-size:13px;color:var(--muted)">MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Public-data underwriting only. No offer without Jeramie. Offer authorized: false.</p>
+</section>
+
+<section class="card" id="s10">
+<h2><span>12</span>Receipt and receipt chain</h2>
+<p class="sub">Generated from the inputs above. Offer authorized is always false in this tool. The receipt is evidence, not an offer. Press Issue receipt to add the current run to the chain. The chain starts with GENESIS as the first prev_hash. Press Verify chain to recompute every hash in the browser with Web Crypto and report PASS or FAIL per receipt. Receipts live in this browser session only. Closing the page clears the chain. Export the receipt JSON for the file copy.</p>
+<div class="grid">
+<div><label for="runId">Run ID</label><input id="runId" type="text" readonly class="mono"></div>
+<div><label for="runDate">Run date</label><input id="runDate" type="text" readonly class="mono"></div>
+<div><label>Schema version</label><input type="text" value="e3-rental-brrrr-receipt.v1.0" readonly class="mono"></div>
+</div>
+<pre id="receiptOut">{}</pre>
+<div class="toolbar no-print" style="position:static;border-bottom:0">
+<button class="primary" id="btnIssueReceipt2" type="button">Issue receipt</button>
+<button id="btnVerifyChain2" type="button">Verify chain</button>
+<button id="btnCopyChain" type="button">Copy chain JSON</button>
+<button id="btnDownloadChain" type="button">Download chain JSON</button>
+</div>
+<div id="chainStatus" class="hint" style="margin-top:12px">No receipts issued yet in this session. Chain is empty.</div>
+<pre id="chainOut">[]</pre>
+</section>
+
+<section class="card" id="howItWorks">
+<h2><span>13</span>How it works / What this is not / Sources</h2>
+<p class="sub">Read this before relying on any number on this page.</p>
+<p><b>How it works:</b> confirm the address and parcel from at least 2 public sources, grade the market rent with rent comps and a named source, enter purchase price, ARV, and a repair scope, enter operating expenses, then enter refinance LTV, rate, and term. The tool computes effective gross income, NOI, cash flow in three scenarios, refinance loan and payment, cash left in deal, DSCR, break-even occupancy, cap rate, and cash-on-cash return from the exact formulas shown. Gates fail closed. A kill means PASS. The receipt records what was entered, what passed, and what was N/A. A share link encodes the whole deal in the URL hash so someone else can open the same numbers in their own browser. Nothing is uploaded.</p>
+<p><b>What this is not:</b> not an appraisal, not a survey, not legal, tax, or lending advice, and not a guarantee of rent, ARV, repairs, refinance terms, or a sale. It does not invent rents, comps, ARV, or loan terms. If a field cannot be verified, it stays N/A. A lender will underwrite DSCR, LTV, and reserves on its own terms, and those terms can differ from the ones entered here. No offer is quoted without Jeramie.</p>
+<p><b>Sources read for this build:</b> (1) Rental / BRRRR Underwriting Engine E3 v1.0, 2026-11-04, local file ~/workspace/e3-rental-brrrr-site/index.html (843 lines), live at https://e3-rental-brrrr.pages.dev/ (HTTP 200, 69,011 bytes, MD5 47f5fb3377fa4c6781dca2feddcb60d5). Subject, inputs, outputs, gates, kill conditions, risk flags, and all three samples are carried from it. (2) E2 Small Multifamily Underwriting Engine v1.0, 2026-11-14, local file ~/workspace/e2-small-multifamily/ (index.html, e2.js, tests/test-e2.js), live at https://neuruhai.github.io/neuruh-demos/e2-small-multifamily/. Pattern followed: SIMULATION banner, status board, MODELED ESTIMATE labels, SHA-256 receipt chain, Node test suite. (3) Vault note ~/workspace/neuruh-obsidian-vault/02-Real-Estate-Land/UnderwriteX.md, line 52: "Underwriting engines Residential v1.1 and E1 Land and Zoning Unlock v1.0 built 2026-11-02, verified HTTP 200; E2-E12 ordered as separate modular sites, pending." (4) Hub v2.43, 2026-11-14, https://neuruh-hub.pages.dev/: section A lists E3 Rental / BRRRR at e3-rental-brrrr.pages.dev. The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. See section 14.</p>
+<p><b>Related engines:</b> <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a> | <a href="https://residential-underwriting-engine.pages.dev/">Residential Underwriting Engine</a> | <a href="https://land-zoning-unlock-engine.pages.dev/">E1 Land and Zoning Unlock</a> | <a href="https://neuruhai.github.io/neuruh-demos/e2-small-multifamily/">E2 Small Multifamily (GitHub Pages)</a>. Use the Residential engine for ARV and MAO on the purchase side, and E1 when the deal is really a land deal.</p>
+<p><b>Builder defaults, labeled as the builder's defaults, editable, never market facts:</b> vacancy assumption 5 percent, maintenance 5 percent of gross rent, capital expenditure reserve 5 percent of gross rent, property management 8 percent of gross rent, refinance LTV 75 percent, DSCR thin band 1.00 to 1.25 with comfort at 1.25 and above, optimistic scenario rent plus 5 percent with vacancy halved, pessimistic scenario rent minus 10 percent with vacancy plus 10 points capped at 50 percent.</p>
+</section>
+
+<section class="card" id="gaps">
+<h2><span>14</span>Honest gaps and limits</h2>
+<p class="sub">What this tool does not do, stated plainly.</p>
+<ul>
+<li>It does not verify ARV. ARV entered here is a claim until supported by sold comps in the Residential engine or an appraisal.</li>
+<li>It does not verify rent. A C-grade market estimate and a D-grade seller claim are not proven income. Only a signed lease is proven rent.</li>
+<li>It does not price title, insurance, tax, or legal risk. A title defect, a tax lien, or a floodplain flag needs the E8 Distressed Title engine and a licensed professional.</li>
+<li>It does not model taxes, depreciation, or after-tax return. Cash flow here is pre-tax.</li>
+<li>It does not model rent growth, expense inflation, interest rate changes after refinance, or vacancy beyond the three fixed scenarios.</li>
+<li>It assumes the refinance loan is a fully amortizing fixed-rate loan with the entered rate and term. It does not model adjustable rates, interest-only periods, balloon payments, points, or lender reserves.</li>
+<li>It assumes the initial loan payoff equals the entered initial loan balance. If the payoff includes prepayment penalties, accrued interest, or a second lien, enter the full payoff in that field or the cash left number will be wrong.</li>
+<li>It does not check local short-term rental rules, HOA rental caps, rent control, or eviction law. A property that cannot legally be rented at the stated rent is HOLD, not a low price.</li>
+<li>No E3 specification document was found in the vault. Greps for E3, Rental, and BRRRR across the vault returned only the UnderwriteX.md line cited in section 13, the 2026-11-04 E3 build itself, and unrelated hits (flowchart node IDs, T4 E3 reports). The Codex V2 Appendix B cited as lineage in the 2026-11-04 build was not located in the vault. What would ground E3 further: the Codex V2 Appendix B document, or a written E3 spec from Jeramie stating the subject and mechanics.</li>
+<li>Layout was not eyeballed in a real browser. Math was tested in Node with hand-computed values, plus a jsdom DOM smoke test. See the build report.</li>
+</ul>
+</section>
+
+<section class="card" id="e13">
+<h2><span>E13</span>E13 Risk / Kill-Switch</h2>
+<p class="sub">Every engine ends here. A kill is a successful run, not a failed one. Recommendation on a kill is PASS. Do not soften it.</p>
+<div class="result">
+<div class="row"><span>E3 kill condition fired</span><b id="killActive">No</b></div>
+<div class="row"><span>Kill reason</span><b id="killReason">None</b></div>
+<div class="row"><span>Risk flags fired</span><b id="riskFlags">None</b></div>
+<div class="row big"><span>Recommendation</span><b id="e13Rec">HOLD</b></div>
+</div>
+<div style="margin-top:12px"><b>Kill conditions (E3 contract, carried from the 2026-11-04 E3 build):</b></div>
+<ul>
+<li>Cash left in deal cannot be computed because ARV is N/A.</li>
+<li>Cash left in deal cannot be computed because repair scope is N/A (repairs base is blank).</li>
+<li>Cash left in deal cannot be computed because purchase price is N/A (the same uncomputable-cash-left kill, stated for completeness).</li>
+</ul>
+<div><b>Risk flags (not kills by themselves):</b> DSCR below 1.00 on base NOI, negative base cash flow, break-even occupancy above 90 percent, break-even occupancy above 100 percent, rent grade D, fewer than 2 usable rent comps, pessimistic cash flow negative while base is positive, cash left in deal above 50 percent of all-in cost, or any checked flag below.</div>
+<div class="checklist" id="riskList" style="margin-top:12px"></div>
+<div id="e13Box" style="margin-top:12px"></div>
+</section>
+
+<footer>
+<p>Rental / BRRRR Underwriting Engine E3 v1.0 - 2026-11-14. SIMULATION. MODELED ESTIMATE, NOT A VALUATION, NOT AN APPRAISAL. Not legal, tax, or lending advice. Public-data underwriting only. No offer without Jeramie. Offer authorized is always false. This file works offline except for the e3.js module it loads from the same directory. Print this page for the file copy. Related: <a href="https://real-estate-agent-c03.pages.dev/">Real Estate Agent hub</a>.</p>
+</footer>
+
+</div>
+
+<script src="e3.js"></script>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function num(id){var v=parseFloat($(id).value);return isFinite(v)?v:null;}
+function num0(id){var v=num(id);return v===null?0:v;}
+function money(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+v.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function money0(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return "$"+Math.round(v).toLocaleString("en-US");}
+function pct2(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return v.toFixed(2)+"%";}
+function pct1(v){if(v===null||v===undefined||!isFinite(v)){return "N/A";}return v.toFixed(2)+"%";}
+function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+var runId="E3-"+new Date().toISOString().slice(0,10).replace(/-/g,"")+"-"+Math.random().toString(16).slice(2,6).toUpperCase();
+$("runId").value=runId;
+$("runDate").value=new Date().toISOString().slice(0,10);
+var gates=[
+ {id:"address_parcel",label:"Address / parcel gate: address and parcel confirmed from at least 2 public sources"},
+ {id:"source",label:"Source gate: every rent comp, ARV input, and cost carries a full raw source reference and date"},
+ {id:"rental_truth",label:"Rental truth gate: rental claim graded A to D, D grade is a lease proxy only"},
+ {id:"no_hallucination",label:"No-hallucination gate: no invented rents, prices, ARV, or loan terms; unverifiable fields are N/A"},
+ {id:"evidence",label:"Evidence lineage: each material number can be traced to its source field on this page"},
+ {id:"authority",label:"Authority gate: underwriting opinion only; no offer without Jeramie; offer authorized is false"}
+];
+var risks=[
+ {id:"r_title",label:"Title defect with no cure cost"},
+ {id:"r_struct",label:"Structural failure with no bid"},
+ {id:"r_flood",label:"Flood / environmental flag with no professional report"},
+ {id:"r_tenant",label:"Tenant / occupancy facts contradict the exit"},
+ {id:"r_legal",label:"Rental legality unverified (zoning, HOA, local ordinance)"},
+ {id:"r_loan",label:"Refinance terms are a guess, not a lender quote"}
+];
+function buildLists(){
+ var html="";
+ gates.forEach(function(g){
+  html+='<div class="item"><label for="gate_'+g.id+'" style="flex:1">'+esc(g.label)+'</label><select id="gate_'+g.id+'" data-gate="'+g.id+'"><option value="hold">Hold - not verified</option><option value="pass">Pass</option><option value="fail">Fail</option></select></div>';
+ });
+ $("gateList").innerHTML=html;
+ var rh="";
+ risks.forEach(function(k){
+  rh+='<div class="item"><input type="checkbox" id="'+k.id+'" data-risk="'+k.id+'"><label for="'+k.id+'">'+esc(k.label)+'</label></div>';
+ });
+ $("riskList").innerHTML=rh;
+}
+buildLists();
+function getRentComps(){
+ var out=[];
+ document.querySelectorAll("#rentCompsBody tr").forEach(function(tr){
+  function v(f){var el=tr.querySelector('[data-r="'+f+'"]');return el?el.value:"";}
+  function n(f){var x=parseFloat(v(f));return isFinite(x)?x:null;}
+  out.push({address:v("addr"),rent:n("rent"),grade:v("grade"),source:v("source"),date:v("date")});
+ });
+ return out;
+}
+function calc(){
+ var marketRent=num("marketRent"),provenRent=num("provenRent"),vacancy=num("vacancyPct");
+ var grade=$("rentGrade").value;
+ $("rentNote").textContent=grade==="D"?"Grade D: proven rent is a lease proxy only. Do not present it as proven income.":grade==="N/A"?"No rental grade entered. Rental income is N/A.":"Grade "+grade+": market rent and proven rent are separate numbers.";
+ var rentComps=getRentComps();
+ var compCount=E3.usableRentComps(rentComps);
+ var usableRent=compCount.usableList;
+ $("rentCompCount").textContent="Usable rent comps: "+compCount.usable+" of "+compCount.total+" rows. Minimum 2 usable rent comps for a GO.";
+ var purchase=num("purchasePrice"),arv=num("arv"),repLow=num("repLow"),repBase=num("repBase"),repHigh=num("repHigh");
+ var purchClosing=num0("purchClosing"),holding=num0("holdingCost"),initialLoan=num0("initialLoan");
+ var allIn=E3.allInCost(purchase,repBase,purchClosing,holding);
+ var cashInvested=E3.cashInvested(purchase,initialLoan,repBase,purchClosing,holding);
+ $("outAllIn").textContent=money(allIn);
+ $("outCashInvested").textContent=money(cashInvested);
+ $("outRepBand").textContent=(repLow===null&&repBase===null&&repHigh===null)?"N/A":money(repLow)+" / "+money(repBase)+" / "+money(repHigh);
+ $("workAllIn").textContent=(purchase===null||repBase===null)?"All-in cost cannot be computed: purchase price or repairs base is missing.":"All-in cost = "+E3.fmt2(purchase)+" + "+E3.fmt2(repBase)+" + "+E3.fmt2(purchClosing)+" + "+E3.fmt2(holding)+" = "+E3.fmt2(allIn)+"\nTotal cash invested = ("+E3.fmt2(purchase)+" - "+E3.fmt2(initialLoan)+") + "+E3.fmt2(repBase)+" + "+E3.fmt2(purchClosing)+" + "+E3.fmt2(holding)+" = "+E3.fmt2(cashInvested);
+ var fixed=num0("taxes")+num0("insurance")+num0("hoa")+num0("utilities")+num0("otherExp");
+ var varPct=num0("maintPct")+num0("capexPct")+num0("mgmtPct");
+ var baseVarExp=(marketRent===null)?null:marketRent*varPct/100;
+ $("outFixedExp").textContent=money(fixed);
+ $("outVarExp").textContent=money(baseVarExp);
+ $("outOpEx").textContent=(marketRent===null)?"N/A":money(fixed+baseVarExp);
+ var ltv=num("ltvPct"),refiRate=num("refiRate"),refiTerm=num("refiTerm"),refiClosing=num0("refiClosing");
+ var refi=E3.refinance(arv,ltv,refiRate,refiTerm,refiClosing,initialLoan);
+ var refiLoan=refi.loan,refiPayment=refi.payment,refiNet=refi.netProceeds;
+ var cashLeft=E3.cashLeft(cashInvested,refiNet);
+ var kill=E3.evaluateKills({arv:arv,repBase:repBase,purchase:purchase});
+ var killCashLeft=kill.killActive,killReasons=kill.fired;
+ $("outRefiLoan").textContent=money(refiLoan);
+ $("outRefiPayment").textContent=money(refiPayment);
+ $("outRefiNet").textContent=money(refiNet);
+ $("outCashLeft").textContent=money(cashLeft);
+ $("cashLeftNote").textContent=cashLeft===null?"Cash left in deal cannot be computed. See the kill condition in section 14.":cashLeft<0?"Negative cash left means the refinance pulled out more cash than was invested. Capital is already out.":cashLeft===0?"Zero cash left: the refinance returned all invested cash.":"Cash left in deal is the capital still in the property after refinance.";
+ $("cashLeftWarning").hidden=!killCashLeft;
+ $("workRefi").textContent=(refiLoan===null)?"Refinance loan cannot be computed: ARV or LTV is missing.":"Refinance loan = "+E3.fmt2(arv)+" x "+ltv+"% = "+E3.fmt2(refiLoan)+"\nNet refinance proceeds = "+E3.fmt2(refiLoan)+" - "+E3.fmt2(initialLoan)+" - "+E3.fmt2(refiClosing)+" = "+E3.fmt2(refiNet)+"\nCash left in deal = "+E3.fmt2(cashInvested)+" - "+E3.fmt2(refiNet)+" = "+E3.fmt2(cashLeft);
+ var ins=E3.scenarioInputs(marketRent,vacancy);
+ var scBase=ins.base?E3.scenario(ins.base.rent,ins.base.vacancyPct,fixed,varPct,refiPayment):null;
+ var scOpt=ins.optimistic?E3.scenario(ins.optimistic.rent,ins.optimistic.vacancyPct,fixed,varPct,refiPayment):null;
+ var scPes=ins.pessimistic?E3.scenario(ins.pessimistic.rent,ins.pessimistic.vacancyPct,fixed,varPct,refiPayment):null;
+ function fillSc(prefix,sc){
+  $(prefix+"Rent").textContent=sc?money(sc.rent):"N/A";
+  $(prefix+"Vac").textContent=sc?pct1(sc.vacancyPct):"N/A";
+  $(prefix+"EGI").textContent=sc?money(sc.egi):"N/A";
+  $(prefix+"OpEx").textContent=sc?money(sc.opEx):"N/A";
+  $(prefix+"NOI").textContent=sc?money(sc.noi):"N/A";
+  $(prefix+"Debt").textContent=sc?money(sc.debt):"N/A";
+  $(prefix+"CF").textContent=sc?money(sc.cf):"N/A";
+  $(prefix+"CFYr").textContent=sc?money(sc.cfYr):"N/A";
+ }
+ fillSc("scOpt",scOpt);fillSc("scBase",scBase);fillSc("scPes",scPes);
+ $("workBase").textContent=scBase?scBase.steps.join("\n"):"Enter market rent and vacancy to see the base working, step by step.";
+ var noiAnnual=(scBase===null)?null:scBase.noi*12;
+ var debtAnnual=(refiPayment===null)?null:refiPayment*12;
+ var dscr=E3.dscr(noiAnnual,debtAnnual);
+ var grossAnnual=(marketRent===null)?null:marketRent*12;
+ var opExAnnual=(scBase===null)?null:scBase.opEx*12;
+ var breakEven=E3.breakEvenOccupancy(opExAnnual,debtAnnual,grossAnnual);
+ var capRate=E3.capRate(noiAnnual,allIn);
+ var baseCFYr=(scBase===null)?null:scBase.cfYr;
+ var coc=E3.cashOnCash(baseCFYr,cashLeft);
+ var rentRatio=E3.rentRatio(marketRent,allIn);
+ $("outNOIAnnual").textContent=money(noiAnnual);
+ $("outDebtAnnual").textContent=money(debtAnnual);
+ $("outDSCR").textContent=dscr===null?"N/A":dscr.toFixed(3)+" ("+E3.dscrBand(dscr)+")";
+ $("outBreakEven").textContent=breakEven===null?"N/A":pct1(breakEven);
+ $("outCapRate").textContent=pct2(capRate);
+ $("outCoC").textContent=pct2(coc===null?null:coc*100);
+ $("outRentRatio").textContent=pct2(rentRatio);
+ var gatesPassed=[],gatesFailed=[];
+ gates.forEach(function(g){var v=$("gate_"+g.id).value;if(v==="pass")gatesPassed.push(g.id);else gatesFailed.push(g.id);});
+ $("gateStatus").textContent=gatesFailed.length?("HOLD - "+gatesFailed.length+" gate(s) failed or held"):"PASS - all gates pass";
+ $("gateStatus").className=gatesFailed.length?"hold":"ok";
+ $("gatesPassed").textContent=gatesPassed.length?gatesPassed.join(", "):"None";
+ $("gatesFailed").textContent=gatesFailed.length?gatesFailed.join(", "):"None";
+ var manualRisks=[];
+ risks.forEach(function(k){if($(k.id).checked)manualRisks.push(k.label);});
+ var riskFlags=E3.riskFlags({
+  dscr:dscr, baseCf:(scBase===null?null:scBase.cf), pesCf:(scPes===null?null:scPes.cf),
+  breakEvenPct:breakEven, grade:grade, usableComps:compCount.usable,
+  cashLeft:cashLeft, allIn:allIn, manualRisks:manualRisks
+ });
+ var killActive=kill.killActive;
+ var status,recText;
+ if(killActive){status="PASS";recText="PASS";}
+ else if(gatesFailed.length>0||compCount.usable<2||dscr===null||cashLeft===null){status="HOLD";recText="HOLD";}
+ else{status="READY FOR REVIEW";recText="READY FOR REVIEW";}
+ $("killActive").textContent=killActive?"Yes":"No";
+ $("killReason").textContent=killActive?("Cash left in deal cannot be computed: "+killReasons.join("; ")+"."):"None";
+ $("riskFlags").textContent=riskFlags.length?riskFlags.join("; "):"None";
+ $("e13Rec").textContent=recText;
+ $("e13Box").innerHTML=killActive?'<div class="warning">Recommendation: PASS. Kill condition fired: cash left in deal cannot be computed because '+killReasons.join("; ")+'. A kill is a successful run, not a failed one. Do not quote an offer. No offer without Jeramie.</div>':(status==="HOLD"?'<div class="hint">Status: HOLD. '+(gatesFailed.length?"Failed or held gates: "+gatesFailed.join(", ")+". ":"")+(compCount.usable<2?"Fewer than 2 usable rent comps. ":"")+(dscr===null?"DSCR is N/A. ":"")+'Risk flags: '+(riskFlags.length?riskFlags.join("; "):"None")+'. No offer without Jeramie.</div>':'<div class="passbox">Status: READY FOR REVIEW. All gates pass, 2 or more usable rent comps are recorded, and cash left in deal is computable. This is still an underwriting opinion only, not an offer. No offer without Jeramie.</div>');
+ $("decisionBox").innerHTML=$("e13Box").innerHTML;
+ $("resRent").textContent=marketRent===null?"N/A":money(marketRent)+" / mo (grade "+grade+")";
+ $("resCF").textContent=(scBase===null)?"N/A":money(scBase.cf);
+ $("resCFYr").textContent=(scBase===null)?"N/A":money(scBase.cfYr);
+ $("resRefiLoan").textContent=money(refiLoan);
+ $("resCashLeft").textContent=money(cashLeft);
+ $("resDSCR").textContent=dscr===null?"N/A":dscr.toFixed(3);
+ $("resBreakEven").textContent=breakEven===null?"N/A":pct1(breakEven);
+ $("resRec").textContent=recText;
+ $("stickyCF").textContent=(scBase===null)?"N/A":money(scBase.cf);
+ $("stickyCashLeft").textContent=money(cashLeft);
+ $("stickyDSCR").textContent=dscr===null?"N/A":dscr.toFixed(3);
+ $("stickyRec").textContent=recText;
+ var items=[
+  ["Street address",!!$("address").value.trim()],
+  ["Parcel ID",!!$("parcel").value.trim()],
+  ["Market rent",marketRent!==null],
+  ["Rental grade entered",grade!=="N/A"],
+  ["At least 2 usable rent comps",compCount.usable>=2],
+  ["Purchase price",purchase!==null],
+  ["ARV",arv!==null],
+  ["Repairs base",repBase!==null],
+  ["Vacancy assumption",vacancy!==null],
+  ["Refinance LTV",ltv!==null],
+  ["Refinance rate",refiRate!==null],
+  ["Refinance term",refiTerm!==null]
+ ];
+ var done=items.filter(function(x){return x[1];}).length;
+ var pct=Math.round(done/items.length*100);
+ $("meterBar").style.width=pct+"%";
+ $("stickyCompleteBar").style.width=pct+"%";
+ $("meterText").textContent=pct+"% complete ("+done+" of "+items.length+" required fields).";
+ $("stickyCompleteText").textContent=pct+" percent";
+ var missing=items.filter(function(x){return !x[1];}).map(function(x){return x[0];});
+ $("meterMissing").textContent=missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.";
+ $("missingHints").textContent=missing.length?"Missing: "+missing.join(", ")+".":"All required fields are filled.";
+ $("sumAddress").textContent=$("address").value.trim()||"N/A";
+ $("sumParcel").textContent=$("parcel").value.trim()||"N/A";
+ $("sumRent").textContent=marketRent===null?"N/A":money(marketRent)+" / mo (grade "+grade+")";
+ $("sumARV").textContent=money(arv);
+ $("sumAllIn").textContent=money(allIn);
+ $("sumRefi").textContent=money(refiLoan);
+ $("sumCashLeft").textContent=money(cashLeft);
+ $("sumCF").textContent=(scBase===null)?"N/A":money(scBase.cf);
+ $("sumDSCR").textContent=dscr===null?"N/A":dscr.toFixed(3);
+ $("sumBreakEven").textContent=breakEven===null?"N/A":pct1(breakEven);
+ var conf=parseFloat($("confidence").value);if(isNaN(conf))conf=null;
+ $("sumConfidence").textContent=conf===null?"N/A":conf.toFixed(2);
+ $("sumGates").textContent=gatesFailed.length?"HOLD":"PASS";
+ $("sumRec").textContent=recText;
+ var receipt={
+  schema_version:"e3-rental-brrrr-receipt.v1.0",
+  run_id:runId,
+  run_date:new Date().toISOString().slice(0,10),
+  engine:"E3 Rental / BRRRR",
+  address:{street:$("address").value.trim()||null,parcel_id:$("parcel").value.trim()||null,county:$("county").value.trim()||null,verified:gatesFailed.indexOf("address_parcel")===-1&&!!$("address").value.trim()},
+  market_rent:{grade:grade,market_rent_monthly:marketRent,proven_rent_monthly:provenRent,source:$("rentSource").value.trim()||null,source_url:$("rentSourceUrl").value.trim()||null,rent_comps_usable:usableRent,rent_comps_usable_count:compCount.usable},
+  purchase:{purchase_price:purchase,arv:arv,arv_source:$("arvSource").value.trim()||null,repairs:{low:repLow,base:repBase,high:repHigh},purchase_closing:purchClosing,holding_cost:holding,initial_loan_payoff:initialLoan,all_in_cost:allIn,total_cash_invested:cashInvested},
+  operating_expenses:{taxes_monthly:num("taxes"),insurance_monthly:num("insurance"),hoa_monthly:num("hoa"),utilities_monthly:num("utilities"),other_monthly:num("otherExp"),maintenance_pct:num("maintPct"),capex_pct:num("capexPct"),management_pct:num("mgmtPct"),fixed_monthly:fixed,variable_pct:varPct},
+  refinance:{ltv_pct:ltv,rate_pct:refiRate,term_years:refiTerm,closing_costs:refiClosing,loan:refiLoan,payment_monthly:refiPayment,net_proceeds:refiNet,cash_left_in_deal:cashLeft},
+  scenarios:{optimistic:scOpt,base:scBase,pessimistic:scPes},
+  dscr_base:dscr,
+  break_even_occupancy:breakEven,
+  cap_rate:capRate,
+  cash_on_cash_base:coc,
+  gates:{passed:gatesPassed,failed:gatesFailed},
+  kill_switch:{active:killActive,reasons:killReasons},
+  risk_flags:riskFlags,
+  status:status,
+  recommendation:recText,
+  confidence:conf,
+  exit_fit:$("exitFit").value,
+  offer_authorized:false,
+  assumptions:$("assumptions").value,
+  missing_data:$("missingData").value,
+  conflicts:$("conflicts").value
+ };
+ window.lastReceipt=receipt;
+ $("receiptOut").textContent=JSON.stringify(receipt,null,2);
+ updateHash();
+}
+var FIELD_IDS=["address","parcel","county","propType","beds","baths","units","yearBuilt","occupancy","exitFit","parcelSources","parcelSourceNames","rentGrade","marketRent","provenRent","rentSource","rentSourceUrl","vacancyPct","purchasePrice","arv","arvSource","repLow","repBase","repHigh","purchClosing","holdingCost","initialLoan","repairNotes","taxes","insurance","hoa","utilities","otherExp","maintPct","capexPct","mgmtPct","ltvPct","refiRate","refiTerm","refiClosing","confidence","assumptions","missingData","conflicts"];
+function collectState(){
+ var s={fields:{},rentComps:[],gates:{},risks:{}};
+ FIELD_IDS.forEach(function(id){s.fields[id]=$(id).value;});
+ document.querySelectorAll("#rentCompsBody tr").forEach(function(tr){
+  var o={};
+  ["addr","rent","grade","source","date"].forEach(function(f){var el=tr.querySelector('[data-r="'+f+'"]');o[f]=el?el.value:"";});
+  s.rentComps.push(o);
+ });
+ gates.forEach(function(g){s.gates[g.id]=$("gate_"+g.id).value;});
+ risks.forEach(function(k){s.risks[k.id]=$(k.id).checked;});
+ return s;
+}
+function applyState(s){
+ if(!s)return;
+ if(s.fields){FIELD_IDS.forEach(function(id){if(s.fields[id]!==undefined&&$(id))$(id).value=s.fields[id];});}
+ if(s.rentComps){
+  var rows=document.querySelectorAll("#rentCompsBody tr");
+  s.rentComps.forEach(function(o,i){
+   if(i>=rows.length)addRentCompRow();
+   var tr=document.querySelectorAll("#rentCompsBody tr")[i];
+   ["addr","rent","grade","source","date"].forEach(function(f){var el=tr.querySelector('[data-r="'+f+'"]');if(el&&o[f]!==undefined)el.value=o[f];});
+  });
+ }
+ if(s.gates){gates.forEach(function(g){if(s.gates[g.id]!==undefined)$("gate_"+g.id).value=s.gates[g.id];});}
+ if(s.risks){risks.forEach(function(k){if(s.risks[k.id]!==undefined)$(k.id).checked=!!s.risks[k.id];});}
+}
+function encodeState(s){return btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+function decodeState(h){
+ try{var b=h.replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";return JSON.parse(decodeURIComponent(escape(atob(b))));}catch(e){return null;}
+}
+var hashUpdating=false;
+function updateHash(){
+ if(hashUpdating)return;
+ var url=window.location.href.split("#")[0]+"#d="+encodeState(collectState());
+ try{history.replaceState(null,"",url);}catch(e){}
+ var sh=$("shareUrl");if(sh)sh.value=url;
+}
+function loadFromHash(){
+ if(window.location.hash&&window.location.hash.indexOf("#d=")===0){
+  var s=decodeState(window.location.hash.slice(3));
+  if(s){applyState(s);return true;}
+ }
+ return false;
+}
+function copyText(txt,msg){
+ function done(){alert(msg||"Copied.");}
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallbackCopy(txt);done();});}
+ else{fallbackCopy(txt);done();}
+}
+function fallbackCopy(txt){
+ var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();
+ try{document.execCommand("copy");}catch(e){}
+ document.body.removeChild(ta);
+}
+function copyShareLink(){updateHash();copyText($("shareUrl").value,"Share link copied. Anyone opening it sees the same inputs and the same math.");}
+function copyReceipt(){copyText($("receiptOut").textContent,"Receipt JSON copied.");}
+function downloadReceipt(){
+ var blob=new Blob([$("receiptOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e3-rental-brrrr-receipt.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+function addRentCompRow(){
+ var tr=document.createElement("tr");
+ tr.innerHTML='<td><input data-r="addr" type="text" aria-label="Rent comp address"></td><td><input data-r="rent" type="number" min="0" step="0.01" aria-label="Rent comp rent in dollars per month"></td><td><select data-r="grade" aria-label="Rent comp grade"><option value="">Select</option><option>A</option><option>B</option><option>C</option><option>D</option></select></td><td><input data-r="source" type="text" placeholder="Listing or lease source" aria-label="Rent comp source"></td><td><input data-r="date" type="date" aria-label="Rent comp date"></td>';
+ $("rentCompsBody").appendChild(tr);
+ tr.querySelectorAll("input,select").forEach(function(el){el.addEventListener("input",calc);el.addEventListener("change",calc);});
+ calc();
+}
+function setVal(id,v){$(id).value=v;}
+function setRentComp(i,addr,rent,grade,source,date){
+ var tr=document.querySelectorAll("#rentCompsBody tr")[i];if(!tr)return;
+ function q(f){return tr.querySelector('[data-r="'+f+'"]');}
+ q("addr").value=addr;q("rent").value=rent;q("grade").value=grade;q("source").value=source;q("date").value=date;
+}
+function resetGatesRisks(){
+ gates.forEach(function(g){$("gate_"+g.id).value="pass";});
+ risks.forEach(function(k){$(k.id).checked=false;});
+}
+function showSampleNote(txt){var n=$("sampleNote");n.hidden=false;n.textContent=txt;}
+function loadSample(kind){
+ kind=kind||"a";
+ resetGatesRisks();
+ if(kind==="b"){
+  setVal("address","222 Weak Cash Flow St, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-E3-B");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","1");setVal("units","1");setVal("yearBuilt","1960");
+  setVal("rentGrade","C");setVal("marketRent","1500");setVal("provenRent","");setVal("rentSource","Sample market estimate, synthetic");setVal("rentSourceUrl","N/A, synthetic sample");setVal("vacancyPct","8");
+  setRentComp(0,"224 Weak Cash Flow St, Benton Harbor, MI 49022","1500","C","Sample listing, synthetic","2026-08-15");
+  setRentComp(1,"220 Weak Cash Flow St, Benton Harbor, MI 49022","1450","C","Sample listing, synthetic","2026-07-20");
+  setRentComp(2,"230 Weak Cash Flow St, Benton Harbor, MI 49022","1550","C","Sample listing, synthetic","2026-06-10");
+  setVal("purchasePrice","140000");setVal("arv","180000");setVal("arvSource","Sample ARV, synthetic");setVal("repLow","16000");setVal("repBase","20000");setVal("repHigh","24000");setVal("purchClosing","2500");setVal("holdingCost","1500");setVal("initialLoan","105000");
+  setVal("repairNotes","Sample scope, synthetic. Moderate rehab, no bid on file.");
+  setVal("taxes","300");setVal("insurance","150");setVal("hoa","0");setVal("utilities","0");setVal("otherExp","0");setVal("maintPct","5");setVal("capexPct","5");setVal("mgmtPct","10");
+  setVal("ltvPct","70");setVal("refiRate","7.5");setVal("refiTerm","30");setVal("refiClosing","3500");
+  setVal("confidence","0.55");$("exitFit").value="BRRRR / hold as rental";
+  setVal("assumptions","Sample deal only, synthetic, not a real deal. 1. Market rent 1500, grade C. 2. ARV 180000. 3. Repairs base 20000. Expected: refinance loan 126000, cash left in deal 41500, annual NOI 7560, DSCR below 1.00, negative base cash flow, break-even above 100 percent.");
+  showSampleNote("Sample B loaded. Synthetic sample, not a real deal. Weak cash flow sample. Expected: refinance loan $126,000.00, cash left in deal $41,500.00, annual NOI $7,560.00, DSCR below 1.00, negative base cash flow.");
+ }else if(kind==="c"){
+  setVal("address","333 Kill Switch Rd, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-E3-C");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","1");setVal("units","1");setVal("yearBuilt","1925");
+  setVal("rentGrade","D");setVal("marketRent","1600");setVal("provenRent","");setVal("rentSource","Seller claim only, synthetic");setVal("rentSourceUrl","N/A, synthetic sample");setVal("vacancyPct","5");
+  setRentComp(0,"335 Kill Switch Rd, Benton Harbor, MI 49022","1600","D","Seller claim, synthetic","2026-08-01");
+  setRentComp(1,"331 Kill Switch Rd, Benton Harbor, MI 49022","1550","D","Seller claim, synthetic","2026-07-10");
+  setRentComp(2,"340 Kill Switch Rd, Benton Harbor, MI 49022","1650","D","Seller claim, synthetic","2026-06-05");
+  setVal("purchasePrice","110000");setVal("arv","");setVal("arvSource","N/A, synthetic sample");setVal("repLow","");setVal("repBase","");setVal("repHigh","");setVal("purchClosing","2000");setVal("holdingCost","1000");setVal("initialLoan","80000");
+  setVal("repairNotes","Repair scope N/A, synthetic sample. No scope on file.");
+  setVal("taxes","250");setVal("insurance","120");setVal("hoa","0");setVal("utilities","0");setVal("otherExp","0");setVal("maintPct","5");setVal("capexPct","5");setVal("mgmtPct","8");
+  setVal("ltvPct","75");setVal("refiRate","7");setVal("refiTerm","30");setVal("refiClosing","4000");
+  setVal("confidence","0.30");$("exitFit").value="Pass";
+  setVal("assumptions","Sample deal only, synthetic, not a real deal. PASS / kill sample. ARV is N/A and repair scope is N/A, so cash left in deal cannot be computed. Expected result: recommendation PASS, kill condition fired.");
+  showSampleNote("Sample C loaded. Synthetic sample, not a real deal. PASS / kill sample: ARV is N/A and repair scope is N/A, so cash left in deal cannot be computed. Expected result: recommendation PASS.");
+ }else{
+  setVal("address","111 Solid BRRRR Ln, Benton Harbor, MI 49022");
+  setVal("parcel","SAMPLE-E3-A");setVal("county","Berrien County, MI");
+  setVal("beds","3");setVal("baths","2");setVal("units","1");setVal("yearBuilt","1965");
+  setVal("rentGrade","B");setVal("marketRent","1800");setVal("provenRent","");setVal("rentSource","Sample listing, synthetic");setVal("rentSourceUrl","N/A, synthetic sample");setVal("vacancyPct","5");
+  setRentComp(0,"113 Solid BRRRR Ln, Benton Harbor, MI 49022","1800","B","Sample listing, synthetic","2026-08-20");
+  setRentComp(1,"109 Solid BRRRR Ln, Benton Harbor, MI 49022","1750","B","Sample listing, synthetic","2026-07-18");
+  setRentComp(2,"117 Solid BRRRR Ln, Benton Harbor, MI 49022","1850","B","Sample listing, synthetic","2026-06-25");
+  setVal("purchasePrice","120000");setVal("arv","200000");setVal("arvSource","Sample ARV, synthetic");setVal("repLow","24000");setVal("repBase","30000");setVal("repHigh","36000");setVal("purchClosing","3000");setVal("holdingCost","2000");setVal("initialLoan","90000");
+  setVal("repairNotes","Sample scope, synthetic. Moderate rehab, no bid on file.");
+  setVal("taxes","250");setVal("insurance","120");setVal("hoa","0");setVal("utilities","0");setVal("otherExp","0");setVal("maintPct","5");setVal("capexPct","5");setVal("mgmtPct","8");
+  setVal("ltvPct","75");setVal("refiRate","7");setVal("refiTerm","30");setVal("refiClosing","4000");
+  setVal("confidence","0.75");$("exitFit").value="BRRRR / hold as rental";
+  setVal("assumptions","Sample deal only, synthetic, not a real deal. 1. Market rent 1800, grade B. 2. ARV 200000. 3. Repairs base 30000. Expected: refinance loan 150000, cash left in deal 9000, annual NOI 12192, base cash flow near 18 dollars per month, DSCR near 1.02, break-even near 94 percent.");
+  showSampleNote("Sample A loaded. Synthetic sample, not a real deal. Solid BRRRR sample. Expected: refinance loan $150,000.00, cash left in deal $9,000.00, annual NOI $12,192.00, DSCR near 1.02, break-even near 94 percent.");
+ }
+ calc();
+}
+function clearAll(){
+ FIELD_IDS.forEach(function(id){if(id==="units")$(id).value="1";else if(id==="confidence")$(id).value="0.50";else $(id).value="";});
+ document.querySelectorAll("#rentCompsBody tr").forEach(function(tr){
+  tr.querySelectorAll("input,select").forEach(function(el){el.value="";});
+ });
+ gates.forEach(function(g){$("gate_"+g.id).value="hold";});
+ risks.forEach(function(k){$(k.id).checked=false;});
+ $("sampleNote").hidden=true;
+ try{history.replaceState(null,"",window.location.href.split("#")[0]);}catch(e){}
+ $("shareUrl").value="";
+ calc();
+}
+/* Receipt chain v1.0: SHA-256, GENESIS first, canonical JSON with the
+   hash field stripped, Verify via Web Crypto with PASS/FAIL per receipt. */
+var chain=[];
+function sha256HexBrowser(str){
+ if(!window.crypto||!window.crypto.subtle){return Promise.reject(new Error("Web Crypto unavailable in this browser."));}
+ return window.crypto.subtle.digest("SHA-256",new TextEncoder().encode(str)).then(function(buf){
+  return Array.prototype.map.call(new Uint8Array(buf),function(b){return ("0"+b.toString(16)).slice(-2);}).join("");
+ });
+}
+function renderChain(){
+ $("chainOut").textContent=JSON.stringify(chain,null,2);
+ $("chainStatus").textContent=chain.length===0?"No receipts issued yet in this session. Chain is empty.":chain.length+" receipt(s) in this session chain. Latest hash: "+chain[chain.length-1].hash;
+}
+function issueReceipt(){
+ if(!window.lastReceipt){alert("No receipt to issue yet.");return;}
+ var prev=chain.length===0?"GENESIS":chain[chain.length-1].hash;
+ var seq=chain.length+1;
+ var receipt=E3.buildReceipt(window.lastReceipt,prev,seq);
+ sha256HexBrowser(E3.canonicalJSON(receipt)).then(function(hex){
+  receipt.hash=hex;
+  chain.push(receipt);
+  renderChain();
+  $("chainStatus").textContent="Receipt "+seq+" issued. Hash: "+hex+". Chain length: "+chain.length+".";
+ }).catch(function(e){alert("Could not hash receipt: "+e.message);});
+}
+function verifyChain(){
+ if(chain.length===0){$("chainStatus").textContent="Chain is empty. Nothing to verify.";return;}
+ var p=E3.verifyChain(chain,sha256HexBrowser);
+ if(p&&typeof p.then==="function"){
+  p.then(function(v){
+   var lines=v.results.map(function(r){return "Receipt "+r.seq+": "+(r.ok?"PASS":"FAIL")+" - "+r.reason;});
+   $("chainStatus").textContent=(v.ok?"Chain VERIFIED: all receipts PASS. ":"Chain FAILED: see per-receipt results. ")+lines.join(" | ");
+  }).catch(function(e){$("chainStatus").textContent="Verify failed: "+e.message;});
+ }else{
+  $("chainStatus").textContent="Verify returned a non-promise result; Web Crypto may be unavailable.";
+ }
+}
+function copyChain(){copyText($("chainOut").textContent,"Chain JSON copied.");}
+function downloadChain(){
+ var blob=new Blob([$("chainOut").textContent],{type:"application/json"});
+ var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="e3-rental-brrrr-chain.json";a.click();
+ setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+document.querySelectorAll("input,select,textarea").forEach(function(el){
+ el.addEventListener("input",calc);
+ el.addEventListener("change",calc);
+});
+$("btnSampleA").addEventListener("click",function(){loadSample("a");});
+$("btnSampleB").addEventListener("click",function(){loadSample("b");});
+$("btnSampleC").addEventListener("click",function(){loadSample("c");});
+$("btnWalkSample").addEventListener("click",function(){loadSample("a");});
+$("btnAddRentComp").addEventListener("click",addRentCompRow);
+$("btnShare").addEventListener("click",copyShareLink);
+$("btnClearShare").addEventListener("click",function(){try{history.replaceState(null,"",window.location.href.split("#")[0]);}catch(e){}$("shareUrl").value="";});
+$("btnClear").addEventListener("click",clearAll);
+$("btnCopyReceipt").addEventListener("click",copyReceipt);
+$("btnDownloadReceipt").addEventListener("click",downloadReceipt);
+$("btnIssueReceipt").addEventListener("click",issueReceipt);
+$("btnVerifyChain").addEventListener("click",verifyChain);
+$("btnIssueReceipt2").addEventListener("click",issueReceipt);
+$("btnVerifyChain2").addEventListener("click",verifyChain);
+$("btnCopyChain").addEventListener("click",copyChain);
+$("btnDownloadChain").addEventListener("click",downloadChain);
+$("btnPrint").addEventListener("click",function(){window.print();});
+window.loadSample=loadSample;
+window.clearAll=clearAll;
+window.calc=calc;
+window.copyShareLink=copyShareLink;
+window.collectState=collectState;
+window.applyState=applyState;
+window.issueReceipt=issueReceipt;
+window.verifyChain=verifyChain;
+window.getChain=function(){return chain;};
+loadFromHash();
+calc();
+renderChain();
+})();
+</script>
+</body>
+</html>
