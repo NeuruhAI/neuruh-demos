@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DIMEA 2.0 Decision Lab (SIMULATION)</title>
+<style>
+  :root { --ink:#1c1a17; --paper:#f6f2ea; --bone:#efe9dc; --brass:#9a7b2d; --line:#d8d0bf; --red:#8a2f2f; --green:#2f6b3a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, "Times New Roman", serif; line-height:1.55; }
+  header { background:var(--ink); color:var(--paper); padding:28px 20px 22px; }
+  header .kicker { font-family:ui-monospace, Menlo, monospace; font-size:12px; letter-spacing:2px; color:#c9a94f; text-transform:uppercase; }
+  header h1 { margin:8px 0 6px; font-size:30px; line-height:1.2; }
+  header p { margin:4px 0; max-width:860px; }
+  main { max-width:980px; margin:0 auto; padding:24px 20px 60px; }
+  h2 { border-top:3px solid var(--ink); padding-top:10px; margin-top:36px; font-size:22px; }
+  h2 .no { display:inline-block; background:var(--brass); color:#fff; width:28px; height:28px; text-align:center; line-height:28px; border-radius:50%; font-size:15px; margin-right:8px; }
+  h3 { margin-bottom:4px; }
+  .muted { color:#5c564a; }
+  .small { font-size:13px; }
+  .mono { font-family:ui-monospace, Menlo, monospace; }
+  .tag { display:inline-block; font-family:ui-monospace, Menlo, monospace; font-size:11px; padding:2px 8px; border-radius:3px; background:#e4dcc8; }
+  .tag.sim { background:#f3d9a4; }
+  .tag.unknown { background:#e8c9c9; }
+  .tag.verified { background:#cfe3d2; }
+  .tag.designed { background:#d5ddf0; }
+  table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--bone); font-family:ui-monospace, Menlo, monospace; font-size:12px; text-transform:uppercase; letter-spacing:1px; }
+  .card { border:1px solid var(--line); background:#fffdf7; padding:16px 18px; margin:12px 0; border-radius:4px; }
+  .casebtn { display:block; width:100%; text-align:left; background:#fffdf7; border:1px solid var(--line); border-radius:4px; padding:12px 14px; margin:8px 0; cursor:pointer; font-family:inherit; font-size:15px; }
+  .casebtn:hover { border-color:var(--brass); }
+  .casebtn.active { border:2px solid var(--brass); background:#fbf6e8; }
+  .casebtn strong { display:block; font-size:16px; }
+  input[type="number"] { width:64px; padding:6px; font-size:15px; }
+  input[type="range"] { width:140px; vertical-align:middle; }
+  button.action { background:var(--ink); color:var(--paper); border:0; padding:10px 18px; font-size:15px; cursor:pointer; border-radius:3px; margin:6px 6px 6px 0; }
+  button.action.secondary { background:#fff; color:var(--ink); border:1px solid var(--ink); }
+  button.verify { background:#fff; color:var(--ink); border:1px solid var(--brass); padding:4px 12px; cursor:pointer; border-radius:3px; }
+  pre { background:var(--ink); color:#e8e2d2; padding:14px; overflow:auto; font-size:12.5px; border-radius:4px; }
+  .pass { color:var(--green); font-weight:bold; }
+  .fail { color:var(--red); font-weight:bold; }
+  .result-rank { font-size:18px; }
+  .formula { font-family:ui-monospace, Menlo, monospace; font-size:13px; background:var(--bone); padding:10px 12px; border-radius:3px; overflow:auto; }
+  ul { padding-left:20px; }
+  li { margin-bottom:6px; }
+  .note { border-left:4px solid var(--brass); background:#fbf6e8; padding:10px 14px; margin:12px 0; }
+  .warn { border-left:4px solid var(--red); background:#f9ecec; padding:10px 14px; margin:12px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Neuruh Ecosystem Codex, Volume VI, Framework Register</div>
+  <h1>DIMEA 2.0 Decision Lab <span class="tag sim">SIMULATION</span></h1>
+  <p>A working decision matrix over the five DIMEA axes, applied to real estate decisions stated in the Neuruh record. Everything runs in this page. No data leaves the page. No backend.</p>
+  <p class="small">Built: 2026-11-14. Status: SIMULATION throughout. Scores you enter are your inputs, not facts. The lab recommends nothing on its own; it computes what your scores imply.</p>
+</header>
+<main>
+
+<h2><span class="no">1</span>The five axes, as stated</h2>
+<p>DIMEA expands to <strong>Desire / Identity / Mission / Expression / Alignment</strong>. The expansion and the per-axis definitions below come from the vault dossier for DIMEA (concept FND-015), quoting Notion IP Registry row AI-MTH-007, "DIMEA 2.0 Personal Operating System (5-Axis Framework)".</p>
+<table>
+  <tr><th>Axis</th><th>Stated definition (AI-MTH-007)</th><th>Question the lab asks</th></tr>
+  <tr><td><strong>Desire</strong></td><td>Authentic want, not performative</td><td>How much do you actually want this outcome, apart from how it looks?</td></tr>
+  <tr><td><strong>Identity</strong></td><td>Operating identity</td><td>Does this fit who you operate as?</td></tr>
+  <tr><td><strong>Mission</strong></td><td>Executable purpose definition</td><td>Does this advance a purpose you can execute?</td></tr>
+  <tr><td><strong>Expression</strong></td><td>How output manifests</td><td>Does the visible output of this choice express what you intend?</td></tr>
+  <tr><td><strong>Alignment</strong></td><td>Coherence feedback loop across all axes</td><td>Do the axes cohere, or does this choice pull them apart?</td></tr>
+</table>
+<div class="note"><strong>Court item, unresolved.</strong> The registry says 5-Axis; the Drive source says 5 Layers ("THE PERSONAL DIMEA 5 LAYERS OF CREATIVE SELF-AWARENESS", 2025-07-13). The five-axis vs five-layers wording is an open court item in the vault dossier (DIMEA 2.0, FND-003). This lab uses the five axes from AI-MTH-007 and does not resolve the court item.</div>
+<p class="small muted">Sources: vault <span class="mono">06-Founder-Cognitive/DIMEA.md</span> (FND-015) and <span class="mono">DIMEA 2.0.md</span> (FND-003), verified 2026-11-08; Framework Atlas <span class="mono">frameworks.json</span>, entry <span class="mono">dimea-2-0</span>; Ecosystem Codex Volume VI register line for DIMEA 2.0.</p>
+
+<h2><span class="no">2</span>Case library: stated facts only</h2>
+<p>Pick a case. Every fact shown is stated in the cited source. Where the record states nothing, the case says UNKNOWN. No invented numbers. Dollar figures below are the sale catalog figures as stated, quoted as the catalog's figures, not as this demo's valuation.</p>
+<div id="caseList"></div>
+<div id="caseDetail"></div>
+
+<h2><span class="no">3</span>Decision matrix</h2>
+<p>Score each option on each axis from 0 to 10. Axis weights default to 1 (equal). Weights are a <strong>design decision of this lab</strong>, not a DIMEA rule: the source states no weighting scheme. You may change any weight from 0 to 2 in steps of 0.5.</p>
+<p class="formula">score(option) = (wD x D + wI x I + wM x M + wE x E + wA x A) / (wD + wI + wM + wE + wA)<br>Ranking: highest score first. Equal scores are a TIE and keep their listed order.</p>
+<div class="card">
+  <h3>Axis weights <span class="tag designed">LAB DESIGN DECISION</span></h3>
+  <div id="weightRow"></div>
+  <p class="small muted">If every weight is 0, no score exists and the lab will refuse to compute. Raise at least one weight.</p>
+</div>
+<div id="matrixArea"><p class="muted">Pick a case above to open its matrix.</p></div>
+<p>
+  <button class="action" id="btnExample" disabled>Load example scores</button>
+  <button class="action" id="btnCompute" disabled>Compute ranking and emit receipt</button>
+</p>
+<p class="small muted">Example scores are sample inputs for trying the lab. They are not facts and not a recommendation.</p>
+<div id="resultArea"></div>
+
+<h2><span class="no">4</span>Receipt panel</h2>
+<p>Each scoring run emits one receipt format v1.0 record: canonical JSON (keys sorted, arrays in order), SHA-256 over the canonical JSON with the hash field stripped, chained to the previous receipt hash, GENESIS first. The hash is computed for real in this browser with the Web Crypto API. Press Verify on any receipt to recompute its hash and check its chain link.</p>
+<p id="chainBanner" class="mono small">Chain: empty. First receipt in a session chains from GENESIS.</p>
+<div id="receiptList"><p class="muted">No receipts yet this session. Run the matrix to emit one.</p></div>
+
+<h2><span class="no">5</span>Status board: DIMEA 2.0 as stated</h2>
+<table>
+  <tr><th>Field</th><th>Stated value</th><th>Source</th></tr>
+  <tr><td>Role</td><td>Personal operating system and decision framework</td><td>Framework Atlas, frameworks.json, entry dimea-2-0</td></tr>
+  <tr><td>Tier</td><td><span class="tag unknown">UNKNOWN</span> (no tier stated in Volume VI; the atlas does not assign one)</td><td>Framework Atlas, frameworks.json, tier_source for dimea-2-0</td></tr>
+  <tr><td>Posture</td><td>Personal / non-commercial</td><td>Framework Atlas; Ecosystem Codex Volume VI register ("personal operating system, non-commercial")</td></tr>
+  <tr><td>Dependencies</td><td>None stated</td><td>Framework Atlas, frameworks.json, dependency_note for dimea-2-0</td></tr>
+  <tr><td>Registry rows</td><td>5 rows: AI-FW-035 DIMEA 2.0; AI-MTH-007 DIMEA 2.0 Personal Operating System (5-Axis Framework); CM-MTH-DIMEA-CAUSAL-001 DIMEA Causal Flow Map + Drift Detection; CM-FW-MIRRORX-001 Mirror-X Codex Vitae DIMEA Self-OS Framework; CREATOR-FRAME-DIMEA-PERSONAL-1.0-BUILT The Personal DIMEA 5 Layers of Creative Self-Awareness. All Draft, Built, except Mirror-X (In Progress).</td><td>Vault dossier DIMEA 2.0 (FND-003), Notion IP Registry section</td></tr>
+  <tr><td>Repository</td><td>NO REPO (verified against the full 216-repo list)</td><td>Vault dossiers FND-003 and FND-015, GitHub section</td></tr>
+  <tr><td>Owner</td><td><span class="tag unknown">UNKNOWN</span> (current owner and early owner both UNKNOWN)</td><td>Vault dossiers FND-003 and FND-015</td></tr>
+  <tr><td>Classification</td><td>DIMEA 2.0: PRIMARY FRAMEWORK LINEAGE. DIMEA: FOUNDATIONAL FAMILY.</td><td>Vault dossiers, Chapter 36 census (2026-09-06)</td></tr>
+  <tr><td>Earliest source</td><td>Drive: THE PERSONAL DIMEA 5 LAYERS OF CREATIVE SELF-AWARENESS, 2025-07-13</td><td>Vault dossiers FND-003 and FND-015</td></tr>
+  <tr><td>Standalone dossier</td><td>Yes. Two vault pages exist: DIMEA 2.0 (FND-003) and DIMEA (FND-015). No standalone DIMEA paper or build was found in the vault.</td><td>Vault search, 2026-11-14</td></tr>
+</table>
+<h3>DESIGNED vs VERIFIED</h3>
+<table>
+  <tr><th>Claim</th><th>State</th><th>Basis</th></tr>
+  <tr><td>DIMEA 2.0 exists as a named framework with five axes</td><td><span class="tag verified">VERIFIED</span> as stated</td><td>Vault dossiers, registry rows, atlas entry</td></tr>
+  <tr><td>The five axes are Desire, Identity, Mission, Expression, Alignment</td><td><span class="tag verified">VERIFIED</span> as stated</td><td>AI-MTH-007 description quoted in vault dossier FND-015</td></tr>
+  <tr><td>This lab's scoring formula and weights</td><td><span class="tag designed">DESIGNED</span> by this lab</td><td>No weighting or scoring rule is stated in any source read</td></tr>
+  <tr><td>This lab's case facts</td><td><span class="tag verified">VERIFIED</span> as stated</td><td>Each case cites its source; UNKNOWN where the record is silent</td></tr>
+  <tr><td>DIMEA 2.0 runs in production code</td><td><span class="tag unknown">NOT VERIFIED</span></td><td>NO REPO; no runtime stated anywhere read</td></tr>
+  <tr><td>Five-axis vs five-layers wording</td><td><span class="tag unknown">OPEN COURT ITEM</span></td><td>Vault dossier FND-003</td></tr>
+</table>
+<div class="warn"><strong>What this lab does not do.</strong> It does not value any asset. Dollar figures on this page are quoted sale-catalog figures, labeled as such. It does not resolve the five-axis vs five-layers court item, does not claim a tier for DIMEA 2.0, and does not claim DIMEA 2.0 is deployed or running anywhere. The Ecosystem Codex caveat applies: a named framework is not an asset until it is either embedded in running code or licensed to someone.</div>
+
+<h2><span class="no">6</span>Sources read for this build</h2>
+<ul>
+  <li>Vault: <span class="mono">06-Founder-Cognitive/DIMEA 2.0.md</span> (FND-003), read in full.</li>
+  <li>Vault: <span class="mono">06-Founder-Cognitive/DIMEA.md</span> (FND-015), read in full.</li>
+  <li>Framework Atlas: <span class="mono">frameworks.json</span>, entry <span class="mono">dimea-2-0</span> (tier UNKNOWN, function "Personal operating system and decision framework", posture "Personal / non-commercial", dependencies none stated).</li>
+  <li>Ecosystem Codex Volume VI register line: "DIMEA 2.0 (personal operating system, non-commercial)".</li>
+  <li>Token-Swap Lab and SAL Content Pipeline demos: receipt format v1.0 pattern (canonical JSON, hash field stripped, SHA-256, GENESIS first).</li>
+  <li>Sale catalog figures as recorded in the Neuruh memory record (DeedSonar ask/target/floor, LANDOS outright/license bands, Lead Recipe OS Path A/B, LLC filing status). Quoted as stated catalog figures.</li>
+</ul>
+<p class="small muted">DIMEA 2.0 Decision Lab, built 2026-11-14 during the overnight Neuruh run. SIMULATION. No data leaves this page.</p>
+</main>
+<script src="app.js"></script>
+<script>
+var CASES = [
+  {
+    id: "deedsonar-sale",
+    title: "DeedSonar: sell or keep",
+    options: [
+      { id: "sell", label: "Sell DeedSonar (kernel retained and licensed)" },
+      { id: "keep", label: "Keep and operate DeedSonar" }
+    ],
+    facts: [
+      "DeedSonar is solely Jeramie's. The intended 50/50 JV partner, Bryan Franklin, never signed. (Memory record, corrected 2026-10-22.)",
+      "Sale catalog figures, as stated: ask $95,000; target $50,000 to $65,000; walk-away floor $25,000 cash; kernel retained and licensed. These are the catalog's figures, not this demo's valuation.",
+      "deedsonar.com returned 503 DEPLOYMENT_PAUSED on 2026-11-04. Ownership and access unresolved. (Memory record.)",
+      "Stack: Next.js, Supabase Pro, Vercel. Live at deedsonar.com, not app.deedsonar.com. (Memory record.)",
+      "UNKNOWN: whether any buyer or offer exists; current production health."
+    ],
+    example: { sell: { desire: 6, identity: 5, mission: 7, expression: 6, alignment: 6 }, keep: { desire: 8, identity: 9, mission: 8, expression: 7, alignment: 7 } }
+  },
+  {
+    id: "landos-license-vs-sale",
+    title: "LANDOS: license or sell outright",
+    options: [
+      { id: "license", label: "License LANDOS" },
+      { id: "sell", label: "Sell LANDOS outright" }
+    ],
+    facts: [
+      "Sale catalog figures, as stated: outright $35,000 to $80,000; license roughly $5,250 to $20,000 a year. These are the catalog's figures, not this demo's valuation.",
+      "LANDOS engine is not hosted (landos-engine.fly.dev down). (Memory record.)",
+      "LANDOS is the land signal engine: ingest plus engine, free-first acquisition. (Memory record.)",
+      "UNKNOWN: whether any licensee or buyer exists; current ingest health."
+    ],
+    example: { license: { desire: 8, identity: 8, mission: 9, expression: 7, alignment: 8 }, sell: { desire: 5, identity: 4, mission: 5, expression: 5, alignment: 4 } }
+  },
+  {
+    id: "llc-filing",
+    title: "Michigan LLC: file now or leave unfiled",
+    options: [
+      { id: "file", label: "File the LLC now" },
+      { id: "wait", label: "Leave the LLC unfiled" }
+    ],
+    facts: [
+      "Neuruh is not a registered business entity. The Michigan LLC filing remains unfiled; the filing fee is about $50 as stated in the record. (Memory record.)",
+      "Filing gates the SBIR/STTR and A16Z Speedrun routes. A16Z Speedrun SR008 closed Nov 2, 2026, submission unknown. Four decisions and a funded-card check still outstanding. (Memory record.)",
+      "UNKNOWN: a filing date; whether a funded card is confirmed."
+    ],
+    example: { file: { desire: 7, identity: 8, mission: 9, expression: 6, alignment: 9 }, wait: { desire: 3, identity: 3, mission: 2, expression: 4, alignment: 2 } }
+  },
+  {
+    id: "lead-recipe-os-paths",
+    title: "Lead Recipe OS: Path A (license) or Path B (sell)",
+    options: [
+      { id: "path-a", label: "Path A: keep and license the kernel" },
+      { id: "path-b", label: "Path B: sell the kernel outright" }
+    ],
+    facts: [
+      "Path A keeps and licenses the kernel. Path B sells it outright in the $150,000 to $350,000 band; the catalog notes this is the least grounded number in the catalog. These are the catalog's figures, not this demo's valuation.",
+      "Lead Recipe OS: 30 canonical recipe families; the live registry holds 36 rows including aliases and variants. Described in the record as the most important work; place-agnostic. (Memory record.)",
+      "UNKNOWN: any buyer or licensee; a license price for Path A."
+    ],
+    example: { "path-a": { desire: 9, identity: 9, mission: 9, expression: 8, alignment: 9 }, "path-b": { desire: 4, identity: 3, mission: 4, expression: 5, alignment: 3 } }
+  }
+];
+
+var selectedCase = null;
+var weights = { desire: 1, identity: 1, mission: 1, expression: 1, alignment: 1 };
+var receipts = [];
+var receiptSeq = 0;
+
+function el(id) { return document.getElementById(id); }
+
+function renderCases() {
+  var list = el("caseList");
+  list.innerHTML = "";
+  CASES.forEach(function (c) {
+    var b = document.createElement("button");
+    b.className = "casebtn";
+    b.innerHTML = "<strong>" + c.title + "</strong><span class=\"small muted\">" + c.options.map(function (o) { return o.label; }).join(" vs ") + "</span>";
+    b.onclick = function () { selectCase(c.id); };
+    list.appendChild(b);
+  });
+}
+
+function selectCase(id) {
+  selectedCase = CASES.filter(function (c) { return c.id === id; })[0];
+  var btns = document.querySelectorAll(".casebtn");
+  CASES.forEach(function (c, i) { btns[i].classList.toggle("active", c.id === id); });
+  var d = el("caseDetail");
+  d.innerHTML = "<div class=\"card\"><h3>" + selectedCase.title + "</h3><ul>" +
+    selectedCase.facts.map(function (f) { return "<li>" + f + "</li>"; }).join("") + "</ul></div>";
+  renderMatrix();
+  el("btnExample").disabled = false;
+  el("btnCompute").disabled = false;
+}
+
+function renderWeights() {
+  var row = el("weightRow");
+  row.innerHTML = "";
+  AXES.forEach(function (axis) {
+    var wrap = document.createElement("span");
+    wrap.style.display = "inline-block";
+    wrap.style.marginRight = "18px";
+    wrap.innerHTML = "<label>" + AXIS_LABELS[axis] + " weight: <input type=\"range\" min=\"0\" max=\"2\" step=\"0.5\" value=\"1\" data-axis=\"" + axis + "\"> <span class=\"mono\" id=\"wval-" + axis + "\">1</span></label>";
+    row.appendChild(wrap);
+  });
+  row.querySelectorAll("input[type=range]").forEach(function (inp) {
+    inp.oninput = function () {
+      weights[inp.getAttribute("data-axis")] = parseFloat(inp.value);
+      el("wval-" + inp.getAttribute("data-axis")).textContent = inp.value;
+    };
+  });
+}
+
+function renderMatrix() {
+  var area = el("matrixArea");
+  area.innerHTML = "";
+  selectedCase.options.forEach(function (opt) {
+    var card = document.createElement("div");
+    card.className = "card";
+    var html = "<h3>" + opt.label + "</h3><table><tr><th>Axis</th><th>Score (0-10)</th></tr>";
+    AXES.forEach(function (axis) {
+      html += "<tr><td>" + AXIS_LABELS[axis] + "</td><td><input type=\"number\" min=\"0\" max=\"10\" step=\"1\" value=\"5\" data-option=\"" + opt.id + "\" data-axis=\"" + axis + "\"></td></tr>";
+    });
+    html += "</table>";
+    card.innerHTML = html;
+    area.appendChild(card);
+  });
+}
+
+function readScores() {
+  var out = {};
+  selectedCase.options.forEach(function (opt) {
+    out[opt.id] = {};
+    AXES.forEach(function (axis) {
+      var inp = document.querySelector("input[data-option=\"" + opt.id + "\"][data-axis=\"" + axis + "\"]");
+      out[opt.id][axis] = Number(inp.value);
+    });
+  });
+  return out;
+}
+
+function fmt(n) { return (Math.round(n * 1000) / 1000).toString(); }
+
+async function sha256Hex(str) {
+  var buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
+}
+
+async function computeAndReceipt() {
+  if (!selectedCase) { return; }
+  var scores = readScores();
+  var scored = [];
+  var results = {};
+  try {
+    selectedCase.options.forEach(function (opt) {
+      var r = scoreOption(scores[opt.id], weights);
+      if (r.error) { throw new Error(r.error); }
+      scored.push({ option: opt.id, label: opt.label, score: r.score, detail: r });
+      results[opt.id] = { label: opt.label, scores: scores[opt.id], weighted_score: r.score, numerator: r.numerator, denominator: r.denominator };
+    });
+  } catch (e) {
+    el("resultArea").innerHTML = "<div class=\"warn\">" + e.message + "</div>";
+    return;
+  }
+  var ranking = rankOptions(scored.map(function (s) { return { option: s.option, score: s.score }; }));
+  var rankingOut = ranking.map(function (r) {
+    var label = selectedCase.options.filter(function (o) { return o.id === r.option; })[0].label;
+    return { rank: r.rank, option: r.option, label: label, score: r.score, tie: r.tie };
+  });
+
+  var html = "<div class=\"card\"><h3>Result, step by step</h3>";
+  scored.forEach(function (s) {
+    var terms = s.detail.terms.map(function (t) { return AXIS_LABELS[t.axis] + ": " + t.weight + " x " + t.score + " = " + t.product; }).join("; ");
+    html += "<p><strong>" + s.label + "</strong><br><span class=\"formula\">(" + terms + ") / " + s.detail.denominator + " = " + s.detail.numerator + " / " + s.detail.denominator + " = " + fmt(s.score) + "</span></p>";
+  });
+  html += "<p class=\"result-rank\">Ranking: " + rankingOut.map(function (r) { return "#" + r.rank + " " + r.label + " (" + fmt(r.score) + ")" + (r.tie ? " TIE" : ""); }).join(" &gt; ") + "</p></div>";
+  el("resultArea").innerHTML = html;
+
+  receiptSeq += 1;
+  var id = "dimear-20261114-" + String(receiptSeq).padStart(4, "0");
+  var prevHash = receipts.length === 0 ? "GENESIS" : receipts[receipts.length - 1].hash;
+  var issuedAt = new Date().toISOString();
+  var receipt = buildReceiptObject(id, selectedCase.id, scores, weights, results, rankingOut, prevHash, issuedAt);
+  receipt.hash = await sha256Hex(canonicalStringify(stripHash(receipt)));
+  receipts.push(receipt);
+  renderReceipts();
+}
+
+function renderReceipts() {
+  var list = el("receiptList");
+  el("chainBanner").textContent = "Chain: " + receipts.length + " receipt(s) this session. " +
+    (receipts.length === 0 ? "First receipt in a session chains from GENESIS." : "Last hash: " + receipts[receipts.length - 1].hash);
+  if (receipts.length === 0) {
+    list.innerHTML = "<p class=\"muted\">No receipts yet this session. Run the matrix to emit one.</p>";
+    return;
+  }
+  list.innerHTML = "";
+  receipts.forEach(function (r, idx) {
+    var card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = "<h3>" + r.id + " <button class=\"verify\" data-idx=\"" + idx + "\">Verify</button> <span class=\"mono small\" id=\"verdict-" + idx + "\"></span></h3>" +
+      "<p class=\"small mono\">prev_hash: " + r.prev_hash + "<br>hash: " + r.hash + "</p>" +
+      "<pre>" + JSON.stringify(r, null, 2).replace(/</g, "&lt;") + "</pre>";
+    list.appendChild(card);
+  });
+  list.querySelectorAll("button.verify").forEach(function (btn) {
+    btn.onclick = async function () {
+      var idx = Number(btn.getAttribute("data-idx"));
+      var r = receipts[idx];
+      var recomputed = await sha256Hex(canonicalStringify(stripHash(r)));
+      var hashOk = recomputed === r.hash;
+      var expectedPrev = idx === 0 ? "GENESIS" : receipts[idx - 1].hash;
+      var linkOk = r.prev_hash === expectedPrev;
+      var verdict = el("verdict-" + idx);
+      if (hashOk && linkOk) {
+        verdict.innerHTML = "<span class=\"pass\">PASS</span> (hash matches, chain link matches)";
+      } else {
+        verdict.innerHTML = "<span class=\"fail\">FAIL</span> (hash " + (hashOk ? "ok" : "MISMATCH") + ", link " + (linkOk ? "ok" : "MISMATCH") + ")";
+      }
+    };
+  });
+}
+
+el("btnExample").onclick = function () {
+  if (!selectedCase) { return; }
+  AXES.forEach(function (axis) {
+    selectedCase.options.forEach(function (opt) {
+      var inp = document.querySelector("input[data-option=\"" + opt.id + "\"][data-axis=\"" + axis + "\"]");
+      inp.value = selectedCase.example[opt.id][axis];
+    });
+  });
+};
+el("btnCompute").onclick = computeAndReceipt;
+
+renderCases();
+renderWeights();
+</script>
+</body>
+</html>
