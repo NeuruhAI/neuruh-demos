@@ -979,14 +979,15 @@ function updateHash(){
  }catch(e){/* share link unavailable, math still runs */}
 }
 function restoreFromHash(){
- if(!window.location.hash||window.location.hash.indexOf("#d=")!==0){return false;}
+ if(!window.location.hash||window.location.hash.indexOf("#d=")!==0){return "none";}
  try{
   var json=decodeURIComponent(escape(atob(window.location.hash.slice(3))));
   var s=JSON.parse(json);
+  if(!s||typeof s!=="object"){return "invalid";}
   applyState(s);
   showSampleNote("Deal restored from share link. Check the inputs and sources before relying on any number.");
-  return true;
- }catch(e){return false;}
+  return "ok";
+ }catch(e){return "invalid";}
 }
 function copyText(t,msg){
  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t);}
@@ -1070,7 +1071,15 @@ $("btnClearChain").addEventListener("click",function(){chain=[];$("chainOut").te
 document.addEventListener("input",function(e){if(e.target&&e.target.closest){calc();}});
 document.addEventListener("change",function(e){if(e.target&&e.target.closest){calc();}});
 
-if(!restoreFromHash()){calc();}
+var restored=restoreFromHash();
+if(restored==="invalid"){
+ suppressHash=true;
+ calc();
+ suppressHash=false;
+ showSampleNote("Could not restore state from this link. Generate a new share link and try again.");
+}else if(restored==="none"){
+ calc();
+}
 })();
 </script>
 </body>
