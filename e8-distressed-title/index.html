@@ -778,7 +778,9 @@ function calc(){
  return receipt;
 }
 
-function setVal(id,v){$(id).value=v;}
+function stepDecimals(step){var s=String(step);return s.indexOf(".")>=0?s.length-s.indexOf(".")-1:0;}
+function roundToStep(v,step){return Number(v).toFixed(stepDecimals(step));}
+function setVal(id,v){var el=$(id);if(!el){return;}if(el.type==="number"&&v!==""&&v!==null&&v!==undefined&&isFinite(Number(v))){el.value=roundToStep(v,Number(el.step)||1);}else{el.value=v;}}
 function setLienRow(i,priority,type,holder,amount,source,verified,notes){
  var tr=document.querySelectorAll("#lienBody tr")[i];if(!tr)return;
  function q(f){return tr.querySelector('[data-f="'+f+'"]');}
@@ -905,7 +907,7 @@ function gatherState(){
 function applyState(s){
  if(!s||typeof s!=="object"){return;}
  var ids=["address","parcelId","county","value","valueSource","ownerName","ownerStatus","parcelSources","parcelSourceNames","probateStatus","heirCount","heirsConsent","probateCourt","probateCounsel","probateTimeline","taxStatus","taxOwed","taxSource","taxSaleDate","redemptionDeadline","redemptionCost","repairs","assignBuffer","repairsKnown","assignFee","titleCompanyRequires","feeDisclosureRisk","confidence","assumptions","missingData","conflicts","titleNotes"];
- ids.forEach(function(id){if(s[id]!==undefined&&$(id)){$(id).value=s[id];}});
+ ids.forEach(function(id){if(s[id]!==undefined&&$(id)){setVal(id,s[id]);}});
  if(s.lienStackComplete!==undefined){$("lienStackComplete").checked=!!s.lienStackComplete;}
  if(Array.isArray(s.liens)){
   $("lienBody").innerHTML="";lienIndex=0;
@@ -1041,6 +1043,7 @@ $("btnVerifyChain2").addEventListener("click",verifyChain);
 $("btnCopyChain").addEventListener("click",copyChain);
 $("btnDownloadChain").addEventListener("click",downloadChain);
 $("btnPrint").addEventListener("click",function(){window.print();});
+document.addEventListener("change",function(e){var el=e.target;if(el&&el.type==="number"&&el.value!==""&&isFinite(Number(el.value))){el.value=roundToStep(el.value,Number(el.step)||1);}});
 document.addEventListener("input",calc);
 document.addEventListener("change",calc);
 window.loadSampleA=function(){loadSample("a");};
