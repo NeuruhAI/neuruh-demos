@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retardio Measurement Loop v1</title>
+<style>
+  :root{--bone:#f4f1ea;--paper:#fbf9f4;--ink:#1c1a16;--mut:#6b655a;--brass:#8a6d2b;--line:#d8d2c4;--ok:#2e6b34;--bad:#a02c22;--warn:#8a6d2b}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55}
+  .wrap{max-width:1060px;margin:0 auto;padding:28px 22px 80px}
+  .dochead{border:1px solid var(--line);background:var(--paper);padding:18px 20px;margin-bottom:22px}
+  .dochead .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;color:var(--mut);text-transform:uppercase}
+  .dochead h1{font-family:Archivo,system-ui,sans-serif;font-size:30px;margin:6px 0 4px;line-height:1.15}
+  .dochead p{margin:4px 0;color:var(--mut)}
+  .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:22px}
+  .strip div{background:var(--paper);padding:12px 14px}
+  .strip .n{font-family:Archivo,sans-serif;font-size:24px;font-weight:700}
+  .strip .l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+  h2{font-family:Archivo,sans-serif;font-size:20px;margin:34px 0 8px;border-bottom:2px solid var(--brass);padding-bottom:6px}
+  h3{font-family:Archivo,sans-serif;font-size:15px;margin:20px 0 6px}
+  p{margin:8px 0}
+  .note{border-left:3px solid var(--brass);background:#f3ead2;padding:10px 14px;margin:12px 0;font-size:14px}
+  .warn{border-left:3px solid var(--bad);background:#f7e3df;padding:10px 14px;margin:12px 0;font-size:14px}
+  .okbox{border-left:3px solid var(--ok);background:#e2efe3;padding:10px 14px;margin:12px 0;font-size:14px}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0;background:var(--paper)}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:#ece7da;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+  .mono{font-family:"JetBrains Mono",monospace;font-size:12px;word-break:break-all}
+  .pill{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:11px;padding:1px 7px;border-radius:20px;border:1px solid var(--line)}
+  .pill.ok{color:var(--ok);border-color:var(--ok)}
+  .pill.bad{color:var(--bad);border-color:var(--bad)}
+  .pill.ill{color:#6b4fa1;border-color:#6b4fa1}
+  pre{background:#211f1b;color:#e8e2d4;padding:14px;overflow:auto;font-size:12.5px;line-height:1.5;border-radius:4px}
+  code{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+  button{font-family:Archivo,sans-serif;font-weight:700;background:var(--ink);color:var(--paper);border:0;padding:9px 16px;cursor:pointer;border-radius:3px;margin:6px 8px 6px 0}
+  button:hover{background:var(--brass)}
+  .small{font-size:13px;color:var(--mut)}
+  .bignum{font-family:Archivo,sans-serif;font-size:34px;font-weight:700}
+  footer{margin-top:40px;border-top:1px solid var(--line);padding-top:14px;font-size:13px;color:var(--mut)}
+  @media print{body{background:#fff}.dochead,.strip div,table{background:#fff}button{display:none}}
+  @media (max-width:700px){.strip{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="dochead">
+  <div class="k">Retardio &middot; Measurement Loop &middot; v1.0 &middot; 2026-11-15</div>
+  <h1>Retardio Measurement Loop v1</h1>
+  <p>The first working piece of <strong>Retardio</strong> — the system name when complete. Narrow first: one county, one public source, three forecast types, one scoring rule. Everything else (authority headers, topology, weight updates) waits until this loop produces calibrated forecasts on held-out data.</p>
+  <p class="small">Strengthen, do not remove: this is additive. It replaces nothing in the estate. Note: the name Retardio is also used by a Solana memecoin; this system is unrelated.</p>
+</div>
+
+<div class="strip" id="status-strip"></div>
+
+<h2>1. The narrow loop</h2>
+<p><strong>Chosen domain.</strong> Public county property records + related entity filings, focused on patterns that appear in published fraud, money-laundering, and scam typology reports: all-cash LLC purchases, rapid flips with large unexplained jumps, newly formed entities with no clear activity, clusters of properties controlled by related entities. This is fully public in most U.S. counties. Outcomes can later be coded from court dockets, news, enforcement actions, or subsequent public filings. It stays at the level of <strong>transactions and entities</strong>, not private individuals scored as corrupt.</p>
+<p><strong>County.</strong> St. Joseph County, Indiana. One source to start: the county assessor's public ArcGIS parcel service. No other data source is added until this loop produces calibrated forecasts on held-out historical data.</p>
+<ol>
+  <li>Ingest observations from one county into the append-only log.</li>
+  <li>On each new relevant observation, emit the applicable forecasts with receipts.</li>
+  <li>Wait for natural resolution windows or public outcomes.</li>
+  <li>Code outcomes and compute Brier.</li>
+  <li>Only after a stable Brier is demonstrated on historical back-test + forward test, allow a human-reviewed proposal to adjust the scoring rule.</li>
+  <li>Re-test the adjusted rule on new data. Keep it only if Brier improves.</li>
+  <li>All steps produce receipts. An independent party can re-compute hashes and Brier from the exported log.</li>
+</ol>
+
+<h2>2. Layer 1 — Observation schema</h2>
+<p>Every observation is a structured record with provenance. Nothing enters the system without a hash. Canonicalize before hashing: sorted keys, normalized strings (first line of names, whitespace collapsed), numbers as integers when whole. Store the raw bytes so the hash can be recomputed by an independent party. Append-only log: no updates; corrections are new observations that reference the prior ID. Retrieval method and parameters are in the source locator so the observation can be reproduced.</p>
+<pre>{
+  "observation_id": "sha256 of canonical payload",
+  "source": "county_recorder | secretary_of_state | court_docket",
+  "source_locator": "county + instrument_number or filing_id + retrieval_timestamp",
+  "retrieved_at": "ISO-8601",
+  "raw_hash": "sha256 of exact bytes retrieved",
+  "entity_type": "deed | llc_filing | ucc | lis_pendens | judgment",
+  "payload": {
+    "instrument_date": "...",
+    "grantor": "...",
+    "grantee": "...",
+    "consideration": "number_or_null",
+    "property_id": "parcel or address hash",
+    "entity_name": "...",
+    "formation_date": "...",
+    "related_entities": ["..."]
+  },
+  "schema_version": "1.0"
+}</pre>
+<div class="note"><strong>Source vocabulary, one honest extension.</strong> The available first source is the county <strong>assessor's</strong> ArcGIS parcel service, not the recorder, so the log uses <code>county_assessor_arcgis</code> and <code>parcel_record</code> where the spec's enum does not cover them. The assessor carries the sale fields a deed carries (sale date, consideration, grantee), but it is not the recorder: it shows only the latest sale per parcel, it carries the current owner rather than the grantor, and it carries no entity formation dates. Deed-history resolution still needs the recorder. Fields the source does not carry are <code>null</code>, never invented: <code>grantor</code>, <code>formation_date</code>, <code>related_entities</code>. <code>acreage</code> is carried as a documented payload extension because the scoring rule uses it. Street addresses are not published on this page; <code>property_id</code> is the county parcel ID. <code>raw_hash</code> is the SHA-256 of the canonical form of the retrieved feature record (sorted keys; whole-number floats rendered as integers; strings as returned); the response file is preserved so anyone can recompute it from the same rule.</div>
+<p><button id="btn-verify-log">Verify observation log</button><span id="verify-log-result" class="small"></span></p>
+<div id="obs-table"></div>
+<p class="small">Corrections to date: 0. The log is append-only; a correction would appear here as a new observation referencing the prior ID.</p>
+
+<h2>3. Layer 2 — Forecasts (pre-registered, receipted)</h2>
+<p>Three forecast types, defined in the spec. Each forecast is emitted before its outcome is known and stored with its own receipt. Two of the three cannot be issued yet, and the page says why instead of faking them.</p>
+<table>
+  <tr><th>Forecast type</th><th>Definition</th><th>Issued</th><th>Status</th></tr>
+  <tr><td><code>rapid_flip</code></td><td>Probability that a deed is followed, within 180 days, by a subsequent deed on the same parcel with consideration &ge; 1.5&times; the prior consideration, and the grantee is an entity formed within the prior 12 months.</td><td id="c-rf">–</td><td>Back-test, unresolved (see below)</td></tr>
+  <tr><td><code>entity_cluster</code></td><td>Probability that a newly observed LLC appears as grantee on &ge; 3 distinct parcels within 365 days.</td><td>0</td><td>Blocked: entity formation dates are not in this source. Needs secretary-of-state data, a broadening step.</td></tr>
+  <tr><td><code>all_cash_new_entity</code></td><td>Probability that an all-cash (or nominal consideration) purchase by an entity formed &lt; 90 days earlier later appears in a public enforcement action, civil suit, or published typology report within 24 months.</td><td>0</td><td>Blocked: formation dates and cash-vs-financed status are not in this source.</td></tr>
+</table>
+<h3>baseline_v1 — the transparent scoring rule</h3>
+<p>The initial model is a transparent rule on the features, not a fitted model. Coefficients are stated assumptions, not measured rates. The point is that every probability is issued in advance and later scored.</p>
+<pre>baseline_v1 (rapid_flip):
+  prior                                0.04
+  +0.03 if consideration &lt; $100,000
+  +0.02 if acreage &lt; 0.5
+  clamp to [0.01, 0.50]
+  features_used: ["consideration", "acreage"]</pre>
+<p class="small">Assessed value is deliberately <strong>not</strong> a feature: current-snapshot assessed values would be look-ahead for a back-test as of the sale date. Sale price, sale date, and acreage are fixed at the deed. Class code is not used: the Indiana class-code mapping was not verified for this build.</p>
+<div class="note"><strong>Back-test, not live issuance.</strong> These forecasts were computed at build time from the rule above, applied retrospectively to historical deeds, with <code>issued_at</code> set to each sale date. The rule was fixed on 2026-11-15 before any outcome was coded. That is what makes this a valid back-test design: the rule is frozen before outcomes are known. A live forecast (issued at observation time, window still open) will appear here only when a deed feed exists. No outcome has been coded for any of these forecasts.</div>
+<p><button id="btn-verify-fc">Verify forecast receipts</button><span id="verify-fc-result" class="small"></span></p>
+<div id="fc-table"></div>
+
+<h2>4. Outcomes + Brier</h2>
+<p>When a window closes or a public record resolves the question, an outcome record is written:</p>
+<pre>{
+  "outcome_id": "...",
+  "forecast_id": "...",
+  "resolved_at": "...",
+  "outcome": "0 or 1",
+  "evidence_observation_ids": ["..."],
+  "coder": "human | rule",
+  "receipt": "..."
+}</pre>
+<p>Brier score, for a set of resolved forecasts: <strong>Brier = (1/N) &Sigma;(p<sub>i</sub> &minus; o<sub>i</sub>)&sup2;</strong>. Lower is better. Tracked overall, by forecast type, and over time. Published here. A model or weight update is retained only if it improves Brier on a subsequent or held-out set, not the set used to propose the change.</p>
+<div class="warn"><strong>Real Brier: NOT YET COMPUTABLE.</strong> <span id="brier-real">0 resolved forecasts. No outcome has been coded, because resolving a rapid-flip forecast needs deed history (the subsequent deed, and the grantee's formation date), and this source carries only the latest sale per parcel. The numbers below are targets, not claims.</span></div>
+<table>
+  <tr><th>Success criterion (narrow slice)</th><th>Target</th><th>Current</th></tr>
+  <tr><td>Resolved forecasts</td><td>&ge; 200</td><td>0</td></tr>
+  <tr><td>Brier vs constant baseline (always predicting the base rate)</td><td>Meaningfully better</td><td>Not computable — base rate unknown until first outcomes are coded</td></tr>
+  <tr><td>Receipt chain verifies end-to-end</td><td>Valid</td><td id="sc-chain">Pending verification (run §6)</td></tr>
+  <tr><td>False-positive rate at a pre-specified threshold</td><td>Acceptable to a human reviewer</td><td>No threshold set — no resolved forecasts</td></tr>
+</table>
+<h3>Illustrative worked example — the Brier arithmetic, nothing more</h3>
+<div class="note"><span class="pill ill">ILLUSTRATIVE</span> <strong>This example is invented to show the formula working. It is not measured data, it is not part of the loop, and it is excluded from every total on this page.</strong> Five illustrative forecasts with stated probabilities and outcomes: <span id="ill-rows"></span></div>
+<p id="ill-math" class="mono"></p>
+<p><button id="btn-ill">Recompute illustrative Brier</button><span id="ill-result" class="small"></span></p>
+
+<h2>5. Promotion gate</h2>
+<p>A change in scoring or topology is retained only if it improves a pre-specified metric (Brier) on data not used to propose the change. This is recursive only in the narrow sense of improving the measurement apparatus. It is not recursive self-modification of arbitrary code.</p>
+<p><strong>Status: no proposal pending.</strong> No scoring change can be proposed until a stable Brier exists on the back-test set, and no change can be retained until it beats that Brier on a held-out set. The gate is armed, not triggered.</p>
+
+<h2>6. Receipt chain verification</h2>
+<p>Each observation carries <code>prev_hash</code> (GENESIS for the first), chaining the log. Each forecast carries a SHA-256 receipt over its canonical record. The verifier below recomputes every hash in this page from the embedded data and reports the count. Tamper test: change one payload value in memory and watch the recomputation fail, then restore it.</p>
+<p><button id="btn-verify-all">Verify entire chain</button> <button id="btn-tamper">Tamper test</button><span id="verify-all-result" class="small"></span></p>
+
+<h2>7. What is real, what is illustrative, what comes next</h2>
+<table>
+  <tr><th>Item</th><th>Real / illustrative</th><th>Evidence</th></tr>
+  <tr><td>25 observation records</td><td><strong>Real</strong> — public county records</td><td>St. Joseph County Assessor ArcGIS, LandRecords/Parcels_County/MapServer/0, retrieved <span class="mono" id="prov-retrieved"></span>, response SHA-256 <span class="mono" id="prov-response"></span></td></tr>
+  <tr><td>Sample frame</td><td><strong>Real</strong></td><td>14,415 LLC-owned parcels with a recorded sale match the filter; this page carries the first 25 returned (ordered by sale-date string descending; the service reports exceededTransferLimit). Not claimed as the most recent 25.</td></tr>
+  <tr><td>20 rapid_flip back-test forecasts</td><td><strong>Real issuance, unmeasured</strong></td><td>Rule fixed 2026-11-15, applied retrospectively, receipts computed. Outcomes not coded; Brier does not exist yet.</td></tr>
+  <tr><td>entity_cluster / all_cash_new_entity forecasts</td><td><strong>None issued</strong></td><td>Required fields (formation dates, cash status) are not in this source.</td></tr>
+  <tr><td>Brier worked example (§4)</td><td><strong>Illustrative</strong></td><td>Invented rows, labeled, excluded from all totals.</td></tr>
+  <tr><td>Calibration, base rates, false-positive rates</td><td><strong>Not measured</strong></td><td>No claim is made. The loop exists to measure them.</td></tr>
+</table>
+<h3>Provenance</h3>
+<p class="mono small" id="prov-query"></p>
+<p class="small">Response file preserved at <code>raw/sjc_llc_sample.json</code> in the build directory; anyone can recompute every hash from it. Owner names are not published on this page: only entity (LLC) names from public records, parcel IDs, and sale figures appear. No private individual is named or scored.</p>
+<h3>Next steps (in order, each gated on the one before)</h3>
+<ol>
+  <li><strong>Deed history for resolution.</strong> Recorder bulk data or the county property-record-card PDFs (same county, per-parcel cards) to code outcomes for the 20 back-test forecasts and compute the first real Brier.</li>
+  <li><strong>Secretary-of-state entity data.</strong> Formation dates unlock <code>entity_cluster</code> and <code>all_cash_new_entity</code>.</li>
+  <li><strong>Second county</strong> (same schema), only after calibration is demonstrated on the first.</li>
+  <li><strong>Authority header</strong> on any alert or export (who authorized the threshold, expiry, scope), then topology — only after the measurement loop is resolved.</li>
+</ol>
+
+<footer>
+  Retardio Measurement Loop v1 &middot; St. Joseph County, Indiana &middot; Schema v1.0 &middot; Built 2026-11-15. All numbers on this page carry their audit date. A stat without a date is a rumor with better formatting. Retardio is the system name when complete; it is unrelated to any memecoin of the same name.
+</footer>
+</div>
+
+<script id="loop-data" type="application/json">{
+  "meta": {
+    "page": "Retardio Measurement Loop v1",
+    "system_name": "Retardio (system name when complete)",
+    "county": "St. Joseph County, Indiana",
+    "source": "St. Joseph County Assessor, ArcGIS LandRecords/Parcels_County/MapServer/0",
+    "query_base": "https://gis.southbendin.gov/arcgis/rest/services/LandRecords/Parcels_County/MapServer/0/query",
+    "query_params": {
+      "where": "NAME_1 LIKE '%LLC%' AND SALESPRICE IS NOT NULL AND SALESDATE IS NOT NULL",
+      "outFields": "PARCELID,NAME_1,TRANSFERDA,SALESDATE,SALESPRICE,PROP_ADDR,PROP_CITY,ACREAGE,REALLANDVA,REALIMPROV,CLASSCODE,TOWNSHIP",
+      "returnGeometry": "false",
+      "orderByFields": "SALESDATE DESC",
+      "resultRecordCount": "25",
+      "f": "json"
+    },
+    "retrieved_at": "2026-11-15T11:53:33Z",
+    "response_sha256": "a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0",
+    "response_file": "raw/sjc_llc_sample.json",
+    "sample_frame_matching": 14415,
+    "sample_returned": 25,
+    "exceeded_transfer_limit": true,
+    "schema_version": "1.0",
+    "rule_fixed_at": "2026-11-15T11:53:33Z",
+    "generated_at": "2026-11-15T11:56:52Z"
+  },
+  "observations": [
+    {
+      "seq": 1,
+      "observation_id": "ce0a02a1e668517da69f8aac7e91395b548153cfcf7716561cc6adb3de22c395",
+      "prev_hash": "GENESIS",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 1 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "e73a86c14fe8a316920177610028a8c9de0f8b82b67929699775860d16b40fac",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2019-08-09",
+        "grantor": null,
+        "grantee": "Merrill Realty LLC",
+        "consideration": 60000,
+        "property_id": "006-1027-039201",
+        "entity_name": "Merrill Realty LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 1.07151399
+      },
+      "source_extras": {
+        "classcode": "480",
+        "township": "Harris",
+        "transfer_date": "2019-09-19",
+        "assessed_land": 139200,
+        "assessed_improvement": 394800,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 2,
+      "observation_id": "1e2396095737b1414728f0f58e983a9501634936bb3da24e4437ada8169c045f",
+      "prev_hash": "ce0a02a1e668517da69f8aac7e91395b548153cfcf7716561cc6adb3de22c395",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 2 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "3b9ce85c63b3559e3b98ae56350d05c17bd3050e6180770c2c7f64006f335183",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2024-08-29",
+        "grantor": null,
+        "grantee": "Irish Rentals LLC",
+        "consideration": 191880,
+        "property_id": "012-1008-008408",
+        "entity_name": "Irish Rentals LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 9.83532172
+      },
+      "source_extras": {
+        "classcode": "100",
+        "township": "Olive",
+        "transfer_date": "2024-09-18",
+        "assessed_land": 15700,
+        "assessed_improvement": 0,
+        "prop_city": null
+      }
+    },
+    {
+      "seq": 3,
+      "observation_id": "d144fa5d412b02f4dc8f6791d311d23f7ea057719078f37b1ec6dc937e2b18c4",
+      "prev_hash": "1e2396095737b1414728f0f58e983a9501634936bb3da24e4437ada8169c045f",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 3 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "e645734b9acc26e840454aa5244820413f96519af1cada9da6163cb7b2528b58",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2024-08-28",
+        "grantor": null,
+        "grantee": "Irish Rentals LLC",
+        "consideration": 188175,
+        "property_id": "012-1008-008409",
+        "entity_name": "Irish Rentals LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 9.65210677
+      },
+      "source_extras": {
+        "classcode": "100",
+        "township": "Olive",
+        "transfer_date": "2024-09-18",
+        "assessed_land": 16600,
+        "assessed_improvement": 0,
+        "prop_city": null
+      }
+    },
+    {
+      "seq": 4,
+      "observation_id": "cb44353bf10b70aa808a337b7638c15ff7daa237589c041165e2b710971d228a",
+      "prev_hash": "d144fa5d412b02f4dc8f6791d311d23f7ea057719078f37b1ec6dc937e2b18c4",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 4 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "402bbdb7c19dd3762009b165f9ba194dc3bc2dcba084fce30dac1200f13a6d4b",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2023-08-28",
+        "grantor": null,
+        "grantee": "SDI-GM Synergy Cells LLC",
+        "consideration": 13473405,
+        "property_id": "012-1007-0080",
+        "entity_name": "SDI-GM Synergy Cells LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 247.3927933
+      },
+      "source_extras": {
+        "classcode": "330",
+        "township": "Olive",
+        "transfer_date": "2023-09-14",
+        "assessed_land": 31815700,
+        "assessed_improvement": 318403600,
+        "prop_city": "NEW CARLISLE"
+      }
+    },
+    {
+      "seq": 5,
+      "observation_id": "48a6ff71d70b6951cadf53c05522aa5fde47f25e1bd9d70bc23c3dde2f9dbe1f",
+      "prev_hash": "cb44353bf10b70aa808a337b7638c15ff7daa237589c041165e2b710971d228a",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 5 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "f6d978e33c4756420c9941cbd7ef560fffbf89216585e10d8157cfe6e89e6a19",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2008-08-28",
+        "grantor": null,
+        "grantee": "Tammy Properties LLC",
+        "consideration": 360000,
+        "property_id": "006-1027-039202",
+        "entity_name": "Tammy Properties LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 1.78427626
+      },
+      "source_extras": {
+        "classcode": "456",
+        "township": "Harris",
+        "transfer_date": "2008-12-02",
+        "assessed_land": 47400,
+        "assessed_improvement": 11400,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 6,
+      "observation_id": "099c891518b5571ee5800ff2c87123e931b878b923a537e66d6d1ddb50106034",
+      "prev_hash": "48a6ff71d70b6951cadf53c05522aa5fde47f25e1bd9d70bc23c3dde2f9dbe1f",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 6 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "5ae51c9e613f5e858d8a4fefbbc43ebfda6aaf33620685045383aa516ba1136d",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2008-08-28",
+        "grantor": null,
+        "grantee": "Tammy Properties LLC",
+        "consideration": 360000,
+        "property_id": "006-1013-018214",
+        "entity_name": "Tammy Properties LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 2.4615335
+      },
+      "source_extras": {
+        "classcode": "430",
+        "township": "Harris",
+        "transfer_date": "2008-12-02",
+        "assessed_land": 193900,
+        "assessed_improvement": 654700,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 7,
+      "observation_id": "b5ff52c38fcf333eeebd06642ad37e9777530e76fe9a06ea7b39537a6882b0d6",
+      "prev_hash": "099c891518b5571ee5800ff2c87123e931b878b923a537e66d6d1ddb50106034",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 7 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "f3611b503a021f56b2daa8486894aeabb0a714a8b74514e6c7d0233ae40c4269",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2012-08-21",
+        "grantor": null,
+        "grantee": "EP IN LLC",
+        "consideration": 14250000,
+        "property_id": "029-1001-000503",
+        "entity_name": "EP IN LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 19.69957175
+      },
+      "source_extras": {
+        "classcode": "403",
+        "township": "Clay",
+        "transfer_date": "2023-07-20",
+        "assessed_land": 472500,
+        "assessed_improvement": 16216300,
+        "prop_city": "MISHAWAKA"
+      }
+    },
+    {
+      "seq": 8,
+      "observation_id": "bc62817d11fd2b925baca6cd04d2e1f978363d4915b6d221e1ffd7f3c64aea75",
+      "prev_hash": "b5ff52c38fcf333eeebd06642ad37e9777530e76fe9a06ea7b39537a6882b0d6",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 8 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "6ae7bc3e4f72bf65e866808cf279baa9be8ef7357b9327becb4e9b242e49a961",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2010-07-29",
+        "grantor": null,
+        "grantee": "Steel Water LLC",
+        "consideration": 1063229.51,
+        "property_id": "006-1004-003128",
+        "entity_name": "Steel Water LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 1.92171712
+      },
+      "source_extras": {
+        "classcode": "467",
+        "township": "Harris",
+        "transfer_date": "2010-10-15",
+        "assessed_land": 423700,
+        "assessed_improvement": 812400,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 9,
+      "observation_id": "f63f9bf64e98eba0b695eb77ee375f4bfebc400fc1969f6626d8a66bb466e959",
+      "prev_hash": "bc62817d11fd2b925baca6cd04d2e1f978363d4915b6d221e1ffd7f3c64aea75",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 9 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "8ee79367ae0504eafa525b228c519a989f62e68b2bbb35c4e77462f398b4c1f4",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2009-06-01",
+        "grantor": null,
+        "grantee": "Gavilon Grain LLC",
+        "consideration": 329000,
+        "property_id": "012-1051-068210",
+        "entity_name": "Gavilon Grain LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 31.00265939
+      },
+      "source_extras": {
+        "classcode": "350",
+        "township": "Olive",
+        "transfer_date": "2014-03-13",
+        "assessed_land": 475600,
+        "assessed_improvement": 1569100,
+        "prop_city": "NEW CARLISLE"
+      }
+    },
+    {
+      "seq": 10,
+      "observation_id": "a17e79326bdd198e2587d957a309c170e24446529aa116162b88c9a1427d2b11",
+      "prev_hash": "f63f9bf64e98eba0b695eb77ee375f4bfebc400fc1969f6626d8a66bb466e959",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 10 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "8bc06f4d5e6e2e689670e98d73ece5c588f9226e537b6469845917728d170b8a",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2010-05-26",
+        "grantor": null,
+        "grantee": "CWK Granger DG LLC",
+        "consideration": 1020000,
+        "property_id": "006-1004-003101",
+        "entity_name": "CWK Granger DG LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 1.9593281
+      },
+      "source_extras": {
+        "classcode": "429",
+        "township": "Harris",
+        "transfer_date": "2024-04-24",
+        "assessed_land": 254600,
+        "assessed_improvement": 746600,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 11,
+      "observation_id": "e2d5e386bc505bc5003cb7b684b506074f9e96cd43473eb600dac6bbdaa07186",
+      "prev_hash": "a17e79326bdd198e2587d957a309c170e24446529aa116162b88c9a1427d2b11",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 11 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "b509b124645422cb03e96fff868df21c4048eebdd0c24fa219f2cd9fb81294c2",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2021-05-17",
+        "grantor": null,
+        "grantee": "Ceres Farms LLC",
+        "consideration": 1025000,
+        "property_id": "012-1016-0189",
+        "entity_name": "Ceres Farms LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 123.46080532
+      },
+      "source_extras": {
+        "classcode": "100",
+        "township": "Olive",
+        "transfer_date": "2021-05-24",
+        "assessed_land": 181300,
+        "assessed_improvement": 0,
+        "prop_city": "NORTH LIBERTY"
+      }
+    },
+    {
+      "seq": 12,
+      "observation_id": "51c8b98012d82a3d22802e387d9422a8e975bd9f9ae1075a5e8b06927eb78107",
+      "prev_hash": "e2d5e386bc505bc5003cb7b684b506074f9e96cd43473eb600dac6bbdaa07186",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 12 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "3909ae237b54c6b46c0c47ecab5f0b97ce77771c6944eeb8e08efb2394119cee",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2022-03-07",
+        "grantor": null,
+        "grantee": "Shri Akal Real Estate LLC",
+        "consideration": 808213,
+        "property_id": "006-1004-003127",
+        "entity_name": "Shri Akal Real Estate LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 0.9443788
+      },
+      "source_extras": {
+        "classcode": "430",
+        "township": "Harris",
+        "transfer_date": "2024-05-03",
+        "assessed_land": 201600,
+        "assessed_improvement": 559800,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 13,
+      "observation_id": "86afbaaf6297c5aef2f19068eac03b29356d53de747f1b459318bce76835c653",
+      "prev_hash": "51c8b98012d82a3d22802e387d9422a8e975bd9f9ae1075a5e8b06927eb78107",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 13 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "d32df89daae298e2085d59aa473139b6ef0d36bdaea7ce7f98a5ef4840cc5c00",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2025-03-17",
+        "grantor": null,
+        "grantee": "DW Enterprises LLC",
+        "consideration": 382250,
+        "property_id": "006-1018-023608",
+        "entity_name": "DW Enterprises LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 4.63781914
+      },
+      "source_extras": {
+        "classcode": "429",
+        "township": "Harris",
+        "transfer_date": "2025-03-24",
+        "assessed_land": 42900,
+        "assessed_improvement": 602100,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 14,
+      "observation_id": "7143dd9d6d2e5cc0f21fa03c0f65d5cb65fb774ce2dd49ef365cb0f8d2067534",
+      "prev_hash": "86afbaaf6297c5aef2f19068eac03b29356d53de747f1b459318bce76835c653",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 14 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "01a6f75211b5115b3d65d3a0eaa3e23cd3b04851e19da7f941fb0b61795617a1",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2019-02-19",
+        "grantor": null,
+        "grantee": "TB Granger LLC",
+        "consideration": 500000,
+        "property_id": "006-1004-003119",
+        "entity_name": "TB Granger LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 0.78290839
+      },
+      "source_extras": {
+        "classcode": "431",
+        "township": "Harris",
+        "transfer_date": "2019-09-30",
+        "assessed_land": 163600,
+        "assessed_improvement": 432600,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 15,
+      "observation_id": "024def2320bb8608608c09439c45dc678b50c564d4488c9437d1711ec7ff48ea",
+      "prev_hash": "7143dd9d6d2e5cc0f21fa03c0f65d5cb65fb774ce2dd49ef365cb0f8d2067534",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 15 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "8992e49a05df461ff7dc15e106dab3e6b10390fe1953d5614056a476427c0cdd",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2008-12-08",
+        "grantor": null,
+        "grantee": "2713 N Bendix LLC",
+        "consideration": 5590,
+        "property_id": "006-1004-003129",
+        "entity_name": "2713 N Bendix LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 1.32444758
+      },
+      "source_extras": {
+        "classcode": "400",
+        "township": "Harris",
+        "transfer_date": "2023-06-16",
+        "assessed_land": 78700,
+        "assessed_improvement": 0,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 16,
+      "observation_id": "3587b8f9c8133a6f395fb38335b0cd088456a6f1912b378a85ae9aee6ac83b82",
+      "prev_hash": "024def2320bb8608608c09439c45dc678b50c564d4488c9437d1711ec7ff48ea",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 16 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "31875afc60019bdbad50495cd7078e27092685c1c92b1a41cce4c887badcdf0b",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2021-12-27",
+        "grantor": null,
+        "grantee": "ElkhartRV Resort LLC",
+        "consideration": 2850000,
+        "property_id": "006-1013-018003",
+        "entity_name": "ElkhartRV Resort LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 12.64932287
+      },
+      "source_extras": {
+        "classcode": "416",
+        "township": "Harris",
+        "transfer_date": "2025-04-14",
+        "assessed_land": 298200,
+        "assessed_improvement": 1106800,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 17,
+      "observation_id": "4e0bd9c217e486cc4bf326922f7c592cd6ffe8e55333945d318581c5ea0191cd",
+      "prev_hash": "3587b8f9c8133a6f395fb38335b0cd088456a6f1912b378a85ae9aee6ac83b82",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 17 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "01deebed59a8c3e1944a2ea874d99ca8928d3061ff4d1465489008dc7453b422",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2009-11-30",
+        "grantor": null,
+        "grantee": "McDonalds USA LLC",
+        "consideration": 2400,
+        "property_id": "006-1018-0236",
+        "entity_name": "McDonalds USA LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 0.96151996
+      },
+      "source_extras": {
+        "classcode": "431",
+        "township": "Harris",
+        "transfer_date": "2007-09-19",
+        "assessed_land": 176100,
+        "assessed_improvement": 438300,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 18,
+      "observation_id": "9618e5584170406f5a3272c27c21514593c2822e992ed76b9e88d2f1461ac90e",
+      "prev_hash": "4e0bd9c217e486cc4bf326922f7c592cd6ffe8e55333945d318581c5ea0191cd",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 18 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "79b9bbf41b31f7462e754ab6034aeb946fc11ed45411056a1e9c740b1dd609cc",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2024-11-20",
+        "grantor": null,
+        "grantee": "JRM Enterprises LLC",
+        "consideration": 0,
+        "property_id": "006-1014-019402",
+        "entity_name": "JRM Enterprises LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 4.3687759
+      },
+      "source_extras": {
+        "classcode": "510",
+        "township": "Harris",
+        "transfer_date": "2025-04-14",
+        "assessed_land": 125700,
+        "assessed_improvement": 82100,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 19,
+      "observation_id": "440845accfb64427da7b0d4b4fd820bfecd99277b06fc9a741662ea5e65f849d",
+      "prev_hash": "9618e5584170406f5a3272c27c21514593c2822e992ed76b9e88d2f1461ac90e",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 19 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "802b469264f9b87fa6f866761246d0c4d2132a907f60ad473b0ff6c31c079344",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2014-10-01",
+        "grantor": null,
+        "grantee": "Millar Farms LLC",
+        "consideration": 1086246,
+        "property_id": "012-1021-0255",
+        "entity_name": "Millar Farms LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 59.75262909
+      },
+      "source_extras": {
+        "classcode": "101",
+        "township": "Olive",
+        "transfer_date": "2014-10-06",
+        "assessed_land": 178800,
+        "assessed_improvement": 1800,
+        "prop_city": null
+      }
+    },
+    {
+      "seq": 20,
+      "observation_id": "5f72992481f98788d315bbff00259212dc681ef7c3d0b9649489a0b3293c4184",
+      "prev_hash": "440845accfb64427da7b0d4b4fd820bfecd99277b06fc9a741662ea5e65f849d",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 20 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "79fbf50e90f528eeb647a1340f84ac9012d588b339f66904c536b69e52943127",
+      "entity_type": "deed",
+      "payload": {
+        "instrument_date": "2026-01-14",
+        "grantor": null,
+        "grantee": "State Line Hills LLC",
+        "consideration": 115000,
+        "property_id": "021-1029-052201",
+        "entity_name": "State Line Hills LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 1.49167827
+      },
+      "source_extras": {
+        "classcode": "101",
+        "township": "Warren",
+        "transfer_date": "2026-02-11",
+        "assessed_land": 43000,
+        "assessed_improvement": 74300,
+        "prop_city": "SOUTH BEND"
+      }
+    },
+    {
+      "seq": 21,
+      "observation_id": "343bce4be0cd4e8ec27822f4ace054350f0a6e7acf612e38732baa35d47e64ba",
+      "prev_hash": "5f72992481f98788d315bbff00259212dc681ef7c3d0b9649489a0b3293c4184",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 21 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "d44a6b868774962787858b08dacad18db09f8aebd7de9cb14f02da5acc242d7e",
+      "entity_type": "parcel_record",
+      "payload": {
+        "instrument_date": null,
+        "grantor": null,
+        "grantee": "PMS New Granger Investment Properties LLC",
+        "consideration": 0,
+        "property_id": "006-1014-019405",
+        "entity_name": "PMS New Granger Investment Properties LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 4.76898849
+      },
+      "source_extras": {
+        "classcode": "510",
+        "township": "Harris",
+        "transfer_date": "2015-07-07",
+        "assessed_land": 81700,
+        "assessed_improvement": 81300,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 22,
+      "observation_id": "f139e96c5e7e32647defbe4873109af88e11ec004e3b2c7d326fdcac2905377c",
+      "prev_hash": "343bce4be0cd4e8ec27822f4ace054350f0a6e7acf612e38732baa35d47e64ba",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 22 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "3a905c4c7c48cdd02ca54c79b1a0adfdacc65f41a63987070fdc366c5f72ec89",
+      "entity_type": "parcel_record",
+      "payload": {
+        "instrument_date": null,
+        "grantor": null,
+        "grantee": "Kleine Family Farms LLC",
+        "consideration": 0,
+        "property_id": "012-1064-0830",
+        "entity_name": "Kleine Family Farms LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 52.4250997
+      },
+      "source_extras": {
+        "classcode": "100",
+        "township": "Olive",
+        "transfer_date": "2026-02-12",
+        "assessed_land": 80600,
+        "assessed_improvement": 0,
+        "prop_city": "NEW CARLISLE"
+      }
+    },
+    {
+      "seq": 23,
+      "observation_id": "1add41dc1e859c16808c958a778a0cd39001112ac86f0752dd2b6780a20d4899",
+      "prev_hash": "f139e96c5e7e32647defbe4873109af88e11ec004e3b2c7d326fdcac2905377c",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 23 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "8ed90c637483fed25d2edf95d0fbf5fd81147181a88ea6c542b5712dc19708b8",
+      "entity_type": "parcel_record",
+      "payload": {
+        "instrument_date": null,
+        "grantor": null,
+        "grantee": "PMS New Granger Investment Properties LLC",
+        "consideration": 0,
+        "property_id": "006-1014-019403",
+        "entity_name": "PMS New Granger Investment Properties LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 0.71417457
+      },
+      "source_extras": {
+        "classcode": "510",
+        "township": "Harris",
+        "transfer_date": "2015-03-05",
+        "assessed_land": 62000,
+        "assessed_improvement": 76800,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 24,
+      "observation_id": "930c3d07d090af0d6836d6ff834400851dac2a5f1919168fdedba1eb5a4ea574",
+      "prev_hash": "1add41dc1e859c16808c958a778a0cd39001112ac86f0752dd2b6780a20d4899",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 24 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "3e16ba3eb60bc99925b26c74bf57c0f12c9acaf60b5f7859002ae804341a809c",
+      "entity_type": "parcel_record",
+      "payload": {
+        "instrument_date": null,
+        "grantor": null,
+        "grantee": "Oxford LLC",
+        "consideration": 0,
+        "property_id": "006-1013-018009",
+        "entity_name": "Oxford LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 1.18411586
+      },
+      "source_extras": {
+        "classcode": "350",
+        "township": "Harris",
+        "transfer_date": "2018-05-16",
+        "assessed_land": 19800,
+        "assessed_improvement": 218600,
+        "prop_city": "GRANGER"
+      }
+    },
+    {
+      "seq": 25,
+      "observation_id": "9f0566c9dc6c291bda88ed98ee1dd7508754b63523b527dcff8c0897e333ab81",
+      "prev_hash": "930c3d07d090af0d6836d6ff834400851dac2a5f1919168fdedba1eb5a4ea574",
+      "source": "county_assessor_arcgis",
+      "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 25 of response file raw/sjc_llc_sample.json",
+      "retrieved_at": "2026-11-15T11:53:33Z",
+      "raw_hash": "0d25a1ebf5ee1d440405c02d12d0ec10a3b05d7cc62593fa396571b4be3b5d19",
+      "entity_type": "parcel_record",
+      "payload": {
+        "instrument_date": null,
+        "grantor": null,
+        "grantee": "Social Investments LLC",
+        "consideration": 11500,
+        "property_id": "018-2108-4026",
+        "entity_name": "Social Investments LLC",
+        "formation_date": null,
+        "related_entities": [],
+        "acreage": 0.11599871
+      },
+      "source_extras": {
+        "classcode": "500",
+        "township": "Portage",
+        "transfer_date": null,
+        "assessed_land": 800,
+        "assessed_improvement": 0,
+        "prop_city": "SOUTH BEND"
+      }
+    }
+  ],
+  "forecasts": [
+    {
+      "forecast_id": "RF-001",
+      "observation_ids": [
+        "ce0a02a1e668517da69f8aac7e91395b548153cfcf7716561cc6adb3de22c395"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.07,
+      "issued_at": "2019-08-09",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 60000,
+        "acreage": 1.07151399,
+        "contributions": [
+          "consideration<100000:+0.03"
+        ]
+      },
+      "resolution_date": "2020-02-05",
+      "status": "UNRESOLVED",
+      "receipt": "740de64a937353b6302d3ddeb23cb25ac92fb832069e7c0994be3e2f635c4296"
+    },
+    {
+      "forecast_id": "RF-002",
+      "observation_ids": [
+        "1e2396095737b1414728f0f58e983a9501634936bb3da24e4437ada8169c045f"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2024-08-29",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 191880,
+        "acreage": 9.83532172,
+        "contributions": []
+      },
+      "resolution_date": "2025-02-25",
+      "status": "UNRESOLVED",
+      "receipt": "f70f3dbb23b78436fc2750e7bdb703efd611bc04cb062f6484f35978661d6105"
+    },
+    {
+      "forecast_id": "RF-003",
+      "observation_ids": [
+        "d144fa5d412b02f4dc8f6791d311d23f7ea057719078f37b1ec6dc937e2b18c4"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2024-08-28",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 188175,
+        "acreage": 9.65210677,
+        "contributions": []
+      },
+      "resolution_date": "2025-02-24",
+      "status": "UNRESOLVED",
+      "receipt": "41a5034d902c5b16167873de534ca6e304a6cda87ef7c0edcb97ced59d47083a"
+    },
+    {
+      "forecast_id": "RF-004",
+      "observation_ids": [
+        "cb44353bf10b70aa808a337b7638c15ff7daa237589c041165e2b710971d228a"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2023-08-28",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 13473405,
+        "acreage": 247.3927933,
+        "contributions": []
+      },
+      "resolution_date": "2024-02-24",
+      "status": "UNRESOLVED",
+      "receipt": "48f3bf600f7d160dfe411689848523c6a8be930c1493f3a89b421ad38bfd0f87"
+    },
+    {
+      "forecast_id": "RF-005",
+      "observation_ids": [
+        "48a6ff71d70b6951cadf53c05522aa5fde47f25e1bd9d70bc23c3dde2f9dbe1f"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2008-08-28",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 360000,
+        "acreage": 1.78427626,
+        "contributions": []
+      },
+      "resolution_date": "2009-02-24",
+      "status": "UNRESOLVED",
+      "receipt": "b36ef109a5011a6074b84e5911e64bf143a01907c5d9e17e9391c6668cbc8266"
+    },
+    {
+      "forecast_id": "RF-006",
+      "observation_ids": [
+        "099c891518b5571ee5800ff2c87123e931b878b923a537e66d6d1ddb50106034"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2008-08-28",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 360000,
+        "acreage": 2.4615335,
+        "contributions": []
+      },
+      "resolution_date": "2009-02-24",
+      "status": "UNRESOLVED",
+      "receipt": "1b69d16025a6eb71d19add856fd723952baddfdd12b3fadffcd23cde161399c0"
+    },
+    {
+      "forecast_id": "RF-007",
+      "observation_ids": [
+        "b5ff52c38fcf333eeebd06642ad37e9777530e76fe9a06ea7b39537a6882b0d6"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2012-08-21",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 14250000,
+        "acreage": 19.69957175,
+        "contributions": []
+      },
+      "resolution_date": "2013-02-17",
+      "status": "UNRESOLVED",
+      "receipt": "4c7ed5f4e1177a61322b8a198a2ea86a2d482c5135b77083795c0cf426373c07"
+    },
+    {
+      "forecast_id": "RF-008",
+      "observation_ids": [
+        "bc62817d11fd2b925baca6cd04d2e1f978363d4915b6d221e1ffd7f3c64aea75"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2010-07-29",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 1063229.51,
+        "acreage": 1.92171712,
+        "contributions": []
+      },
+      "resolution_date": "2011-01-25",
+      "status": "UNRESOLVED",
+      "receipt": "9e7289a3a9bd69e7aeb8659ca1b51f942e39f3e571b2634c0d43a3fc9d807a37"
+    },
+    {
+      "forecast_id": "RF-009",
+      "observation_ids": [
+        "f63f9bf64e98eba0b695eb77ee375f4bfebc400fc1969f6626d8a66bb466e959"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2009-06-01",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 329000,
+        "acreage": 31.00265939,
+        "contributions": []
+      },
+      "resolution_date": "2009-11-28",
+      "status": "UNRESOLVED",
+      "receipt": "b94d898058463280ffc0603d182357d7db8b5a8a98f99697b3247ad71386b04e"
+    },
+    {
+      "forecast_id": "RF-010",
+      "observation_ids": [
+        "a17e79326bdd198e2587d957a309c170e24446529aa116162b88c9a1427d2b11"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2010-05-26",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 1020000,
+        "acreage": 1.9593281,
+        "contributions": []
+      },
+      "resolution_date": "2010-11-22",
+      "status": "UNRESOLVED",
+      "receipt": "44449f5475769c6c2d38428147d5417ecd00c9d9818b4a5928b197e23e477f86"
+    },
+    {
+      "forecast_id": "RF-011",
+      "observation_ids": [
+        "e2d5e386bc505bc5003cb7b684b506074f9e96cd43473eb600dac6bbdaa07186"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2021-05-17",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 1025000,
+        "acreage": 123.46080532,
+        "contributions": []
+      },
+      "resolution_date": "2021-11-13",
+      "status": "UNRESOLVED",
+      "receipt": "aade2235c6949516c8456f99deb9f91e4202a20e7fe6631ae72be103e67b8dab"
+    },
+    {
+      "forecast_id": "RF-012",
+      "observation_ids": [
+        "51c8b98012d82a3d22802e387d9422a8e975bd9f9ae1075a5e8b06927eb78107"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2022-03-07",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 808213,
+        "acreage": 0.9443788,
+        "contributions": []
+      },
+      "resolution_date": "2022-09-03",
+      "status": "UNRESOLVED",
+      "receipt": "c1c2653d1374a04909d0576b0ca2ef105d5692a6ff60516da2c9097c997f5742"
+    },
+    {
+      "forecast_id": "RF-013",
+      "observation_ids": [
+        "86afbaaf6297c5aef2f19068eac03b29356d53de747f1b459318bce76835c653"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2025-03-17",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 382250,
+        "acreage": 4.63781914,
+        "contributions": []
+      },
+      "resolution_date": "2025-09-13",
+      "status": "UNRESOLVED",
+      "receipt": "1895ef720be748b4da2df1f8287f67e3547fa618c1312c33ca2039bf01684fca"
+    },
+    {
+      "forecast_id": "RF-014",
+      "observation_ids": [
+        "7143dd9d6d2e5cc0f21fa03c0f65d5cb65fb774ce2dd49ef365cb0f8d2067534"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2019-02-19",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 500000,
+        "acreage": 0.78290839,
+        "contributions": []
+      },
+      "resolution_date": "2019-08-18",
+      "status": "UNRESOLVED",
+      "receipt": "32b2ac88dff68102e9b71acd4277e23245c833ab1b4f2a4916a3c5d8500ca754"
+    },
+    {
+      "forecast_id": "RF-015",
+      "observation_ids": [
+        "024def2320bb8608608c09439c45dc678b50c564d4488c9437d1711ec7ff48ea"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.07,
+      "issued_at": "2008-12-08",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 5590,
+        "acreage": 1.32444758,
+        "contributions": [
+          "consideration<100000:+0.03"
+        ]
+      },
+      "resolution_date": "2009-06-06",
+      "status": "UNRESOLVED",
+      "receipt": "8c4fb02ff3da9151e4cc18882917da983676b860cbaf505bfa7c9cd8a93f9dfe"
+    },
+    {
+      "forecast_id": "RF-016",
+      "observation_ids": [
+        "3587b8f9c8133a6f395fb38335b0cd088456a6f1912b378a85ae9aee6ac83b82"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2021-12-27",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 2850000,
+        "acreage": 12.64932287,
+        "contributions": []
+      },
+      "resolution_date": "2022-06-25",
+      "status": "UNRESOLVED",
+      "receipt": "5a5d820dbe56987d80e6b0dbf95dde9ea9eb8ffd256d59d859e3d4b9fe4da039"
+    },
+    {
+      "forecast_id": "RF-017",
+      "observation_ids": [
+        "4e0bd9c217e486cc4bf326922f7c592cd6ffe8e55333945d318581c5ea0191cd"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.07,
+      "issued_at": "2009-11-30",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 2400,
+        "acreage": 0.96151996,
+        "contributions": [
+          "consideration<100000:+0.03"
+        ]
+      },
+      "resolution_date": "2010-05-29",
+      "status": "UNRESOLVED",
+      "receipt": "f0f3f01422f2251947cde8a97ac77f876fc15938f80175c5714654bad98e65a6"
+    },
+    {
+      "forecast_id": "RF-018",
+      "observation_ids": [
+        "9618e5584170406f5a3272c27c21514593c2822e992ed76b9e88d2f1461ac90e"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.07,
+      "issued_at": "2024-11-20",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 0,
+        "acreage": 4.3687759,
+        "contributions": [
+          "consideration<100000:+0.03"
+        ]
+      },
+      "resolution_date": "2025-05-19",
+      "status": "UNRESOLVED",
+      "receipt": "df08a0d7e322b5cb2944872404baaf076273e614993795ce242a179ec995c67d"
+    },
+    {
+      "forecast_id": "RF-019",
+      "observation_ids": [
+        "440845accfb64427da7b0d4b4fd820bfecd99277b06fc9a741662ea5e65f849d"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2014-10-01",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 1086246,
+        "acreage": 59.75262909,
+        "contributions": []
+      },
+      "resolution_date": "2015-03-30",
+      "status": "UNRESOLVED",
+      "receipt": "5a86110df0ff9d87f578e9e37e073c8173b1bbd90875aa88cf21077ef3fe099b"
+    },
+    {
+      "forecast_id": "RF-020",
+      "observation_ids": [
+        "5f72992481f98788d315bbff00259212dc681ef7c3d0b9649489a0b3293c4184"
+      ],
+      "forecast_type": "rapid_flip",
+      "probability": 0.04,
+      "issued_at": "2026-01-14",
+      "backtest": true,
+      "rule_fixed_at": "2026-11-15T11:53:33Z",
+      "model_version": "baseline_v1",
+      "features_used": [
+        "consideration",
+        "acreage"
+      ],
+      "feature_values": {
+        "consideration": 115000,
+        "acreage": 1.49167827,
+        "contributions": []
+      },
+      "resolution_date": "2026-07-13",
+      "status": "UNRESOLVED",
+      "receipt": "182728e07614c1d250c08bee8d2fbee02912634eac26d3f9555155377e43f5b9"
+    }
+  ],
+  "outcomes": [],
+  "illustrative": {
+    "label": "ILLUSTRATIVE WORKED EXAMPLE \u2014 NOT MEASURED DATA",
+    "rows": [
+      {
+        "p": 0.1,
+        "o": 0
+      },
+      {
+        "p": 0.3,
+        "o": 0
+      },
+      {
+        "p": 0.05,
+        "o": 0
+      },
+      {
+        "p": 0.6,
+        "o": 1
+      },
+      {
+        "p": 0.2,
+        "o": 0
+      }
+    ],
+    "brier": 0.0605
+  }
+}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('loop-data').textContent);
+const $ = id => document.getElementById(id);
+const short = h => h ? h.slice(0, 12) + '…' : '—';
+const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+async function sha256hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function canon(v){
+  if(v === null) return 'null';
+  if(Array.isArray(v)) return '[' + v.map(canon).join(',') + ']';
+  if(typeof v === 'object'){
+    return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+  }
+  if(typeof v === 'number') return Number.isInteger(v) ? String(v) : String(v);
+  if(typeof v === 'string') return JSON.stringify(v);
+  return String(v);
+}
+function money(n){
+  if(n === null || n === undefined) return '—';
+  return '$' + Number(n).toLocaleString('en-US');
+}
+
+/* status strip */
+(function(){
+  const obs = DATA.observations, fc = DATA.forecasts;
+  $('status-strip').innerHTML =
+    '<div><div class="n">' + obs.length + '</div><div class="l">Observations (real)</div></div>' +
+    '<div><div class="n">' + fc.length + '</div><div class="l">Forecasts issued</div></div>' +
+    '<div><div class="n">0</div><div class="l">Outcomes coded</div></div>' +
+    '<div><div class="n">n/a</div><div class="l">Brier (real)</div></div>';
+})();
+
+/* observation table */
+(function(){
+  let rows = DATA.observations.map(o => {
+    const p = o.payload;
+    return '<tr><td>' + o.seq + '</td><td class="mono">' + esc(p.property_id) + '</td><td>' + esc(p.entity_name) + '</td><td>' + (p.instrument_date || '—') + '</td><td>' + money(p.consideration) + '</td><td>' + (p.acreage == null ? '—' : p.acreage) + '</td><td>' + o.entity_type + '</td><td class="mono">' + short(o.observation_id) + '</td><td class="mono">' + short(o.raw_hash) + '</td></tr>';
+  }).join('');
+  $('obs-table').innerHTML = '<table><tr><th>#</th><th>Parcel</th><th>Entity (grantee)</th><th>Sale date</th><th>Consideration</th><th>Acres</th><th>Type</th><th>observation_id</th><th>raw_hash</th></tr>' + rows + '</table>' +
+  '<p class="small">5 of 25 records carry no sale (blank sale date, $0 consideration); they are logged as <code>parcel_record</code> and carry no forecast. 1 record has $0 consideration with a real sale date (nominal transfer) and is forecast as a deed. Entity names are normalized (first line, whitespace collapsed) before hashing; the raw bytes are preserved in the response file.</p>';
+})();
+
+/* forecast table */
+(function(){
+  $('c-rf').textContent = DATA.forecasts.length;
+  let rows = DATA.forecasts.map(f => {
+    const o = DATA.observations.find(x => x.observation_id === f.observation_ids[0]);
+    const p = o.payload;
+    return '<tr><td class="mono">' + f.forecast_id + '</td><td class="mono">' + esc(p.property_id) + '</td><td>' + f.probability.toFixed(2) + '</td><td class="small">' + f.feature_values.contributions.join(', ') + '</td><td>' + f.issued_at + '</td><td>' + f.resolution_date + '</td><td><span class="pill">UNRESOLVED</span></td><td class="mono">' + short(f.receipt) + '</td></tr>';
+  }).join('');
+  $('fc-table').innerHTML = '<table><tr><th>Forecast</th><th>Parcel</th><th>P</th><th>Rule contributions</th><th>Issued (back-test)</th><th>Resolves</th><th>Status</th><th>Receipt</th></tr>' + rows + '</table>';
+})();
+
+/* illustrative example */
+(function(){
+  const ex = DATA.illustrative;
+  $('ill-rows').textContent = ex.rows.map(r => 'p=' + r.p.toFixed(2) + ', o=' + r.o).join(' | ');
+  const terms = ex.rows.map(r => '(' + r.p.toFixed(2) + '−' + r.o + ')²=' + ((r.p - r.o) ** 2).toFixed(4)).join(' + ');
+  const sum = ex.rows.reduce((s, r) => s + (r.p - r.o) ** 2, 0);
+  $('ill-math').textContent = 'Brier = (1/5) × [' + terms + '] = ' + sum.toFixed(4) + ' / 5 = ' + (sum / 5).toFixed(4);
+})();
+
+/* provenance */
+$('prov-retrieved').textContent = DATA.meta.retrieved_at;
+$('prov-response').textContent = DATA.meta.response_sha256;
+$('prov-query').textContent = DATA.meta.query_base + '?' + Object.entries(DATA.meta.query_params).map(([k,v]) => k + '=' + encodeURIComponent(v)).join('&');
+
+/* verifiers */
+async function verifyObservations(){
+  let ok = 0, bad = [];
+  for(const o of DATA.observations){
+    const h = await sha256hex(canon(o.payload));
+    if(h === o.observation_id) ok++; else bad.push(o.seq);
+  }
+  let chainOk = true;
+  for(let i = 0; i < DATA.observations.length; i++){
+    const want = i === 0 ? 'GENESIS' : DATA.observations[i-1].observation_id;
+    if(DATA.observations[i].prev_hash !== want) chainOk = false;
+  }
+  return {ok, bad, chainOk, total: DATA.observations.length};
+}
+async function verifyForecasts(){
+  let ok = 0, bad = [];
+  for(const f of DATA.forecasts){
+    const rec = Object.assign({}, f); delete rec.receipt;
+    const h = await sha256hex(canon(rec));
+    if(h === f.receipt) ok++; else bad.push(f.forecast_id);
+  }
+  return {ok, bad, total: DATA.forecasts.length};
+}
+$('btn-verify-log').addEventListener('click', async () => {
+  $('verify-log-result').textContent = ' verifying…';
+  const r = await verifyObservations();
+  $('verify-log-result').innerHTML = r.bad.length === 0 && r.chainOk
+    ? ' <span class="pill ok">VALID</span> ' + r.ok + '/' + r.total + ' observation_ids recomputed, hash chain intact (GENESIS → …).'
+    : ' <span class="pill bad">MISMATCH</span> bad rows: ' + r.bad.join(', ') + '; chain intact: ' + r.chainOk;
+});
+$('btn-verify-fc').addEventListener('click', async () => {
+  $('verify-fc-result').textContent = ' verifying…';
+  const r = await verifyForecasts();
+  $('verify-fc-result').innerHTML = r.bad.length === 0
+    ? ' <span class="pill ok">VALID</span> ' + r.ok + '/' + r.total + ' forecast receipts recomputed.'
+    : ' <span class="pill bad">MISMATCH</span> bad: ' + r.bad.join(', ');
+});
+$('btn-verify-all').addEventListener('click', async () => {
+  $('verify-all-result').textContent = ' verifying…';
+  const o = await verifyObservations(), f = await verifyForecasts();
+  const valid = o.bad.length === 0 && o.chainOk && f.bad.length === 0;
+  $('verify-all-result').innerHTML = valid
+    ? ' <span class="pill ok">RECEIPT CHAIN VALID</span> ' + o.ok + '/' + o.total + ' observations, chain intact, ' + f.ok + '/' + f.total + ' forecast receipts, 0 outcomes (nothing to verify).'
+    : ' <span class="pill bad">CHAIN INVALID</span> observation mismatches: ' + (o.bad.join(', ') || 'none') + '; chain: ' + o.chainOk + '; forecast mismatches: ' + (f.bad.join(', ') || 'none');
+  $('sc-chain').textContent = valid ? 'Valid — ' + o.ok + '/' + o.total + ' observations, ' + f.ok + '/' + f.total + ' receipts (verified in-page)' : 'INVALID — see §6';
+});
+$('btn-tamper').addEventListener('click', async () => {
+  const o = DATA.observations[0];
+  const orig = o.payload.consideration;
+  o.payload.consideration = (orig || 0) + 1;
+  const h = await sha256hex(canon(o.payload));
+  const mismatch = h !== o.observation_id;
+  o.payload.consideration = orig;
+  const h2 = await sha256hex(canon(o.payload));
+  $('verify-all-result').innerHTML = mismatch && h2 === o.observation_id
+    ? ' <span class="pill bad">TAMPER DETECTED</span> Changing observation 1 consideration by $1 makes its recomputed id mismatch the stored id; restoring it makes it match again.'
+    : ' <span class="pill bad">TAMPER TEST FAILED</span> Expected a mismatch after tampering; got match=' + (!mismatch);
+});
+$('btn-ill').addEventListener('click', () => {
+  const rows = DATA.illustrative.rows;
+  const b = rows.reduce((s, r) => s + (r.p - r.o) ** 2, 0) / rows.length;
+  const ok = Math.abs(b - DATA.illustrative.brier) < 1e-9;
+  $('ill-result').innerHTML = ok
+    ? ' <span class="pill ok">MATCH</span> Recomputed Brier = ' + b.toFixed(4) + ' (illustrative only, excluded from loop totals).'
+    : ' <span class="pill bad">MISMATCH</span> recomputed ' + b.toFixed(4) + ' vs stored ' + DATA.illustrative.brier;
+});
+</script>
+</body>
+</html>
