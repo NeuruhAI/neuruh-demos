@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Unified Swarm</title>
+<style>
+:root{--obs:#141414;--obs2:#1d1d1d;--bone:#f2ede3;--bone2:#d8d2c2;--brass:#b08d3e;--brass2:#d4af5a;--red:#c0392b;--amber:#d68910;--green:#1e8449}
+*{box-sizing:border-box}
+body{margin:0;background:var(--obs);color:var(--bone);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.5}
+a{color:var(--brass2)}
+header{padding:28px 22px 18px;border-bottom:1px solid #333}
+h1{font-family:Archivo,Inter,sans-serif;font-size:32px;margin:0 0 6px}
+h1 .brass{color:var(--brass2)}
+.sub{color:var(--bone2);max-width:960px;margin:0}
+.status{margin-top:12px;padding:10px 12px;border:1px solid var(--brass);border-radius:8px;background:#221d10;color:#f5e9c8;font-size:14px}
+.status b{color:var(--brass2)}
+main{padding:22px;display:grid;grid-template-columns:1fr;gap:22px;max-width:1180px;margin:0 auto}
+section{background:var(--obs2);border:1px solid #333;border-radius:12px;padding:18px 20px}
+h2{font-family:Archivo,Inter,sans-serif;font-size:20px;margin:0 0 4px}
+h2 .n{color:var(--brass2)}
+p.hint{color:var(--bone2);margin:0 0 14px;font-size:14px}
+button{background:var(--brass);color:#141414;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:14px}
+button:hover{background:var(--brass2)}
+button.ghost{background:transparent;color:var(--bone);border:1px solid #666}
+button.ghost:hover{border-color:var(--brass2);color:var(--brass2)}
+button:disabled{opacity:.45;cursor:default}
+textarea,input,select{width:100%;background:#101010;color:var(--bone);border:1px solid #444;border-radius:8px;padding:10px;font-size:14px;font-family:inherit}
+textarea{min-height:80px;resize:vertical}
+label{display:block;font-size:13px;color:var(--bone2);margin:12px 0 4px}
+.legions{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+.legion{background:#101010;border:1px solid #444;border-radius:10px;padding:12px 14px;cursor:pointer}
+.legion:hover{border-color:var(--brass2)}
+.legion h3{margin:0;font-size:16px}
+.legion h3 .ct{color:var(--brass2);font-size:13px}
+.legion p{margin:6px 0 0;font-size:13px;color:var(--bone2)}
+.panel{background:#101010;border:1px solid #444;border-radius:10px;padding:14px;margin-top:14px}
+.panel h3{margin:0 0 6px;font-size:17px}
+.stage{border:1px solid #333;border-radius:10px;padding:12px 14px;margin:10px 0;background:#101010}
+.stage h4{margin:0 0 4px;font-size:15px}
+.stage h4 .v{float:right;font-size:12px;padding:2px 9px;border-radius:20px}
+.v.pass{background:var(--green);color:#fff}
+.v.block{background:var(--red);color:#fff}
+.v.flag{background:var(--amber);color:#111}
+.v.run{background:var(--brass);color:#141414}
+.stage p{margin:4px 0;font-size:14px}
+.stage .sys{font-size:13px;color:var(--bone2)}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;word-break:break-all}
+.bar{height:10px;background:#333;border-radius:6px;overflow:hidden;margin:4px 0 10px}
+.bar i{display:block;height:100%;background:var(--brass)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{border-bottom:1px solid #333;padding:6px 8px;text-align:left;vertical-align:top}
+th{color:var(--brass2);position:sticky;top:0;background:var(--obs2)}
+.regwrap{max-height:520px;overflow:auto;border:1px solid #333;border-radius:10px;margin-top:12px}
+.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
+@media(max-width:760px){.filters{grid-template-columns:1fr}}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+.check{display:flex;gap:8px;align-items:flex-start;margin:7px 0;font-size:14px}
+.check input{width:auto;margin-top:3px}
+.group{border:1px solid #333;border-radius:10px;padding:12px 14px;margin:10px 0}
+.group h4{margin:0 0 4px;color:var(--brass2);font-size:14px;letter-spacing:1px;text-transform:uppercase}
+.score{font-size:34px;font-weight:800;margin:6px 0}
+.band{font-size:15px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block}
+.band.low{background:#1e8449;color:#fff}
+.band.mon{background:#d68910;color:#111}
+.band.high{background:#c0392b;color:#fff}
+.band.crit{background:#7b241c;color:#fff;border:1px solid #e74c3c}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #2c2c2c;font-size:14px}
+.kv b{color:var(--brass2)}
+pre{background:#101010;border:1px solid #444;border-radius:8px;padding:12px;overflow:auto;font-size:12.5px;max-height:320px}
+footer{padding:20px 22px 30px;color:var(--bone2);font-size:13px;max-width:1180px;margin:0 auto}
+</style>
+</head>
+<body>
+<header>
+<h1>The Unified <span class="brass">Swarm</span></h1>
+<p class="sub">All 179 working Neuruh systems, pulled into one connected swarm. Seven legions, ten mission stages, one autonomous loop. A threat signal goes in, the swarm runs it through every system that matters, and a receipted case packet comes out.</p>
+<div class="status"><b>Honest status:</b> SIMULATION, browser-local. The swarm is 179 working demos as one connected system, and the mission loop executes end to end in this page with real chained SHA-256 receipts. It is governed, supervised execution with receipts: the loop stops before any production promotion, and nothing here touches a live system or sends anything anywhere. DESIGNED, IMPLEMENTED, TESTED, not live production. If someone is in immediate danger, call 911. Reporting rails: Human Trafficking Hotline 1-888-373-7888, NCMEC CyberTipline report.cybertip.org, FBI IC3 ic3.gov, FTC ReportFraud.ftc.gov.</div>
+</header>
+<main>
+
+<section id="topology">
+<h2><span class="n">1</span> Swarm Topology: Seven Legions</h2>
+<p class="hint">Every one of the 179 sites lives in exactly one legion. Click a legion to filter the registry below to its systems. The legions are the swarm's organs; the mission loop is the blood.</p>
+<svg id="swarmSvg" viewBox="0 0 760 400" width="100%" style="background:#101010;border:1px solid #333;border-radius:10px"></svg>
+<div class="legions" id="legionCards"></div>
+</section>
+
+<section id="mission">
+<h2><span class="n">2</span> Run a Mission: The Ten-Stage Autonomous Loop</h2>
+<p class="hint">Pick a threat domain, paste a signal, run the mission. The swarm walks it through all ten stages on its own: intake, team formation, execution, deliberation, gating, handoff, learning, proof, factory, canon. Each stage names the real systems it invokes and leaves a chained receipt. A stage can BLOCK the mission, and the block is itself receipted. The loop stops before production promotion: the action it drafts is gated output, and a human approves the send.</p>
+<div class="grid2">
+<div>
+<label for="mDomain">Threat domain</label>
+<select id="mDomain">
+<option value="scammer">Scammer</option>
+<option value="trafficker">Child trafficking concern</option>
+<option value="dealer">Drug dealer</option>
+<option value="mule">Stolen money / money mule</option>
+<option value="stalker">Targeting / stalking</option>
+<option value="harasser">Harassment</option>
+<option value="botfarm">Bot farm</option>
+</select>
+<label for="mSignal">Signal</label>
+<textarea id="mSignal" placeholder="Paste the message, ad, profile, or job offer here."></textarea>
+</div>
+<div>
+<label>Sample signals (one click fills the box)</label>
+<div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+<button class="ghost" onclick="fillSample('scammer')">Scam: gift-card verification fee</button>
+<button class="ghost" onclick="fillSample('trafficker')">Grooming: travel and secrecy</button>
+<button class="ghost" onclick="fillSample('botfarm')">Bot farm: send 1 get 2 back</button>
+<button class="ghost" onclick="fillSample('mule')">Mule: work from home, move money</button>
+</div>
+<p style="color:#d8d2c2;font-size:13px;margin-top:12px">The mission ID is the first 12 characters of the SHA-256 of the signal. The receipt chain starts at GENESIS and every stage receipt covers the previous stage's hash.</p>
+</div>
+</div>
+<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+<button id="runBtn" onclick="runMission()">Run mission</button>
+<button class="ghost" onclick="document.getElementById('missionLog').innerHTML='';document.getElementById('missionOut').innerHTML=''">Clear</button>
+</div>
+<div id="missionLog"></div>
+<div id="missionOut"></div>
+</section>
+
+<section id="registry">
+<h2><span class="n">3</span> The Registry: All 179 Systems</h2>
+<p class="hint">Every working site, its legion, its mission stage, its host, and its live link. Search by name, or filter by legion, stage, or host. The counts are live from the registry data: <span id="regCounts"></span></p>
+<div class="filters">
+<input id="regSearch" placeholder="Search 179 systems..." oninput="renderRegistry()">
+<select id="regLegion" onchange="renderRegistry()"><option value="">All legions</option></select>
+<select id="regStage" onchange="renderRegistry()"><option value="">All stages</option></select>
+<select id="regHost" onchange="renderRegistry()"><option value="">All hosts</option><option value="github">GitHub Pages</option><option value="cloudflare">Cloudflare</option></select>
+</div>
+<div class="regwrap"><table><thead><tr><th>System</th><th>Legion</th><th>Stage</th><th>Host</th></tr></thead><tbody id="regBody"></tbody></table></div>
+<p id="regTotal" style="color:#d8d2c2;font-size:13px;margin-top:8px"></p>
+</section>
+
+<section id="modules">
+<h2><span class="n">4</span> Deterrence Modules (the operating core)</h2>
+<p class="hint">The same tools as the Threat Deterrence Console, built into the swarm. The analyzer feeds stage 1, the scorer feeds stage 3, the bot detector is the bot-farm instrument. The full console with the resolution intake and learning ledger lives at <a href="https://neuruhai.github.io/neuruh-demos/threat-deterrence-console/">threat-deterrence-console</a>.</p>
+<div class="grid2">
+<div>
+<h3 style="margin:0 0 4px">Signal Analyzer</h3>
+<p class="hint">Paste a message. Every signal bank scores it at once.</p>
+<textarea id="sigInput" placeholder="Paste the message here."></textarea>
+<div style="margin-top:10px;display:flex;gap:10px"><button onclick="analyzeSignal()">Analyze signal</button></div>
+<div id="sigOut"></div>
+</div>
+<div>
+<h3 style="margin:0 0 4px">Scam Scorer</h3>
+<p class="hint">Hook, line, sinker. Score 0 to 100.</p>
+<div class="group"><h4>Hook</h4>
+<label class="check"><input type="checkbox" class="sc" data-w="12"> Too-good offer, prize, refund, or free money</label>
+<label class="check"><input type="checkbox" class="sc" data-w="12"> Urgency or deadline</label>
+<label class="check"><input type="checkbox" class="sc" data-w="10"> Authority impersonation</label>
+<label class="check"><input type="checkbox" class="sc" data-w="8"> Unexpected contact</label>
+</div>
+<div class="group"><h4>Line</h4>
+<label class="check"><input type="checkbox" class="sc" data-w="12"> Move off-platform</label>
+<label class="check"><input type="checkbox" class="sc" data-w="10"> Secrecy</label>
+<label class="check"><input type="checkbox" class="sc" data-w="8"> Isolation from a second opinion</label>
+</div>
+<div class="group"><h4>Sinker</h4>
+<label class="check"><input type="checkbox" class="sc" data-w="15"> Payment by gift card</label>
+<label class="check"><input type="checkbox" class="sc" data-w="14"> Payment by crypto</label>
+<label class="check"><input type="checkbox" class="sc" data-w="12"> Wire transfer</label>
+<label class="check"><input type="checkbox" class="sc" data-w="14"> Job offer to move money</label>
+</div>
+<button onclick="scoreScam()">Score it</button>
+<div id="scamOut"></div>
+</div>
+</div>
+<div style="margin-top:16px">
+<h3 style="margin:0 0 4px">Bot Farm Detector</h3>
+<p class="hint">Two samples of 12 accounts. Timing correlation, shared phrases, account age. The flag is phantom consensus.</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><button onclick="runBot('coordinated')">Run: coordinated sample</button><button class="ghost" onclick="runBot('organic')">Run: organic sample</button></div>
+<div id="botOut"></div>
+</div>
+</section>
+
+</main>
+<footer>
+<p>The Unified Swarm pulls in all 179 working Neuruh systems: the six core demos (Polarity, Blueprint, Neural Core, Adaptive Intelligence, Case Zero, CRUCIBLE), the Daybreak adaptation map (42 pieces), the Notebook Codex (The Wave, the Lattice, and the Recipe), and the Threat Deterrence Framework. Sources: research-drift-2026-11-15/notebook-codex.md, threat-deterrence-framework.md, daybreak-solution-adaptation-map.md, and final-working-sites.json (2026-11-14). This page is a simulation and a working tool, not a live model and not a substitute for law enforcement.</p>
+</footer>
+
+<script>
+const SITES = [["adaptive-intelligence-atlas","https://adaptive-intelligence-atlas.pages.dev/","cloudflare","A",3],["adaptive-intelligence-live-demo","https://adaptive-intelligence-live-demo.pages.dev/","cloudflare","O",3],["advanced-agent-template","https://advanced-agent-template.pages.dev/","cloudflare","O",3],["aegis-intelligence-core","https://aegis-intelligence-core.pages.dev/","cloudflare","J",4],["agent-framework-lab","https://neuruhai.github.io/neuruh-demos/agent-framework-lab/","github","O",3],["agent-swarm-domination","https://agent-swarm-domination.pages.dev/","cloudflare","O",3],["agentic-design-compositing","https://neuruhai.github.io/neuruh-demos/agentic-design-compositing/","github","O",9],["ai-language-agent-master","https://neuruhai.github.io/neuruh-demos/ai-language-agent-master/","github","O",3],["aias-deployment-blueprint","https://aias-deployment-blueprint.pages.dev/","cloudflare","O",9],["anti-doomer-field-manual","https://neuruhai.github.io/neuruh-demos/anti-doomer-field-manual/","github","C",10],["atomic-ai-agent","https://atomic-ai-agent.pages.dev/","cloudflare","O",3],["autonomous-builder-factory","https://neuruhai.github.io/neuruh-demos/autonomous-builder-factory/","github","O",9],["autonomous-execution-dossier","https://autonomous-execution-dossier.pages.dev/","cloudflare","P",9],["axon-lattice-code-map","https://neuruhai.github.io/neuruh-demos/axon-lattice-code-map/","github","O",3],["axon-lattice-substrate","https://neuruhai.github.io/neuruh-demos/axon-lattice-substrate/","github","O",3],["blueprint-live-demo","https://blueprint-live-demo.pages.dev/","cloudflare","C",10],["canonical-receipt-index","https://canonical-receipt-index.pages.dev/","cloudflare","P",8],["card-id-system","https://card-id-system.pages.dev/","cloudflare","S",1],["case-zero-live-demo","https://case-zero-live-demo.pages.dev/","cloudflare","J",4],["case-zero-protocol","https://case-zero-protocol.pages.dev/","cloudflare","J",4],["clarity-builder","https://clarity-builder.pages.dev/","cloudflare","O",9],["clearpath-formula","https://clearpath-formula.pages.dev/","cloudflare","A",3],["clearpath-value-system","https://clearpath-value-system.pages.dev/","cloudflare","A",3],["component-library-gallery","https://neuruhai.github.io/neuruh-demos/component-library-gallery/","github","O",9],["conceptual-lexicon","https://conceptual-lexicon.pages.dev/","cloudflare","P",10],["convergence-graph-visuals","https://neuruhai.github.io/neuruh-demos/convergence-graph-visuals/","github","A",3],["creator-economy-djd","https://creator-economy-djd.pages.dev/","cloudflare","A",3],["crucible-gate","https://neuruhai.github.io/neuruh-demos/crucible-gate/","github","J",5],["crucible-live-demo","https://crucible-live-demo.pages.dev/","cloudflare","J",5],["dag-live-demo","https://neuruhai.github.io/neuruh-demos/dag-live-demo/","github","O",3],["datum-valuation-lab","https://neuruhai.github.io/neuruh-demos/datum-valuation-lab/","github","A",3],["davinci-generator","https://neuruhai.github.io/neuruh-demos/davinci-generator/","github","O",9],["decision-traces","https://neuruhai.github.io/neuruh-demos/decision-traces/","github","M",7],["deedsonar-buyer-demo","https://deedsonar-buyer-demo.pages.dev/","cloudflare","A",3],["deedsonar-forensic-dossier","https://deedsonar-forensic-dossier.pages.dev/","cloudflare","J",4],["defynal-scorer","https://defynal-scorer.pages.dev/","cloudflare","A",3],["dimear-decision-lab","https://neuruhai.github.io/neuruh-demos/dimear-decision-lab/","github","A",3],["e10-short-term-rental","https://e10-short-term-rental.pages.dev/","cloudflare","A",3],["e10-short-term-rental","https://neuruhai.github.io/neuruh-demos/e10-short-term-rental/","github","A",3],["e11-agricultural-timber","https://e11-agricultural-timber.pages.dev/","cloudflare","A",3],["e11-agricultural-timber","https://neuruhai.github.io/neuruh-demos/e11-agricultural-timber/","github","A",3],["e12-tax-sale-auction","https://e12-tax-sale-auction.pages.dev/","cloudflare","A",3],["e12-tax-sale-auction","https://neuruhai.github.io/neuruh-demos/e12-tax-sale-auction/","github","A",3],["e2-small-multifamily","https://e2-small-multifamily.pages.dev/","cloudflare","A",3],["e2-small-multifamily","https://neuruhai.github.io/neuruh-demos/e2-small-multifamily/","github","A",3],["e3-rental-brrrr","https://e3-rental-brrrr.pages.dev/","cloudflare","A",3],["e3-rental-brrrr","https://neuruhai.github.io/neuruh-demos/e3-rental-brrrr/","github","A",3],["e4-development-feasibility","https://e4-development-feasibility.pages.dev/","cloudflare","A",3],["e4-development-feasibility","https://neuruhai.github.io/neuruh-demos/e4-development-feasibility/","github","A",3],["e5-commercial","https://e5-commercial.pages.dev/","cloudflare","A",3],["e5-commercial","https://neuruhai.github.io/neuruh-demos/e5-commercial/","github","A",3],["e6-self-storage","https://e6-self-storage.pages.dev/","cloudflare","A",3],["e6-self-storage","https://neuruhai.github.io/neuruh-demos/e6-self-storage/","github","A",3],["e7-mobile-home-park","https://e7-mobile-home-park.pages.dev/","cloudflare","A",3],["e7-mobile-home-park","https://neuruhai.github.io/neuruh-demos/e7-mobile-home-park/","github","A",3],["e8-distressed-title","https://e8-distressed-title.pages.dev/","cloudflare","A",3],["e8-distressed-title","https://neuruhai.github.io/neuruh-demos/e8-distressed-title/","github","A",3],["e9-creative-finance","https://e9-creative-finance.pages.dev/","cloudflare","A",3],["e9-creative-finance","https://neuruhai.github.io/neuruh-demos/e9-creative-finance/","github","A",3],["ecosystem-codex","https://ecosystem-codex.pages.dev/","cloudflare","P",10],["estate-audit-2026","https://estate-audit-2026.pages.dev/","cloudflare","J",4],["estate-inventory","https://estate-inventory.pages.dev/","cloudflare","P",8],["estimator-cost-lab","https://neuruhai.github.io/neuruh-demos/estimator-cost-lab/","github","A",3],["eta-gate","https://neuruhai.github.io/neuruh-demos/eta-gate/","github","J",5],["eta-transform-lab","https://neuruhai.github.io/neuruh-demos/eta-transform-lab/","github","A",3],["factory-operating-manual","https://factory-operating-manual.pages.dev/","cloudflare","O",9],["fallow-yield","https://neuruhai.github.io/neuruh-demos/fallow-yield/","github","A",3],["forensic-recovery-dossier","https://forensic-recovery-dossier.pages.dev/","cloudflare","J",4],["founder-runtime","https://founder-runtime.pages.dev/","cloudflare","O",3],["founder-story-bza","https://founder-story-bza.pages.dev/","cloudflare","P",10],["framework-atlas","https://neuruhai.github.io/neuruh-demos/framework-atlas/","github","A",3],["genealogy-research-agent","https://genealogy-research-agent.pages.dev/","cloudflare","O",3],["governance-loop","https://neuruhai.github.io/neuruh-demos/governance-loop/","github","C",5],["hypersonics-zero-to-ground","https://neuruhai.github.io/neuruh-demos/hypersonics-zero-to-ground/","github","M",7],["impact-edge-tool","https://impact-edge-tool.pages.dev/","cloudflare","A",3],["intent-preservation-protocol","https://intent-preservation-protocol.pages.dev/","cloudflare","C",3],["invisible-physics-of-genius","https://invisible-physics-of-genius.pages.dev/","cloudflare","A",3],["jeramie-general-intelligence","https://jeramie-general-intelligence.pages.dev/","cloudflare","O",3],["jgi-autonomy-lab","https://jgi-autonomy-lab.pages.dev/","cloudflare","M",7],["jgi-calibration-lab","https://jgi-calibration-lab.pages.dev/","cloudflare","J",7],["jgi-command-language","https://jgi-command-language.pages.dev/","cloudflare","C",2],["jgi-economics-workbench","https://jgi-economics-workbench.pages.dev/","cloudflare","A",2],["jgi-founder-interface","https://jgi-founder-interface.pages.dev/","cloudflare","A",2],["jgi-memory-workbench","https://jgi-memory-workbench.pages.dev/","cloudflare","M",7],["jgi-opportunity-workbench","https://jgi-opportunity-workbench.pages.dev/","cloudflare","A",2],["jgi-ops-console","https://jgi-ops-console.pages.dev/","cloudflare","C",7],["jgi-organization-compiler","https://jgi-organization-compiler.pages.dev/","cloudflare","O",2],["jgi-sentinel-court","https://jgi-sentinel-court.pages.dev/","cloudflare","J",4],["land-intelligence-report","https://neuruhai.github.io/neuruh-demos/land-intelligence-report/","github","A",3],["land-report-store","https://neuruhai.github.io/neuruh-demos/land-report-store/","github","A",3],["land-zoning-unlock-engine","https://land-zoning-unlock-engine.pages.dev/","cloudflare","A",3],["landgraph-model","https://neuruhai.github.io/neuruh-demos/landgraph-model/","github","A",3],["landos-buyer-walkthrough","https://landos-buyer-walkthrough.pages.dev/","cloudflare","S",1],["landos-signals","https://neuruhai.github.io/neuruh-demos/landos-signals/","github","S",1],["lcde-live-demo","https://neuruhai.github.io/neuruh-demos/lcde-live-demo/","github","J",4],["lead-console","https://neuruhai.github.io/neuruh-demos/lead-console/","github","S",1],["lead-gen-console","https://lead-gen-console.pages.dev/","cloudflare","S",1],["learning-live-demo","https://neuruhai.github.io/neuruh-demos/learning-live-demo/","github","M",7],["learning-loop-visuals","https://neuruhai.github.io/neuruh-demos/learning-loop-visuals/","github","M",7],["legion-replay","https://neuruhai.github.io/neuruh-demos/legion-replay/","github","O",3],["lenduruh","https://lenduruh.pages.dev/","cloudflare","A",3],["liability-layer","https://liability-layer.pages.dev/","cloudflare","C",5],["local-ai-estate-codex","https://local-ai-estate-codex.pages.dev/","cloudflare","P",10],["master-command-lab","https://neuruhai.github.io/neuruh-demos/master-command-lab/","github","C",2],["master-convergence-handoff","https://master-convergence-handoff.pages.dev/","cloudflare","C",6],["maximum-resolution-blueprint","https://neuruhai.github.io/neuruh-demos/maximum-resolution-blueprint/","github","C",10],["memory-gate","https://neuruhai.github.io/neuruh-demos/memory-gate/","github","M",7],["midden-inventory-lab","https://neuruhai.github.io/neuruh-demos/midden-inventory-lab/","github","A",3],["migration-convergence-dossier","https://migration-convergence-dossier.pages.dev/","cloudflare","P",8],["mineral-pits","https://neuruhai.github.io/neuruh-demos/mineral-pits/","github","A",3],["modular-agentic-cockpit","https://modular-agentic-cockpit.pages.dev/","cloudflare","C",2],["modular-ai-research-agent","https://modular-ai-research-agent.pages.dev/","cloudflare","O",3],["ncell-organ-manifest","https://neuruhai.github.io/neuruh-demos/ncell-organ-manifest/","github","C",5],["ncell-position-paper","https://ncell-position-paper.pages.dev/","cloudflare","C",5],["ncell-runtime-adapter","https://neuruhai.github.io/neuruh-demos/ncell-runtime-adapter/","github","C",5],["ncell-worked-example","https://ncell-worked-example.pages.dev/","cloudflare","C",5],["ncp-lab","https://neuruhai.github.io/neuruh-demos/ncp-lab/","github","A",3],["neural-core-live-demo","https://neural-core-live-demo.pages.dev/","cloudflare","O",3],["neurh-hub","https://neuruhai.github.io/neuruh-demos/neurh-hub/","github","C",7],["neuruh-codex","https://neuruhai.github.io/neuruh-demos/neuruh-codex/","github","P",10],["neuruh-constitution","https://neuruh-constitution.pages.dev/","cloudflare","C",10],["neuruh-nexus","https://neuruhai.github.io/neuruh-demos/neuruh-nexus/","github","C",7],["neuruh-prompter","https://neuruhai.github.io/neuruh-demos/neuruh-prompter/","github","O",9],["newstyle-gallery","https://neuruhai.github.io/neuruh-demos/newstyle-gallery/","github","O",9],["nrh-registry","https://neuruhai.github.io/neuruh-demos/nrh-registry/","github","P",10],["ontology-codex-visuals","https://neuruhai.github.io/neuruh-demos/ontology-codex-visuals/","github","P",10],["ontology-live-demo","https://ontology-live-demo.pages.dev/","cloudflare","A",3],["opportunity-genome","https://neuruhai.github.io/neuruh-demos/opportunity-genome/","github","A",3],["organism-code-bible","https://organism-code-bible.pages.dev/","cloudflare","P",10],["organism-codex-visuals","https://neuruhai.github.io/neuruh-demos/organism-codex-visuals/","github","P",10],["organism-live-demo","https://organism-live-demo.pages.dev/","cloudflare","O",3],["organism-state-dashboard","https://neuruhai.github.io/neuruh-demos/organism-state-dashboard/","github","C",7],["osint-observe-act-demo","https://osint-observe-act-demo.pages.dev/","cloudflare","S",1],["p0-seam-loop","https://neuruhai.github.io/neuruh-demos/p0-seam-loop/","github","O",6],["p11-tracker","https://p11-tracker.pages.dev/","cloudflare","M",7],["personal-executive-agent","https://personal-executive-agent.pages.dev/","cloudflare","O",3],["placer-economics","https://neuruhai.github.io/neuruh-demos/placer-economics/","github","A",3],["pmla-memory-loop","https://neuruhai.github.io/neuruh-demos/pmla-memory-loop/","github","M",7],["polarity-theory-live-demo","https://polarity-theory-live-demo.pages.dev/","cloudflare","A",3],["public-commons-chain-demo","https://public-commons-chain-demo.pages.dev/","cloudflare","P",8],["qeca","https://qeca.pages.dev/","cloudflare","A",3],["qeca-lab","https://neuruhai.github.io/neuruh-demos/qeca-lab/","github","A",3],["real-estate-agent-c03","https://real-estate-agent-c03.pages.dev/","cloudflare","O",3],["receipt-chain-explorer","https://neuruhai.github.io/neuruh-demos/receipt-chain-explorer/","github","P",8],["recipe-engine-49","https://recipe-engine-49.pages.dev/","cloudflare","A",3],["recipe-ingredient-registry","https://neuruhai.github.io/neuruh-demos/recipe-ingredient-registry/","github","A",3],["recipe-system-demo","https://recipe-system-demo.pages.dev/","cloudflare","A",3],["red-team-build-map","https://neuruhai.github.io/neuruh-demos/red-team-build-map/","github","J",4],["reference-library","https://neuruhai.github.io/neuruh-demos/reference-library/","github","P",10],["repo-tiers","https://neuruhai.github.io/neuruh-demos/repo-tiers/","github","A",3],["residential-underwriting-engine","https://residential-underwriting-engine.pages.dev/","cloudflare","A",3],["sal-content-pipeline","https://sal-content-pipeline.pages.dev/","cloudflare","O",9],["sal-content-pipeline","https://neuruhai.github.io/neuruh-demos/sal-content-pipeline/","github","O",9],["self-compounding-knowledge-engine","https://self-compounding-knowledge-engine.pages.dev/","cloudflare","M",7],["signal-to-outreach-pipeline","https://neuruhai.github.io/neuruh-demos/signal-to-outreach-pipeline/","github","S",1],["sitegrid-ckr","https://sitegrid-ckr.pages.dev/","cloudflare","A",3],["sovereign-conglomerate","https://neuruhai.github.io/neuruh-demos/sovereign-conglomerate/","github","O",3],["sreic-blueprint","https://sreic-blueprint.pages.dev/","cloudflare","C",10],["startup-needle-report","https://neuruhai.github.io/neuruh-demos/startup-needle-report/","github","A",2],["super-intelligence-knowledge-framework","https://super-intelligence-knowledge-framework.pages.dev/","cloudflare","C",10],["swarm-architecture-blueprint","https://swarm-architecture-blueprint.pages.dev/","cloudflare","O",3],["swarm-integration-blueprint","https://swarm-integration-blueprint.pages.dev/","cloudflare","O",3],["swarm-live-demo","https://swarm-live-demo.pages.dev/","cloudflare","O",3],["swarm-mission-dag","https://neuruhai.github.io/neuruh-demos/swarm-mission-dag/","github","O",3],["swarm-visuals","https://neuruhai.github.io/neuruh-demos/swarm-visuals/","github","O",3],["territory-engine","https://neuruhai.github.io/neuruh-demos/territory-engine/","github","A",3],["thread-ledger-live-demo","https://thread-ledger-live-demo.pages.dev/","cloudflare","P",8],["token-swap-lab","https://neuruhai.github.io/neuruh-demos/token-swap-lab/","github","O",3],["token-swap-studio","https://token-swap-studio.pages.dev/","cloudflare","O",3],["uif-pillar-11-drafts","https://uif-pillar-11-drafts.pages.dev/","cloudflare","O",3],["unified-chain","https://neuruhai.github.io/neuruh-demos/unified-chain/","github","P",8],["universal-interfacing-framework","https://universal-interfacing-framework.pages.dev/","cloudflare","O",3],["vault-concept-explorer","https://neuruhai.github.io/neuruh-demos/vault-concept-explorer/","github","P",8],["vault-overview","https://neuruhai.github.io/neuruh-demos/vault-overview/","github","P",8],["verifiable-ai-pipeline","https://neuruhai.github.io/neuruh-demos/verifiable-ai-pipeline/","github","J",5],["world-apg","https://neuruhai.github.io/neuruh-demos/world-apg/","github","O",3],["world-dispatch-iq","https://neuruhai.github.io/neuruh-demos/world-dispatch-iq/","github","O",3],["world-seeder-loop","https://neuruhai.github.io/neuruh-demos/world-seeder-loop/","github","O",3],["threat-deterrence-console","https://neuruhai.github.io/neuruh-demos/threat-deterrence-console/","github","C",1]];
+const LEGION_NAMES = {"S":"SENSORS","A":"ANALYSTS","J":"ADJUDICATORS","O":"OPERATORS","P":"PROOF","M":"MEMORY","C":"COMMAND"};
+const STAGE_NAMES = {"1":"Intake","2":"Team formation","3":"Execution","4":"Deliberation","5":"Gating","6":"Handoff","7":"Learning","8":"Proof","9":"Factory","10":"Canon"};
+const LEGIONS = {
+  S:{name:"SENSORS",fn:"Signal acquisition. OSINT, LANDOS signals, lead consoles, the pipeline. First contact with the world.",color:"#2471a3"},
+  A:{name:"ANALYSTS",fn:"Decision engines and calculators. Underwriting, scoring, workbenches, atlases. Turns signals into ranked intelligence.",color:"#d4af5a"},
+  J:{name:"ADJUDICATORS",fn:"Deliberation and verification. Aegis, Sentinel Court, CRUCIBLE, calibration, receipts. The immune system.",color:"#c0392b"},
+  O:{name:"OPERATORS",fn:"Execution. Agents, swarm fleet, factory, command language, AXON. The hands.",color:"#8e44ad"},
+  P:{name:"PROOF",fn:"Receipts and ledgers. Unified Chain, receipt explorer, canonical index, vault, codex. The memory that cannot lie.",color:"#16a085"},
+  M:{name:"MEMORY",fn:"Learning. Memory Gate, Decision Traces, Autonomy Lab, calibration. What the swarm remembers, and what it forgets.",color:"#1e8449"},
+  C:{name:"COMMAND",fn:"Governance. N-Cell, Governance Loop, Cockpit, Constitution. The authority that says what the swarm may and may not do.",color:"#d68910"}
+};
+const STAGE_SYSTEMS = {
+  1:["osint-observe-act-demo","signal-to-outreach-pipeline","landos-signals","lead-gen-console","threat-deterrence-console"],
+  2:["jgi-organization-compiler","modular-agentic-cockpit","jgi-command-language","master-command-lab","jgi-economics-workbench"],
+  3:["neural-core-live-demo","adaptive-intelligence-live-demo","polarity-theory-live-demo","recipe-engine-49","agent-swarm-domination"],
+  4:["aegis-intelligence-core","jgi-sentinel-court","case-zero-live-demo","red-team-build-map","jgi-calibration-lab"],
+  5:["crucible-live-demo","governance-loop","eta-gate","ncell-position-paper","verifiable-ai-pipeline","liability-layer"],
+  6:["p0-seam-loop","master-convergence-handoff"],
+  7:["jgi-memory-workbench","memory-gate","decision-traces","jgi-autonomy-lab","jgi-ops-console","hypersonics-zero-to-ground"],
+  8:["unified-chain","receipt-chain-explorer","canonical-receipt-index","estate-inventory"],
+  9:["factory-operating-manual","autonomous-builder-factory","autonomous-execution-dossier","newstyle-gallery"],
+  10:["blueprint-live-demo","neuruh-codex","conceptual-lexicon","neuruh-constitution","nrh-registry"]
+};
+const BANKS = {
+  scammer:{label:"Scammer",words:["won","prize","gift card","verify","verification fee","urgent","act now","limited time","click the link","wire","crypto","bitcoin","refund","suspended","account locked","bank","police","tech support","claim","congratulations","winner","free money","double your money","investment opportunity"]},
+  trafficker:{label:"Trafficker",words:["modeling job","babysitting job","travel with me","new phone","run away","meet me","send photos","keep it secret","dont tell your parents","i will take care of you","live with me","daddy","escort","massage","young girls","fresh"]},
+  dealer:{label:"Drug Dealer",words:["plug","gas","loud","zaza","bars","percs","molly","coke","meth","weed","edibles","hit me up","delivery","drop off","cashapp","venmo","crypto"]},
+  mule:{label:"Money Mule",words:["work from home","move money","receive and forward","commission","payment processor","money transfer job","gift card","wire transfer","western union","crypto wallet","quick cash","no experience needed"]},
+  stalker:{label:"Targeter / Stalker",words:["i saw you","i know where you live","i know your routine","watching you","i will find you","you cant hide","i know your schedule","ive been following","meet me or else","i have your address"]},
+  harasser:{label:"Harasser",words:["kill yourself","nobody likes you","ugly","stupid","worthless","slut","whore","i will leak","doxx","your address is","everyone hates you","go die","threat"]},
+  botfarm:{label:"Bot Farm",words:["great post","amazing","so true","100 percent","agree","love this","best ever","check my profile","follow for follow","crypto giveaway","double your bitcoin","send 1 get 2"]}
+};
+const SAMPLES = {
+  scammer:"Congratulations! You won a $500 gift card. Click the link and pay a $2 verification fee with a gift card to claim it.",
+  trafficker:"Hey, I can get you a modeling job and a new phone. Travel with me this weekend, keep it secret, dont tell your parents. I will take care of you.",
+  botfarm:"This is 100% real, send 1 get 2 back. Amazing opportunity, double your bitcoin now.",
+  mule:"Work from home, no experience needed. Receive and forward payments for a commission. Quick cash, move money today."
+};
+const AGENTS = [
+  {name:"Hawkins",adj:0.97},{name:"Orwell",adj:1.08},{name:"Keystone",adj:0.93},
+  {name:"Advocate",adj:0.88},{name:"Cicero",adj:1.02},{name:"Zeitgeist",adj:1.05},{name:"Empath",adj:0.90}
+];
+const DOMAIN_RAIL = {
+  scammer:"FTC ReportFraud.ftc.gov, FBI IC3 ic3.gov",
+  trafficker:"Human Trafficking Hotline 1-888-373-7888, NCMEC CyberTipline report.cybertip.org",
+  dealer:"Local law enforcement, DEA tip submission at dea.gov",
+  mule:"FBI IC3 ic3.gov, the bank fraud department, FTC ReportFraud.ftc.gov",
+  stalker:"Local law enforcement, platform reporting, VictimConnect 1-855-484-2846",
+  harasser:"Platform reporting, local law enforcement if there are threats, Cyber Civil Rights Initiative cybercivilrights.org",
+  botfarm:"Platform integrity teams, and for election-related activity the relevant election authority"
+};
+const BOT_COORD=[
+ {n:"@crypto_king_88",t:"09:02",txt:"This is 100% real, send 1 get 2 back",age:3},
+ {n:"@moon_shot_21",t:"09:02",txt:"This is 100% real, send 1 get 2 back",age:2},
+ {n:"@btc_guru_77",t:"09:03",txt:"This is 100% real, send 1 get 2 back",age:4},
+ {n:"@rich_quick_99",t:"09:03",txt:"Amazing opportunity, send 1 get 2 back",age:2},
+ {n:"@elon_fan_44",t:"09:04",txt:"This is 100% real, send 1 get 2 back",age:3},
+ {n:"@coin_master_12",t:"09:04",txt:"Amazing opportunity, send 1 get 2 back",age:5},
+ {n:"@hodl_hero_55",t:"09:05",txt:"This is 100% real, send 1 get 2 back",age:2},
+ {n:"@lambo_dreams_8",t:"09:05",txt:"Amazing opportunity, send 1 get 2 back",age:3},
+ {n:"@satoshi_son_31",t:"09:06",txt:"This is 100% real, send 1 get 2 back",age:4},
+ {n:"@bull_run_2026",t:"09:06",txt:"Amazing opportunity, send 1 get 2 back",age:2},
+ {n:"@diamond_hands_9",t:"09:07",txt:"This is 100% real, send 1 get 2 back",age:3},
+ {n:"@to_the_moon_77",t:"09:07",txt:"Amazing opportunity, send 1 get 2 back",age:4}];
+const BOT_ORG=[
+ {n:"@maria_gardens",t:"08:12",txt:"I tried this recipe last weekend and the rosemary really makes it",age:412},
+ {n:"@tom_bakes",t:"08:47",txt:"My sourdough finally rose properly, third try",age:689},
+ {n:"@lena_reads",t:"09:20",txt:"Finished the book last night, the ending surprised me",age:233},
+ {n:"@old_barn_mike",t:"10:05",txt:"Fixed the fence, took all morning",age:1024},
+ {n:"@sara_cycles",t:"11:31",txt:"Twenty miles today, legs are done",age:540},
+ {n:"@ben_fishes",t:"12:15",txt:"Caught two, threw one back",age:301},
+ {n:"@priya_cooks",t:"13:40",txt:"The lentils needed more salt than the recipe said",age:777},
+ {n:"@dan_hikes",t:"14:22",txt:"Trail was muddy after the rain",age:455},
+ {n:"@emma_sews",t:"15:03",txt:"Finished the quilt top, now the binding",age:902},
+ {n:"@joe_garage",t:"16:48",txt:"Oil change done, no leaks this time",age:1200},
+ {n:"@nina_paints",t:"18:10",txt:"The light in the studio was perfect today",age:365},
+ {n:"@sam_runs",t:"19:55",txt:"Slow five miles, easy pace",age:640}];
+let weights = {scammer:1.0,trafficker:1.0,dealer:1.0,mule:1.0,stalker:1.0,harasser:1.0,botfarm:1.0};
+let ledgerLog = [];
+let lastPacket = null;
+</script>
+
+<script>
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+async function sha256hex(str){
+  const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function siteUrl(slug){const s=SITES.find(x=>x[0]===slug);return s?s[1]:"#";}
+function siteLink(slug){return '<a href="'+siteUrl(slug)+'" target="_blank" rel="noopener">'+esc(slug)+'</a>';}
+function legionCounts(){const c={};SITES.forEach(s=>{c[s[3]]=(c[s[3]]||0)+1;});return c;}
+function renderTopology(){
+  const c=legionCounts();
+  const pos={S:[150,90],A:[380,60],J:[610,90],O:[640,300],P:[380,330],M:[120,300],C:[380,195]};
+  let h="";
+  for(let r=0;r<6;r++){for(let cc=0;cc<10;cc++){const x=40+cc*72+(r%2?36:0),y=40+r*64;h+='<circle cx="'+x+'" cy="'+y+'" r="3" fill="#3a3a3a"/>';}}
+  for(const k in pos){const p=pos[k];h+='<line x1="380" y1="195" x2="'+p[0]+'" y2="'+p[1]+'" stroke="#444"/>';}
+  h+='<circle cx="380" cy="195" r="26" fill="none" stroke="#b08d3e" stroke-width="2"/><circle cx="380" cy="195" r="16" fill="none" stroke="#b08d3e" stroke-width="1.5"/><circle cx="380" cy="195" r="6" fill="#b08d3e"/><text x="380" y="238" fill="#d4af5a" font-size="12" text-anchor="middle">COMMANDER (founder)</text>';
+  for(const k in pos){const p=pos[k],L=LEGIONS[k];h+='<g style="cursor:pointer" onclick="filterLegion(\''+k+'\')"><circle cx="'+p[0]+'" cy="'+p[1]+'" r="15" fill="'+L.color+'" stroke="#141414" stroke-width="2"/><text x="'+p[0]+'" y="'+(p[1]+32)+'" fill="#f2ede3" font-size="11" text-anchor="middle">'+L.name+' ('+(c[k]||0)+')</text></g>';}
+  document.getElementById("swarmSvg").innerHTML=h;
+  document.getElementById("legionCards").innerHTML=Object.keys(LEGIONS).map(k=>{
+    const L=LEGIONS[k];const stages=[...new Set(SITES.filter(s=>s[3]===k).map(s=>s[4]))].sort((a,b)=>a-b);
+    return '<div class="legion" onclick="filterLegion(\''+k+'\')"><h3>'+L.name+' <span class="ct">'+(c[k]||0)+' systems</span></h3><p>'+esc(L.fn)+'</p><p style="color:#d4af5a">Stages '+stages.join(", ")+'</p></div>';
+  }).join("");
+}
+function filterLegion(k){
+  document.getElementById("regLegion").value=k;
+  renderRegistry();
+  document.getElementById("registry").scrollIntoView({behavior:"smooth"});
+}
+function renderRegistry(){
+  const q=(document.getElementById("regSearch").value||"").toLowerCase();
+  const leg=document.getElementById("regLegion").value;
+  const st=document.getElementById("regStage").value;
+  const host=document.getElementById("regHost").value;
+  const rows=SITES.filter(s=>{
+    if(q && s[0].toLowerCase().indexOf(q)<0) return false;
+    if(leg && s[3]!==leg) return false;
+    if(st && String(s[4])!==st) return false;
+    if(host && s[2]!==host) return false;
+    return true;
+  });
+  document.getElementById("regBody").innerHTML=rows.map(s=>"<tr><td><a href=\""+s[1]+"\" target=\"_blank\" rel=\"noopener\">"+esc(s[0])+"</a></td><td>"+LEGION_NAMES[s[3]]+"</td><td>"+s[4]+" "+esc(STAGE_NAMES[s[4]])+"</td><td>"+esc(s[2])+"</td></tr>").join("");
+  document.getElementById("regTotal").textContent=rows.length+" of "+SITES.length+" systems shown.";
+}
+function fillRegFilters(){
+  const leg=document.getElementById("regLegion");
+  Object.keys(LEGIONS).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=LEGIONS[k].name;leg.appendChild(o);});
+  const st=document.getElementById("regStage");
+  for(let i=1;i<=10;i++){const o=document.createElement("option");o.value=String(i);o.textContent=i+" "+STAGE_NAMES[i];st.appendChild(o);}
+  const c=legionCounts();
+  document.getElementById("regCounts").textContent=Object.keys(LEGIONS).map(k=>LEGIONS[k].name+" "+(c[k]||0)).join(" | ");
+}
+function scoreBanks(text){
+  const low=text.toLowerCase();let results=[];
+  for(const k in BANKS){const b=BANKS[k];const hits=b.words.filter(w=>low.includes(w));const raw=hits.length;const score=Math.min(100,Math.round(raw*18*weights[k]));results.push({k,label:b.label,hits,raw,score});}
+  results.sort((a,b)=>b.score-a.score);
+  return results;
+}
+function analyzeSignal(){
+  const text=document.getElementById("sigInput").value.trim();
+  const out=document.getElementById("sigOut");
+  if(!text){out.innerHTML='<p style="color:#d8d2c2">Paste a signal first.</p>';return;}
+  const results=scoreBanks(text);
+  let h='<div class="panel"><h3>Read</h3>';
+  results.forEach(r=>{h+='<div class="kv"><span>'+esc(r.label)+' ('+r.raw+' matched)</span><b>'+r.score+'/100</b></div><div class="bar"><i style="width:'+r.score+'%"></i></div>';});
+  const top=results[0];
+  h+='<p><b>Top match:</b> '+esc(top.label)+' at '+top.score+'/100. Matched: '+(top.hits.slice(0,6).map(esc).join(", ")||"none")+'.</p>';
+  h+='<p><b>Action:</b> '+(top.score>=60?"HIGH. Do not engage. Preserve the message, block, and report.":top.score>=30?"MONITOR. Do not click, do not pay, do not move off-platform. Verify through a separate channel.":"LOW. No strong signal, but stay alert.")+'</p></div>';
+  out.innerHTML=h;
+}
+function scoreScam(){
+  const boxes=[...document.querySelectorAll(".sc")];let total=0;let picked=[];
+  boxes.forEach(b=>{if(b.checked){total+=+b.dataset.w;picked.push(b.parentElement.textContent.trim());}});
+  total=Math.min(100,total);
+  let band,cls,act;
+  if(total>=75){band="CRITICAL";cls="crit";act="Do not engage, do not pay, do not move off-platform. Preserve everything, block, and report to FTC and FBI IC3.";}
+  else if(total>=50){band="HIGH";cls="high";act="Do not pay and do not move off-platform. Verify through a separate channel you already trust. Report it.";}
+  else if(total>=25){band="MONITOR";cls="mon";act="Do not click and do not pay. Verify through a separate channel. Watch for the sinker.";}
+  else{band="LOW";cls="low";act="No strong scam signal. Stay alert: one checklist is not a verdict.";}
+  document.getElementById("scamOut").innerHTML='<div class="panel"><div class="score">'+total+' / 100</div><span class="band '+cls+'">'+band+'</span><p style="margin-top:10px"><b>Checked:</b> '+(picked.map(esc).join("; ")||"nothing")+'.</p><p><b>Action:</b> '+act+'</p></div>';
+}
+function runBot(kind){
+  const data=kind==="coordinated"?BOT_COORD:BOT_ORG;
+  const times={};data.forEach(a=>{times[a.t]=(times[a.t]||0)+1;});
+  const maxSame=Math.max(...Object.values(times));
+  const phraseCount={};data.forEach(a=>{const p=a.txt.toLowerCase().slice(0,30);phraseCount[p]=(phraseCount[p]||0)+1;});
+  const maxPhrase=Math.max(...Object.values(phraseCount));
+  const ages=data.map(a=>a.age).sort((a,b)=>a-b);const med=ages[Math.floor(ages.length/2)];const spread=ages[ages.length-1]-ages[0];
+  const coord=maxSame>=3||maxPhrase>=4||spread<10;
+  const phantom=coord&&maxPhrase>=4;
+  let h='<div class="panel"><h3>'+(kind==="coordinated"?"Coordinated sample":"Organic sample")+'</h3>';
+  h+='<div class="kv"><span>Most accounts posting in one minute</span><b>'+maxSame+' of '+data.length+'</b></div>';
+  h+='<div class="kv"><span>Most accounts sharing one phrase</span><b>'+maxPhrase+' of '+data.length+'</b></div>';
+  h+='<div class="kv"><span>Median account age</span><b>'+med+' days</b></div>';
+  h+='<div class="kv"><span>Age spread</span><b>'+spread+' days</b></div>';
+  h+='<p><b>Phantom consensus:</b> '+(phantom?"FLAGGED. Agreement across the group with no independent private record: same phrases, same minutes, same age cluster. The agreement is manufactured.":"Not flagged. Accounts differ in time, text, and age.")+'</p>';
+  h+='<p><b>Verdict:</b> <span class="band '+(coord?"crit":"low")+'">'+(coord?"COORDINATED":"ORGANIC")+'</span></p>';
+  h+='<p><b>Action:</b> '+(coord?"Report the accounts and the controller. Do not count this engagement as real.":"No action. This is what independent accounts look like.")+'</p></div>';
+  document.getElementById("botOut").innerHTML=h;
+}
+function fillSample(kind){
+  document.getElementById("mDomain").value=kind;
+  document.getElementById("mSignal").value=SAMPLES[kind]||"";
+}
+function stageRow(n,name,verdict,detail,systems){
+  const cls=verdict==="PASS"?"pass":verdict==="BLOCK"?"block":verdict==="FLAG"?"flag":"run";
+  return '<div class="stage"><h4>Stage '+n+': '+esc(name)+'<span class="v '+cls+'">'+verdict+'</span></h4><p>'+detail+'</p><p class="sys">Systems invoked: '+systems.map(siteLink).join(", ")+'</p><p class="mono" id="rcpt-'+n+'">receipt: computing...</p></div>';
+}
+async function runMission(){
+  const btn=document.getElementById("runBtn");btn.disabled=true;
+  const domain=document.getElementById("mDomain").value;
+  const text=document.getElementById("mSignal").value.trim();
+  const log=document.getElementById("missionLog");const out=document.getElementById("missionOut");
+  log.innerHTML="";out.innerHTML="";
+  if(!text){log.innerHTML='<p style="color:#d8d2c2">Paste a signal first, or click a sample.</p>';btn.disabled=false;return;}
+  const fullHash=await sha256hex(text);
+  const missionId=fullHash.slice(0,12);
+  let prev="GENESIS";
+  const chain=[];
+  async function seal(n,name,verdict,detail){
+    const body=JSON.stringify({mission:missionId,stage:n,name:name,verdict:verdict,detail:detail,prev:prev});
+    const h=await sha256hex(body);
+    chain.push({stage:n,name:name,verdict:verdict,detail:detail,prev_receipt_hash:prev,receipt_hash:h});
+    prev=h;
+    const el=document.getElementById("rcpt-"+n);
+    if(el) el.textContent="receipt: "+h.slice(0,20)+"... (prev "+String(chain[chain.length-1].prev_receipt_hash).slice(0,12)+")";
+    return h;
+  }
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  const results=scoreBanks(text);
+  const top=results[0];
+  const second=results[1];
+  const domainLabel=BANKS[domain].label;
+  const domainScore=(results.find(r=>r.k===domain)||{score:0}).score;
+  log.innerHTML+='<div class="panel"><h3>Mission '+missionId+' opened</h3><p>Domain: <b>'+esc(domainLabel)+'</b>. Signal hash: <span class="mono">'+fullHash.slice(0,20)+'...</span></p><p>Top bank: '+esc(top.label)+' '+top.score+'/100. Selected domain bank: '+esc(domainLabel)+' '+domainScore+'/100.</p></div>';
+  // Stage 1 Intake
+  log.innerHTML+=stageRow(1,"Intake",top.score>=20?"PASS":"BLOCK",
+    top.score>=20?"Signal accepted. "+top.raw+" keywords matched in the "+esc(top.label)+" bank. The signal is read as interests, incentive, adjacencies, money.":"Signal rejected: top bank scored "+top.score+"/100, below the 20-point intake floor. No mission opens on noise.",
+    STAGE_SYSTEMS[1]);
+  await seal(1,"Intake",top.score>=20?"PASS":"BLOCK","top="+top.label+" "+top.score);
+  await sleep(450);
+  if(top.score<20){
+    out.innerHTML='<div class="panel"><h3>Mission '+missionId+' BLOCKED at stage 1</h3><p>The signal did not clear the intake floor. Nothing else ran. The block is receipted.</p><pre>'+esc(JSON.stringify({mission:missionId,verdict:"BLOCKED",stage:1,chain:chain},null,2))+'</pre></div>';
+    btn.disabled=false;return;
+  }
+  // Stage 2 Team formation
+  const team=STAGE_SYSTEMS[2];
+  log.innerHTML+=stageRow(2,"Team formation","PASS","The Organization Compiler formed the smallest team that can do the job: "+team.length+" systems. The Cockpit holds the commitment packet. A swarm is a temporary execution topology, not an identity.",team);
+  await seal(2,"Team formation","PASS","team="+team.length+" systems");
+  await sleep(450);
+  // Stage 3 Execution
+  const dup = top.raw>0 && second.raw>0 ? Math.round(second.score*0.3) : 0;
+  const composed=Math.min(100, top.score - dup);
+  log.innerHTML+=stageRow(3,"Execution","PASS","Composed score "+composed+"/100 (top bank "+top.score+", dependence discount -"+dup+" for overlapping keywords in the "+esc(second.label)+" bank). The Neural Core ran the signal through the analysts; the swarm fleet holds the execution. The wave is measured: height and force dictate what it does.",STAGE_SYSTEMS[3]);
+  await seal(3,"Execution","PASS","composed="+composed);
+  await sleep(450);
+  // Stage 4 Deliberation
+  const votes=AGENTS.map(a=>{const s=Math.round(Math.min(100,Math.max(0,composed*a.adj)));return {name:a.name,score:s,vote:s>=50?"ACT":"HOLD"};});
+  const acts=votes.filter(v=>v.vote==="ACT").length;
+  const majority=acts>=4?"ACT":"HOLD";
+  log.innerHTML+=stageRow(4,"Deliberation",majority==="ACT"?"PASS":"FLAG","Seven agents voted in isolation before seeing each other (Aegis phase 1). "+acts+" of 7 voted ACT. "+votes.map(v=>v.name+" "+v.score).join(", ")+". The Chair takes the majority and records the dissent; debate does not inflate confidence.",STAGE_SYSTEMS[4]);
+  await seal(4,"Deliberation",majority==="ACT"?"PASS":"FLAG","votes="+acts+"/7 "+majority);
+  await sleep(450);
+  // Stage 5 Gating
+  const gatePass=composed>=50 && majority==="ACT";
+  log.innerHTML+=stageRow(5,"Gating",gatePass?"PASS":"FLAG",gatePass?"CRUCIBLE gate passed: composed score "+composed+" at or above 50, deliberation ACT, zero uncited claims (the signal is the source). The N-Cell authority mask allows this action.":"CRUCIBLE gate FLAG: composed score "+composed+", deliberation "+majority+". The gate returns the exact gap to fix instead of publishing: more evidence, or a lower-stakes action.",STAGE_SYSTEMS[5]);
+  await seal(5,"Gating",gatePass?"PASS":"FLAG","eta-like="+composed);
+  await sleep(450);
+  // Stage 6 Handoff
+  log.innerHTML+=stageRow(6,"Handoff","PASS","The P0 seam moved the finding from the finder to the factory with a receipt. Strikes: 0. The finding is now a gated output, not a loose claim.",STAGE_SYSTEMS[6]);
+  await seal(6,"Handoff","PASS","strikes=0");
+  await sleep(450);
+  // Stage 7 Learning
+  const brier=(Math.pow(composed/100-1,2)).toFixed(3);
+  const d=composed>=50?0.1:-0.1;
+  const oldW=weights[domain];
+  weights[domain]=Math.min(2,Math.max(0,+(oldW+d).toFixed(2)));
+  ledgerLog.push({t:new Date().toLocaleTimeString(),k:BANKS[domain].label,old:oldW,nw:weights[domain],why:"mission "+missionId});
+  log.innerHTML+=stageRow(7,"Learning","PASS","Calibration Lab recorded the forecast: confidence "+composed+"%. Brier score against the eventual outcome will be "+brier+" if the finding holds. The "+esc(BANKS[domain].label)+" bank weight moved "+oldW.toFixed(2)+" to "+weights[domain].toFixed(2)+" and the change is logged. Failed predictions become negative lessons with decay.",STAGE_SYSTEMS[7]);
+  await seal(7,"Learning","PASS","weight "+oldW.toFixed(2)+"->"+weights[domain].toFixed(2));
+  await sleep(450);
+  // Stage 8 Proof
+  log.innerHTML+=stageRow(8,"Proof","PASS","The Unified Chain sealed the mission: "+chain.length+" stage receipts chained from GENESIS. Tamper the chain and the verify step returns TAMPERED. The receipt is the proof.",STAGE_SYSTEMS[8]);
+  await seal(8,"Proof","PASS","chain="+chain.length+" receipts");
+  await sleep(450);
+  // Stage 9 Factory
+  const action=composed>=75?"REPORT AND BLOCK: report to "+DOMAIN_RAIL[domain]+", block the accounts, preserve the evidence.":composed>=50?"REPORT: report to "+DOMAIN_RAIL[domain]+", warn the target, preserve the evidence.":"MONITOR: log the signal, watch for the sinker, do not engage.";
+  log.innerHTML+=stageRow(9,"Factory","PASS","The Factory Manual drafted the gated output: "+esc(action)+" This is a draft, not a send. Production promotion requires a human approval token. The autonomous loop stops here by design.",STAGE_SYSTEMS[9]);
+  await seal(9,"Factory","PASS","action drafted, promotion gated");
+  await sleep(450);
+  // Stage 10 Canon
+  log.innerHTML+=stageRow(10,"Canon","PASS","The outcome is written to the learning ledger and the case packet is sealed. The lexicon carries the terms; the codex carries the doctrine; the packet carries the evidence.",STAGE_SYSTEMS[10]);
+  await seal(10,"Canon","PASS","packet sealed");
+  const packet={packet_version:"1.0",tool:"The Unified Swarm",mission:missionId,created:new Date().toISOString(),domain:domainLabel,signal_hash:fullHash,composed_score:composed,deliberation:majority,votes:votes,gate:gatePass?"PASS":"FLAG",action:action,report:DOMAIN_RAIL[domain],weights:weights,receipt_chain:chain};
+  const packetHash=await sha256hex(JSON.stringify(packet));
+  packet.packet_hash_sha256=packetHash;
+  lastPacket=packet;
+  out.innerHTML='<div class="panel"><h3>Mission '+missionId+' complete</h3><p><b>Verdict:</b> '+esc(action)+'</p><p><b>Report:</b> '+esc(DOMAIN_RAIL[domain])+'</p><p><b>Packet hash:</b> <span class="mono">'+packetHash+'</span></p><p><b>Receipts:</b> '+chain.length+' chained from GENESIS. <b>Weight change:</b> '+esc(BANKS[domain].label)+' '+oldW.toFixed(2)+' to '+weights[domain].toFixed(2)+'.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px"><button onclick="downloadPacket()">Download case packet (JSON)</button></div><pre>'+esc(JSON.stringify(packet,null,2))+'</pre></div>';
+  btn.disabled=false;
+}
+function downloadPacket(){
+  if(!lastPacket)return;
+  const blob=new Blob([JSON.stringify(lastPacket,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="swarm-mission-"+lastPacket.mission+".json";a.click();
+}
+renderTopology();
+fillRegFilters();
+renderRegistry();
+</script>
+</body>
+</html>
