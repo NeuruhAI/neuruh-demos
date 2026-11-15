@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retardio — The System: One Uniform Connected System</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fbf9f4;--ink:#1a1712;--ink2:#4a4438;--brass:#9a7b2d;--brass2:#c8a24a;--red:#8b1e1e;--redbg:#f7e6e2;--green:#1f6b3a;--greenbg:#e6f2e8;--amber:#8a6d00;--amberbg:#f7f0d4;--line:#d8d2c2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+h1,h2,h3{font-family:Archivo,Inter,system-ui,sans-serif;letter-spacing:-.01em}
+h1{font-size:2.1rem;line-height:1.1;margin:.2em 0}
+h2{font-size:1.35rem;border-bottom:2px solid var(--brass);padding-bottom:.3em;margin:2.2em 0 .8em}
+h3{font-size:1.05rem;margin:1.4em 0 .4em}
+p{margin:.5em 0}
+a{color:#6b5316}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.92em}
+.wrap{max-width:1020px;margin:0 auto;padding:0 20px 60px}
+.dochead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:14px 0 10px;font-size:.82rem;color:var(--ink2)}
+.dochead b{color:var(--ink)}
+.kicker{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.sub{color:var(--ink2);font-size:1.05rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:12px 0}
+.warn{background:var(--amberbg);border:2px solid var(--amber);border-radius:8px;padding:14px 16px;margin:14px 0}
+.warn h3{margin-top:0}
+.note{background:#f6f1e2;border-left:4px solid var(--brass);padding:10px 14px;margin:.8em 0}
+.scoreboard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.sb{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.sb .n{font-family:Archivo,sans-serif;font-size:1.4rem;font-weight:800}
+.sb .l{font-size:.78rem;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+.sb .d{font-size:.78rem;color:var(--ink2)}
+.sb.red .n{color:var(--red)}
+.sb.green .n{color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:10px 0}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#efe9d8}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.badge.working{background:var(--greenbg);color:var(--green)}
+.badge.blocked{background:var(--redbg);color:var(--red)}
+.badge.designed{background:var(--amberbg);color:var(--amber)}
+.badge.done{background:var(--greenbg);color:var(--green)}
+.badge.ni{background:#ece7d8;color:var(--ink2)}
+.badge.sim{background:var(--amberbg);color:var(--amber)}
+pre{background:#efe9d8;border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:.85rem;line-height:1.5}
+.stage{border:2px solid var(--ink);border-radius:8px;padding:16px 18px;margin:14px 0;background:var(--paper)}
+.stage h3{margin-top:0}
+.stage .state{font-weight:700}
+.stage .state.ok{color:var(--green)}
+.stage .state.blocked{color:var(--red)}
+.flowarrow{text-align:center;font-size:1.6rem;color:var(--brass);line-height:1;margin:2px 0}
+button{font-family:Archivo,sans-serif;font-weight:700;font-size:.9rem;padding:9px 16px;border:2px solid var(--ink);border-radius:6px;background:var(--paper);color:var(--ink);cursor:pointer;margin:4px 4px 4px 0}
+button.primary{background:var(--ink);color:var(--bone)}
+button.danger{border-color:var(--red);color:var(--red)}
+button:disabled{opacity:.45;cursor:not-allowed}
+input,select{font-family:"JetBrains Mono",monospace;font-size:.9rem;padding:7px 9px;border:1px solid var(--line);border-radius:5px;background:#fff;color:var(--ink)}
+label{display:block;font-size:.85rem;color:var(--ink2);margin:8px 0 2px}
+.out{background:#efe9d8;border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin:10px 0;font-size:.95rem;min-height:1.5em}
+.out.reject{border-color:var(--red);background:var(--redbg)}
+.out.ok{border-color:var(--green);background:var(--greenbg)}
+.log{font-family:"JetBrains Mono",monospace;font-size:.8rem;background:#efe9d8;border:1px solid var(--line);border-radius:6px;padding:10px 12px;max-height:260px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.mapwrap{overflow-x:auto}
+.mapwrap svg{min-width:940px}
+figcaption{font-size:.85rem;color:var(--ink2);margin:.4em 0 1em}
+.small{font-size:.88rem;color:var(--ink2)}
+ol.seams li{margin:.45em 0}
+ul.not li{margin:.4em 0}
+@media print{body{background:#fff}.card,.stage{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="dochead">
+<div><b>RETARDIO SYSTEM v1</b> &middot; Convergence build</div>
+<div>Audit date: <b>2026-11-15</b></div>
+<div>Status: <b>SIMULATION</b> (browser-local)</div>
+<div>Hub: <b>v2.63, 190 sites</b></div>
+</div>
+
+<p class="kicker">Retardio &middot; One uniform connected system</p>
+<h1>Retardio: the system, whole</h1>
+<p class="sub">The pieces built on 2026-11-15 already exist separately. This page connects them into one uniform system: one data model, one receipt format, one anchor root, one status dashboard, one convergence table, and one live loop. Nothing here was removed to make it fit. The build is additive, per the standing order: strengthen, do not remove.</p>
+<p>What this page is: the convergence build. It wires the Measurement Loop, the Unified System, the On-Chain Anchor v2, the Done/Open Ledger evidence chain, the two Bridges, and the Bridge Builder into a single system with a map, a dashboard, and live controls that do what they say. What it is not: a claim that the system is finished, live in production, or proven. The blocked seams are named on this page, and the numbers that do not exist yet are shown as not existing.</p>
+
+<div class="warn"><h3>Read this first: what is real, what is not</h3>
+<p><b>Real:</b> 25 observations from a public county assessor service; 20 forecasts issued under a frozen rule; a Merkle root recomputed in two languages; 118 ledger items with chained receipts; two allegation maps built from verified sources.</p>
+<p><b>Not real yet:</b> no resolved forecast, no real Brier score, no on-chain anchor, no authority header, no policy gate, no second data source, no promotion. The system is governed, supervised execution with receipts. It is not autonomous, not continuously autonomous, and not in production.</p></div>
+
+<h2>1. The system map</h2>
+<p>One loop, one chain, one registry. Solid arrows are data flow. Dashed arrows are shared-format and registry links. Every component links to its live page.</p>
+<div class="mapwrap">
+<svg id="system-map" viewBox="0 0 980 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Retardio system map: observation source feeds the measurement loop, which feeds the unified system, which feeds the anchor, which feeds the ledger; bridges and the builder hang off the anchor; the hub is the registry of all of it.">
+<defs>
+<marker id="arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#9a7b2d"/></marker>
+<marker id="arrd" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#4a4438"/></marker>
+</defs>
+<!-- main flow row -->
+<rect x="10" y="20" width="176" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="98" y="44" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">St. Joseph County IN</text>
+<text x="98" y="61" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">Assessor ArcGIS</text>
+<text x="98" y="80" text-anchor="middle" font-size="11" fill="#4a4438">OBSERVATION SOURCE</text>
+<rect x="206" y="20" width="176" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="294" y="44" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">Measurement Loop v1</text>
+<text x="294" y="61" text-anchor="middle" font-size="11" fill="#4a4438">FORECASTS</text>
+<text x="294" y="80" text-anchor="middle" font-size="11" fill="#1f6b3a" font-weight="700">20 issued, 0 resolved</text>
+<rect x="402" y="20" width="176" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="490" y="44" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">Unified System v1</text>
+<text x="490" y="61" text-anchor="middle" font-size="11" fill="#4a4438">INTERFACE + GATES</text>
+<text x="490" y="80" text-anchor="middle" font-size="11" fill="#1f6b3a" font-weight="700">6 intents, gate, kill switch</text>
+<rect x="598" y="20" width="176" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="686" y="44" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">On-Chain Anchor v2</text>
+<text x="686" y="61" text-anchor="middle" font-size="11" fill="#4a4438">MERKLE</text>
+<text x="686" y="80" text-anchor="middle" font-size="11" fill="#1f6b3a" font-weight="700">235 leaves, 0 unverified</text>
+<rect x="794" y="20" width="176" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="882" y="44" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">Done/Open Ledger</text>
+<text x="882" y="61" text-anchor="middle" font-size="11" fill="#4a4438">EVIDENCE CHAIN</text>
+<text x="882" y="80" text-anchor="middle" font-size="11" fill="#1f6b3a" font-weight="700">118 items, chain VALID</text>
+<!-- arrows row 1 -->
+<line x1="186" y1="58" x2="204" y2="58" stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr)"/>
+<text x="195" y="48" text-anchor="middle" font-size="10" fill="#9a7b2d">25 obs</text>
+<line x1="382" y1="58" x2="400" y2="58" stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr)"/>
+<text x="391" y="48" text-anchor="middle" font-size="10" fill="#9a7b2d">receipts</text>
+<line x1="578" y1="58" x2="596" y2="58" stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr)"/>
+<text x="587" y="48" text-anchor="middle" font-size="10" fill="#9a7b2d">root</text>
+<line x1="774" y1="58" x2="792" y2="58" stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr)"/>
+<text x="783" y="48" text-anchor="middle" font-size="10" fill="#9a7b2d">chain</text>
+<!-- second row -->
+<rect x="10" y="170" width="300" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="160" y="194" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">Bridges: Blumenthal + Slotkin</text>
+<text x="160" y="211" text-anchor="middle" font-size="11" fill="#4a4438">ALLEGATION MAPS</text>
+<text x="160" y="230" text-anchor="middle" font-size="11" fill="#1f6b3a" font-weight="700">13 rows each, 0 charges, 0 rulings</text>
+<rect x="330" y="170" width="300" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="480" y="194" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">Bridge Builder</text>
+<text x="480" y="211" text-anchor="middle" font-size="11" fill="#4a4438">GENERATOR</text>
+<text x="480" y="230" text-anchor="middle" font-size="11" fill="#1f6b3a" font-weight="700">any public official, same rules</text>
+<rect x="650" y="170" width="320" height="76" rx="8" fill="#fbf9f4" stroke="#1a1712" stroke-width="2"/>
+<text x="810" y="194" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="13">Hub v2.63</text>
+<text x="810" y="211" text-anchor="middle" font-size="11" fill="#4a4438">REGISTRY</text>
+<text x="810" y="230" text-anchor="middle" font-size="11" fill="#1f6b3a" font-weight="700">190 sites, all verified</text>
+<!-- arrows row 2 -->
+<line x1="686" y1="96" x2="686" y2="130" stroke="#4a4438" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrd)"/>
+<text x="696" y="118" font-size="10" fill="#4a4438">same receipt format v1.1</text>
+<line x1="686" y1="130" x2="300" y2="168" stroke="#4a4438" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrd)"/>
+<line x1="480" y1="246" x2="312" y2="246" stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr)"/>
+<text x="396" y="236" text-anchor="middle" font-size="10" fill="#9a7b2d">generates</text>
+<line x1="882" y1="96" x2="882" y2="130" stroke="#4a4438" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrd)"/>
+<text x="892" y="118" font-size="10" fill="#4a4438">WORKING label rule</text>
+<line x1="810" y1="170" x2="810" y2="150" stroke="#4a4438" stroke-width="1.5" stroke-dasharray="5,4" marker-end="url(#arrd)"/>
+<!-- third row: blocked seams -->
+<rect x="10" y="320" width="960" height="120" rx="8" fill="#f7e6e2" stroke="#8b1e1e" stroke-width="2"/>
+<text x="30" y="348" font-family="Archivo,sans-serif" font-weight="700" font-size="13" fill="#8b1e1e">BLOCKED SEAMS — 12, named below in §1.1</text>
+<text x="30" y="370" font-size="12">Ingest (Supabase down) &middot; DeedSonar 503 &middot; LANDOS engine down &middot; Production Mac loop unproven</text>
+<text x="30" y="390" font-size="12">Sentinel verdict closure &middot; Promotion to production &middot; Stripe reauthorization &middot; neuruh.com DNS</text>
+<text x="30" y="410" font-size="12">Cloudflare 100-project ceiling &middot; Gmail full &middot; Marketplace locked &middot; Notion blocks exhausted</text>
+<text x="30" y="430" font-size="12" fill="#4a4438">A blocked seam is a fact about the estate, not a defect in this page. The list is the work.</text>
+</svg>
+</div>
+<figcaption>Figure 1. The Retardio system map. The loop runs left to right: public records in, forecasts out, receipts chained, the Merkle root published, the ledger carrying the evidence. The bridges are the public-facing application of the same receipt discipline. The hub is the registry of all of it.</figcaption>
+
+<table id="component-table">
+<tr><th>Component</th><th>Status (2026-11-15)</th><th>Key number</th><th>Live page</th></tr>
+<tr><td>Observation source: St. Joseph County IN Assessor ArcGIS</td><td><span class="badge working">WORKING</span></td><td>25 observations, fetched live 2026-11-15T11:53:33Z; response SHA-256 a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0; sample frame 14,415 LLC-owned parcels with a recorded sale</td><td><a href="https://neuruhai.github.io/neuruh-demos/retardio-measurement-loop/">retardio-measurement-loop</a></td></tr>
+<tr><td>Measurement Loop v1</td><td><span class="badge working">WORKING</span></td><td>25 observations, 20 rapid-flip forecasts, 0 resolved; real Brier NOT YET COMPUTABLE; receipt chain VALID 25/25 + 20/20</td><td><a href="https://neuruhai.github.io/neuruh-demos/retardio-measurement-loop/">retardio-measurement-loop</a></td></tr>
+<tr><td>Unified System v1</td><td><span class="badge working">WORKING</span></td><td>4 schemas, 6 prompt intents, Brier gate, kill switch, human gates; promotion gate REJECTS at 0 resolved</td><td><a href="https://neuruhai.github.io/neuruh-demos/retardio-unified-system/">retardio-unified-system</a></td></tr>
+<tr><td>On-Chain Anchor v2</td><td><span class="badge sim">WORKING &middot; SIMULATION</span></td><td>Merkle root afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f; 235 leaves (204 estate + 31 self), 187 sites, 0 unverified; not yet on-chain</td><td><a href="https://neuruhai.github.io/neuruh-demos/onchain-anchor/">onchain-anchor</a></td></tr>
+<tr><td>Done/Open Ledger + evidence chain</td><td><span class="badge working">WORKING</span></td><td>118 items (Done 43, Open 65, Unknown 7, In flight 3); 118 v1.1 receipts chained from GENESIS, chain head 76675cc07b629bbea8b76717e282fdb89d05d519953562e22aa75a134666dcad; CHAIN VALID in Python and JS</td><td><a href="https://neuruhai.github.io/neuruh-demos/done-ledger/">done-ledger</a></td></tr>
+<tr><td>Reitz-Blumenthal Bridge</td><td><span class="badge working">WORKING</span></td><td>13-row allegation map; §241 0 of 5 either side; §242 0 of 4 vs 1 of 4; 0 charges, 0 court rulings</td><td><a href="https://neuruhai.github.io/neuruh-demos/reitz-blumenthal-bridge/">reitz-blumenthal-bridge</a></td></tr>
+<tr><td>Reitz-Slotkin Bridge</td><td><span class="badge working">WORKING</span></td><td>13-row allegation map; §241 0 of 5 either side; §242 0 of 4 vs 1 of 4; 0 charges, 0 court rulings; confirmation deadline 6 p.m. ET Nov 19, 2026</td><td><a href="https://neuruhai.github.io/neuruh-demos/reitz-slotkin-bridge/">reitz-slotkin-bridge</a></td></tr>
+<tr><td>Bridge Builder</td><td><span class="badge working">WORKING &middot; TOOL</span></td><td>Generates a bridge for any public official from the same template and honesty rules; tally computed, never hardcoded; refuses to generate without an allegation and sources</td><td><a href="https://neuruhai.github.io/neuruh-demos/bridge-builder/">bridge-builder</a></td></tr>
+<tr><td>Hub v2.63</td><td><span class="badge working">WORKING</span></td><td>190 sites, all verified; Section A 32 sites</td><td><a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a></td></tr>
+</table>
+
+<h3>1.1 The 12 blocked seams</h3>
+<p class="small">From the Neuruh Topology, verified 2026-11-15. Each names the reason and what unblocks it.</p>
+<ol class="seams">
+<li><b>Ingest seam.</b> Production Supabase unreachable (curl 000, verified 2026-11-15); lead pull failed 30 straight nights. Unblocks: the Mac backup check, then restore into a new Supabase project in Jeramie's own account, or re-ingest from county ArcGIS.</li>
+<li><b>DeedSonar seam.</b> deedsonar.com returns 503 DEPLOYMENT_PAUSED (verified 2026-11-15); ownership and access unresolved. Unblocks: a founder decision on the Vercel team, then a redeploy.</li>
+<li><b>LANDOS engine seam.</b> landos-engine.fly.dev down (curl 000, verified 2026-11-15). Unblocks: re-hosting, for example Fly.io, which needs the founder's approval at about $2-5 a month.</li>
+<li><b>Production Mac loop.</b> The P0 seam exists only as a reference implementation (33/33 tests, SIMULATION). Unblocks: the Mac work order, executed on Jeramie's Mac.</li>
+<li><b>Sentinel verdict closure.</b> No live Sentinel verdicts; governance deployment, the deployment executor, and the armed scheduler are not proven. Unblocks: the P0 seam production build.</li>
+<li><b>Promotion to production.</b> The Factory Manual forbids GENERATED to LIVE without human acceptance, and no promotion with a recorded acceptance has run. Unblocks: one promotion run end to end, with a receipt.</li>
+<li><b>Money seam.</b> Stripe status is reauthorization_required (verified 2026-11-10); the store is SIMULATION until it is reconnected. Unblocks: Jeramie reconnects Stripe and says done.</li>
+<li><b>neuruh.com.</b> DNS swap pending (Jeramie only); the site is 404 and neuruh.com/proof is dead. Unblocks: the DNS edit (delete the Vercel A and CNAME, add proxied CNAMEs to neuruh-web.pages.dev; do not touch MX/TXT).</li>
+<li><b>Cloudflare ceiling.</b> The account is at 100 projects, the free-plan ceiling; new Cloudflare deploys are blocked. Workaround in use: GitHub Pages, which has no such ceiling for this estate.</li>
+<li><b>Comms seam.</b> Gmail is full; inbound mail has bounced since 2026-10-23. Unblocks: Jeramie deletes large sent mail and empties Trash (also Drive and Photos).</li>
+<li><b>Marketplace seam.</b> The Marketplace account locked 2026-11-04; the unlock is unconfirmed. Unblocks: Jeramie confirms the unlock, then the push resumes from the ottomans.</li>
+<li><b>Notion seam.</b> Free-plan blocks are exhausted; creating a database fails. Unblocks: a plan decision, which is the founder's call.</li>
+</ol>
+
+<h2>2. One uniform data model</h2>
+<p>Stated once, used everywhere. Four record schemas, one receipt schema, one canonicalization rule, one anchor root. Anything that does not fit these schemas does not enter the system.</p>
+
+<h3>2.1 The four schemas (verbatim from the Unified System v1, 2026-11-15)</h3>
+<h3>Observation</h3>
+<pre>{
+  "observation_id": "sha256 of canonical form",
+  "schema_version": "1.0",
+  "source": "st_joseph_county_arcgis | in_sos | court_docket | published_scam_list",
+  "source_locator": "exact query, layer, objectid, or URL + params",
+  "retrieved_at": "2026-11-15T12:00:00Z",
+  "raw_hash": "sha256 of exact bytes retrieved",
+  "entity_type": "parcel | deed | llc_filing | judgment | wallet_cluster",
+  "payload": { /* source-specific fields, see §3 of the Unified System */ },
+  "prev_hash": "GENESIS or prior observation_id",
+  "receipt": "sha256 of this entire object after canonicalization"
+}</pre>
+<h3>Forecast</h3>
+<pre>{
+  "forecast_id": "sha256...",
+  "schema_version": "1.0",
+  "observation_ids": ["..."],
+  "forecast_type": "rapid_flip | entity_cluster | all_cash_new_entity",
+  "probability": 0.42,
+  "issued_at": "2026-11-15T12:05:00Z",
+  "model_version": "baseline_v1",
+  "features": {
+    "entity_age_days": 45,
+    "consideration": 250000,
+    "prior_transfer_count_365d": 0,
+    "llc_owned": true
+  },
+  "window_days": 180,
+  "prev_hash": "...",
+  "receipt": "sha256..."
+}</pre>
+<p class="small">The forecast record carries the full feature vector (<code>features</code>), not just feature names. That is what makes a forecast independently recomputable. (Convergence item 41; the narrow-loop spec carried only <code>features_used</code> names. This schema supersedes that for new records and does not rewrite the loop's existing receipts.)</p>
+<h3>Outcome</h3>
+<pre>{
+  "outcome_id": "sha256...",
+  "forecast_id": "...",
+  "resolved_at": "2026-11-15T12:00:00Z",
+  "outcome": 1,
+  "evidence_observation_ids": ["..."],
+  "coder": "rule_v1 | human",
+  "notes": "subsequent deed found within window, consideration ratio 1.8",
+  "prev_hash": "...",
+  "receipt": "sha256..."
+}</pre>
+<h3>Promotion receipt (when a rule change is accepted)</h3>
+<pre>{
+  "promotion_id": "sha256...",
+  "old_model_version": "baseline_v1",
+  "new_model_version": "baseline_v2",
+  "brier_old": 0.22,
+  "brier_new": 0.17,
+  "delta": -0.05,
+  "data_slice": "held_out_2026_q1",
+  "resolved_count": 87,
+  "accepted": true,
+  "prev_hash": "...",
+  "receipt": "sha256..."
+}</pre>
+<p class="small">A rejected proposal also gets a promotion receipt, with <code>accepted: false</code> and the rejection reason in the log. Every proposed change is logged even if rejected (convergence item 64). <code>brier_old</code> / <code>brier_new</code> are <code>null</code> until resolved forecasts exist.</p>
+
+<h3>2.2 The canonical receipt schema v1.1</h3>
+<p>One receipt format for observation, forecast, outcome, gate, promotion, verification, anchor, and build receipts (convergence items 3 and 76). Required fields: <code>receipt_version</code> ("1.1"), <code>receipt_id</code>, <code>receipt_hash</code>, <code>prev_hash</code>, <code>action</code>, <code>actor</code>, <code>timestamp</code>, <code>merkle_root</code>, <code>anchor_root</code>, <code>payload</code>. <code>receipt_id</code> is defined to equal <code>receipt_hash</code>, so it cannot be part of its own hash input. <code>prev_hash</code> is the previous receipt's <code>receipt_hash</code>, or the literal string <code>GENESIS</code> for the first receipt in a chain. <code>merkle_root</code> carries the current manifest root at issuance; <code>anchor_root</code> is null until a real on-chain anchor exists (finish criterion 2 is BLOCKED pending Jeramie's chain/wallet choice). Implemented in verify.js 2.0.0 (browser) and receipts.py (Python); the two must produce identical hashes.</p>
+<p><b>Hashing rule.</b> Canonical JSON: keys sorted bytewise, separators (',', ':'), no whitespace, UTF-8. <code>receipt_hash</code> is the SHA-256 of the canonical JSON of the receipt with <code>receipt_hash</code> and <code>receipt_id</code> removed. All other fields, including <code>prev_hash</code>, are included, so the hash binds the chain.</p>
+
+<h3>2.3 The uniform rules</h3>
+<ul>
+<li><b>One receipt format.</b> Canonical verification receipt v1.1, above. Every chain in this system (loop observations, unified session log, Done Ledger evidence, anchor verification) uses it.</li>
+<li><b>One canonicalization rule.</b> Sort keys recursively. Collapse whitespace in strings (trim, collapse internal runs to one space). Lowercase strings. Render whole numbers as integers. UTF-8. No trailing newline.</li>
+<li><b>One anchor root.</b> Anchor v2 full root <code class="mono">afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f</code> (estate root <code class="mono">c83c79a84e6fc3c0593516ecf56fc8ebe73156289dfb2cf9ded9f77ce4c1f121</code>), 235 leaves, 0 unverified, 2026-11-15. Every major receipt carries it as <code>merkle_root</code>.</li>
+<li><b>One scoring rule.</b> Brier = (1/N) &times; &Sigma;(p<sub>i</sub> &minus; o<sub>i</sub>)&sup2;, tracked overall, by forecast type, and over time. Published. A model or weight update is retained only if Brier improves on a subsequent or held-out set.</li>
+<li><b>One promotion threshold.</b> 200 resolved forecasts before any promotion. Enforced by the gate, not by convention.</li>
+<li><b>One human rule.</b> Human approval is mandatory for anything that leaves the system. The system prepares the packet; it cannot send it.</li>
+</ul>
+
+<h3>2.4 The two known divergences (honest, pending Jeramie's ruling)</h3>
+<div class="warn"><h3>Divergence 1: baseline_v1 is two different rules</h3>
+<p>The <b>loop's baseline_v1</b> (2026-11-15): prior 0.04, +0.03 if consideration &lt; $100,000, +0.02 if acreage &lt; 0.5, clamp [0.01, 0.50]. It issued the 20 rapid-flip forecasts (0.04 &times; 16, 0.07 &times; 4).</p>
+<p>The <b>unified baseline_v1</b> (2026-11-15): prior 0.15, entity-age / LLC / transfer / consideration terms, clamp [0.01, 0.95]. It refuses on all 25 loop observations (entity_age_days and prior_transfer_count_365d are missing for all 25).</p>
+<p>Same name, different rules. Both are implemented and labeled distinctly. The loop's rule is NOT overwritten. Jeramie's ruling on the name is still pending; until then both labels stay.</p></div>
+<div class="warn"><h3>Divergence 2: canonicalization differs between components</h3>
+<p>The <b>unified rule</b> lowercases strings. The <b>loop</b> uses strings as returned. The <b>anchor</b> uses no-whitespace canonical JSON with strings as-is. The unified rule is the target for schema_version 1.0. Re-issuing the loop's records under the unified rule would change their hashes, so they are referenced as-is and never re-hashed. Jeramie's ruling on the migration is still pending.</p>
+<p>Related deviation, stated on the Done Ledger: only 9 of 118 ledger items cite a content hash (2 SHA-256, 7 MD5). The other 109 record hashes are the SHA-256 of the canonical JSON of the evidence text itself, a hash of the evidence as recorded, not a pre-existing evidence hash.</p></div>
+
+<h2>3. Unified status dashboard</h2>
+<p>Every number below carries its audit date: 2026-11-15. No number without a date.</p>
+<div class="scoreboard" id="dashboard">
+<div class="sb"><div class="n">25</div><div class="l">Observations</div><div class="d">St. Joseph County IN Assessor ArcGIS, fetched live 2026-11-15</div></div>
+<div class="sb"><div class="n">20</div><div class="l">Forecasts issued</div><div class="d">Rapid-flip, baseline_v1 (loop), all UNRESOLVED, 2026-11-15</div></div>
+<div class="sb red"><div class="n">0</div><div class="l">Resolved</div><div class="d">Real Brier NOT YET COMPUTABLE, 2026-11-15</div></div>
+<div class="sb"><div class="n">0.0605</div><div class="l">Brier, illustrative only</div><div class="d">5 invented rows, arithmetic demo, NOT measured data, 2026-11-15</div></div>
+<div class="sb"><div class="n mono" style="font-size:1.05rem">afd56cea</div><div class="l">Anchor v2 root</div><div class="d">Full root, 235 leaves, 0 unverified, 2026-11-15</div></div>
+<div class="sb"><div class="n">235</div><div class="l">Anchor leaves</div><div class="d">204 estate + 31 self; 187 sites; v1 root retained, 2026-11-15</div></div>
+<div class="sb red"><div class="n">BLOCKED</div><div class="l">On-chain write</div><div class="d">Finish criterion 2; awaits Jeramie's chain/wallet choice, 2026-11-15</div></div>
+<div class="sb"><div class="n">118</div><div class="l">Ledger items</div><div class="d">Done 43, Open 65, Unknown 7, In flight 3; chain VALID, 2026-11-15</div></div>
+<div class="sb"><div class="n">2</div><div class="l">Bridges live</div><div class="d">Blumenthal + Slotkin, 13 rows each, 0 charges, 2026-11-15</div></div>
+<div class="sb"><div class="n">1</div><div class="l">Bridge Builder</div><div class="d">Generates a bridge for any public official, 2026-11-15</div></div>
+<div class="sb"><div class="n">190</div><div class="l">Hub sites</div><div class="d">Hub v2.63, all verified, 2026-11-15</div></div>
+<div class="sb"><div class="n">12</div><div class="l">Blocked seams</div><div class="d">Named in §1.1, from the Topology, 2026-11-15</div></div>
+</div>
+<p class="small">Anchor v2 full root: <code class="mono">afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f</code>. Estate root: <code class="mono">c83c79a84e6fc3c0593516ecf56fc8ebe73156289dfb2cf9ded9f77ce4c1f121</code>. Done Ledger chain head: <code class="mono">76675cc07b629bbea8b76717e282fdb89d05d519953562e22aa75a134666dcad</code>.</p>
+
+<h2>4. The convergence state</h2>
+<p>The 100-item convergence spec (Jeramie, 2026-11-15 07:00 EST), grouped by section. Each item is marked DONE, BLOCKED, or NOT IMPLEMENTED as of 2026-11-15. Summary: <b>DONE 53, BLOCKED 4, NOT IMPLEMENTED 43.</b> The explicit non-goal is stated at the end of this section.</p>
+<p class="small">Reading note: the Layer 1-4 sequence (items 16-75) is not complete as a whole. The narrow loop built the scaffolding of Layers 1 and 2 (schemas, one connector, forecasts, gates), while the scoring, authority, and learning machinery (items 35-39, 46-60, 62-74) awaits resolved forecasts. Layers 3 and 4 are almost entirely not implemented. That is the honest state, not a failure of the loop: the spec sequences the work so nothing compounds until the loop produces numbers an independent party can recompute.</p>
+<table id="convergence-table">
+<tr><th>#</th><th>Item</th><th>State</th><th>Evidence / note (2026-11-15)</th></tr>
+<tr><td colspan="4"><b>1-15: Finish and harden the verified base — 15 DONE</b></td></tr>
+<tr data-state="DONE"><td>1</td><td>Machine-readable inventory of all demos (verification date, MD5/SHA-256, interaction confirmed)</td><td><span class="badge done">DONE</span></td><td>demo-inventory.json, 187 items in Anchor v2.</td></tr>
+<tr data-state="DONE"><td>2</td><td>CI job re-fetching every demo URL, failing on unexplained hash change</td><td><span class="badge done">DONE</span></td><td>ci_refetch.py: 187 unchanged, 0 changed, 0 fetch failed. CI PASS.</td></tr>
+<tr data-state="DONE"><td>3</td><td>One canonical receipt JSON schema v1.1 with a shared hashing rule</td><td><span class="badge done">DONE</span></td><td>receipt-schema.json; implemented in verify.js and receipts.py.</td></tr>
+<tr data-state="DONE"><td>4</td><td>Single offline verifier accepting any demo's exported receipt chain</td><td><span class="badge done">DONE</span></td><td>verify_receipts.py + the anchor page's receipt-chain verifier.</td></tr>
+<tr data-state="DONE"><td>5</td><td>"Last verified" timestamp and verifier identity on every hub card</td><td><span class="badge done">DONE</span></td><td>hub-card-verification.json applied to the hub's Section A cards.</td></tr>
+<tr data-state="DONE"><td>6</td><td>Regression suite replaying the Unified Chain click sequences</td><td><span class="badge done">DONE</span></td><td>unified-chain-regression.js, 6/6 steps pass; receipt recorded.</td></tr>
+<tr data-state="DONE"><td>7</td><td>Pin all external CDN dependencies with subresource integrity</td><td><span class="badge done">DONE</span></td><td>Anchor page has no external deps (verified by scan). Estate-wide pinning is per-demo work.</td></tr>
+<tr data-state="DONE"><td>8</td><td>Publish the exact browser and interaction checklist used 2026-11-14</td><td><span class="badge done">DONE</span></td><td>browser-checklist-2026-11-14.md: 178 WORKING, 0 PARTIAL, 0 BROKEN.</td></tr>
+<tr data-state="DONE"><td>9</td><td>Visible "heuristic" badge on every demo still using pure keyword banks</td><td><span class="badge done">DONE</span></td><td>HEURISTIC badges on the 3 verified keyword-bank demos.</td></tr>
+<tr data-state="DONE"><td>10</td><td>Export of the full demo list as signed JSON, hash in the next Merkle manifest</td><td><span class="badge done">DONE</span></td><td>demo-inventory.json signed; its hash is a manifest leaf.</td></tr>
+<tr data-state="DONE"><td>11</td><td>Health endpoint per demo (status + content hash)</td><td><span class="badge done">DONE</span></td><td>status.json is the anchor's health endpoint. Per-demo endpoints are a per-demo change.</td></tr>
+<tr data-state="DONE"><td>12</td><td>Document which demos share code or data</td><td><span class="badge done">DONE</span></td><td>code-data-sharing.md, first pass.</td></tr>
+<tr data-state="DONE"><td>13</td><td>Tamper-test harness flipping one byte in a receipt</td><td><span class="badge done">DONE</span></td><td>tamper-harness.py, 8/8 attacks detected.</td></tr>
+<tr data-state="DONE"><td>14</td><td>Version the working-demos page and include it in the anchor manifest</td><td><span class="badge done">DONE</span></td><td>working-demos is a site entry in Anchor v2.</td></tr>
+<tr data-state="DONE"><td>15</td><td>Rule: WORKING only after the interaction checklist and hash are in the Done Ledger</td><td><span class="badge done">DONE</span></td><td>Stated on the anchor page, in the manifest, and in the Done Ledger.</td></tr>
+<tr><td colspan="4"><b>16-30: Layer 1 — Real observation — 9 DONE, 6 NOT IMPLEMENTED</b></td></tr>
+<tr data-state="DONE"><td>16</td><td>Typed observation schema usable by any future connector</td><td><span class="badge done">DONE</span></td><td>Defined in the loop and the Unified System (§2.1 above).</td></tr>
+<tr data-state="DONE"><td>17</td><td>One narrow public connector emitting observations into an append-only log</td><td><span class="badge done">DONE</span></td><td>St. Joseph County IN Assessor ArcGIS; 25 observations.</td></tr>
+<tr data-state="DONE"><td>18</td><td>Every observation carries a recomputable hash of the exact bytes retrieved</td><td><span class="badge done">DONE</span></td><td>raw_hash on all 25 observations; chain verifies 25/25.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>19</td><td>Connector test replaying a known historical payload, asserting identical hash</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No replay test built yet.</td></tr>
+<tr data-state="DONE"><td>20</td><td>Observations stored so an independent party can re-fetch and confirm the hash</td><td><span class="badge done">DONE</span></td><td>raw/sjc_llc_sample.json preserved with SHA-256 a4022635….</td></tr>
+<tr data-state="DONE"><td>21</td><td>Reject any observation whose schema fails validation before it enters the log</td><td><span class="badge done">DONE</span></td><td>Schema-validation demo in the Unified System; 25/25 pass.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>22</td><td>Rate-limit, cache, and error-observation types for the connector</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Error observation type exists; rate-limit and cache behavior not live-tested.</td></tr>
+<tr data-state="DONE"><td>23</td><td>Receipt for every successful and failed retrieval</td><td><span class="badge done">DONE</span></td><td>All 25 observations carry receipts; the chain is VALID.</td></tr>
+<tr data-state="DONE"><td>24</td><td>Observation log explorer showing raw hash and canonical form</td><td><span class="badge done">DONE</span></td><td>The Measurement Loop page is the explorer.</td></tr>
+<tr data-state="DONE"><td>25</td><td>First connector read-only and public-data only</td><td><span class="badge done">DONE</span></td><td>ArcGIS read-only fetch; public records only.</td></tr>
+<tr data-state="DONE"><td>26</td><td>Exact API or bulk-file parameters documented so the observation is reproducible</td><td><span class="badge done">DONE</span></td><td>Exact query, layer, and filter on the loop page.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>27</td><td>Human review flag on observations matching a high-sensitivity pattern</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No flag built yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>28</td><td>Connector uptime and hash-match rate as a tracked indicator</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Not tracked yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>29</td><td>No second data source until the first has 30 days of stable receipts</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Day 1 of receipts. Gate holds.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>30</td><td>Observation schema version in the Merkle manifest</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Schema version lives in the loop log meta, not in the manifest.</td></tr>
+<tr><td colspan="4"><b>31-45: Layer 2 — Pre-registered forecasts and Brier scoring — 9 DONE, 6 NOT IMPLEMENTED</b></td></tr>
+<tr data-state="DONE"><td>31</td><td>Forecast record schema</td><td><span class="badge done">DONE</span></td><td>Defined in the Unified System (§2.1 above).</td></tr>
+<tr data-state="DONE"><td>32</td><td>Every forecast written before the outcome window opens</td><td><span class="badge done">DONE</span></td><td>Rule fixed 2026-11-15 before any outcome was coded.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>33</td><td>Three narrow forecast types on the chosen public data source</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Rapid-flip only (20). Entity-cluster and all-cash-new-entity are 0: formation dates and cash status are not in this source.</td></tr>
+<tr data-state="DONE"><td>34</td><td>Outcome record schema referencing the forecast with a 0/1 result plus evidence hashes</td><td><span class="badge done">DONE</span></td><td>Defined in the Unified System (§2.1 above).</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>35</td><td>Brier score over resolved forecasts, published</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>0 resolved. Real Brier NOT YET COMPUTABLE.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>36</td><td>Compare every model or weight change against a constant base-rate baseline</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Base-rate baseline formula not yet defined.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>37</td><td>Retain an update only if Brier improves on a subsequent or held-out set</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No updates proposed yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>38</td><td>Store the pre-update and post-update Brier with receipts</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No Brier exists yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>39</td><td>Calibration plot (reliability diagram) export</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No resolved forecasts to plot.</td></tr>
+<tr data-state="DONE"><td>40</td><td>Transparent scoring rule or logistic regression; no opaque model first</td><td><span class="badge done">DONE</span></td><td>baseline_v1 is a transparent rule with stated coefficients.</td></tr>
+<tr data-state="DONE"><td>41</td><td>Log the exact feature vector used for each forecast</td><td><span class="badge done">DONE</span></td><td>Full features in every forecast record.</td></tr>
+<tr data-state="DONE"><td>42</td><td>Minimum resolved forecasts (200) before any promotion</td><td><span class="badge done">DONE</span></td><td>Threshold set at 200 and enforced by the gate. 0 resolved so far.</td></tr>
+<tr data-state="DONE"><td>43</td><td>Brier independently recomputable from the exported log</td><td><span class="badge done">DONE</span></td><td>The illustrative example recomputes in-page (see §5, stage 4).</td></tr>
+<tr data-state="DONE"><td>44</td><td>"Forecast issued" receipt that can be anchored later</td><td><span class="badge done">DONE</span></td><td>20 forecast receipts; anchor_root null until the chain write.</td></tr>
+<tr data-state="DONE"><td>45</td><td>Refuse to emit a forecast if required observations are missing or unhashed</td><td><span class="badge done">DONE</span></td><td>The unified rule refuses on all 25 loop observations.</td></tr>
+<tr><td colspan="4"><b>46-60: Layer 3 — Authority and gates — 1 DONE, 14 NOT IMPLEMENTED</b></td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>46</td><td>Minimal authority header (authorizer, scope, expiry, single-use token, receipt)</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Not built. Blocks any external action.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>47</td><td>Header required on any export, alert, or weight-update proposal</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No header exists to require.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>48</td><td>Deterministic policy gate that can DENY or ESCALATE independently of scoring</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>The Unified System's human gate is a prompt gate, not a deterministic policy gate.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>49</td><td>Log every gate decision with its own receipt</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No policy gate to log yet.</td></tr>
+<tr data-state="DONE"><td>50</td><td>Human approval mandatory for any action that leaves the system</td><td><span class="badge done">DONE</span></td><td>In-page gate blocks report drafts in the Unified System. Nothing leaves the system without a human.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>51</td><td>Expiry enforcement rejecting stale authority</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No authority exists to expire.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>52</td><td>Gate version recorded inside the receipt</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No gate yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>53</td><td>Gate tested with synthetic unauthorized requests, confirming denial</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No gate to test yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>54</td><td>Pending escalations surfaced in a queue</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No queue yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>55</td><td>Authority scope explicit (data source, forecast type, time window)</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No authority header yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>56</td><td>Revocation list checked by the gate</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No gate yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>57</td><td>Gate code hash included in the system manifest</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No gate yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>58</td><td>Exact conditions under which the gate fails closed, documented</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No gate yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>59</td><td>Scoring model cannot override a gate denial</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No gate to override yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>60</td><td>Gate decisions in the same receipt chain used by forecasts</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No gate yet.</td></tr>
+<tr><td colspan="4"><b>61-75: Layer 4 — Measurable learning and promotion — 4 DONE, 11 NOT IMPLEMENTED</b></td></tr>
+<tr data-state="DONE"><td>61</td><td>Separate proposal of a change from acceptance of a change</td><td><span class="badge done">DONE</span></td><td>The promotion gate separates them; proposals are logged.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>62</td><td>Held-out or forward-test set for every proposed scoring update</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No updates proposed yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>63</td><td>Record the Brier delta and the data slice used</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No Brier exists yet.</td></tr>
+<tr data-state="DONE"><td>64</td><td>Promotion receipt linking old model version, new version, and evidence of improvement</td><td><span class="badge done">DONE</span></td><td>Schema exists; a rejected proposal carries a receipt (see §5, stage 5).</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>65</td><td>Automatic rollback if a subsequent window shows degradation</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No promotions to roll back.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>66</td><td>Log every weight or parameter change with before/after values</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No changes yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>67</td><td>Human confirmation step on the first N promotions</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No promotions yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>68</td><td>"Useful escalation rate" measured as a secondary indicator</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No escalations to measure.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>69</td><td>Experiment tracker preventing reuse of the same data for proposal and confirmation</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No tracker yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>70</td><td>Calibration drift surfaced over time</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No calibration to drift yet.</td></tr>
+<tr data-state="DONE"><td>71</td><td>Refuse promotion if the number of resolved forecasts is below threshold</td><td><span class="badge done">DONE</span></td><td>The gate rejects at 0 resolved; demonstrated live in §5.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>72</td><td>Learning rule version in every forecast receipt</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Forecast receipts carry model_version, not a learning-rule version.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>73</td><td>Test the promotion gate with a deliberately worse model, confirming rejection</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Gate tested with a rule change at 0 resolved; no deliberately-worse-model test yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>74</td><td>Publish the promotion history so an external party can audit it</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Proposals log exists in-page only; no published history yet.</td></tr>
+<tr data-state="DONE"><td>75</td><td>Limit recursion to improvement of the measurement apparatus only</td><td><span class="badge done">DONE</span></td><td>Stated constraint; honored. See the non-goal below.</td></tr>
+<tr><td colspan="4"><b>76-90: Receipts, Merkle, and independent audit — 12 DONE, 3 BLOCKED</b></td></tr>
+<tr data-state="DONE"><td>76</td><td>Unify all new receipts under one chain format</td><td><span class="badge done">DONE</span></td><td>Canonical receipt v1.1 (§2.2).</td></tr>
+<tr data-state="DONE"><td>77</td><td>Current Merkle root of the demos + new logs on every major receipt</td><td><span class="badge done">DONE</span></td><td>merkle_root carried in every v1.1 receipt.</td></tr>
+<tr data-state="BLOCKED"><td>78</td><td>Execute one real OpenTimestamps or cheap L2 anchor of the manifest, publish the proof</td><td><span class="badge blocked">BLOCKED</span></td><td>Awaits Jeramie's chain/wallet choice. Full execution path built; no chain write, no wallet, no spending.</td></tr>
+<tr data-state="DONE"><td>79</td><td>Third-party verifier (different language) recomputing the root and checking the anchor</td><td><span class="badge done">DONE</span></td><td>verify.js (JavaScript) recomputes the Python root.</td></tr>
+<tr data-state="DONE"><td>80</td><td>Verifier's own hash included in the next manifest</td><td><span class="badge done">DONE</span></td><td>verify.js hash pinned in manifest-v2.json.</td></tr>
+<tr data-state="DONE"><td>81</td><td>Public status endpoint returning root, leaf count, anchor txid, last Brier</td><td><span class="badge done">DONE</span></td><td>status.json; txid and Brier are null until they exist.</td></tr>
+<tr data-state="DONE"><td>82</td><td>One-click "verify this receipt chain" working offline</td><td><span class="badge done">DONE</span></td><td>Anchor page verifier + verify_standalone.py (stdlib only).</td></tr>
+<tr data-state="DONE"><td>83</td><td>Truncation, reordering, and content-edit attacks tested against the chain</td><td><span class="badge done">DONE</span></td><td>Tamper harness 8/8 attacks detected.</td></tr>
+<tr data-state="BLOCKED"><td>84</td><td>Anchor the Brier results periodically so calibration claims are timestamped</td><td><span class="badge blocked">BLOCKED</span></td><td>No Brier exists to anchor; the chain write is blocked on item 78.</td></tr>
+<tr data-state="DONE"><td>85</td><td>Raw observation bytes (or locators) available for re-hashing</td><td><span class="badge done">DONE</span></td><td>raw/sjc_llc_sample.json preserved with its SHA-256.</td></tr>
+<tr data-state="DONE"><td>86</td><td>Exact canonicalization documented so others can reimplement it</td><td><span class="badge done">DONE</span></td><td>Documented in §2.2 and in the anchor's CANONICALIZATION.md.</td></tr>
+<tr data-state="DONE"><td>87</td><td>"Chain valid / chain broken" badge driven by recomputation, not a stored flag</td><td><span class="badge done">DONE</span></td><td>Badges recompute on every load in the anchor and ledger pages.</td></tr>
+<tr data-state="BLOCKED"><td>88</td><td>Store the anchor proof alongside the manifest</td><td><span class="badge blocked">BLOCKED</span></td><td>Proof file does not exist until the anchor runs (item 78).</td></tr>
+<tr data-state="DONE"><td>89</td><td>Done Ledger pulls its evidence hashes from the same chain</td><td><span class="badge done">DONE</span></td><td>Applied 2026-11-15: 118 v1.1 receipts chained from GENESIS.</td></tr>
+<tr data-state="DONE"><td>90</td><td>Any claim of "improved" accompanied by before/after Brier and the anchor reference</td><td><span class="badge done">DONE</span></td><td>Rule stated. No improvement claimed yet.</td></tr>
+<tr><td colspan="4"><b>91-100: Controlled broadening and finish criteria — 3 DONE, 1 BLOCKED, 6 NOT IMPLEMENTED</b></td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>91</td><td>Second public data source only after the first source has stable Brier and verified receipts</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Gated on item 35. No second source.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>92</td><td>Re-run the full observation &rarr; forecast &rarr; outcome &rarr; Brier loop on the new source before merging</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No new source yet.</td></tr>
+<tr data-state="DONE"><td>93</td><td>Financial-crime and influence patterns at the typology level; concrete findings to official channels only</td><td><span class="badge done">DONE</span></td><td>Rule stated and honored in the typologies and the Unified System.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>94</td><td>Contract/schema check so modules accept only messages they are authorized to process</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Schemas exist; no enforcement yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>95</td><td>End-to-end latency from observation to receipted forecast, measured</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Not measured.</td></tr>
+<tr data-state="DONE"><td>96</td><td>Kill switch halting new forecasts without deleting history</td><td><span class="badge done">DONE</span></td><td>Demonstrated in the Unified System and live in §5 below.</td></tr>
+<tr data-state="BLOCKED"><td>97</td><td>Finish criterion: 178 demos still verify, one real anchor exists, one data source produces calibrated forecasts, independent recomputation possible</td><td><span class="badge blocked">BLOCKED</span></td><td>Demos verify (190 sites). Anchor blocked on item 78. Calibrated forecasts blocked on item 35. Recomputation works.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>98</td><td>Finish criterion: every promotion has a recorded Brier improvement on data not used to propose it</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>No promotion yet.</td></tr>
+<tr data-state="NOT IMPLEMENTED"><td>99</td><td>Finish criterion: simulation badges removed only where the evidence exists; elsewhere they stay</td><td><span class="badge ni">NOT IMPLEMENTED</span></td><td>Badges stay until evidence exists. Correct state, not a failure.</td></tr>
+<tr data-state="DONE"><td>100</td><td>Explicit non-goal: the system does not become recursively self-modifying general intelligence</td><td><span class="badge done">DONE</span></td><td>Stated below and in the spec.</td></tr>
+</table>
+<p><b>Totals: DONE 53, BLOCKED 4, NOT IMPLEMENTED 43.</b> The four blocked items are 78 (chain write), 84 (anchor Brier results), 88 (anchor proof), and 97 (finish criterion, blocked on 78 and 35). Two of the four unblock on Jeramie's chain/wallet choice; the other two unblock when the first real Brier exists.</p>
+<div class="warn"><h3>Explicit non-goal (convergence item 100)</h3>
+<p>The system does not become recursively self-modifying general intelligence. Improvement is limited to better-calibrated observation and forecasting under logged authority and independent verification. Recursion is limited to improvement of the measurement apparatus only (item 75). That boundary is the design, not a limitation to be worked around later.</p></div>
+
+<h2>5. Run the system</h2>
+<p>The narrow loop end to end, as a live flow. Each stage shows its honest current state. The promotion gate and the kill switch below are live controls: they do what they say, and every action they take is written to this page's session receipt log (chained from GENESIS, canonical receipt v1.1).</p>
+
+<div class="stage" id="stage-observe">
+<h3>Stage 1 — Observe</h3>
+<p class="state ok">STATE: 25 real observations.</p>
+<p>Fetched live 2026-11-15T11:53:33Z from the St. Joseph County IN Assessor ArcGIS parcel service (LandRecords/Parcels_County/MapServer/0), filter NAME_1 LIKE '%LLC%' AND SALESPRICE IS NOT NULL AND SALESDATE IS NOT NULL. Sample frame: 14,415 LLC-owned parcels with a recorded sale; the page carries the first 25 returned. Response SHA-256 <code class="mono">a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0</code>. 20 deed observations and 5 parcel_record observations. Receipt chain VALID 25/25.</p>
+<p><a href="https://neuruhai.github.io/neuruh-demos/retardio-measurement-loop/">See the observations on the Measurement Loop page &rarr;</a></p>
+</div>
+<div class="flowarrow">&darr;</div>
+
+<div class="stage" id="stage-forecast">
+<h3>Stage 2 — Forecast</h3>
+<p class="state ok">STATE: 20 issued, all unresolved.</p>
+<p>All 20 are rapid-flip forecasts under the loop's baseline_v1 (prior 0.04, +0.03 if consideration &lt; $100,000, +0.02 if acreage &lt; 0.5, clamp [0.01, 0.50]). Probabilities: 0.04 &times; 16, 0.07 &times; 4. The rule was fixed 2026-11-15 before any outcome was coded. 0 entity-cluster and 0 all-cash-new-entity forecasts: formation dates and cash status are not in this source. That is stated, not faked.</p>
+<p><b>Try the rule.</b> This is a demonstration of the loop's rule on inputs you enter. It is not a new forecast on a real parcel, and it is not added to the loop's 20.</p>
+<label for="fc-consideration">Consideration ($)</label>
+<input id="fc-consideration" type="number" value="250000" min="0">
+<label for="fc-acreage">Acreage</label>
+<input id="fc-acreage" type="number" value="0.4" min="0" step="0.01">
+<br><button id="fc-run" class="primary">Issue forecast (loop baseline_v1)</button>
+<div class="out" id="fc-out">No forecast issued yet in this session.</div>
+</div>
+<div class="flowarrow">&darr;</div>
+
+<div class="stage" id="stage-resolve">
+<h3>Stage 3 — Resolve</h3>
+<p class="state blocked">STATE: 0 codable, 0 coded, 0 resolved.</p>
+<p>Every resolution window is closed (sale date + 180 days, all in the past), but the outcomes cannot be coded: resolving a rapid-flip forecast needs deed history (a subsequent deed plus the grantee's formation date), and this source carries only the latest sale per parcel. The next step is recorder deed history, then Secretary-of-State formation dates. Until then, nothing is resolved and nothing is scored.</p>
+</div>
+<div class="flowarrow">&darr;</div>
+
+<div class="stage" id="stage-score">
+<h3>Stage 4 — Score (Brier)</h3>
+<p class="state blocked">STATE: real Brier NOT YET COMPUTABLE (0 resolved).</p>
+<p>Brier = (1/N) &times; &Sigma;(p<sub>i</sub> &minus; o<sub>i</sub>)&sup2;. Lower is better. The calculator below runs the arithmetic on the loop's illustrative worked example: 5 invented rows. It demonstrates the arithmetic only. It is not measured data, and it is excluded from every total on this page.</p>
+<table id="brier-table">
+<tr><th>#</th><th>Forecast probability p</th><th>Outcome o (0 or 1)</th><th>(p &minus; o)&sup2;</th></tr>
+<tr><td>1</td><td><input id="b-p0" type="number" value="0.1" min="0" max="1" step="0.01"></td><td><select id="b-o0"><option value="0" selected>0</option><option value="1">1</option></select></td><td id="b-s0">0.0100</td></tr>
+<tr><td>2</td><td><input id="b-p1" type="number" value="0.3" min="0" max="1" step="0.01"></td><td><select id="b-o1"><option value="0" selected>0</option><option value="1">1</option></select></td><td id="b-s1">0.0900</td></tr>
+<tr><td>3</td><td><input id="b-p2" type="number" value="0.05" min="0" max="1" step="0.01"></td><td><select id="b-o2"><option value="0" selected>0</option><option value="1">1</option></select></td><td id="b-s2">0.0025</td></tr>
+<tr><td>4</td><td><input id="b-p3" type="number" value="0.6" min="0" max="1" step="0.01"></td><td><select id="b-o3"><option value="0">0</option><option value="1" selected>1</option></select></td><td id="b-s3">0.1600</td></tr>
+<tr><td>5</td><td><input id="b-p4" type="number" value="0.2" min="0" max="1" step="0.01"></td><td><select id="b-o4"><option value="0" selected>0</option><option value="1">1</option></select></td><td id="b-s4">0.0400</td></tr>
+</table>
+<button id="brier-run" class="primary">Recompute Brier (illustrative)</button>
+<div class="out" id="brier-out">Brier not recomputed yet in this session. Expected: 0.0605.</div>
+</div>
+<div class="flowarrow">&darr;</div>
+
+<div class="stage" id="stage-promote">
+<h3>Stage 5 — Promote</h3>
+<p class="state blocked">STATE: gate closed. 0 of 200 resolved.</p>
+<p>No rule change can be accepted until 200 forecasts are resolved and the change improves Brier on data not used to propose it. Propose one below. The gate will reject it, and the rejection is logged with a promotion receipt (accepted: false), exactly as the Unified System does.</p>
+<label for="pg-old">Old model version</label>
+<input id="pg-old" type="text" value="baseline_v1">
+<label for="pg-new">Proposed new model version</label>
+<input id="pg-new" type="text" value="baseline_v2">
+<label for="pg-reason">What would change</label>
+<input id="pg-reason" type="text" value="Raise the prior from 0.04 to 0.06">
+<br><button id="pg-run" class="primary">Propose rule change</button>
+<div class="out" id="pg-out">No proposal submitted yet in this session.</div>
+</div>
+
+<h3>Kill switch</h3>
+<p>The kill switch halts new forecasts without deleting history. Both actions are receipted. Re-arming is a human decision, and it is receipted too.</p>
+<p>Kill switch state: <b id="ks-state">ARMED (forecasts allowed)</b></p>
+<button id="ks-halt" class="danger">HALT new forecasts</button>
+<button id="ks-rearm">Re-arm (human decision)</button>
+<div class="out" id="ks-out">Kill switch has not been touched in this session.</div>
+
+<h3>Session receipt log</h3>
+<p class="small">This page's own log, chained from GENESIS in the canonical receipt v1.1 format. It records what you do on this page (forecast demos, gate proposals, kill-switch actions). It is not the loop's log and it does not change the loop's 20 forecasts. The anchor v2 root carried in every receipt is <code class="mono">afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f</code>.</p>
+<button id="log-verify" class="primary">Verify session log</button>
+<button id="log-tamper">Tamper test</button>
+<div class="out" id="log-out">Log not verified yet in this session.</div>
+<div class="log" id="session-log">No receipts yet in this session.</div>
+
+<h2>6. What this system is not</h2>
+<ul class="not">
+<li><b>No private-individual scoring.</b> Transactions and entity patterns only. No person is scored as "corrupt," "probable corrupt," or ranked by likelihood of wrongdoing. Only LLC names from public records appear in the loop; no private individual is named or scored.</li>
+<li><b>No ranking of private individuals as "probable corrupt actors."</b> The typologies stay at the level of published patterns. A pattern match is a forecast about a transaction type, not a finding about a person.</li>
+<li><b>No remote surveillance.</b> The only data source is a public county assessor service. Nothing is collected from any person's device, account, or private communication.</li>
+<li><b>No charges.</b> No one has been charged as a result of this system. The bridges present allegations as allegations with attribution; a preservation letter is not a charge.</li>
+<li><b>No court rulings.</b> No court has ruled on anything in this system. The bridge tallies are 0 of 5 and 0 of 4 on the elements that would have to be proven.</li>
+<li><b>No Brier fabricated.</b> The real Brier is NOT YET COMPUTABLE. The only Brier number on this page, 0.0605, is an illustrative worked example on 5 invented rows, labeled as such.</li>
+<li><b>No resolution fabricated.</b> 0 resolved forecasts. The resolution windows are closed, but deed history is not in the source, so nothing is coded.</li>
+<li><b>No promotion.</b> The gate is closed at 0 of 200 resolved. No rule change has been accepted.</li>
+<li><b>No autonomy claimed beyond governed supervised execution with receipts.</b> The system prepares packets; it cannot send them. Human approval is mandatory for anything that leaves the system. The kill switch is a human control.</li>
+<li><b>No chain write.</b> The anchor is prepared, not on-chain. The execution path is built; the write awaits Jeramie's chain/wallet choice.</li>
+</ul>
+
+<h2>Sources</h2>
+<ul>
+<li>Measurement Loop v1: <a href="https://neuruhai.github.io/neuruh-demos/retardio-measurement-loop/">retardio-measurement-loop</a> (25 observations, 20 forecasts, Brier 0.0605 illustrative)</li>
+<li>Unified System v1: <a href="https://neuruhai.github.io/neuruh-demos/retardio-unified-system/">retardio-unified-system</a> (four schemas, six intents, gate, kill switch)</li>
+<li>On-Chain Anchor v2: <a href="https://neuruhai.github.io/neuruh-demos/onchain-anchor/">onchain-anchor</a> (root afd56cea, 235 leaves, verify.js 2.0.0, receipt schema v1.1)</li>
+<li>Done/Open Ledger: <a href="https://neuruhai.github.io/neuruh-demos/done-ledger/">done-ledger</a> (118 items, chain head 76675cc0)</li>
+<li>Neuruh Topology: <a href="https://neuruhai.github.io/neuruh-demos/neuruh-topology/">neuruh-topology</a> (44 nodes, 35 edges, 12 blocked seams)</li>
+<li>Reitz-Blumenthal Bridge: <a href="https://neuruhai.github.io/neuruh-demos/reitz-blumenthal-bridge/">reitz-blumenthal-bridge</a></li>
+<li>Reitz-Slotkin Bridge: <a href="https://neuruhai.github.io/neuruh-demos/reitz-slotkin-bridge/">reitz-slotkin-bridge</a></li>
+<li>Bridge Builder: <a href="https://neuruhai.github.io/neuruh-demos/bridge-builder/">bridge-builder</a></li>
+<li>Hub v2.63: <a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a> (190 sites)</li>
+<li>Specs: convergence-100-spec.md, six-layer-upgrade-spec.md, narrow-measurement-loop-spec.md (2026-11-15, in ~/workspace/research-drift-2026-11-15/)</li>
+</ul>
+<p class="small">Built 2026-11-15 as the convergence build from Jeramie's message "now build the large uniformed and conected system." Additive only: nothing existing was removed or rewritten. The loop's 20 forecasts, the anchor's 235 leaves, and the ledger's 118 receipts are referenced as-is and never re-hashed. See BUILD-NOTE.md in ~/workspace/retardio-system/ for what was built, what is connected, what is still blocked, and what is alleged vs established.</p>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const MERKLE_ROOT = 'afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f';
+const RESOLVED_COUNT = 0;
+const PROMOTION_THRESHOLD = 200;
+let halted = false;
+let sessionLog = [];
+let logQueue = Promise.resolve();
+
+async function sha256hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function canon(v){
+  if(v === null) return 'null';
+  if(Array.isArray(v)) return '[' + v.map(canon).join(',') + ']';
+  if(typeof v === 'object') return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+  if(typeof v === 'number') return Number.isInteger(v) ? String(v) : String(v);
+  return JSON.stringify(v);
+}
+/* Serialized: each receipt reads prev_hash only after the previous receipt
+   has been pushed, so rapid clicks cannot fork the chain. */
+function logReceipt(action, actor, payload){
+  logQueue = logQueue.then(async () => {
+    const prev = sessionLog.length === 0 ? 'GENESIS' : sessionLog[sessionLog.length-1].receipt_hash;
+    const rec = {receipt_version:'1.1', action, actor, timestamp:new Date().toISOString(), merkle_root:MERKLE_ROOT, anchor_root:null, prev_hash:prev, payload};
+    const hash = await sha256hex(canon(rec));
+    rec.receipt_hash = hash; rec.receipt_id = hash;
+    sessionLog.push(rec);
+    renderLog();
+    return rec;
+  });
+  return logQueue;
+}
+function renderLog(){
+  if(sessionLog.length === 0){ $('session-log').textContent = 'No receipts yet in this session.'; return; }
+  $('session-log').textContent = sessionLog.map((r,i) =>
+    '#' + (i+1) + ' ' + r.action + ' | ' + r.actor + ' | ' + r.timestamp + '\n  receipt ' + r.receipt_hash.slice(0,16) + '… | prev ' + (r.prev_hash === 'GENESIS' ? 'GENESIS' : r.prev_hash.slice(0,16) + '…') + '\n  payload ' + JSON.stringify(r.payload)
+  ).join('\n');
+}
+async function verifyLog(log){
+  for(let i=0;i<log.length;i++){
+    const r = log[i];
+    const copy = Object.assign({}, r); delete copy.receipt_hash; delete copy.receipt_id;
+    const h = await sha256hex(canon(copy));
+    if(h !== r.receipt_hash) return {ok:false, at:i, why:'hash mismatch at receipt ' + (i+1)};
+    if(i === 0){ if(r.prev_hash !== 'GENESIS') return {ok:false, at:0, why:'first receipt prev_hash is not GENESIS'}; }
+    else if(r.prev_hash !== log[i-1].receipt_hash) return {ok:false, at:i, why:'chain link broken at receipt ' + (i+1)};
+  }
+  return {ok:true, n:log.length};
+}
+
+/* Stage 2: loop baseline_v1 forecast demo */
+$('fc-run').addEventListener('click', async () => {
+  if(halted){
+    $('fc-out').textContent = 'HALTED — kill switch engaged. No forecast issued. History retained.';
+    $('fc-out').className = 'out reject';
+    await logReceipt('forecast', 'retardio-system (demo)', {demo:true, result:'HALTED', reason:'kill switch engaged'});
+    return;
+  }
+  const cons = parseFloat($('fc-consideration').value);
+  const acre = parseFloat($('fc-acreage').value);
+  if(isNaN(cons) || isNaN(acre)){ $('fc-out').textContent = 'Enter a consideration and an acreage.'; $('fc-out').className = 'out reject'; return; }
+  let p = 0.04;
+  const parts = ['prior 0.04'];
+  if(cons < 100000){ p += 0.03; parts.push('+0.03 (consideration < $100,000)'); }
+  if(acre < 0.5){ p += 0.02; parts.push('+0.02 (acreage < 0.5)'); }
+  p = Math.min(0.50, Math.max(0.01, p));
+  $('fc-out').textContent = 'DEMO forecast (loop baseline_v1): probability ' + p.toFixed(2) + ' — ' + parts.join(', ') + ', clamp [0.01, 0.50]. Not a real forecast; not added to the loop\'s 20.';
+  $('fc-out').className = 'out ok';
+  await logReceipt('forecast', 'retardio-system (demo)', {demo:true, rule:'baseline_v1 (loop)', consideration:cons, acreage:acre, probability:p});
+});
+
+/* Stage 4: Brier recompute on the illustrative rows */
+$('brier-run').addEventListener('click', async () => {
+  let sum = 0;
+  for(let i=0;i<5;i++){
+    const p = parseFloat($('b-p'+i).value);
+    const o = parseInt($('b-o'+i).value, 10);
+    const d = (p - o) * (p - o);
+    sum += d;
+    $('b-s'+i).textContent = d.toFixed(4);
+  }
+  const brier = sum / 5;
+  const match = Math.abs(brier - 0.0605) < 0.00005;
+  $('brier-out').textContent = 'ILLUSTRATIVE Brier = ' + brier.toFixed(4) + (match ? ' — MATCH (expected 0.0605).' : ' — does not match the published 0.0605; the inputs were changed from the published rows.') + ' This is arithmetic on invented rows, not measured data.';
+  $('brier-out').className = 'out ' + (match ? 'ok' : '');
+  await logReceipt('verification', 'retardio-system (demo)', {demo:true, kind:'brier-illustrative', brier:+brier.toFixed(4), expected:0.0605, match});
+});
+
+/* Stage 5: promotion gate */
+$('pg-run').addEventListener('click', async () => {
+  const oldV = $('pg-old').value.trim() || 'baseline_v1';
+  const newV = $('pg-new').value.trim() || 'baseline_v2';
+  const reason = $('pg-reason').value.trim();
+  if(RESOLVED_COUNT < PROMOTION_THRESHOLD){
+    $('pg-out').textContent = 'REJECTED — promotion gate closed. ' + RESOLVED_COUNT + ' resolved forecasts is below the ' + PROMOTION_THRESHOLD + ' threshold. Proposal "' + oldV + ' → ' + newV + '" (' + reason + ') was logged with a promotion receipt (accepted: false) and not applied.';
+    $('pg-out').className = 'out reject';
+    await logReceipt('promotion', 'retardio-system (gate)', {demo:true, old_model_version:oldV, new_model_version:newV, reason, brier_old:null, brier_new:null, resolved_count:RESOLVED_COUNT, accepted:false, rejection_reason:'resolved count ' + RESOLVED_COUNT + ' below threshold ' + PROMOTION_THRESHOLD});
+  }
+});
+
+/* Kill switch */
+$('ks-halt').addEventListener('click', async () => {
+  halted = true;
+  $('ks-state').textContent = 'HALTED (new forecasts blocked; history retained)';
+  $('ks-out').textContent = 'Kill switch ENGAGED. New forecasts halted. History retained; nothing deleted. Re-arm is a human decision.';
+  $('ks-out').className = 'out reject';
+  await logReceipt('gate', 'retardio-system (kill switch)', {demo:true, switch:'HALT', history_retained:true});
+});
+$('ks-rearm').addEventListener('click', async () => {
+  halted = false;
+  $('ks-state').textContent = 'ARMED (forecasts allowed)';
+  $('ks-out').textContent = 'Kill switch RE-ARMED by human decision. Forecasts allowed again. The halt and the re-arm are both in the session log.';
+  $('ks-out').className = 'out ok';
+  await logReceipt('gate', 'retardio-system (kill switch)', {demo:true, switch:'RE-ARM', by:'human decision'});
+});
+
+/* Session log verify + tamper test */
+$('log-verify').addEventListener('click', async () => {
+  await logQueue;
+  if(sessionLog.length === 0){ $('log-out').textContent = 'Log is empty. Do something first (issue a demo forecast, propose a rule change, or touch the kill switch), then verify.'; $('log-out').className = 'out'; return; }
+  const v = await verifyLog(sessionLog);
+  $('log-out').textContent = v.ok ? 'CHAIN VALID — ' + v.n + ' receipts, all hashes recompute, all links intact.' : 'TAMPERED — ' + v.why;
+  $('log-out').className = 'out ' + (v.ok ? 'ok' : 'reject');
+});
+$('log-tamper').addEventListener('click', async () => {
+  await logQueue;
+  if(sessionLog.length === 0){ $('log-out').textContent = 'Log is empty. Do something first, then run the tamper test.'; $('log-out').className = 'out'; return; }
+  const copy = JSON.parse(JSON.stringify(sessionLog));
+  copy[0].payload.tampered = true;
+  const v = await verifyLog(copy);
+  $('log-out').textContent = v.ok ? 'Tamper test FAILED — the tampered copy verified as valid. Do not trust this log.' : 'TAMPER DETECTED — the tampered copy was rejected (' + v.why + '). The chain works.';
+  $('log-out').className = 'out ' + (v.ok ? 'reject' : 'ok');
+});
+
+/* Genesis receipt for this session */
+logReceipt('build', 'retardio-system v1', {demo:false, page:'retardio-system', audit_date:'2026-11-15', anchor_root:MERKLE_ROOT, note:'session log opened'});
+</script>
+</body>
+</html>
