@@ -335,6 +335,11 @@
     // at an arbitrary rotation put the subset off center with labels cut off.
     autoAngle = 0; rotX = 0.12; rotY = -0.15;
     frameView(view);
+    // Paint now: the animation loop is the only other painter, and in a
+    // throttled or headless browser no frame may follow a click, so a view
+    // change that only assigns variables can leave the stale frame on
+    // screen. Reset calls applyView('all'), so it paints here too.
+    paint();
   }
   // Center the camera on the visible modules and pull back until the subset
   // (nodes plus their labels) fits with margin. The "all" view restores the
@@ -386,14 +391,26 @@
     document.querySelectorAll('#toolbar [data-view]').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view') === 'all'); });
   });
 
-  function animate() {
-    requestAnimationFrame(animate);
-    if (rotating) autoAngle += 0.0012;
+  // Paint the current view state right now. The animation loop paints on
+  // requestAnimationFrame, and in a throttled or headless browser no frame
+  // may follow a click, so a control that only assigns variables can leave
+  // the stale frame on screen indefinitely: Reset changed no DOM, no style,
+  // and no class (the 'all' button already had 'on'), so no frame was
+  // produced after the click and the canvas kept showing the dragged view,
+  // even though the variables were reset. Painting here makes every view
+  // change visible in the same task as the click, with no dependence on
+  // the loop or the compositor.
+  function paint() {
     group.rotation.y = rotY + autoAngle;
     group.rotation.x = rotX;
     camera.position.set(camX, camY, zoom);
     camera.lookAt(camX, camY, 0);
     renderer.render(scene, camera);
+  }
+  function animate() {
+    requestAnimationFrame(animate);
+    if (rotating) autoAngle += 0.0012;
+    paint();
   }
   animate();
   window.addEventListener('resize', function(){
