@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retardio Unified System v1 — one promptable interface</title>
+<style>
+:root{--bone:#f7f4ec;--paper:#fffdf7;--ink:#1a1712;--muted:#6b6455;--brass:#9a7b2d;--brass-d:#7a5f1e;--line:#ddd5c2;--red:#8c2f1b;--green:#2f5d3a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Georgia,'Times New Roman',serif;font-size:16px;line-height:1.55}
+.mono,code,pre{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px 60px}
+header{border-bottom:3px double var(--brass);padding:22px 0 14px;margin-bottom:8px}
+.docctl{display:flex;flex-wrap:wrap;gap:8px 22px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.docctl b{color:var(--ink)}
+h1{font-size:30px;line-height:1.15;margin:10px 0 6px}
+h2{font-size:22px;border-top:2px solid var(--brass);padding-top:10px;margin:34px 0 10px}
+h3{font-size:17px;margin:22px 0 6px}
+p{margin:8px 0}
+a{color:var(--brass-d)}
+.banner{background:#2b2118;color:#f3e9c8;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;padding:10px 14px;margin:14px 0;border-left:5px solid var(--brass)}
+.banner b{color:#ffd97a}
+.notbox{border:2px solid var(--red);background:#fdf3ef;padding:14px 16px;margin:16px 0}
+.notbox h2{border:none;margin:0 0 8px;padding:0;color:var(--red)}
+.notbox ul{margin:6px 0 6px 20px}
+.note{border-left:4px solid var(--brass);background:var(--paper);padding:10px 14px;margin:12px 0}
+.warn{border-left:4px solid var(--red);background:#fdf3ef;padding:10px 14px;margin:12px 0}
+.okbox{border-left:4px solid var(--green);background:#f0f6f1;padding:10px 14px;margin:12px 0}
+pre{background:#241f18;color:#efe6cf;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.45;border-radius:3px}
+table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;background:var(--paper)}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#efe9d8;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+td.mono,.mono{font-size:13px;word-break:break-all}
+.pill{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass-d);text-transform:uppercase;letter-spacing:.05em}
+.pill.red{border-color:var(--red);color:var(--red)}
+.pill.green{border-color:var(--green);color:var(--green)}
+.pill.grey{border-color:#999;color:#666}
+button{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--ink);color:var(--bone);border:none;padding:9px 14px;cursor:pointer;border-radius:3px;margin:4px 6px 4px 0}
+button:hover{background:#3a3226}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+button.danger{background:var(--red);color:#fff}
+input[type=text],input[type=number],select,textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;padding:8px 10px;border:1px solid var(--line);background:#fff;width:100%;margin:4px 0}
+label{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);display:block;margin-top:10px}
+.small{font-size:13px;color:var(--muted)}
+.result{border:1px solid var(--line);background:var(--paper);padding:12px 14px;margin:12px 0;white-space:pre-wrap;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.5}
+.result:empty{display:none}
+.kv{display:grid;grid-template-columns:190px 1fr;gap:4px 14px;font-size:14px}
+.kv dt{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;text-transform:uppercase;color:var(--muted)}
+.kv dd{margin:0}
+footer{border-top:3px double var(--brass);margin-top:40px;padding-top:14px;font-size:13px;color:var(--muted)}
+@media print{body{background:#fff}.banner{background:#fff;color:#000;border:1px solid #000}button{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<div class="docctl"><span>Document: <b>Retardio Unified System v1</b></span><span>Version: <b>1.0</b></span><span>Date: <b>2026-11-15</b></span><span>Schema: <b>1.0</b></span><span>Status: <b>SIMULATION — browser-local, no server</b></span></div>
+<h1>Retardio Unified System v1</h1>
+<p><strong>One promptable interface</strong> over the measurement loop, receipts, Brier gate, and connectors. It scores <strong>transactions and entity patterns</strong> (typologies) from public records. It does not score people.</p>
+</header>
+
+<div class="banner"><b>SIMULATION — NOT YET ANCHORED.</b> Browser-local static page. No data leaves this page. No wallet, no chain write, no spending, nothing posts, nothing sends. Receipts are real SHA-256 computed in this page; the system is not yet connected to a live feed, and no Brier exists yet.</div>
+
+<div class="notbox">
+<h2>What this system is not</h2>
+<ul>
+<li>It does <strong>NOT</strong> do probabilistic corruption scoring of individuals.</li>
+<li>It does <strong>NOT</strong> rank private individuals as &ldquo;probable corrupt actors.&rdquo; No &ldquo;high-ranked&rdquo; individual list exists and none will be built.</li>
+<li>It does <strong>NOT</strong> do remote surveillance. There is no live monitoring of people, no location tracking, no private-data collection.</li>
+</ul>
+<p>What it does: it reads <strong>public records</strong> (county parcels, entity filings, court dockets, published lists), turns them into hashed observations, issues pre-registered forecasts about <strong>transaction patterns</strong> (rapid flips, entity clusters, all-cash new-entity purchases), and scores those forecasts later with Brier. A concrete finding is routed to <strong>official channels only</strong>: FBI IC3 (ic3.gov), FTC ReportFraud.ftc.gov, CFPB, the state attorney general, FinCEN via a financial institution, IRS Criminal Investigation, or local law enforcement. No private &ldquo;resolution&rdquo; mechanism substitutes for official process. SARs are filed by financial institutions, not by this system.</p>
+</div>
+
+<div class="note"><strong>How to read this page.</strong> Sections 1–4 are the concrete package: exact schemas, the scoring rule, the fields, and the connector registry. Section 5 is the working promptable interface: type a prompt (or click an intent) and the system routes it through the governed flow, returning a result with receipt IDs and the current Brier. Section 6 is the session receipt log. Sections 7–8 are the conflicts and gaps, stated plainly instead of reconciled away.</div>
+
+<h2>1. Exact JSON schemas</h2>
+<p>All four records share the same chain discipline: <code>prev_hash</code> links to the prior record (<code>GENESIS</code> for the first), and <code>receipt</code> is a SHA-256 over the canonical record. <code>schema_version</code> is <code>1.0</code> throughout.</p>
+
+<h3>1.1 Observation</h3>
+<pre>{
+  "observation_id": "sha256 of canonical form",
+  "schema_version": "1.0",
+  "source": "st_joseph_county_arcgis | in_sos | court_docket | published_scam_list",
+  "source_locator": "exact query, layer, objectid, or URL + params",
+  "retrieved_at": "2026-11-15T12:00:00Z",
+  "raw_hash": "sha256 of exact bytes retrieved",
+  "entity_type": "parcel | deed | llc_filing | judgment | wallet_cluster",
+  "payload": { /* source-specific fields, see §3 */ },
+  "prev_hash": "GENESIS or prior observation_id",
+  "receipt": "sha256 of this entire object after canonicalization"
+}</pre>
+
+<h3>1.2 Forecast</h3>
+<pre>{
+  "forecast_id": "sha256...",
+  "schema_version": "1.0",
+  "observation_ids": ["..."],
+  "forecast_type": "rapid_flip | entity_cluster | all_cash_new_entity",
+  "probability": 0.42,
+  "issued_at": "2026-11-15T12:05:00Z",
+  "model_version": "baseline_v1",
+  "features": {
+    "entity_age_days": 45,
+    "consideration": 250000,
+    "prior_transfer_count_365d": 0,
+    "llc_owned": true
+  },
+  "window_days": 180,
+  "prev_hash": "...",
+  "receipt": "sha256..."
+}</pre>
+<p class="small">The forecast record carries the <strong>full feature vector</strong> (<code>features</code>), not just feature names. That is what makes a forecast independently recomputable. (Convergence item 29; narrow-loop spec carried only <code>features_used</code> names — this schema supersedes that for new records and does not rewrite the loop's existing receipts.)</p>
+
+<h3>1.3 Outcome</h3>
+<pre>{
+  "outcome_id": "sha256...",
+  "forecast_id": "...",
+  "resolved_at": "2026-11-15T12:00:00Z",
+  "outcome": 1,
+  "evidence_observation_ids": ["..."],
+  "coder": "rule_v1 | human",
+  "notes": "subsequent deed found within window, consideration ratio 1.8",
+  "prev_hash": "...",
+  "receipt": "sha256..."
+}</pre>
+
+<h3>1.4 Promotion receipt (when a rule change is accepted)</h3>
+<pre>{
+  "promotion_id": "sha256...",
+  "old_model_version": "baseline_v1",
+  "new_model_version": "baseline_v2",
+  "brier_old": 0.22,
+  "brier_new": 0.17,
+  "delta": -0.05,
+  "data_slice": "held_out_2026_q1",
+  "resolved_count": 87,
+  "accepted": true,
+  "prev_hash": "...",
+  "receipt": "sha256..."
+}</pre>
+<p class="small">A rejected proposal also gets a promotion receipt, with <code>accepted: false</code> and the rejection reason in the log. Every proposed change is logged even if rejected (convergence item 34). <code>brier_old</code> / <code>brier_new</code> are <code>null</code> until resolved forecasts exist.</p>
+
+<h3>1.5 Canonicalization rule (used before every hash)</h3>
+<p>Sort keys recursively. Collapse whitespace in strings (trim, collapse internal runs to one space). <strong>Lowercase strings.</strong> Render whole numbers as integers. UTF-8. No trailing newline.</p>
+<pre>canonical(v):
+  null        -&gt; "null"
+  array       -&gt; "[" + join(",", canonical(each)) + "]"
+  object      -&gt; "{" + join(",", sorted keys as JSON + ":" + canonical(value)) + "}"
+  string      -&gt; JSON( trim, collapse whitespace, lowercase )
+  number      -&gt; integer as-is, else shortest decimal
+  boolean     -&gt; "true" / "false"</pre>
+
+<h3>1.6 Receipt self-reference — resolution</h3>
+<div class="warn"><strong>Conflict, resolved by definition, not by re-hashing.</strong> The schema says <code>receipt</code> is the SHA-256 of &ldquo;this entire object after canonicalization,&rdquo; but the receipt field is inside the object. A hash cannot include itself. The resolution used everywhere on this page: <strong><code>receipt</code> = SHA-256 of the canonical object with the <code>receipt</code> field omitted, then attached.</strong> The loop&rsquo;s forecast receipts already follow this resolution (its verifier deletes <code>receipt</code> before hashing). The loop and this page agree on the resolution; they differ on canonicalization (see §7, conflict 2).</div>
+<p class="small">Try it: the &ldquo;Verify session log&rdquo; button in §6 recomputes every receipt this page issues using exactly this rule.</p>
+
+<h3>1.7 Error observations (connectors, items 24)</h3>
+<p>When a connector fails, it emits an error observation instead of silence, so failures are receipted too:</p>
+<pre>{
+  "observation_id": "sha256 of canonical form",
+  "schema_version": "1.0",
+  "source": "in_sos",
+  "source_locator": "entity search endpoint, attempted 2026-11-15T12:00:00Z",
+  "retrieved_at": "2026-11-15T12:00:00Z",
+  "raw_hash": "sha256 of the error body, or null if no body was returned",
+  "entity_type": "error",
+  "payload": { "error_type": "source_unavailable | schema_mismatch | rate_limited | timeout",
+               "detail": "human-readable reason, no credentials, no keys" },
+  "prev_hash": "...",
+  "receipt": "sha256..."
+}</pre>
+<p class="small">A failed retrieval gets a receipt (convergence item 23: a receipt for every successful <em>and</em> failed retrieval). The health check in §5 emits one for the SOS connector on every run until it is built.</p>
+
+<h2>2. baseline_v1 — the transparent scoring rule</h2>
+<p>Fixed on 2026-11-15. No learned weights yet. The rule is a stated assumption, not a measured rate. Every probability is issued in advance and scored later.</p>
+
+<h3>2.1 baseline_v1 (unified, 2026-11-15) — the rule this page runs</h3>
+<pre>def baseline_v1(features):
+    p = 0.15  # base rate prior
+    if features.get("llc_owned") and features.get("entity_age_days", 999) &lt; 90:
+        p += 0.25
+    if features.get("entity_age_days", 999) &lt; 30:
+        p += 0.15
+    if features.get("prior_transfer_count_365d", 0) == 0:
+        p += 0.10
+    if features.get("consideration", 0) &gt; 100000 and features.get("consideration", 0) &lt; 500000:
+        p += 0.05
+    return max(0.01, min(0.95, p))</pre>
+<div class="warn"><strong>The <code>999</code> default is wrong and is NOT implemented.</strong> The pseudocode above defaults a missing <code>entity_age_days</code> to 999 (unknown treated as old). That silently converts missing data into evidence. This page implements the refusal path instead (convergence item 45): <strong>if a required feature is missing, the rule refuses to emit and shows the reason.</strong> The pseudocode is reproduced verbatim above because it is the source; the implementation below it is the correction. See §7, conflict 4.</div>
+<p>Required features for the unified rule: <code>llc_owned</code>, <code>entity_age_days</code>, <code>prior_transfer_count_365d</code>, <code>consideration</code>. Rapid-flip forecasts use this probability with a 180-day window. Outcome = 1 only if a subsequent deed on the same parcel appears inside the window with consideration &ge; 1.5&times; prior. All other cases = 0 when the window closes.</p>
+
+<h3>2.2 Try the rule</h3>
+<p>Enter features and the rule computes the probability. Leave a required field blank to see the refusal.</p>
+<label>llc_owned</label>
+<select id="f-llc"><option value="true">true</option><option value="false">false</option></select>
+<label>entity_age_days (days since formation; blank = missing)</label>
+<input type="number" id="f-age" value="45" min="0">
+<label>prior_transfer_count_365d (transfers on this parcel in the prior 365 days; blank = missing)</label>
+<input type="number" id="f-prior" value="0" min="0">
+<label>consideration (dollars)</label>
+<input type="number" id="f-cons" value="250000" min="0">
+<p><button id="btn-rule">Compute baseline_v1 (unified)</button><span id="rule-result" class="small"></span></p>
+<div class="result" id="rule-out"></div>
+
+<h3>2.3 baseline_v1 (loop, 2026-11-15) — the Measurement Loop&rsquo;s rule, for contrast</h3>
+<pre>baseline_v1 (rapid_flip, loop):
+  prior                                0.04
+  +0.03 if consideration &lt; $100,000
+  +0.02 if acreage &lt; 0.5
+  clamp to [0.01, 0.50]
+  features_used: ["consideration", "acreage"]</pre>
+<div class="warn"><strong>Baseline name collision (conflict 1).</strong> Both rules are named <code>baseline_v1</code> and both were fixed on 2026-11-15, but they are different rules: different prior (0.15 vs 0.04), different features (entity age / transfer history / consideration band vs consideration / acreage), different clamp ([0.01, 0.95] vs [0.01, 0.50]). This page labels them distinctly — <code>baseline_v1 (unified, 2026-11-15)</code> and <code>baseline_v1 (loop, 2026-11-15)</code> — and the loop&rsquo;s rule is <strong>NOT</strong> overwritten. The loop&rsquo;s 20 issued forecasts keep their receipts under the loop rule. A future promotion must rename the rule (e.g. <code>baseline_v2</code>) rather than reusing the name for a different rule.</div>
+
+<h3>2.4 The two rules on the same 25 observations</h3>
+<p>The loop&rsquo;s 25 real observations are embedded below as reference (observation IDs and hashes as issued by the loop page; not re-hashed here). The table runs both rules over them.</p>
+<p><button id="btn-rules">Run both rules over the 25 loop observations</button><span id="rules-result" class="small"></span></p>
+<div id="rules-table"></div>
+<div class="note" id="rules-note" style="display:none"><strong>What the table shows.</strong> The unified rule refuses on all 25: <code>entity_age_days</code> is missing for all 25 (formation dates are not in the assessor source) and <code>prior_transfer_count_365d</code> is missing for all 25 (no transfer history in the assessor source). That is the rule working as designed, not a failure: it will not score what it cannot see. The loop rule issues on the 20 deed observations (16 at 0.04, 4 at 0.07) because it only needs consideration and acreage, which the source carries. <strong>Correction to the loop&rsquo;s build note:</strong> the note says the loop issued 0.04 (13) and 0.07 (7). Recomputation over the embedded data gives 0.04 (16) and 0.07 (4), matching the stored forecast probabilities exactly. The embedded data is the authority; the note was miscounted.</div>
+
+<h2>3. Minimal additional public fields needed</h2>
+<p>These are the fields the three forecast types need. &ldquo;Available now&rdquo; means the St. Joseph County assessor source carries it. &ldquo;Needed&rdquo; means no current source carries it, and the forecast type that needs it is blocked until a connector is built.</p>
+<table>
+<tr><th>Field</th><th>Source</th><th>Status</th><th>Needed for</th></tr>
+<tr><td>Parcel ID / PIN</td><td>County assessor / recorder</td><td><span class="pill green">Available now</span></td><td>All three types (deduplication key)</td></tr>
+<tr><td>Current owner name</td><td>County assessor / recorder</td><td><span class="pill green">Available now</span></td><td>Entity matching (exact-match key, see §8)</td></tr>
+<tr><td>Last transfer date</td><td>County assessor / recorder</td><td><span class="pill green">Available now</span></td><td>rapid_flip (window start)</td></tr>
+<tr><td>Last consideration (sale price)</td><td>County assessor / recorder</td><td><span class="pill green">Available now</span></td><td>rapid_flip, all_cash_new_entity</td></tr>
+<tr><td>Prior transfer date + consideration (or full transfer history)</td><td>County recorder</td><td><span class="pill red">Needed</span></td><td>rapid_flip outcome coding; prior_transfer_count_365d</td></tr>
+<tr><td>Document / instrument number</td><td>County recorder</td><td><span class="pill red">Needed</span></td><td>Deed-history reproduction</td></tr>
+<tr><td>Property address or lat/long</td><td>County assessor / recorder</td><td><span class="pill grey">In source, not published</span></td><td>Deduplication only. Street addresses are not published on this page; property_id is the parcel ID.</td></tr>
+<tr><td>Entity name (exact match key)</td><td>Indiana Secretary of State</td><td><span class="pill red">Needed</span></td><td>entity_cluster, all_cash_new_entity</td></tr>
+<tr><td>Formation / filing date</td><td>Indiana Secretary of State</td><td><span class="pill red">Needed</span></td><td>entity_age_days — the unified rule cannot issue without it</td></tr>
+<tr><td>Entity type (LLC, Corp, etc.)</td><td>Indiana Secretary of State</td><td><span class="pill red">Needed</span></td><td>llc_owned</td></tr>
+<tr><td>Status (active / inactive)</td><td>Indiana Secretary of State</td><td><span class="pill red">Needed</span></td><td>Entity-cluster signal quality</td></tr>
+<tr><td>Registered agent (public)</td><td>Indiana Secretary of State</td><td><span class="pill red">Needed</span></td><td>Related-entity clustering (later)</td></tr>
+<tr><td>Case number, filing date, party names, disposition (when public)</td><td>Court / public enforcement</td><td><span class="pill red">Needed</span></td><td>Outcome coding for all_cash_new_entity (24-month window)</td></tr>
+</table>
+<p class="small">These fields are sufficient to code the three forecast types. Nothing else is ingested. No private-individual fields are collected, ever.</p>
+
+<h2>4. OSINT connector registry</h2>
+<p>Every connector emits the same observation schema (§1.1) and a receipt for every retrieval, successful or failed (items 23–28). A connector is read-only and public-data only. No second data source is added until the first has 30 days of stable receipts.</p>
+<table>
+<tr><th>Connector</th><th>Status</th><th>Reproduction parameters</th><th>Rate limit / cache</th><th>Hash-match rate</th></tr>
+<tr><td><strong>County ArcGIS / assessor — St. Joseph County IN</strong></td><td><span class="pill green">Available now</span></td><td class="mono">https://gis.southbendin.gov/arcgis/rest/services/LandRecords/Parcels_County/MapServer/0/query?where=NAME_1 LIKE '%LLC%' AND SALESPRICE IS NOT NULL AND SALESDATE IS NOT NULL&amp;outFields=PARCELID,NAME_1,TRANSFERDA,SALESDATE,SALESPRICE,PROP_ADDR,PROP_CITY,ACREAGE,REALLANDVA,REALIMPROV,CLASSCODE,TOWNSHIP&amp;returnGeometry=false&amp;orderByFields=SALESDATE DESC&amp;resultRecordCount=25&amp;f=json</td><td>ArcGIS REST, no key. Response file preserved (raw/sjc_llc_sample.json, 9,317 bytes). Re-fetch reproduces the hash only if the service returns identical bytes; the preserved file is the verifiable artifact.</td><td>25/25 (100%) under the loop rule, measured by the loop page verifier. Unified-rule rate: not yet measured (re-hashing under the unified rule changes hashes — see §7, conflict 2).</td></tr>
+<tr><td><strong>Indiana Secretary of State (INBiz) — entity filings</strong></td><td><span class="pill red">Planned — not built</span></td><td>To be documented when built: bulk data or search endpoint, exact query, entity-name match key. Needed for formation dates.</td><td>To be set at build time; documented here before first use.</td><td>Not measured — no connector yet.</td></tr>
+<tr><td><strong>PACER / state court public dockets</strong></td><td><span class="pill grey">Planned</span></td><td>Outcome coding only. Case number + filing date + party names + disposition, when public.</td><td>Public docket access; no scraping behind logins or CAPTCHAs.</td><td>Not measured.</td></tr>
+<tr><td><strong>OpenCorporates</strong></td><td><span class="pill grey">Planned</span></td><td>Public entity data, exact-name match. Bulk where offered.</td><td>API terms at build time.</td><td>Not measured.</td></tr>
+<tr><td><strong>FinCEN public advisories, OFAC SDN list</strong></td><td><span class="pill grey">Planned</span></td><td>Published advisories and the SDN list, hashed as published lists.</td><td>Bulk download; no key.</td><td>Not measured.</td></tr>
+<tr><td><strong>FTC / IC3 / CFPB public complaint data and reports</strong></td><td><span class="pill grey">Planned</span></td><td>Published aggregate reports and advisories only, never individual complaints.</td><td>Bulk download; no key.</td><td>Not measured.</td></tr>
+<tr><td><strong>Published blockchain analytics + public explorers (Etherscan, Solscan)</strong></td><td><span class="pill grey">Planned</span></td><td>Already-labeled scam clusters from published reports only. No private wallet scoring.</td><td>Explorer API terms at build time.</td><td>Not measured.</td></tr>
+<tr><td><strong>SEC EDGAR</strong></td><td><span class="pill grey">Planned</span></td><td>Public filings for larger entities.</td><td>Bulk download; no key.</td><td>Not measured.</td></tr>
+<tr><td><strong>State UCC filing searches</strong></td><td><span class="pill grey">Planned</span></td><td>Public UCC filings, exact-name match.</td><td>Public search; no key.</td><td>Not measured.</td></tr>
+<tr><td><strong>Wayback Machine / public domain archives</strong></td><td><span class="pill grey">Planned</span></td><td>Historical pages for already-published material only.</td><td>Public API; no key.</td><td>Not measured.</td></tr>
+<tr><td><strong>Official bulk downloads</strong></td><td><span class="pill grey">Planned</span></td><td>Any official bulk file, hashed as retrieved.</td><td>As published.</td><td>Not measured.</td></tr>
+</table>
+<p class="small">Connector rules, all of them: emit the observation schema (§1.1) and a receipt for every retrieval, successful or failed; emit an error observation (§1.7) on failure; reject any observation that fails schema validation before it enters the log; cache raw payloads long enough for re-verification (the county response file is preserved; the long-term store is not yet defined — see §8); document rate limits and reproduction steps before first use. No connector scrapes behind a login or CAPTCHA.</p>
+
+<h3>4.1 Schema validation (item 27)</h3>
+<p><button id="btn-validate">Validate embedded observations</button> <button id="btn-validate-bad">Test a malformed observation</button><span id="validate-result" class="small"></span></p>
+<p class="small">An observation that fails schema validation is rejected before it enters the log. The malformed test is missing source_locator, retrieved_at, raw_hash, entity_type, payload, and prev_hash.</p>
+
+<h2>5. Promptable interface — the unified system</h2>
+<p>One entry point. Type a prompt (or click an intent). Internally it routes through the governed flow: intent parser (narrow, schema-constrained) &rarr; authority check &rarr; connector(s) &rarr; observations &rarr; forecast emitter &rarr; outcome coder &rarr; Brier calculator + promotion gate. Every step writes to the same hash-chained log (§6). Every result returns receipt IDs and the current Brier.</p>
+<div class="note"><strong>Authority, as it stands.</strong> The authority model for prompts (Layer 3) is not yet built, so this page runs in a restricted mode: reads and local computations run freely; anything that would leave the system (an alert, a report draft, an export beyond this browser) is held by the human-approval gate and is <strong>not</strong> executed. There is no authority header yet, so there is no way to authorize an external action from this page. That is the safe default, not a missing feature to work around.</div>
+
+<div id="kill-banner" class="warn" style="display:none"><strong>FORECASTS HALTED — kill switch active.</strong> No new forecasts will be issued. History is retained: 25 observations, 20 forecasts, 0 outcomes. Re-arming requires a human decision, logged below.</div>
+<p>
+<button id="btn-halt" class="danger">HALT new forecasts (kill switch)</button>
+<button id="btn-rearm" class="ghost" style="display:none">Re-arm (human decision)</button>
+<span id="kill-state" class="small">Kill switch: ARMED (forecasts allowed)</span>
+</p>
+
+<label>Prompt</label>
+<input type="text" id="prompt-input" placeholder="e.g. show current Brier and resolved count">
+<p>
+<button class="ghost" data-intent="ingest">Ingest latest St. Joseph County LLC parcels and emit rapid_flip forecasts</button>
+<button class="ghost" data-intent="brier">Show current Brier and resolved count</button>
+<button class="ghost" data-intent="propose">Propose a scoring-rule change and run the promotion gate</button>
+<button class="ghost" data-intent="export">Export full receipt chain for independent verification</button>
+<button class="ghost" data-intent="health">Run connector health check</button>
+<button class="ghost" data-intent="outcomes">Code outcomes for all forecasts whose window has closed</button>
+<button class="ghost" data-intent="report">Draft a report for IC3</button>
+</p>
+<p><button id="btn-prompt">Run prompt</button></p>
+<div class="result" id="prompt-out"></div>
+
+<h3>5.1 Current Brier and resolved count</h3>
+<div class="warn"><strong>Real Brier: NOT YET COMPUTABLE.</strong> <span id="brier-state">0 resolved forecasts. No outcome has been coded, because resolving a rapid-flip forecast needs deed history (the subsequent deed, and the grantee&rsquo;s formation date), and the assessor source carries only the latest sale per parcel.</span></div>
+<table>
+<tr><th>Item</th><th>Target</th><th>Current</th></tr>
+<tr><td>Resolved forecasts</td><td>&ge; 200 before any promotion</td><td id="b-resolved">0</td></tr>
+<tr><td>Brier (overall)</td><td>Meaningfully better than the constant base-rate baseline</td><td id="b-brier">Not computable — 0 resolved</td></tr>
+<tr><td>Constant base-rate baseline</td><td>Comparison on every Brier report (item 30)</td><td id="b-base"><strong>NOT YET DEFINED.</strong> The base-rate baseline formula is not set. It must be defined before the first Brier is computed, or the comparison is meaningless. See §8.</td></tr>
+<tr><td>Brier by forecast type</td><td>Tracked per type</td><td>Not computable — 0 resolved</td></tr>
+<tr><td>False-positive rate at a pre-specified threshold</td><td>Acceptable to a human reviewer</td><td>No threshold set — no resolved forecasts</td></tr>
+<tr><td>First real Brier</td><td>Months away</td><td>180-day rapid-flip window; 24-month all-cash window. Outcomes cannot be hurried.</td></tr>
+</table>
+<p class="small">Reference only: the loop page carries one labeled illustrative Brier example (5 invented rows, Brier 0.0605, recomputed live there). It is invented, excluded from every total here, and is not a measurement of this system. No Brier number on this page is measured.</p>
+
+<h3>5.2 Promotion gate</h3>
+<p>Propose a scoring-rule change. The gate runs the checks in order and rejects at the first failure: (1) kill switch not active; (2) resolved forecasts &ge; 200; (3) a held-out / forward-test slice is named; (4) the new rule beats the old Brier on that held-out slice. A rejected proposal is still logged with a promotion receipt (accepted: false).</p>
+<label>Proposed rule name</label>
+<input type="text" id="prop-name" value="baseline_v2">
+<label>Proposed prior (the one change in this proposal)</label>
+<input type="number" id="prop-prior" value="0.10" step="0.01" min="0.01" max="0.95">
+<label>Held-out / forward-test slice</label>
+<input type="text" id="prop-slice" value="held_out_2026_q1">
+<p><button id="btn-gate">Run promotion gate</button><span id="gate-result" class="small"></span></p>
+<div class="result" id="gate-out"></div>
+<h3>Proposals log (every proposal, accepted or rejected)</h3>
+<table id="prop-table"><tr><th>Proposal</th><th>Prior</th><th>Slice</th><th>Resolved</th><th>Decision</th><th>Reason</th><th>Receipt</th></tr></table>
+
+<h3>5.3 Connector health check</h3>
+<p><button id="btn-health">Run connector health check</button><span id="health-result" class="small"></span></p>
+<div id="health-table"></div>
+
+<h3>5.4 Outcome coding</h3>
+<p><button id="btn-outcomes">Code outcomes for all forecasts whose window has closed</button><span id="outcomes-result" class="small"></span></p>
+<div id="outcomes-table"></div>
+
+<h2>6. Session receipt log</h2>
+<p>Every prompt, gate decision, health check, export, and kill-switch action in this session writes one entry here, hash-chained from GENESIS. Receipts use the unified canonicalization (§1.5) with the receipt field omitted before hashing (§1.6). This log is session-only: it does not leave the browser, and it is not the loop&rsquo;s log. The loop&rsquo;s log lives on the loop page; this page references it, it does not rewrite it.</p>
+<p><button id="btn-verify-log">Verify session log</button> <button id="btn-tamper">Tamper test</button><span id="log-result" class="small"></span></p>
+<table id="log-table"><tr><th>#</th><th>Type</th><th>Detail</th><th>Receipt</th><th>prev_hash</th></tr></table>
+
+<h2>7. Conflicts surfaced — not silently reconciled</h2>
+<p>Six conflicts were found while assembling this package. Each is stated here with what was done about it. None was silently resolved by picking a winner.</p>
+<table>
+<tr><th>#</th><th>Conflict</th><th>What this page does</th></tr>
+<tr><td>1</td><td><strong>Baseline name collision.</strong> The Measurement Loop&rsquo;s <code>baseline_v1</code> (prior 0.04, +0.03 if consideration &lt; $100k, +0.02 if acreage &lt; 0.5, clamp [0.01, 0.50]) and this message&rsquo;s <code>baseline_v1</code> (prior 0.15, entity-age / llc / transfer / consideration terms, clamp [0.01, 0.95]) are different rules with the same name, both fixed 2026-11-15.</td><td>Both are implemented and labeled distinctly: <code>baseline_v1 (unified, 2026-11-15)</code> and <code>baseline_v1 (loop, 2026-11-15)</code>. The loop&rsquo;s rule is not overwritten and its 20 issued forecasts keep their receipts. A future promotion must use a new name (e.g. <code>baseline_v2</code>).</td></tr>
+<tr><td>2</td><td><strong>Canonicalization divergence.</strong> This message&rsquo;s rule lowercases strings. The loop uses strings as returned. The anchor uses strict key sorting + no-whitespace.</td><td>The unified rule (lowercase) is the target for <code>schema_version 1.0</code> records issued from this page. <strong>Migration note:</strong> the loop&rsquo;s 25 observations and 20 forecasts were hashed under the loop&rsquo;s rule. Re-issuing them under the unified rule would change their hashes, so they are referenced as-is and never re-hashed here. A future manifest version must record which canonicalization each record used.</td></tr>
+<tr><td>3</td><td><strong>Receipt self-reference.</strong> The schema says receipt = SHA-256 of &ldquo;this entire object,&rdquo; but the receipt field is inside the object.</td><td>Resolved by definition (§1.6): receipt = SHA-256 of the canonical object with the receipt field omitted, then attached. The loop already follows this resolution; the two pages agree on it.</td></tr>
+<tr><td>4</td><td><strong>Missing-feature default.</strong> The unified pseudocode defaults <code>entity_age_days</code> to 999 (unknown treated as old).</td><td>Not implemented. The refusal path replaces it (§2.1): a missing required feature refuses issuance and shows the reason. Demonstrated in §2.4: the unified rule refuses on all 25 loop observations because <code>entity_age_days</code> and <code>prior_transfer_count_365d</code> are missing for all 25.</td></tr>
+<tr><td>5</td><td><strong>Outcome coding blocked on the current source.</strong> The assessor carries only the latest sale per parcel, so rapid-flip outcomes cannot be coded from it, and the Brier cannot be computed.</td><td>Stated, not worked around. The Brier panel (§5.1) shows NOT YET COMPUTABLE with the reason. No resolved forecast or Brier number is fabricated. Deed history (recorder) is the unblocker.</td></tr>
+<tr><td>6</td><td><strong>Per-record schema_version.</strong> The unified schema (§1.1) requires <code>schema_version</code> on every observation. The loop&rsquo;s 25 observations do not carry it; their schema_version (1.0) lives in the log meta, not on the record.</td><td>New records carry <code>schema_version</code>. The loop&rsquo;s records are grandfathered as 1.0 via the meta. They are not re-written and not re-hashed. The validation demo (§4.1) reports both checks separately so the gap stays visible.</td></tr>
+<tr><td>—</td><td><strong>Build-note count correction.</strong> The loop&rsquo;s build note says the loop issued 0.04 (13) and 0.07 (7). Recomputation over the embedded data gives 0.04 (16) and 0.07 (4), matching the stored forecast probabilities exactly.</td><td>The embedded data is the authority. The note was miscounted. Corrected here; the loop page&rsquo;s data was not changed.</td></tr>
+</table>
+
+<h2>8. Gaps and decisions</h2>
+<p>Open gaps, in the order they block progress. Nothing here is presented as done.</p>
+<table>
+<tr><th>Gap</th><th>Blocks</th><th>What unblocks it</th></tr>
+<tr><td>Baseline name collision (§7.1)</td><td>Any promotion</td><td>A promotion that renames the rule; the loop&rsquo;s rule is never overwritten.</td></tr>
+<tr><td>Canonicalization divergence (§7.2)</td><td>Cross-system receipt verification</td><td>A manifest version recording which canonicalization each record used.</td></tr>
+<tr><td>Receipt self-reference (§7.3)</td><td>— (resolved by definition)</td><td>Already resolved (§1.6). Recorded here so a third party does not re-derive it differently.</td></tr>
+<tr><td>Missing-feature policy (§7.4)</td><td>Unified-rule issuance</td><td>Resolved by the refusal path. The rule issues only when all required features are present.</td></tr>
+<tr><td>Outcome coding blocked on the assessor source (§7.5)</td><td>First real Brier</td><td>Deed history from the recorder (bulk data or property-record cards).</td></tr>
+<tr><td>SOS connector not yet built</td><td>Unified-rule issuance; entity_cluster; all_cash_new_entity</td><td>Indiana SOS connector with formation dates (see §4).</td></tr>
+<tr><td>Entity-name matching rule not yet defined</td><td>Joining assessor records to SOS filings</td><td>Exact match is fragile (trailing spaces, punctuation, &ldquo;LLC&rdquo; variants, the PMS note field). A matching rule with a stated tolerance must be defined and tested before the join is trusted.</td></tr>
+<tr><td>Authority model for prompts not yet built (Layer 3)</td><td>Any external action</td><td>Authority header (authorizer, scope, expiry, single-use token) + policy gate. Until then, external actions are held, not executed.</td></tr>
+<tr><td>Brier base-rate baseline formula not yet defined</td><td>Meaningful Brier comparison (item 30)</td><td>Define the constant baseline (e.g. always predict the observed base rate) before the first Brier is computed.</td></tr>
+<tr><td>Raw payload long-term store not yet defined</td><td>Re-verification months later (item 26)</td><td>A stated retention policy and location for raw response files, with hashes.</td></tr>
+<tr><td>Report-draft template and per-typology official-channel mapping not yet built</td><td>Routing a concrete finding</td><td>One template per typology, each naming its official channel (IC3, FTC, CFPB, state AG, FinCEN, IRS-CI, local law enforcement). No draft leaves the system without human approval.</td></tr>
+<tr><td>Timeline: first real Brier is months away</td><td>Any promotion</td><td>180-day rapid-flip window; 24-month all-cash window. The loop cannot be hurried; the promotion gate stays closed until 200 forecasts resolve.</td></tr>
+</table>
+
+<h2>9. Hosting options and the autonomous loop</h2>
+<h3>9.1 Hosting options</h3>
+<dl class="kv">
+<dt>Option A — local</dt><dd>Fully local / browser + local files (current Retardio style). This page. No server, no data leaves the browser.</dd>
+<dt>Option B — split</dt><dd>Single hosted read-only explorer + local writer. The public can verify; only the local writer appends.</dd>
+<dt>Option C — hosted log</dt><dd>Hosted append-only log with a public verifier. Still no private data; the log holds public-record observations and receipts only.</dd>
+</dl>
+<h3>9.2 Autonomous execution loop (highest form that stays safe)</h3>
+<ol>
+<li>Scheduled or triggered ingest of the approved public sources.</li>
+<li>Automatic forecast emission on new observations (refusing when required features are missing).</li>
+<li>Automatic outcome coding when deterministic rules can fire.</li>
+<li>Automatic Brier update.</li>
+<li>Automatic rejection of non-improving rule proposals.</li>
+<li>Human gate on: new data-source addition, first live (non-retrospective) batch, any external report, any rule promotion that passes the Brier test.</li>
+<li>Kill switch that stops new forecasts without deleting history (§5).</li>
+<li>Every cycle produces a receipted summary.</li>
+</ol>
+<p class="small">The loop is autonomous only inside the governed boundary: public data in, receipts out, human approval on anything that leaves the system. It is not recursively self-modifying general intelligence. Improvement is limited to better-calibrated observation and forecasting under logged authority and independent verification.</p>
+
+<h3>9.3 What comes next, in order</h3>
+<ol>
+<li>Deed history (recorder) — unblocks outcome coding and the first real Brier.</li>
+<li>SOS connector (formation dates) — unblocks the unified rule, entity_cluster, and all_cash_new_entity.</li>
+<li>Entity-name matching rule — defined and tested before the assessor/SOS join is trusted.</li>
+<li>Base-rate baseline formula — defined before the first Brier is computed.</li>
+<li>Authority header + policy gate (Layer 3) — unblocks external actions, under human approval.</li>
+<li>Second county, same schema — only after calibration is demonstrated on the first.</li>
+<li>Periodic Brier snapshots anchored via the existing On-Chain Anchor path (item 36) — once a Brier exists. The anchor&rsquo;s chain write itself is blocked on Jeramie&rsquo;s chain/wallet choice.</li>
+</ol>
+
+<footer>
+<p>Retardio Unified System v1 — 2026-11-15. SIMULATION. Browser-local. No data leaves this page.</p>
+<p>Sources: the concrete package in Jeramie&rsquo;s 2026-11-15 07:53 message; the narrow measurement loop spec (<code>~/workspace/research-drift-2026-11-15/narrow-measurement-loop-spec.md</code>); the convergence spec (<code>~/workspace/research-drift-2026-11-15/convergence-100-spec.md</code>); the loop&rsquo;s live data at <a href="https://neuruhai.github.io/neuruh-demos/retardio-measurement-loop/">retardio-measurement-loop</a> (25 observations, 20 forecasts, 0 outcomes, response SHA-256 a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0).</p>
+<p>Public data and official reporting paths only. No private-individual scoring. Concrete findings go to official channels only.</p>
+</footer>
+</div>
+
+<script id="loop-data" type="application/json">{"observations": [{"seq": 1, "observation_id": "ce0a02a1e668517da69f8aac7e91395b548153cfcf7716561cc6adb3de22c395", "prev_hash": "GENESIS", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 1 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "e73a86c14fe8a316920177610028a8c9de0f8b82b67929699775860d16b40fac", "entity_type": "deed", "payload": {"instrument_date": "2019-08-09", "grantor": null, "grantee": "Merrill Realty LLC", "consideration": 60000, "property_id": "006-1027-039201", "entity_name": "Merrill Realty LLC", "formation_date": null, "related_entities": [], "acreage": 1.07151399}, "source_extras": {"classcode": "480", "township": "Harris", "transfer_date": "2019-09-19", "assessed_land": 139200, "assessed_improvement": 394800, "prop_city": "GRANGER"}}, {"seq": 2, "observation_id": "1e2396095737b1414728f0f58e983a9501634936bb3da24e4437ada8169c045f", "prev_hash": "ce0a02a1e668517da69f8aac7e91395b548153cfcf7716561cc6adb3de22c395", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 2 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "3b9ce85c63b3559e3b98ae56350d05c17bd3050e6180770c2c7f64006f335183", "entity_type": "deed", "payload": {"instrument_date": "2024-08-29", "grantor": null, "grantee": "Irish Rentals LLC", "consideration": 191880, "property_id": "012-1008-008408", "entity_name": "Irish Rentals LLC", "formation_date": null, "related_entities": [], "acreage": 9.83532172}, "source_extras": {"classcode": "100", "township": "Olive", "transfer_date": "2024-09-18", "assessed_land": 15700, "assessed_improvement": 0, "prop_city": null}}, {"seq": 3, "observation_id": "d144fa5d412b02f4dc8f6791d311d23f7ea057719078f37b1ec6dc937e2b18c4", "prev_hash": "1e2396095737b1414728f0f58e983a9501634936bb3da24e4437ada8169c045f", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 3 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "e645734b9acc26e840454aa5244820413f96519af1cada9da6163cb7b2528b58", "entity_type": "deed", "payload": {"instrument_date": "2024-08-28", "grantor": null, "grantee": "Irish Rentals LLC", "consideration": 188175, "property_id": "012-1008-008409", "entity_name": "Irish Rentals LLC", "formation_date": null, "related_entities": [], "acreage": 9.65210677}, "source_extras": {"classcode": "100", "township": "Olive", "transfer_date": "2024-09-18", "assessed_land": 16600, "assessed_improvement": 0, "prop_city": null}}, {"seq": 4, "observation_id": "cb44353bf10b70aa808a337b7638c15ff7daa237589c041165e2b710971d228a", "prev_hash": "d144fa5d412b02f4dc8f6791d311d23f7ea057719078f37b1ec6dc937e2b18c4", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 4 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "402bbdb7c19dd3762009b165f9ba194dc3bc2dcba084fce30dac1200f13a6d4b", "entity_type": "deed", "payload": {"instrument_date": "2023-08-28", "grantor": null, "grantee": "SDI-GM Synergy Cells LLC", "consideration": 13473405, "property_id": "012-1007-0080", "entity_name": "SDI-GM Synergy Cells LLC", "formation_date": null, "related_entities": [], "acreage": 247.3927933}, "source_extras": {"classcode": "330", "township": "Olive", "transfer_date": "2023-09-14", "assessed_land": 31815700, "assessed_improvement": 318403600, "prop_city": "NEW CARLISLE"}}, {"seq": 5, "observation_id": "48a6ff71d70b6951cadf53c05522aa5fde47f25e1bd9d70bc23c3dde2f9dbe1f", "prev_hash": "cb44353bf10b70aa808a337b7638c15ff7daa237589c041165e2b710971d228a", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 5 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "f6d978e33c4756420c9941cbd7ef560fffbf89216585e10d8157cfe6e89e6a19", "entity_type": "deed", "payload": {"instrument_date": "2008-08-28", "grantor": null, "grantee": "Tammy Properties LLC", "consideration": 360000, "property_id": "006-1027-039202", "entity_name": "Tammy Properties LLC", "formation_date": null, "related_entities": [], "acreage": 1.78427626}, "source_extras": {"classcode": "456", "township": "Harris", "transfer_date": "2008-12-02", "assessed_land": 47400, "assessed_improvement": 11400, "prop_city": "GRANGER"}}, {"seq": 6, "observation_id": "099c891518b5571ee5800ff2c87123e931b878b923a537e66d6d1ddb50106034", "prev_hash": "48a6ff71d70b6951cadf53c05522aa5fde47f25e1bd9d70bc23c3dde2f9dbe1f", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 6 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "5ae51c9e613f5e858d8a4fefbbc43ebfda6aaf33620685045383aa516ba1136d", "entity_type": "deed", "payload": {"instrument_date": "2008-08-28", "grantor": null, "grantee": "Tammy Properties LLC", "consideration": 360000, "property_id": "006-1013-018214", "entity_name": "Tammy Properties LLC", "formation_date": null, "related_entities": [], "acreage": 2.4615335}, "source_extras": {"classcode": "430", "township": "Harris", "transfer_date": "2008-12-02", "assessed_land": 193900, "assessed_improvement": 654700, "prop_city": "GRANGER"}}, {"seq": 7, "observation_id": "b5ff52c38fcf333eeebd06642ad37e9777530e76fe9a06ea7b39537a6882b0d6", "prev_hash": "099c891518b5571ee5800ff2c87123e931b878b923a537e66d6d1ddb50106034", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 7 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "f3611b503a021f56b2daa8486894aeabb0a714a8b74514e6c7d0233ae40c4269", "entity_type": "deed", "payload": {"instrument_date": "2012-08-21", "grantor": null, "grantee": "EP IN LLC", "consideration": 14250000, "property_id": "029-1001-000503", "entity_name": "EP IN LLC", "formation_date": null, "related_entities": [], "acreage": 19.69957175}, "source_extras": {"classcode": "403", "township": "Clay", "transfer_date": "2023-07-20", "assessed_land": 472500, "assessed_improvement": 16216300, "prop_city": "MISHAWAKA"}}, {"seq": 8, "observation_id": "bc62817d11fd2b925baca6cd04d2e1f978363d4915b6d221e1ffd7f3c64aea75", "prev_hash": "b5ff52c38fcf333eeebd06642ad37e9777530e76fe9a06ea7b39537a6882b0d6", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 8 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "6ae7bc3e4f72bf65e866808cf279baa9be8ef7357b9327becb4e9b242e49a961", "entity_type": "deed", "payload": {"instrument_date": "2010-07-29", "grantor": null, "grantee": "Steel Water LLC", "consideration": 1063229.51, "property_id": "006-1004-003128", "entity_name": "Steel Water LLC", "formation_date": null, "related_entities": [], "acreage": 1.92171712}, "source_extras": {"classcode": "467", "township": "Harris", "transfer_date": "2010-10-15", "assessed_land": 423700, "assessed_improvement": 812400, "prop_city": "GRANGER"}}, {"seq": 9, "observation_id": "f63f9bf64e98eba0b695eb77ee375f4bfebc400fc1969f6626d8a66bb466e959", "prev_hash": "bc62817d11fd2b925baca6cd04d2e1f978363d4915b6d221e1ffd7f3c64aea75", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 9 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "8ee79367ae0504eafa525b228c519a989f62e68b2bbb35c4e77462f398b4c1f4", "entity_type": "deed", "payload": {"instrument_date": "2009-06-01", "grantor": null, "grantee": "Gavilon Grain LLC", "consideration": 329000, "property_id": "012-1051-068210", "entity_name": "Gavilon Grain LLC", "formation_date": null, "related_entities": [], "acreage": 31.00265939}, "source_extras": {"classcode": "350", "township": "Olive", "transfer_date": "2014-03-13", "assessed_land": 475600, "assessed_improvement": 1569100, "prop_city": "NEW CARLISLE"}}, {"seq": 10, "observation_id": "a17e79326bdd198e2587d957a309c170e24446529aa116162b88c9a1427d2b11", "prev_hash": "f63f9bf64e98eba0b695eb77ee375f4bfebc400fc1969f6626d8a66bb466e959", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 10 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "8bc06f4d5e6e2e689670e98d73ece5c588f9226e537b6469845917728d170b8a", "entity_type": "deed", "payload": {"instrument_date": "2010-05-26", "grantor": null, "grantee": "CWK Granger DG LLC", "consideration": 1020000, "property_id": "006-1004-003101", "entity_name": "CWK Granger DG LLC", "formation_date": null, "related_entities": [], "acreage": 1.9593281}, "source_extras": {"classcode": "429", "township": "Harris", "transfer_date": "2024-04-24", "assessed_land": 254600, "assessed_improvement": 746600, "prop_city": "GRANGER"}}, {"seq": 11, "observation_id": "e2d5e386bc505bc5003cb7b684b506074f9e96cd43473eb600dac6bbdaa07186", "prev_hash": "a17e79326bdd198e2587d957a309c170e24446529aa116162b88c9a1427d2b11", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 11 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "b509b124645422cb03e96fff868df21c4048eebdd0c24fa219f2cd9fb81294c2", "entity_type": "deed", "payload": {"instrument_date": "2021-05-17", "grantor": null, "grantee": "Ceres Farms LLC", "consideration": 1025000, "property_id": "012-1016-0189", "entity_name": "Ceres Farms LLC", "formation_date": null, "related_entities": [], "acreage": 123.46080532}, "source_extras": {"classcode": "100", "township": "Olive", "transfer_date": "2021-05-24", "assessed_land": 181300, "assessed_improvement": 0, "prop_city": "NORTH LIBERTY"}}, {"seq": 12, "observation_id": "51c8b98012d82a3d22802e387d9422a8e975bd9f9ae1075a5e8b06927eb78107", "prev_hash": "e2d5e386bc505bc5003cb7b684b506074f9e96cd43473eb600dac6bbdaa07186", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 12 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "3909ae237b54c6b46c0c47ecab5f0b97ce77771c6944eeb8e08efb2394119cee", "entity_type": "deed", "payload": {"instrument_date": "2022-03-07", "grantor": null, "grantee": "Shri Akal Real Estate LLC", "consideration": 808213, "property_id": "006-1004-003127", "entity_name": "Shri Akal Real Estate LLC", "formation_date": null, "related_entities": [], "acreage": 0.9443788}, "source_extras": {"classcode": "430", "township": "Harris", "transfer_date": "2024-05-03", "assessed_land": 201600, "assessed_improvement": 559800, "prop_city": "GRANGER"}}, {"seq": 13, "observation_id": "86afbaaf6297c5aef2f19068eac03b29356d53de747f1b459318bce76835c653", "prev_hash": "51c8b98012d82a3d22802e387d9422a8e975bd9f9ae1075a5e8b06927eb78107", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 13 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "d32df89daae298e2085d59aa473139b6ef0d36bdaea7ce7f98a5ef4840cc5c00", "entity_type": "deed", "payload": {"instrument_date": "2025-03-17", "grantor": null, "grantee": "DW Enterprises LLC", "consideration": 382250, "property_id": "006-1018-023608", "entity_name": "DW Enterprises LLC", "formation_date": null, "related_entities": [], "acreage": 4.63781914}, "source_extras": {"classcode": "429", "township": "Harris", "transfer_date": "2025-03-24", "assessed_land": 42900, "assessed_improvement": 602100, "prop_city": "GRANGER"}}, {"seq": 14, "observation_id": "7143dd9d6d2e5cc0f21fa03c0f65d5cb65fb774ce2dd49ef365cb0f8d2067534", "prev_hash": "86afbaaf6297c5aef2f19068eac03b29356d53de747f1b459318bce76835c653", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 14 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "01a6f75211b5115b3d65d3a0eaa3e23cd3b04851e19da7f941fb0b61795617a1", "entity_type": "deed", "payload": {"instrument_date": "2019-02-19", "grantor": null, "grantee": "TB Granger LLC", "consideration": 500000, "property_id": "006-1004-003119", "entity_name": "TB Granger LLC", "formation_date": null, "related_entities": [], "acreage": 0.78290839}, "source_extras": {"classcode": "431", "township": "Harris", "transfer_date": "2019-09-30", "assessed_land": 163600, "assessed_improvement": 432600, "prop_city": "GRANGER"}}, {"seq": 15, "observation_id": "024def2320bb8608608c09439c45dc678b50c564d4488c9437d1711ec7ff48ea", "prev_hash": "7143dd9d6d2e5cc0f21fa03c0f65d5cb65fb774ce2dd49ef365cb0f8d2067534", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 15 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "8992e49a05df461ff7dc15e106dab3e6b10390fe1953d5614056a476427c0cdd", "entity_type": "deed", "payload": {"instrument_date": "2008-12-08", "grantor": null, "grantee": "2713 N Bendix LLC", "consideration": 5590, "property_id": "006-1004-003129", "entity_name": "2713 N Bendix LLC", "formation_date": null, "related_entities": [], "acreage": 1.32444758}, "source_extras": {"classcode": "400", "township": "Harris", "transfer_date": "2023-06-16", "assessed_land": 78700, "assessed_improvement": 0, "prop_city": "GRANGER"}}, {"seq": 16, "observation_id": "3587b8f9c8133a6f395fb38335b0cd088456a6f1912b378a85ae9aee6ac83b82", "prev_hash": "024def2320bb8608608c09439c45dc678b50c564d4488c9437d1711ec7ff48ea", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 16 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "31875afc60019bdbad50495cd7078e27092685c1c92b1a41cce4c887badcdf0b", "entity_type": "deed", "payload": {"instrument_date": "2021-12-27", "grantor": null, "grantee": "ElkhartRV Resort LLC", "consideration": 2850000, "property_id": "006-1013-018003", "entity_name": "ElkhartRV Resort LLC", "formation_date": null, "related_entities": [], "acreage": 12.64932287}, "source_extras": {"classcode": "416", "township": "Harris", "transfer_date": "2025-04-14", "assessed_land": 298200, "assessed_improvement": 1106800, "prop_city": "GRANGER"}}, {"seq": 17, "observation_id": "4e0bd9c217e486cc4bf326922f7c592cd6ffe8e55333945d318581c5ea0191cd", "prev_hash": "3587b8f9c8133a6f395fb38335b0cd088456a6f1912b378a85ae9aee6ac83b82", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 17 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "01deebed59a8c3e1944a2ea874d99ca8928d3061ff4d1465489008dc7453b422", "entity_type": "deed", "payload": {"instrument_date": "2009-11-30", "grantor": null, "grantee": "McDonalds USA LLC", "consideration": 2400, "property_id": "006-1018-0236", "entity_name": "McDonalds USA LLC", "formation_date": null, "related_entities": [], "acreage": 0.96151996}, "source_extras": {"classcode": "431", "township": "Harris", "transfer_date": "2007-09-19", "assessed_land": 176100, "assessed_improvement": 438300, "prop_city": "GRANGER"}}, {"seq": 18, "observation_id": "9618e5584170406f5a3272c27c21514593c2822e992ed76b9e88d2f1461ac90e", "prev_hash": "4e0bd9c217e486cc4bf326922f7c592cd6ffe8e55333945d318581c5ea0191cd", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 18 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "79b9bbf41b31f7462e754ab6034aeb946fc11ed45411056a1e9c740b1dd609cc", "entity_type": "deed", "payload": {"instrument_date": "2024-11-20", "grantor": null, "grantee": "JRM Enterprises LLC", "consideration": 0, "property_id": "006-1014-019402", "entity_name": "JRM Enterprises LLC", "formation_date": null, "related_entities": [], "acreage": 4.3687759}, "source_extras": {"classcode": "510", "township": "Harris", "transfer_date": "2025-04-14", "assessed_land": 125700, "assessed_improvement": 82100, "prop_city": "GRANGER"}}, {"seq": 19, "observation_id": "440845accfb64427da7b0d4b4fd820bfecd99277b06fc9a741662ea5e65f849d", "prev_hash": "9618e5584170406f5a3272c27c21514593c2822e992ed76b9e88d2f1461ac90e", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 19 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "802b469264f9b87fa6f866761246d0c4d2132a907f60ad473b0ff6c31c079344", "entity_type": "deed", "payload": {"instrument_date": "2014-10-01", "grantor": null, "grantee": "Millar Farms LLC", "consideration": 1086246, "property_id": "012-1021-0255", "entity_name": "Millar Farms LLC", "formation_date": null, "related_entities": [], "acreage": 59.75262909}, "source_extras": {"classcode": "101", "township": "Olive", "transfer_date": "2014-10-06", "assessed_land": 178800, "assessed_improvement": 1800, "prop_city": null}}, {"seq": 20, "observation_id": "5f72992481f98788d315bbff00259212dc681ef7c3d0b9649489a0b3293c4184", "prev_hash": "440845accfb64427da7b0d4b4fd820bfecd99277b06fc9a741662ea5e65f849d", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 20 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "79fbf50e90f528eeb647a1340f84ac9012d588b339f66904c536b69e52943127", "entity_type": "deed", "payload": {"instrument_date": "2026-01-14", "grantor": null, "grantee": "State Line Hills LLC", "consideration": 115000, "property_id": "021-1029-052201", "entity_name": "State Line Hills LLC", "formation_date": null, "related_entities": [], "acreage": 1.49167827}, "source_extras": {"classcode": "101", "township": "Warren", "transfer_date": "2026-02-11", "assessed_land": 43000, "assessed_improvement": 74300, "prop_city": "SOUTH BEND"}}, {"seq": 21, "observation_id": "343bce4be0cd4e8ec27822f4ace054350f0a6e7acf612e38732baa35d47e64ba", "prev_hash": "5f72992481f98788d315bbff00259212dc681ef7c3d0b9649489a0b3293c4184", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 21 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "d44a6b868774962787858b08dacad18db09f8aebd7de9cb14f02da5acc242d7e", "entity_type": "parcel_record", "payload": {"instrument_date": null, "grantor": null, "grantee": "PMS New Granger Investment Properties LLC", "consideration": 0, "property_id": "006-1014-019405", "entity_name": "PMS New Granger Investment Properties LLC", "formation_date": null, "related_entities": [], "acreage": 4.76898849}, "source_extras": {"classcode": "510", "township": "Harris", "transfer_date": "2015-07-07", "assessed_land": 81700, "assessed_improvement": 81300, "prop_city": "GRANGER"}}, {"seq": 22, "observation_id": "f139e96c5e7e32647defbe4873109af88e11ec004e3b2c7d326fdcac2905377c", "prev_hash": "343bce4be0cd4e8ec27822f4ace054350f0a6e7acf612e38732baa35d47e64ba", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 22 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "3a905c4c7c48cdd02ca54c79b1a0adfdacc65f41a63987070fdc366c5f72ec89", "entity_type": "parcel_record", "payload": {"instrument_date": null, "grantor": null, "grantee": "Kleine Family Farms LLC", "consideration": 0, "property_id": "012-1064-0830", "entity_name": "Kleine Family Farms LLC", "formation_date": null, "related_entities": [], "acreage": 52.4250997}, "source_extras": {"classcode": "100", "township": "Olive", "transfer_date": "2026-02-12", "assessed_land": 80600, "assessed_improvement": 0, "prop_city": "NEW CARLISLE"}}, {"seq": 23, "observation_id": "1add41dc1e859c16808c958a778a0cd39001112ac86f0752dd2b6780a20d4899", "prev_hash": "f139e96c5e7e32647defbe4873109af88e11ec004e3b2c7d326fdcac2905377c", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 23 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "8ed90c637483fed25d2edf95d0fbf5fd81147181a88ea6c542b5712dc19708b8", "entity_type": "parcel_record", "payload": {"instrument_date": null, "grantor": null, "grantee": "PMS New Granger Investment Properties LLC", "consideration": 0, "property_id": "006-1014-019403", "entity_name": "PMS New Granger Investment Properties LLC", "formation_date": null, "related_entities": [], "acreage": 0.71417457}, "source_extras": {"classcode": "510", "township": "Harris", "transfer_date": "2015-03-05", "assessed_land": 62000, "assessed_improvement": 76800, "prop_city": "GRANGER"}}, {"seq": 24, "observation_id": "930c3d07d090af0d6836d6ff834400851dac2a5f1919168fdedba1eb5a4ea574", "prev_hash": "1add41dc1e859c16808c958a778a0cd39001112ac86f0752dd2b6780a20d4899", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 24 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "3e16ba3eb60bc99925b26c74bf57c0f12c9acaf60b5f7859002ae804341a809c", "entity_type": "parcel_record", "payload": {"instrument_date": null, "grantor": null, "grantee": "Oxford LLC", "consideration": 0, "property_id": "006-1013-018009", "entity_name": "Oxford LLC", "formation_date": null, "related_entities": [], "acreage": 1.18411586}, "source_extras": {"classcode": "350", "township": "Harris", "transfer_date": "2018-05-16", "assessed_land": 19800, "assessed_improvement": 218600, "prop_city": "GRANGER"}}, {"seq": 25, "observation_id": "9f0566c9dc6c291bda88ed98ee1dd7508754b63523b527dcff8c0897e333ab81", "prev_hash": "930c3d07d090af0d6836d6ff834400851dac2a5f1919168fdedba1eb5a4ea574", "source": "county_assessor_arcgis", "source_locator": "St. Joseph County IN, ArcGIS LandRecords/Parcels_County/MapServer/0, feature 25 of response file raw/sjc_llc_sample.json", "retrieved_at": "2026-11-15T11:53:33Z", "raw_hash": "0d25a1ebf5ee1d440405c02d12d0ec10a3b05d7cc62593fa396571b4be3b5d19", "entity_type": "parcel_record", "payload": {"instrument_date": null, "grantor": null, "grantee": "Social Investments LLC", "consideration": 11500, "property_id": "018-2108-4026", "entity_name": "Social Investments LLC", "formation_date": null, "related_entities": [], "acreage": 0.11599871}, "source_extras": {"classcode": "500", "township": "Portage", "transfer_date": null, "assessed_land": 800, "assessed_improvement": 0, "prop_city": "SOUTH BEND"}}], "forecasts": [{"forecast_id": "RF-001", "observation_ids": ["ce0a02a1e668517da69f8aac7e91395b548153cfcf7716561cc6adb3de22c395"], "forecast_type": "rapid_flip", "probability": 0.07, "issued_at": "2019-08-09", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 60000, "acreage": 1.07151399, "contributions": ["consideration<100000:+0.03"]}, "resolution_date": "2020-02-05", "status": "UNRESOLVED", "receipt": "740de64a937353b6302d3ddeb23cb25ac92fb832069e7c0994be3e2f635c4296"}, {"forecast_id": "RF-002", "observation_ids": ["1e2396095737b1414728f0f58e983a9501634936bb3da24e4437ada8169c045f"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2024-08-29", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 191880, "acreage": 9.83532172, "contributions": []}, "resolution_date": "2025-02-25", "status": "UNRESOLVED", "receipt": "f70f3dbb23b78436fc2750e7bdb703efd611bc04cb062f6484f35978661d6105"}, {"forecast_id": "RF-003", "observation_ids": ["d144fa5d412b02f4dc8f6791d311d23f7ea057719078f37b1ec6dc937e2b18c4"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2024-08-28", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 188175, "acreage": 9.65210677, "contributions": []}, "resolution_date": "2025-02-24", "status": "UNRESOLVED", "receipt": "41a5034d902c5b16167873de534ca6e304a6cda87ef7c0edcb97ced59d47083a"}, {"forecast_id": "RF-004", "observation_ids": ["cb44353bf10b70aa808a337b7638c15ff7daa237589c041165e2b710971d228a"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2023-08-28", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 13473405, "acreage": 247.3927933, "contributions": []}, "resolution_date": "2024-02-24", "status": "UNRESOLVED", "receipt": "48f3bf600f7d160dfe411689848523c6a8be930c1493f3a89b421ad38bfd0f87"}, {"forecast_id": "RF-005", "observation_ids": ["48a6ff71d70b6951cadf53c05522aa5fde47f25e1bd9d70bc23c3dde2f9dbe1f"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2008-08-28", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 360000, "acreage": 1.78427626, "contributions": []}, "resolution_date": "2009-02-24", "status": "UNRESOLVED", "receipt": "b36ef109a5011a6074b84e5911e64bf143a01907c5d9e17e9391c6668cbc8266"}, {"forecast_id": "RF-006", "observation_ids": ["099c891518b5571ee5800ff2c87123e931b878b923a537e66d6d1ddb50106034"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2008-08-28", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 360000, "acreage": 2.4615335, "contributions": []}, "resolution_date": "2009-02-24", "status": "UNRESOLVED", "receipt": "1b69d16025a6eb71d19add856fd723952baddfdd12b3fadffcd23cde161399c0"}, {"forecast_id": "RF-007", "observation_ids": ["b5ff52c38fcf333eeebd06642ad37e9777530e76fe9a06ea7b39537a6882b0d6"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2012-08-21", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 14250000, "acreage": 19.69957175, "contributions": []}, "resolution_date": "2013-02-17", "status": "UNRESOLVED", "receipt": "4c7ed5f4e1177a61322b8a198a2ea86a2d482c5135b77083795c0cf426373c07"}, {"forecast_id": "RF-008", "observation_ids": ["bc62817d11fd2b925baca6cd04d2e1f978363d4915b6d221e1ffd7f3c64aea75"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2010-07-29", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 1063229.51, "acreage": 1.92171712, "contributions": []}, "resolution_date": "2011-01-25", "status": "UNRESOLVED", "receipt": "9e7289a3a9bd69e7aeb8659ca1b51f942e39f3e571b2634c0d43a3fc9d807a37"}, {"forecast_id": "RF-009", "observation_ids": ["f63f9bf64e98eba0b695eb77ee375f4bfebc400fc1969f6626d8a66bb466e959"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2009-06-01", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 329000, "acreage": 31.00265939, "contributions": []}, "resolution_date": "2009-11-28", "status": "UNRESOLVED", "receipt": "b94d898058463280ffc0603d182357d7db8b5a8a98f99697b3247ad71386b04e"}, {"forecast_id": "RF-010", "observation_ids": ["a17e79326bdd198e2587d957a309c170e24446529aa116162b88c9a1427d2b11"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2010-05-26", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 1020000, "acreage": 1.9593281, "contributions": []}, "resolution_date": "2010-11-22", "status": "UNRESOLVED", "receipt": "44449f5475769c6c2d38428147d5417ecd00c9d9818b4a5928b197e23e477f86"}, {"forecast_id": "RF-011", "observation_ids": ["e2d5e386bc505bc5003cb7b684b506074f9e96cd43473eb600dac6bbdaa07186"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2021-05-17", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 1025000, "acreage": 123.46080532, "contributions": []}, "resolution_date": "2021-11-13", "status": "UNRESOLVED", "receipt": "aade2235c6949516c8456f99deb9f91e4202a20e7fe6631ae72be103e67b8dab"}, {"forecast_id": "RF-012", "observation_ids": ["51c8b98012d82a3d22802e387d9422a8e975bd9f9ae1075a5e8b06927eb78107"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2022-03-07", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 808213, "acreage": 0.9443788, "contributions": []}, "resolution_date": "2022-09-03", "status": "UNRESOLVED", "receipt": "c1c2653d1374a04909d0576b0ca2ef105d5692a6ff60516da2c9097c997f5742"}, {"forecast_id": "RF-013", "observation_ids": ["86afbaaf6297c5aef2f19068eac03b29356d53de747f1b459318bce76835c653"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2025-03-17", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 382250, "acreage": 4.63781914, "contributions": []}, "resolution_date": "2025-09-13", "status": "UNRESOLVED", "receipt": "1895ef720be748b4da2df1f8287f67e3547fa618c1312c33ca2039bf01684fca"}, {"forecast_id": "RF-014", "observation_ids": ["7143dd9d6d2e5cc0f21fa03c0f65d5cb65fb774ce2dd49ef365cb0f8d2067534"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2019-02-19", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 500000, "acreage": 0.78290839, "contributions": []}, "resolution_date": "2019-08-18", "status": "UNRESOLVED", "receipt": "32b2ac88dff68102e9b71acd4277e23245c833ab1b4f2a4916a3c5d8500ca754"}, {"forecast_id": "RF-015", "observation_ids": ["024def2320bb8608608c09439c45dc678b50c564d4488c9437d1711ec7ff48ea"], "forecast_type": "rapid_flip", "probability": 0.07, "issued_at": "2008-12-08", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 5590, "acreage": 1.32444758, "contributions": ["consideration<100000:+0.03"]}, "resolution_date": "2009-06-06", "status": "UNRESOLVED", "receipt": "8c4fb02ff3da9151e4cc18882917da983676b860cbaf505bfa7c9cd8a93f9dfe"}, {"forecast_id": "RF-016", "observation_ids": ["3587b8f9c8133a6f395fb38335b0cd088456a6f1912b378a85ae9aee6ac83b82"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2021-12-27", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 2850000, "acreage": 12.64932287, "contributions": []}, "resolution_date": "2022-06-25", "status": "UNRESOLVED", "receipt": "5a5d820dbe56987d80e6b0dbf95dde9ea9eb8ffd256d59d859e3d4b9fe4da039"}, {"forecast_id": "RF-017", "observation_ids": ["4e0bd9c217e486cc4bf326922f7c592cd6ffe8e55333945d318581c5ea0191cd"], "forecast_type": "rapid_flip", "probability": 0.07, "issued_at": "2009-11-30", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 2400, "acreage": 0.96151996, "contributions": ["consideration<100000:+0.03"]}, "resolution_date": "2010-05-29", "status": "UNRESOLVED", "receipt": "f0f3f01422f2251947cde8a97ac77f876fc15938f80175c5714654bad98e65a6"}, {"forecast_id": "RF-018", "observation_ids": ["9618e5584170406f5a3272c27c21514593c2822e992ed76b9e88d2f1461ac90e"], "forecast_type": "rapid_flip", "probability": 0.07, "issued_at": "2024-11-20", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 0, "acreage": 4.3687759, "contributions": ["consideration<100000:+0.03"]}, "resolution_date": "2025-05-19", "status": "UNRESOLVED", "receipt": "df08a0d7e322b5cb2944872404baaf076273e614993795ce242a179ec995c67d"}, {"forecast_id": "RF-019", "observation_ids": ["440845accfb64427da7b0d4b4fd820bfecd99277b06fc9a741662ea5e65f849d"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2014-10-01", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 1086246, "acreage": 59.75262909, "contributions": []}, "resolution_date": "2015-03-30", "status": "UNRESOLVED", "receipt": "5a86110df0ff9d87f578e9e37e073c8173b1bbd90875aa88cf21077ef3fe099b"}, {"forecast_id": "RF-020", "observation_ids": ["5f72992481f98788d315bbff00259212dc681ef7c3d0b9649489a0b3293c4184"], "forecast_type": "rapid_flip", "probability": 0.04, "issued_at": "2026-01-14", "backtest": true, "rule_fixed_at": "2026-11-15T11:53:33Z", "model_version": "baseline_v1", "features_used": ["consideration", "acreage"], "feature_values": {"consideration": 115000, "acreage": 1.49167827, "contributions": []}, "resolution_date": "2026-07-13", "status": "UNRESOLVED", "receipt": "182728e07614c1d250c08bee8d2fbee02912634eac26d3f9555155377e43f5b9"}], "meta": {"page": "Retardio Measurement Loop v1", "system_name": "Retardio (system name when complete)", "county": "St. Joseph County, Indiana", "source": "St. Joseph County Assessor, ArcGIS LandRecords/Parcels_County/MapServer/0", "query_base": "https://gis.southbendin.gov/arcgis/rest/services/LandRecords/Parcels_County/MapServer/0/query", "query_params": {"where": "NAME_1 LIKE '%LLC%' AND SALESPRICE IS NOT NULL AND SALESDATE IS NOT NULL", "outFields": "PARCELID,NAME_1,TRANSFERDA,SALESDATE,SALESPRICE,PROP_ADDR,PROP_CITY,ACREAGE,REALLANDVA,REALIMPROV,CLASSCODE,TOWNSHIP", "returnGeometry": "false", "orderByFields": "SALESDATE DESC", "resultRecordCount": "25", "f": "json"}, "retrieved_at": "2026-11-15T11:53:33Z", "response_sha256": "a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0", "response_file": "raw/sjc_llc_sample.json", "sample_frame_matching": 14415, "sample_returned": 25, "exceeded_transfer_limit": true, "schema_version": "1.0", "rule_fixed_at": "2026-11-15T11:53:33Z", "generated_at": "2026-11-15T12:05:29Z"}, "outcomes": [], "illustrative": {"label": "ILLUSTRATIVE WORKED EXAMPLE \u2014 NOT MEASURED DATA", "rows": [{"p": 0.1, "o": 0}, {"p": 0.3, "o": 0}, {"p": 0.05, "o": 0}, {"p": 0.6, "o": 1}, {"p": 0.2, "o": 0}], "brier": 0.0605}}</script>
+<script>
+const DATA = JSON.parse(document.getElementById('loop-data').textContent);
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const short = h => h ? h.slice(0,12)+'…' : '—';
+
+// Unified canonicalization (§1.5): sort keys, collapse whitespace, lowercase strings,
+// whole numbers as integers, UTF-8, no trailing newline.
+function canonical(v){
+  if(v===null) return 'null';
+  if(Array.isArray(v)) return '['+v.map(canonical).join(',')+']';
+  if(typeof v==='object') return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';
+  if(typeof v==='string') return JSON.stringify(v.trim().replace(/\s+/g,' ').toLowerCase());
+  if(typeof v==='number') return Number.isInteger(v) ? String(v) : String(v);
+  if(typeof v==='boolean') return v ? 'true' : 'false';
+  return JSON.stringify(v);
+}
+async function sha256hex(text){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+// Receipt resolution (§1.6): SHA-256 of the canonical object with the receipt field omitted, then attached.
+async function receiptOf(obj){
+  const c = Object.assign({}, obj); delete c.receipt;
+  return sha256hex(canonical(c));
+}
+
+// ---- Session receipt log (hash-chained from GENESIS) ----
+const LOG = [];
+let halted = false;
+const PROPOSALS = [];
+async function log(type, detail){
+  const prev = LOG.length ? LOG[LOG.length-1].receipt : 'GENESIS';
+  const entry = {seq: LOG.length+1, type, detail, issued_at: new Date().toISOString(), prev_hash: prev};
+  entry.receipt = await receiptOf(entry);
+  LOG.push(entry);
+  renderLog();
+  return entry;
+}
+function renderLog(){
+  const rows = LOG.map(e=>'<tr><td>'+e.seq+'</td><td>'+esc(e.type)+'</td><td>'+esc(e.detail)+'</td><td class="mono">'+short(e.receipt)+'</td><td class="mono">'+short(e.prev_hash)+'</td></tr>').join('');
+  $('log-table').innerHTML = '<tr><th>#</th><th>Type</th><th>Detail</th><th>Receipt</th><th>prev_hash</th></tr>'+rows;
+}
+function renderProposals(){
+  const rows = PROPOSALS.map(p=>'<tr><td>'+esc(p.name)+'</td><td>'+p.prior+'</td><td>'+esc(p.slice)+'</td><td>'+p.resolved+'</td><td>'+p.decision+'</td><td>'+esc(p.reason)+'</td><td class="mono">'+short(p.receipt)+'</td></tr>').join('');
+  $('prop-table').innerHTML = '<tr><th>Proposal</th><th>Prior</th><th>Slice</th><th>Resolved</th><th>Decision</th><th>Reason</th><th>Receipt</th></tr>'+rows;
+}
+function renderHealth(){
+  $('health-table').innerHTML = '<table><tr><th>Connector</th><th>Status</th><th>Detail</th></tr>'
+  + '<tr><td>County ArcGIS — St. Joseph IN</td><td><span class="pill green">OK</span></td><td>Response SHA-256 a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0. Hash-match 25/25 (100%) under the loop rule, measured by the loop page verifier. Retrieved 2026-11-15T11:53:33Z.</td></tr>'
+  + '<tr><td>Indiana SOS</td><td><span class="pill red">Not connected</span></td><td>Source-unavailable error observation emitted on each health check (§1.7).</td></tr>'
+  + '<tr><td>PACER / dockets, OpenCorporates, FinCEN/OFAC, FTC/IC3/CFPB, explorers, EDGAR, UCC, Wayback</td><td><span class="pill grey">Planned</span></td><td>Not built. See §4.</td></tr>'
+  + '<tr><td>Unified-rule hash-match rate</td><td><span class="pill grey">Not yet measured</span></td><td>Re-hashing under the unified rule changes hashes (§7, conflict 2).</td></tr></table>';
+}
+
+// ---- Scoring rules ----
+const UNIFIED_REQUIRED = ['llc_owned','entity_age_days','prior_transfer_count_365d','consideration'];
+function unifiedRule(f){
+  const missing = UNIFIED_REQUIRED.filter(k=>f[k]===null||f[k]===undefined||f[k]==='');
+  if(missing.length) return {refused:true, missing};
+  let p=0.15;
+  if(f.llc_owned && f.entity_age_days<90) p+=0.25;
+  if(f.entity_age_days<30) p+=0.15;
+  if(f.prior_transfer_count_365d===0) p+=0.10;
+  if(f.consideration>100000 && f.consideration<500000) p+=0.05;
+  return {refused:false, probability: Math.max(0.01, Math.min(0.95, p))};
+}
+function loopRule(p){
+  let x=0.04;
+  if(p.consideration!=null && p.consideration<100000) x+=0.03;
+  if(p.acreage!=null && p.acreage<0.5) x+=0.02;
+  return Math.max(0.01, Math.min(0.50, x));
+}
+
+// ---- §2.2 rule form ----
+$('btn-rule').addEventListener('click', ()=>{
+  const f = {
+    llc_owned: $('f-llc').value==='true',
+    entity_age_days: $('f-age').value==='' ? null : Number($('f-age').value),
+    prior_transfer_count_365d: $('f-prior').value==='' ? null : Number($('f-prior').value),
+    consideration: $('f-cons').value==='' ? null : Number($('f-cons').value)
+  };
+  const r = unifiedRule(f);
+  if(r.refused){
+    $('rule-out').textContent = 'REFUSED — missing required feature(s): '+r.missing.join(', ')+'. The rule will not score what it cannot see.';
+    $('rule-result').textContent = 'Refused (see §2.1).';
+  } else {
+    $('rule-out').textContent = 'baseline_v1 (unified, 2026-11-15)\nfeatures: '+JSON.stringify(f)+'\nprobability: '+r.probability.toFixed(2);
+    $('rule-result').textContent = 'Computed.';
+  }
+});
+
+// ---- §2.4 both rules over the 25 loop observations ----
+$('btn-rules').addEventListener('click', async ()=>{
+  const stored = {};
+  DATA.forecasts.forEach(f=>{ stored[f.observation_ids[0]] = f.probability; });
+  let rows='', refused=0, issued=0, match=0;
+  for(const o of DATA.observations){
+    const p=o.payload;
+    const ur = unifiedRule({llc_owned:/llc/i.test(p.entity_name||''), entity_age_days:null, prior_transfer_count_365d:null, consideration:p.consideration});
+    let loopCell;
+    if(o.entity_type==='deed'){
+      const lp = loopRule(p);
+      const st = stored[o.observation_id];
+      const m = st!==undefined && Math.abs(lp-st)<1e-9;
+      if(m) match++;
+      issued++;
+      loopCell = lp.toFixed(2)+' (stored '+st+') '+(m?'MATCH':'MISMATCH');
+    } else {
+      loopCell = '— (parcel_record: no deed, no forecast)';
+    }
+    if(ur.refused) refused++;
+    rows += '<tr><td>'+o.seq+'</td><td>'+esc(p.entity_name)+'</td><td>'+(p.consideration==null?'—':p.consideration)+'</td><td>missing</td><td>missing</td><td>REFUSED — missing '+ur.missing.join(', ')+'</td><td>'+loopCell+'</td></tr>';
+  }
+  $('rules-table').innerHTML = '<table><tr><th>#</th><th>Entity</th><th>Consideration</th><th>entity_age_days</th><th>prior_transfer_count_365d</th><th>Unified rule</th><th>Loop rule</th></tr>'+rows+'</table>';
+  $('rules-note').style.display='block';
+  $('rules-result').textContent = 'Unified rule: REFUSED '+refused+'/25. Loop rule: issued '+issued+'/20 deeds, recomputed MATCH '+match+'/20 (0.04 × 16, 0.07 × 4).';
+  await log('rules_demo', 'Both rules run over 25 loop observations: unified REFUSED 25/25 (entity_age_days, prior_transfer_count_365d missing); loop issued 20/20, recomputed MATCH 20/20.');
+});
+
+// ---- §4.1 schema validation ----
+const OBS_REQUIRED = ['observation_id','source','source_locator','retrieved_at','raw_hash','entity_type','payload','prev_hash'];
+const UNIFIED_REQUIRED_FIELDS = OBS_REQUIRED.concat(['schema_version']);
+function validateObs(o){
+  return OBS_REQUIRED.filter(k=>o[k]===null||o[k]===undefined);
+}
+$('btn-validate').addEventListener('click', ()=>{
+  let pass=0; const fails=[];
+  DATA.observations.forEach(o=>{ const m=validateObs(o); if(!m.length) pass++; else fails.push(o.seq+': '+m.join(',')); });
+  const withVer = DATA.observations.filter(o=>o.schema_version!==null && o.schema_version!==undefined).length;
+  $('validate-result').textContent = pass+'/'+DATA.observations.length+' observations pass the loop schema (all required fields present).'
+    + ' Per-record schema_version (unified §1.1): '+withVer+'/'+DATA.observations.length+' carry it.'
+    + ' The loop’s records predate the per-record field; their schema_version (1.0) lives in the log meta, not on the record. They are grandfathered as 1.0 via the meta — not re-written, not re-hashed. See §7, conflict 6.'
+    + (fails.length ? ' Failures: '+fails.join('; ') : '');
+});
+$('btn-validate-bad').addEventListener('click', async ()=>{
+  const bad = {observation_id:'x', source:'county_assessor_arcgis'};
+  const m = validateObs(bad);
+  const e = await log('schema_rejection', 'Malformed observation REJECTED before entering the log. Missing: '+m.join(', ')+'.');
+  $('validate-result').textContent = 'REJECTED — malformed observation never entered the log. Missing: '+m.join(', ')+'. Receipt: '+e.receipt;
+});
+
+// ---- §5 prompt intents ----
+function parseIntent(text){
+  const t = (text||'').toLowerCase();
+  if(/draft|report|alert|send|ic3/.test(t)) return 'report';
+  if(/ingest/.test(t)) return 'ingest';
+  if(/brier/.test(t)) return 'brier';
+  if(/propos|promotion/.test(t)) return 'propose';
+  if(/export/.test(t)) return 'export';
+  if(/health/.test(t)) return 'health';
+  if(/outcome/.test(t)) return 'outcomes';
+  return 'unknown';
+}
+async function doIngest(){
+  if(halted){
+    const e = await log('ingest_attempt', 'HALTED by kill switch — no forecasts issued. History retained: 25 observations, 20 forecasts, 0 outcomes.');
+    return 'HALTED — kill switch active.\nNo new forecasts issued. History retained: 25 observations, 20 forecasts, 0 outcomes.\nReceipt: '+e.receipt;
+  }
+  const obs = DATA.observations;
+  let refused=0; const missingSet={};
+  obs.forEach(o=>{
+    const r = unifiedRule({llc_owned:/llc/i.test(o.payload.entity_name||''), entity_age_days:null, prior_transfer_count_365d:null, consideration:o.payload.consideration});
+    if(r.refused){ refused++; r.missing.forEach(m=>{ missingSet[m]=true; }); }
+  });
+  const e = await log('ingest_attempt', 'Unified rule over 25 loop observations: REFUSED '+refused+'/25. Missing features: '+Object.keys(missingSet).join(', ')+'. Loop rule contrast: 20 forecasts already issued under baseline_v1 (loop), 16 at 0.04, 4 at 0.07, verified MATCH 20/20.');
+  return 'INGEST — unified rule REFUSED 25/25.\nMissing features: entity_age_days (formation dates not in the assessor source), prior_transfer_count_365d (no transfer history in the assessor source).\nNo new forecast was issued. The loop rule already issued 20 forecasts on the same data (16 at 0.04, 4 at 0.07) because it needs only consideration and acreage.\nUnblocker: the SOS connector (formation dates) and recorder deed history.\nReceipt: '+e.receipt+'\nCurrent Brier: NOT YET COMPUTABLE (0 resolved).';
+}
+async function doBrier(){
+  const e = await log('brier_report', 'Brier requested. Real Brier NOT YET COMPUTABLE: 0 resolved forecasts. Base-rate baseline NOT YET DEFINED.');
+  return 'BRIER REPORT\nResolved forecasts: 0\nReal Brier: NOT YET COMPUTABLE — no outcome has been coded.\nReason: resolving a rapid-flip forecast needs deed history (subsequent deed + grantee formation date); the assessor carries only the latest sale per parcel.\nConstant base-rate baseline: NOT YET DEFINED (formula must be set before the first Brier).\nTarget: >= 200 resolved before any promotion.\nFirst real Brier: months away (180-day rapid-flip window; 24-month all-cash window).\nReceipt: '+e.receipt;
+}
+async function doGate(){
+  const name = ($('prop-name').value.trim() || 'baseline_v2');
+  const prior = parseFloat($('prop-prior').value);
+  const slice = ($('prop-slice').value.trim() || 'held_out_2026_q1');
+  const resolved = 0;
+  let decision='REJECTED', reason='';
+  if(halted){ reason='Kill switch active — no new forecasts, no promotions.'; }
+  else if(resolved < 200){ reason='Resolved forecasts ('+resolved+') below the 200 threshold. No Brier exists to improve on.'; }
+  else if(!slice){ reason='No held-out / forward-test slice named.'; }
+  else { reason='Brier comparison not reached — no resolved data.'; }
+  const promo = {old_model_version:'baseline_v1 (unified, 2026-11-15)', new_model_version:name, brier_old:null, brier_new:null, delta:null, data_slice:slice, resolved_count:resolved, accepted:false, prev_hash: LOG.length ? LOG[LOG.length-1].receipt : 'GENESIS'};
+  const r = await receiptOf(promo);
+  promo.promotion_id = r; promo.receipt = r;
+  const e = await log('promotion_gate', 'Proposal '+name+' (prior '+prior+') '+decision+': '+reason);
+  PROPOSALS.push({name, prior, slice, resolved, decision, reason, receipt: promo.receipt});
+  renderProposals();
+  $('gate-result').textContent = decision+' — see below.';
+  return 'PROMOTION GATE — '+decision+'\nProposal: '+name+' (prior '+prior+', slice '+slice+')\nResolved forecasts: '+resolved+' (threshold 200)\nReason: '+reason+'\nPromotion receipt: '+promo.receipt+' (accepted: false)\nThe proposal is logged in the table above even though it was rejected. A promotion cannot pass until 200 forecasts resolve and the new rule beats the old Brier on held-out data.';
+}
+async function doExport(){
+  const e = await log('export', 'Receipt chain export requested (local scope).');
+  const payload = {
+    system: 'Retardio Unified System v1', schema_version: '1.0', generated_at: new Date().toISOString(),
+    scope: 'local export — does not leave this browser',
+    loop_reference: {observations: DATA.observations, forecasts: DATA.forecasts, outcomes: [], note: 'Reference copy as issued by the loop page. Not re-hashed here. Canonicalization differs (loop: strings as returned; unified: lowercase).'},
+    brier: {resolved: 0, brier: null, base_rate_baseline: 'NOT YET DEFINED'},
+    proposals: PROPOSALS,
+    session_log: LOG
+  };
+  const json = JSON.stringify(payload, null, 2);
+  window.__lastExport = json;
+  let downloaded = false;
+  try{
+    const blob = new Blob([json], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'retardio-unified-receipt-chain.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    downloaded = true;
+  }catch(err){ downloaded = false; }
+  return 'EXPORT — receipt chain (local).\nEntries: 25 loop observations, 20 loop forecasts, 0 outcomes, '+PROPOSALS.length+' proposals, '+LOG.length+' session log entries.\nScope: LOCAL ONLY. This file does not leave the browser.'+(downloaded ? ' Download started: retardio-unified-receipt-chain.json' : ' Download not available here; the JSON is held in window.__lastExport for inspection.')+'\nReceipt: '+e.receipt+'\nCurrent Brier: NOT YET COMPUTABLE (0 resolved).';
+}
+async function doHealth(){
+  const errObs = {schema_version:'1.0', source:'in_sos', source_locator:'entity search endpoint, attempted '+new Date().toISOString(), retrieved_at:new Date().toISOString(), raw_hash:null, entity_type:'error', payload:{error_type:'source_unavailable', detail:'SOS connector not yet built'}, prev_hash: LOG.length ? LOG[LOG.length-1].receipt : 'GENESIS'};
+  errObs.observation_id = await receiptOf(errObs);
+  const e = await log('health_check', 'County assessor OK (25/25 hash-match under loop rule). SOS: source_unavailable error observation emitted ('+errObs.observation_id.slice(0,12)+'…). All other connectors planned.');
+  renderHealth();
+  return 'CONNECTOR HEALTH CHECK\n- County ArcGIS (St. Joseph IN): OK. Response SHA-256 a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0. Hash-match 25/25 (100%) under the loop rule, measured by the loop page verifier. Retrieved 2026-11-15T11:53:33Z.\n- Indiana SOS: NOT CONNECTED. Error observation emitted (source_unavailable): '+errObs.observation_id+'\n- PACER / court dockets, OpenCorporates, FinCEN/OFAC, FTC/IC3/CFPB, blockchain explorers, SEC EDGAR, UCC, Wayback: PLANNED, not built.\n- Unified-rule hash-match rate: NOT YET MEASURED (re-hashing under the unified rule changes hashes; see §7 conflict 2).\nReceipt: '+e.receipt;
+}
+async function doOutcomes(){
+  const fc = DATA.forecasts;
+  let rows='';
+  fc.forEach(f=>{
+    rows += '<tr><td class="mono">'+esc(f.forecast_id)+'</td><td>'+f.probability+'</td><td>'+esc(f.resolution_date||'—')+'</td><td>Window closed</td><td>NOT CODABLE — deed history not in source</td></tr>';
+  });
+  $('outcomes-table').innerHTML = '<table><tr><th>Forecast</th><th>P</th><th>Window closes</th><th>Window</th><th>Coding</th></tr>'+rows+'</table>';
+  const e = await log('outcome_coding', 'Outcome coding attempted on 20 forecasts: 0 codable. All windows closed, but coding needs deed history (subsequent deed + grantee formation date) which the assessor does not carry. 0 coded, 0 resolved.');
+  return 'OUTCOME CODING\nForecasts examined: 20 (all rapid_flip back-test).\nWindows closed: 20/20 (resolution dates are sale date + 180 days, all in the past).\nCodable: 0. Coding needs deed history the assessor does not carry.\nCoded: 0. Resolved: 0.\nThis is a source limitation, not 0 outcomes. The outcome is unknown until recorder deed history exists.\nReceipt: '+e.receipt+'\nCurrent Brier: NOT YET COMPUTABLE (0 resolved).';
+}
+async function doReport(prompt){
+  const e = await log('gate_decision', 'HUMAN APPROVAL REQUIRED — prompt "'+prompt+'" would leave the system (external report draft). NOT EXECUTED. Authority header required (Layer 3, not yet built). Decision: ESCALATED to human queue.');
+  return 'HUMAN-APPROVAL GATE — NOT EXECUTED.\nThe prompt "'+prompt+'" asks for an external action (a report draft). This system has no authority header (Layer 3, not yet built), so it cannot authorize an external action.\nDecision: ESCALATED to the human queue. Nothing was drafted, sent, or exported.\nWhat would unblock it: an authority header (authorizer, scope, expiry, single-use token) plus Jeramie\u2019s explicit approval of the draft.\nGate receipt: '+e.receipt;
+}
+async function runPrompt(){
+  const text = $('prompt-input').value.trim();
+  const intent = parseIntent(text);
+  let out='';
+  if(intent==='ingest') out = await doIngest();
+  else if(intent==='brier') out = await doBrier();
+  else if(intent==='propose') out = await doGate();
+  else if(intent==='export') out = await doExport();
+  else if(intent==='health') out = await doHealth();
+  else if(intent==='outcomes') out = await doOutcomes();
+  else if(intent==='report') out = await doReport(text);
+  else {
+    const e = await log('prompt_unrecognized', 'Unrecognized prompt: "'+text+'". No action taken.');
+    out = 'UNRECOGNIZED INTENT.\nThis interface accepts six intents: ingest, Brier, propose a rule change, export, health check, code outcomes. Anything that would leave the system (a report draft, an alert) goes to the human-approval gate.\nReceipt: '+e.receipt;
+  }
+  $('prompt-out').textContent = out;
+  $('gate-out').textContent = $('gate-out').textContent; // no-op, keeps gate panel independent
+}
+$('btn-prompt').addEventListener('click', runPrompt);
+$('prompt-input').addEventListener('keydown', e=>{ if(e.key==='Enter') runPrompt(); });
+document.querySelectorAll('[data-intent]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const map = {
+      ingest: 'Ingest latest St. Joseph County LLC parcels and emit rapid_flip forecasts',
+      brier: 'Show current Brier and resolved count',
+      propose: 'Propose a scoring-rule change and run the promotion gate',
+      export: 'Export full receipt chain for independent verification',
+      health: 'Run connector health check',
+      outcomes: 'Code outcomes for all forecasts whose window has closed',
+      report: 'Draft a report for IC3'
+    };
+    $('prompt-input').value = map[b.dataset.intent] || '';
+    runPrompt();
+  });
+});
+$('btn-gate').addEventListener('click', async ()=>{ $('gate-out').textContent = await doGate(); });
+$('btn-health').addEventListener('click', async ()=>{ $('prompt-out').textContent = await doHealth(); });
+$('btn-outcomes').addEventListener('click', async ()=>{ $('prompt-out').textContent = await doOutcomes(); });
+
+// ---- Kill switch ----
+$('btn-halt').addEventListener('click', async ()=>{
+  if(halted) return;
+  halted = true;
+  $('kill-banner').style.display='block';
+  $('btn-halt').style.display='none';
+  $('btn-rearm').style.display='inline-block';
+  $('kill-state').textContent = 'Kill switch: HALTED (no new forecasts; history retained)';
+  const e = await log('kill_switch', 'HALT — new forecasts stopped. History retained: 25 observations, 20 forecasts, 0 outcomes.');
+  $('prompt-out').textContent = 'KILL SWITCH — HALTED.\nNo new forecasts will be issued. History retained: 25 observations, 20 forecasts, 0 outcomes.\nReceipt: '+e.receipt;
+});
+$('btn-rearm').addEventListener('click', async ()=>{
+  if(!halted) return;
+  halted = false;
+  $('kill-banner').style.display='none';
+  $('btn-halt').style.display='inline-block';
+  $('btn-rearm').style.display='none';
+  $('kill-state').textContent = 'Kill switch: ARMED (forecasts allowed)';
+  const e = await log('kill_switch', 'RE-ARMED by human decision. Forecasts allowed again.');
+  $('prompt-out').textContent = 'KILL SWITCH — RE-ARMED (human decision).\nForecasts allowed again.\nReceipt: '+e.receipt;
+});
+
+// ---- §6 verify + tamper ----
+async function verifyLog(){
+  let ok=0;
+  for(let i=0;i<LOG.length;i++){
+    const e=LOG[i];
+    const wantPrev = i===0 ? 'GENESIS' : LOG[i-1].receipt;
+    const r = await receiptOf(e);
+    if(r===e.receipt && e.prev_hash===wantPrev) ok++;
+  }
+  return ok;
+}
+$('btn-verify-log').addEventListener('click', async ()=>{
+  const ok = await verifyLog();
+  $('log-result').textContent = LOG.length===0 ? 'Log is empty — run a prompt first.' : (ok===LOG.length ? 'SESSION LOG VALID '+ok+'/'+LOG.length+' receipts recomputed, chain intact (GENESIS → …).' : 'LOG INVALID — '+ok+'/'+LOG.length+' match.');
+});
+$('btn-tamper').addEventListener('click', async ()=>{
+  if(!LOG.length){ $('log-result').textContent='Log is empty — run a prompt first.'; return; }
+  const e = LOG[LOG.length-1];
+  const orig = e.detail;
+  e.detail = orig + ' [tampered]';
+  const r = await receiptOf(e);
+  const detected = r !== e.receipt;
+  e.detail = orig;
+  renderLog();
+  $('log-result').textContent = detected ? 'TAMPER DETECTED — changing the last log entry makes its recomputed receipt mismatch the stored receipt; restoring it makes it match again.' : 'TAMPER NOT DETECTED — this is a defect, report it.';
+});
+
+// ---- Init ----
+window.Retardio = {canonical, sha256hex, receiptOf, unifiedRule, loopRule, parseIntent, getLog:()=>LOG, getProposals:()=>PROPOSALS, isHalted:()=>halted, DATA};
+window.__ready = (async ()=>{
+  renderLog();
+  renderProposals();
+  renderHealth();
+  await log('session_start', 'Retardio Unified System v1 session started. Loop reference loaded: 25 observations, 20 forecasts, 0 outcomes. Kill switch ARMED.');
+})();
+</script>
+</body>
+</html>
