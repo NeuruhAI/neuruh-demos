@@ -284,6 +284,9 @@ function setInputs(p) {
   $('in-ew').value = p.ew;
   $('in-cv').value = p.cv;
   $('in-accuracy').value = p.accuracy;
+  /* Assignment-time rounding: a preset writes through the same step-implied
+   * rounding as a calc or a change, so no assignment path bypasses it. */
+  normalizeInputs();
 }
 
 async function emitReceipt(kind, detail) {
@@ -436,6 +439,10 @@ function renderReceipts() {
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', function () {
     renderReceipts();
+    /* Load-time normalization: the HTML defaults are already clean; this
+     * closes the assignment-time pattern so every value the page ever
+     * holds in a number input has passed step-implied rounding. */
+    normalizeInputs();
     $('run-eta').addEventListener('click', runEta);
     $('preset-strong').addEventListener('click', function () { runPreset('strong'); });
     $('preset-fabricated').addEventListener('click', function () { runPreset('fabricated'); });
@@ -447,6 +454,9 @@ if (typeof document !== 'undefined') {
         normalizeInputs();
         var calc = computeEta(num('in-iq'), num('in-ir'), num('in-iv'), intNum('in-ew'), intNum('in-cv'));
         $('in-qeta').value = calc.eta;
+        /* Assignment-time rounding: the written-back eta passes the same
+         * step-implied rounding as every other assignment. */
+        roundStepValue($('in-qeta'));
       } catch (e) {
         $('qubit-output').innerHTML = '<p class="fail">Error: ' + esc(e.message) + '</p>';
       }
