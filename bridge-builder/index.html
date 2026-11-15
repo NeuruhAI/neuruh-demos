@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Bridge Builder — Replicate a bridge for any public official</title>
+<style id="bridge-css">
+:root{--bone:#f4f1ea;--paper:#fbf9f4;--ink:#1a1712;--ink2:#4a4438;--brass:#9a7b2d;--brass2:#c8a24a;--red:#8b1e1e;--redbg:#f7e6e2;--green:#1f6b3a;--amber:#8a6d00;--line:#d8d2c2}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+h1,h2,h3{font-family:Archivo,Inter,system-ui,sans-serif;letter-spacing:-.01em}
+h1{font-size:2.1rem;line-height:1.1;margin:.2em 0}
+h2{font-size:1.35rem;border-bottom:2px solid var(--brass);padding-bottom:.3em;margin:2.2em 0 .8em}
+h3{font-size:1.05rem;margin:1.4em 0 .4em}
+p{margin:.5em 0}
+a{color:#6b5316}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.92em}
+.wrap{max-width:1020px;margin:0 auto;padding:0 20px 60px}
+.dochead{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:14px 0 10px;font-size:.82rem;color:var(--ink2)}
+.dochead b{color:var(--ink)}
+.correction{background:var(--redbg);border:2px solid var(--red);border-radius:8px;padding:16px 18px;margin:18px 0}
+.correction h2{border:none;margin:0 0 .4em;font-size:1.15rem;color:var(--red)}
+.correction p{margin:.35em 0}
+.scoreboard{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.sb{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.sb .n{font-family:Archivo,sans-serif;font-size:1.5rem;font-weight:800}
+.sb .l{font-size:.78rem;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+.sb.red .n{color:var(--red)}
+.kicker{font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.sub{color:var(--ink2);font-size:1.05rem}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:12px 0}
+blockquote{margin:.6em 0;padding:10px 14px;border-left:4px solid var(--brass);background:#f6f1e2;font-size:.98rem}
+blockquote p{margin:.3em 0}
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{display:grid;grid-template-columns:110px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid var(--line)}
+.timeline .d{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:.88rem;white-space:nowrap}
+.statute{border:2px solid var(--ink);border-radius:8px;padding:18px;margin:16px 0;background:var(--paper)}
+.statute h3{margin-top:0;font-size:1.2rem}
+.statute .tag{display:inline-block;background:var(--ink);color:var(--bone);padding:2px 8px;border-radius:4px;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+.elements{margin:.6em 0 .2em;padding-left:1.2em}
+.elements li{margin:.3em 0}
+.pen{width:100%;border-collapse:collapse;margin:.6em 0;font-size:.92rem}
+.pen th,.pen td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+.pen th{background:#efe9d8}
+.toggle{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.toggle button{font-family:Archivo,sans-serif;font-weight:700;font-size:.9rem;padding:9px 16px;border:2px solid var(--ink);border-radius:6px;background:var(--paper);color:var(--ink);cursor:pointer}
+.toggle button[aria-pressed="true"]{background:var(--ink);color:var(--bone)}
+table.bridge{width:100%;border-collapse:collapse;font-size:.92rem;margin:10px 0}
+table.bridge th,table.bridge td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+table.bridge th{background:var(--ink);color:var(--bone)}
+table.bridge tr.dir-a td:first-child{border-left:5px solid #1f4e79}
+table.bridge tr.dir-b td:first-child{border-left:5px solid #7a4a12}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:700;letter-spacing:.05em;white-space:nowrap}
+.badge.alleged{background:#e8eefc;color:#1f4e79}
+.badge.contested{background:#fdf0d3;color:var(--amber)}
+.badge.notest{background:#f3e2e2;color:var(--red)}
+.badge.established{background:#e2f0e4;color:var(--green)}
+.checklist{list-style:none;padding:0;margin:.4em 0}
+.checklist li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line)}
+.checklist input{margin-top:4px;width:18px;height:18px;accent-color:var(--brass)}
+.checklist .st{margin-left:auto;flex-shrink:0}
+.progress{font-family:"JetBrains Mono",monospace;font-weight:700}
+.sources{font-size:.92rem}
+.sources li{margin:.45em 0;word-break:break-word}
+footer{border-top:2px solid var(--ink);margin-top:40px;padding-top:14px;font-size:.88rem;color:var(--ink2)}
+.note{font-size:.88rem;color:var(--ink2)}
+@media (max-width:640px){.scoreboard{grid-template-columns:1fr 1fr}.timeline li{grid-template-columns:1fr}.timeline .d{margin-bottom:2px}}
+@media print{body{background:#fff}.correction{break-inside:avoid}.card,.statute{break-inside:avoid}}
+</style>
+<style id="builder-css">
+label{display:block;font-size:.85rem;font-weight:700;margin:14px 0 4px;color:var(--ink)}
+label .hint{font-weight:400;color:var(--ink2)}
+input[type=text],input[type=number],textarea,select{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit;font-size:.95rem;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+.rowitem{border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:10px 0;background:var(--paper)}
+.rowitem .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rowitem .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+.btnrow button,.addbtn{font-family:Archivo,sans-serif;font-weight:700;font-size:.92rem;padding:10px 18px;border:2px solid var(--ink);border-radius:6px;background:var(--ink);color:var(--bone);cursor:pointer}
+.btnrow button.secondary,.addbtn{background:var(--paper);color:var(--ink)}
+.btnrow button:disabled{opacity:.45;cursor:not-allowed}
+.addbtn{padding:7px 14px;font-size:.85rem;margin-top:6px}
+.rmbtn{background:none;border:1px solid var(--red);color:var(--red);border-radius:6px;padding:5px 12px;font-size:.82rem;font-weight:700;cursor:pointer;margin-top:8px}
+#validation{margin:14px 0}
+#validation .err{background:#f7e6e2;border:2px solid var(--red);border-radius:8px;padding:12px 16px;color:var(--red);font-weight:700}
+#validation .warn{background:#fdf0d3;border:2px solid var(--amber);border-radius:8px;padding:12px 16px}
+#validation .ok{background:#e2f0e4;border:2px solid var(--green);border-radius:8px;padding:12px 16px}
+#preview{width:100%;height:640px;border:2px solid var(--ink);border-radius:8px;background:#fff}
+.statblock{border:2px solid var(--ink);border-radius:8px;padding:14px 16px;margin:12px 0;background:var(--paper)}
+.checkline{display:flex;align-items:center;gap:8px}
+.checkline input{width:18px;height:18px;accent-color:var(--brass)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="dochead">
+  <div><b>THE BRIDGE BUILDER</b> &middot; One case in, one bridge out</div>
+  <div>Document date: 2026-11-15 &middot; Browser-local &middot; No data leaves the page</div>
+</div>
+
+<p class="kicker">Retardio &middot; The Bridge &middot; Replicable for any public official</p>
+<h1>The Bridge Builder</h1>
+<p class="sub">Fill in a case and generate a bridge page with the same structure as the Reitz&ndash;Blumenthal bridge: correction banner, cast, timeline, statutes, the allegation map with a perspective toggle, a computed honest tally, the "what would have to be proven" checklists, counter-arguments, and sources. The form is preloaded with the Reitz&ndash;Blumenthal case so you can see it working immediately, then change any field and generate a new bridge.</p>
+
+<div class="card">
+<h3>Honesty rules, baked in</h3>
+<p><b>Allegations are allegations.</b> Every claim on a generated bridge is labeled ALLEGED, CONTESTED, NOT ESTABLISHED, or ESTABLISHED, and attributed to its source. No one is declared guilty. The tally is computed from the element statuses you set in &sect;9, never hardcoded.</p>
+<p><b>The generator refuses to build a bridge with no allegation and no sources.</b> If the allegation map is empty or the source list is empty, generation stops and the error tells you what is missing.</p>
+<p><b>ESTABLISHED is a high bar.</b> If you mark an element ESTABLISHED without any evidence or source, the generator warns you before it builds. An element is established only when the public record proves it, not when a side asserts it.</p>
+<p><b>The labeling is fixed.</b> Every generated bridge carries: "ALLEGATION MAP, not a finding. No one has been charged. No court has ruled." unless you supply verified charges or rulings in &sect;1, in which case the scoreboard shows them and the labeling updates to match.</p>
+</div>
+
+<div class="btnrow">
+  <button type="button" id="btn-generate">Generate bridge</button>
+  <button type="button" id="btn-download" class="secondary" disabled>Download bridge HTML</button>
+  <button type="button" id="btn-example" class="secondary">Load Reitz&ndash;Blumenthal example</button>
+  <button type="button" id="btn-clear" class="secondary">Clear form</button>
+</div>
+<div id="validation"></div>
+
+<h2>1. The case</h2>
+<label>Case title <span class="hint">&mdash; e.g. "Reitz&ndash;Blumenthal". Used in the page title and heading.</span>
+<input type="text" id="f-title"></label>
+<label>Document date <span class="hint">&mdash; e.g. 2026-11-15.</span>
+<input type="text" id="f-docdate"></label>
+<label>Subtitle <span class="hint">&mdash; one or two sentences saying what the case is about.</span>
+<textarea id="f-subtitle"></textarea></label>
+<div class="rowitem"><div class="grid2">
+<div><label>Charges filed against anyone <span class="hint">&mdash; number. 0 unless charges are verified.</span>
+<input type="number" id="f-charges" min="0" value="0"></label></div>
+<div><label>Court rulings on any of this <span class="hint">&mdash; number. 0 unless a ruling is verified.</span>
+<input type="number" id="f-rulings" min="0" value="0"></label></div>
+</div></div>
+
+<h2>2. Correction banner</h2>
+<p class="note">Use this when the viral or popular version of the story is wrong. If there is no misattribution to correct, use it for the most important procedural fact instead (for example, that a letter went online before the recipient received it). Leave the title blank to omit the banner.</p>
+<label>Banner title <span class="hint">&mdash; e.g. "CORRECTION: The letter went to Sen. Richard Blumenthal (D-CT), not Sen. Elizabeth Warren".</span>
+<input type="text" id="f-corr-title"></label>
+<label>Banner body <span class="hint">&mdash; one paragraph per line.</span>
+<textarea id="f-corr-body"></textarea></label>
+<label>Banner sources note <span class="hint">&mdash; e.g. "Sources: Above the Law, 2026-11-13; ... Full links in §7."</span>
+<input type="text" id="f-corr-sources"></label>
+
+<h2>3. The cast</h2>
+<p class="note">One row per actor. Name plus a short description of who they are and what they did in this case.</p>
+<div id="actors"></div>
+<button type="button" class="addbtn" id="add-actor">+ Add actor</button>
+
+<h2>4. Timeline</h2>
+<p class="note">One row per event, in date order. Date can be a single day or a range.</p>
+<div id="timeline"></div>
+<button type="button" class="addbtn" id="add-timeline">+ Add timeline event</button>
+<label>Timeline note <span class="hint">&mdash; background paragraph shown under the timeline (e.g. what the project or dispute is about).</span>
+<textarea id="f-timeline-note"></textarea></label>
+
+<h2>5. The statutes</h2>
+<p class="note">Usually two. For each: the code, the name, the tag shown next to the heading, whether it is a conspiracy statute, the quoted language, the elements (one per line), the penalties (one per line, as "Outcome | Maximum penalty"), and a note.</p>
+<div id="statutes"></div>
+<button type="button" class="addbtn" id="add-statute">+ Add statute</button>
+
+<h2>6. The distinction, stated plainly</h2>
+<p class="note">The paragraph or paragraphs that explain how the statutes differ and what neither one criminalizes. One paragraph per line.</p>
+<textarea id="f-distinction"></textarea>
+
+<h2>7. The two directions</h2>
+<label>Direction A label <span class="hint">&mdash; e.g. "Direction A: Reitz alleges Blumenthal broke the law".</span>
+<input type="text" id="f-dirA"></label>
+<label>Direction B label <span class="hint">&mdash; e.g. "Direction B: Blumenthal alleges Reitz broke the law".</span>
+<input type="text" id="f-dirB"></label>
+
+<h2>8. The bridge: allegation &rarr; law &rarr; actor</h2>
+<p class="note">One row per alleged act. Direction A is the first side's allegation; Direction B is the counter-allegation. Status means: ALLEGED (the act or fact is documented but the legal conclusion is not drawn), CONTESTED (both sides have stated a position and the public record does not resolve it), NOT ESTABLISHED (no evidence for that element has been produced publicly), ESTABLISHED (the public record proves it; needs a source).</p>
+<div id="rows"></div>
+<button type="button" class="addbtn" id="add-row">+ Add allegation row</button>
+
+<h2>9. What would have to be proven</h2>
+<p class="note">One row per statute element, per statute. Give each element a status for Direction A and a status for Direction B. The honest tally is computed from these two columns: ESTABLISHED counts toward the tally, everything else does not. The scoreboard shows the first statute's tallies; the tally note in §5 of the generated page lists every statute.</p>
+<div id="checklist"></div>
+<button type="button" class="addbtn" id="add-check">+ Add checklist element</button>
+
+<h2>10. Counter-arguments and defenses</h2>
+<p class="note">One card per argument. Give each a title and its body text.</p>
+<div id="counters"></div>
+<button type="button" class="addbtn" id="add-counter">+ Add counter-argument</button>
+
+<h2>11. Sources</h2>
+<p class="note">At least one source is required. Give the citation text and the URL. If a source has no URL (for example, a letter image circulating on social media), leave the URL blank and say so in the text.</p>
+<div id="sources"></div>
+<button type="button" class="addbtn" id="add-source">+ Add source</button>
+
+<h2>12. Labeling and method</h2>
+<label>Labeling <span class="hint">&mdash; shown in the footer of every generated bridge.</span>
+<textarea id="f-labeling"></textarea></label>
+<label>Method <span class="hint">&mdash; how the statute text and elements were sourced.</span>
+<textarea id="f-method"></textarea></label>
+
+<div class="btnrow">
+  <button type="button" id="btn-generate2">Generate bridge</button>
+  <button type="button" id="btn-download2" class="secondary" disabled>Download bridge HTML</button>
+</div>
+<div id="validation2"></div>
+
+<h2>Preview</h2>
+<p class="note">The generated bridge appears here live. Use Download to save the standalone HTML file, which you can publish as its own page.</p>
+<iframe id="preview" title="Generated bridge preview" srcdoc="<p style='font-family:sans-serif;padding:20px;color:#4a4438'>No bridge generated yet. The form is preloaded with the Reitz&ndash;Blumenthal case &mdash; click Generate bridge to see it.</p>"></iframe>
+
+<footer>
+<p><b>The Bridge Builder.</b> Built 2026-11-15 &middot; Neuruh / Retardio &middot; Browser-local static page. No data leaves the page. Generated bridges carry the same honesty rules as the template: allegations labeled, tally computed, no one declared guilty.</p>
+</footer>
+
+</div>
+<script>
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var STATUS_OPTIONS=['ALLEGED','CONTESTED','NOT ESTABLISHED','ESTABLISHED'];
+var STATUS_CLASS={'ALLEGED':'alleged','CONTESTED':'contested','NOT ESTABLISHED':'notest','ESTABLISHED':'established'};
+
+var DEFAULT_CASE={
+title:"Reitz\u2013Blumenthal",
+docDate:"2026-11-15",
+subtitle:"A U.S. Attorney cited two federal civil-rights statutes against a sitting senator's oversight inquiry. This page pins each allegation to the law it supposedly breaks and the actor it supposedly binds \u2014 and marks, element by element, what is alleged, what is contested, and what is not established on the public record.",
+charges:0,
+rulings:0,
+correctionTitle:"CORRECTION: The letter went to Sen. Richard Blumenthal (D-CT), not Sen. Elizabeth Warren",
+correctionBody:[
+"The viral version of this story is wrong. A widely shared post claims Trump U.S. Attorney Aaron Reitz \"put Sen. Elizabeth Warren on LEGAL NOTICE\" over plans to investigate people close to President Trump. That is misattributed. The letter was written to Sen. Richard Blumenthal (D-CT), the ranking member (and incoming chair) of the Senate Permanent Subcommittee on Investigations, about his inquiry into donors to the White House ballroom project.",
+"Sen. Warren is a different senator. She chairs the Senate Banking Committee in the incoming Congress and has sent her own letters about crypto charters, the $TRUMP memecoin, and Tether. She is not the recipient of Reitz's letter and is not a party to this exchange. Every allegation on this page is pinned to the actual recipient, Blumenthal, and the actual sender, Reitz."
+],
+correctionSources:"Sources: Above the Law, 2026-11-13 (letter text and Blumenthal's reply); Washington Examiner, 2026-11-12; New York Post, 2026-11-12; USA TODAY opinion, 2026-11-15. Full links in \u00a77.",
+actors:[
+{name:"Aaron Reitz",desc:"U.S. Attorney for the Southern District of Texas (Houston). Appointed by President Trump; previously ran the DOJ Office of Legal Policy. Author of the November 11 preservation letter. Posted it on X, calling it \"the first step to stop this abuse of power.\""},
+{name:"Sen. Richard Blumenthal (D-CT)",desc:"Ranking member, and incoming chair in the 120th Congress, of the Senate Permanent Subcommittee on Investigations. Former U.S. Attorney and Connecticut Attorney General (20 years). Author of the donor inquiry and of the November 11 reply."},
+{name:"Trent McCotter",desc:"Acting Deputy Attorney General, the second-highest-ranking DOJ official. Publicly backed Reitz: \"The First Amendment expressly prohibits Congress from infringing the speech and association rights of Americans. DOJ will defend against threats to those rights, period.\""},
+{name:"Will Scharf",desc:"White House Counsel. Sent a November 9 letter to Rep. Robert Garcia warning that Democrats' planned oversight \"may cross the line into blatant criminality.\""},
+{name:"Attorney General Todd Blanche",desc:"Asked November 12 about Reitz's letter; said \"any office could investigate that.\" Told reporters November 12 (Thursday) that there are no open investigations into Democrats' rhetoric and that warning of looming investigations is not a crime."},
+{name:"Rep. Robert Garcia (D-CA)",desc:"Incoming chair of the House Committee on Oversight and Government Reform. Recipient of Scharf's November 9 letter; replied that Congress draws its investigative power from Article I, not from White House permission."},
+{name:"President Donald Trump",desc:"On November 7 called Democrats' threatened investigations \"extortion\" and said he was ordering DOJ to look into it. On November 12 called six Democratic lawmakers the \"Seditious Six\" and asked, \"Will the Seditious Six ever be prosecuted?\""}
+],
+timeline:[
+{date:"Oct 20\u201321",event:"Blumenthal writes to ballroom donors, including Salesforce CEO Marc Benioff, saying donors \"have apparently attempted to keep their contributions secret, and have deep financial, business, or other personal interests before the Trump Administration.\" Washington Post reporting (Oct 15) had disclosed internal fundraising records: 67 donations above $10,000 totaling about $333 million in private gifts."},
+{date:"Nov 7",event:"Trump posts that Democrats' threatened investigations are \"extortion\" and says he is ordering the Department of Justice to look into it. (Sullivan & Cromwell client memo; AP, Nov 13.)"},
+{date:"Nov 8",event:"AG Blanche criticizes the planned investigations and says DOJ will represent administration officials before Congress. (Sullivan & Cromwell.)"},
+{date:"Nov 9",event:"White House Counsel Will Scharf writes to Rep. Robert Garcia: congressional investigations must serve \"a legitimate legislative task\"; \"threats to executive branch officials\" designed to deter them from public office \"may cross the line into blatant criminality\"; \"issuing unlawful subpoenas with the intention of depriving citizens of their constitutional rights and privileges may warrant further investigation.\" The letter cites Watkins v. United States (1957) and Trump v. Mazars (2020). It names no criminal statute and announces no DOJ referral. Same day, Rep. Jared Huffman sends 36 preservation requests to federal agencies and companies."},
+{date:"Nov 11",event:"Reitz writes to Blumenthal \"to formally give you notice of your obligation to preserve all documents, communications, and other electronically stored information relevant to your intent to deprive citizens of their core constitutional rights\" in violation of 18 U.S.C. \u00a7\u00a7 241 and 242, and posts the letter on X. He accuses Blumenthal of threatening \"citizens for associating themselves with the President and other public officials\" and demands confirmation of receipt by 6 p.m. on November 18, or \"significant legal consequences.\" The Scharf letter is disclosed publicly the same day."},
+{date:"Nov 11",event:"Blumenthal replies the same day on Senate Committee on Homeland Security and Governmental Affairs letterhead: the donor inquiry is legitimate oversight (\"The public deserves to know the terms under which dozens of American companies were persuaded to donate millions of dollars to the President's vanity projects, and whether lawsuits were dismissed, contracts were awarded, or regulations went unenforced in exchange\"); he calls Reitz's letter an unlawful attempt to intimidate a Member of Congress; and he directs Reitz to preserve all records and correspondence, including all communications with the White House or senior DOJ officials, related to the decision to draft and post the letter, confirming by 6:00 p.m. on November 12. Reitz replies \"Received\" on X."},
+{date:"Nov 12",event:"Blanche is asked about the Reitz letter: \"Any office could investigate that.\" Separately, Blanche tells reporters there are no open investigations into Democrats' rhetoric: \"There's no ongoing investigations, criminal investigations into words that that incoming senators or congressmen have said.\" / \"That is not a crime to say that.\" / \"Nobody's saying that's a crime.\" Trump posts about the \"Seditious Six.\""},
+{date:"Nov 13",event:"AP (Eric Tucker & Alanna Durkin Richer) reports DOJ bracing for oversight; a top Blanche aide, Aakash Singh, told U.S. attorneys on a call to prepare for a \"wartime\" footing. Above the Law publishes its account of the exchange."},
+{date:"Nov 14",event:"DOJ sends a parallel preservation demand to Sen. Elissa Slotkin, with a 6 p.m. ET November 19 confirmation deadline. (StoneZone, Nov 14.)"},
+{date:"Nov 15",event:"USA TODAY opinion (Chris Brennan): \"Of course Trump wants to criminalize congressional oversight.\" Notes the Supreme Court has ruled time and again that Congress has the power to investigate the executive branch for legitimate legislative purposes."}
+],
+timelineNote:"The ballroom at issue: a 90,000-square-foot project replacing the demolished East Wing. Trump pitched it as privately funded through about $400 million in \"patriot\" donations. Reporting in The Independent puts the cost at up to roughly $600 million, with about half likely paid with public funds, and records showing about $333 million in private gifts from major corporations. Blumenthal sent nearly 60 letters to known donors \u2014 Amazon, Apple, BlackRock, Google, Lockheed Martin, Meta, Microsoft, Nvidia, Palantir among them \u2014 demanding records of their gifts by January 4, 2027 or facing subpoenas. His stated theory: donors who gave anonymously may have been rewarded with favorable government action.",
+statutes:[
+{code:"241",name:"Conspiracy against rights",tag:"The conspiracy statute",isConspiracy:true,
+quote:"\"If two or more persons conspire to injure, oppress, threaten, or intimidate any person in any State, Territory, Commonwealth, Possession, or District in the free exercise or enjoyment of any right or privilege secured to him by the Constitution or laws of the United States, or because of his having so exercised the same; or If two or more persons go in disguise on the highway, or on the premises of another, with intent to prevent or hinder his free exercise or enjoyment of any right or privilege so secured\u2014\"",
+elements:["Two or more persons \u2014 a conspiracy needs at least two.","An agreement \u2014 they conspired; a shared plan, not parallel conduct.","Intent to injure, oppress, threaten, or intimidate.","The target right \u2014 the victim's free exercise of a right secured by the Constitution or federal law, or retaliation for having exercised it.","An overt act in furtherance of the conspiracy."],
+penalties:[["Base offense","Fine and/or up to 10 years"],["Death results, or kidnapping, aggravated sexual abuse, or attempt to kill","Any term of years or life, or death"]],
+note:"History: traces to the Enforcement Act of 1870, passed so the federal government could prosecute the Klan for terrorizing formerly enslaved people. That origin is why the statute is written about conspiracy and intimidation, not about a single official's letter."},
+{code:"242",name:"Deprivation of rights under color of law",tag:"NOT a conspiracy statute",isConspiracy:false,
+quote:"\"Whoever, under color of any law, statute, ordinance, regulation, or custom, willfully subjects any person in any State, Territory, Commonwealth, Possession, or District to the deprivation of any rights, privileges, or immunities secured or protected by the Constitution or laws of the United States, or to different punishments, pains, or penalties, on account of such person being an alien, or by reason of his color, or race, than are prescribed for the punishment of citizens, shall be fined under this title or imprisoned not more than one year, or both\u2026\"",
+elements:["The victim was an inhabitant of a U.S. state, district, or territory when the alleged violation occurred.","The defendant acted under color of law.","The defendant's conduct deprived the victim of a right secured or protected by the U.S. Constitution.","The defendant acted willfully \u2014 that is, with specific intent to violate the protected constitutional right."],
+penalties:[["Base offense","Fine and/or up to 1 year"],["Bodily injury, or use / attempted / threatened use of a dangerous weapon, explosives, or fire","Fine and/or up to 10 years"],["Death results, or kidnapping, aggravated sexual abuse, or attempt to kill","Any term of years or life, or death"]],
+note:"The \"willfully\" element is the hard one. In Screws v. United States, the Supreme Court read \u00a7 242 to require specific intent to violate a federal right, not just a generalized bad purpose. Federal courts have acquitted where the evidence showed excessive force or intent to harm but not the specific intent to deprive someone of a constitutional right (United States v. Shaffer, cited in CRS R43830). A letter that asserts a legal theory, however aggressively, is a long way from that standard."}
+],
+distinction:[
+"\u00a7 241 requires a conspiracy. One person acting alone cannot violate it. If the allegation is that Blumenthal alone sent letters, \u00a7 241 fails at element one unless a second conspirator and an agreement are identified. If the allegation is that Reitz alone sent a letter, the same problem applies in the other direction.",
+"\u00a7 242 requires action under color of law, done willfully. It is the statute historically used against state actors, typically law enforcement, who deprive someone of a constitutional right. It does not require a conspiracy, but it does require the specific intent to violate a known constitutional right. A Member of Congress conducting an inquiry, and a U.S. Attorney sending a preservation letter, both act under color of law in the broad sense \u2014 the fight is over whether either one's conduct actually deprived anyone of a right, and whether it was done willfully.",
+"Neither statute criminalizes oversight, and neither criminalizes a preservation letter. What each one criminalizes is a specific act, done with a specific intent, against a specific right. That is what the bridge below tests, element by element."
+],
+dirA:"Direction A: Reitz alleges Blumenthal broke the law",
+dirB:"Direction B: Blumenthal alleges Reitz broke the law",
+rows:[
+{dir:"a",act:"Sent nearly 60 letters to known ballroom donors (Amazon, Apple, BlackRock, Google, Lockheed Martin, Meta, Microsoft, Nvidia, Palantir) demanding gift records by Jan 4, 2027 or facing subpoenas.",actor:"Blumenthal",element:"\u00a7 241 (3) intent to threaten or intimidate; \u00a7 242 (3) deprivation of a right",evidence:"The letters exist and are quoted in reporting (NY Post, Nov 12; Wash. Examiner, Nov 12). Whether they \"threaten\" is the dispute.",status:"CONTESTED"},
+{dir:"a",act:"Two or more persons conspired to intimidate donors for associating with the President.",actor:"Blumenthal + ?",element:"\u00a7 241 (1) two or more persons; (2) agreement",evidence:"No second person has been named and no agreement has been alleged in any public document. Reitz's letter names Blumenthal alone.",status:"NOT ESTABLISHED"},
+{dir:"a",act:"The donor letters were sent with intent to intimidate, not to gather information for legislation.",actor:"Blumenthal",element:"\u00a7 241 (3) intent to injure, oppress, threaten, or intimidate",evidence:"Blumenthal states a legislative purpose: whether donors received lawsuits dismissed, contracts awarded, or regulations unenforced in exchange. Reitz infers intimidation from the letters' effect. No internal statement of an intimidation intent has been produced.",status:"CONTESTED"},
+{dir:"a",act:"Donors' First Amendment freedom of association \u2014 the right to associate with the President and give to his projects without government harassment.",actor:"Blumenthal (as alleged infringer); donors (as alleged victims)",element:"\u00a7 241 (4) the target right; \u00a7 242 (3) deprivation of a right",evidence:"The right exists (NAACP v. Alabama, cited by Reitz). Whether a congressional records request infringes it is the dispute: oversight of potential pay-for-play is a recognized legislative purpose. No donor has publicly said the letters deterred a donation.",status:"CONTESTED"},
+{dir:"a",act:"The letters themselves, sent to donors and followed by a subpoena threat.",actor:"Blumenthal",element:"\u00a7 241 (5) overt act in furtherance",evidence:"The letters are the act, if a conspiracy existed. Without elements (1) and (2), the overt act proves nothing on its own.",status:"ALLEGED"},
+{dir:"a",act:"Acted under color of law in sending the donor letters.",actor:"Blumenthal",element:"\u00a7 242 (2) under color of law",evidence:"As a Senator conducting an inquiry he acts in an official capacity. Whether a Member's legislative inquiry is the kind of \"color of law\" \u00a7 242 targets \u2014 a statute built for state actors, typically law enforcement \u2014 is untested and contested.",status:"CONTESTED"},
+{dir:"a",act:"Willfully deprived donors of their association rights, knowing the inquiry violated a specific constitutional right.",actor:"Blumenthal",element:"\u00a7 242 (4) willfulness: specific intent to violate the right",evidence:"No evidence on the public record that Blumenthal knew the inquiry violated a specific right and proceeded anyway. His stated purpose is legislative. Under Screws, a generalized bad purpose is not enough.",status:"NOT ESTABLISHED"},
+{dir:"b",act:"Sent a preservation letter citing \u00a7\u00a7 241 and 242, demanding confirmation by 6 p.m. Nov 18 or \"significant legal consequences,\" and posted it on X.",actor:"Reitz",element:"\u00a7 241 (3) intent to threaten or intimidate; \u00a7 242 (3) deprivation of a right",evidence:"The letter exists and is quoted (Above the Law, Nov 13; Wash. Examiner, Nov 12). Whether it intimidates a Member out of oversight, or is a legitimate preservation demand, is the dispute.",status:"CONTESTED"},
+{dir:"b",act:"Two or more persons conspired to intimidate a Member of Congress out of oversight \u2014 e.g., Reitz acting at the direction of, or in coordination with, senior DOJ or White House officials.",actor:"Reitz + ?",element:"\u00a7 241 (1) two or more persons; (2) agreement",evidence:"No co-conspirator has been established. Blumenthal's reply asks the question \u2014 it directs Reitz to preserve communications with the White House or senior DOJ officials about the decision to draft and post the letter \u2014 but a question is not evidence. Blanche said Nov 12 he cannot supervise every U.S. Attorney.",status:"NOT ESTABLISHED"},
+{dir:"b",act:"The letter was sent with intent to chill congressional oversight of the ballroom and the administration, not to preserve evidence.",actor:"Reitz",element:"\u00a7 241 (3) intent to injure, oppress, threaten, or intimidate",evidence:"Reitz states a protective purpose: defending donors' association rights. Blumenthal infers intimidation from the letter's timing, its posting on X, and its \"significant legal consequences\" threat. The decision record Blumenthal demanded would be the evidence; it has not been produced publicly.",status:"CONTESTED"},
+{dir:"b",act:"Congress's Article I power to investigate the executive branch for legitimate legislative purposes, and the Speech or Debate Clause protection of Members' legislative acts.",actor:"Reitz (as alleged infringer); Blumenthal and Congress (as alleged victims)",element:"\u00a7 241 (4) the target right; \u00a7 242 (3) deprivation of a right",evidence:"The right exists and is repeatedly affirmed by the Supreme Court. Whether a preservation letter from a prosecutor infringes it is the dispute: a preservation demand is not a subpoena, a prosecution, or a restraint on a vote or speech.",status:"CONTESTED"},
+{dir:"b",act:"Acted under color of law in sending the preservation letter.",actor:"Reitz",element:"\u00a7 242 (2) under color of law",evidence:"As a U.S. Attorney he plainly acts under color of law. This is the strongest element on the Direction B side, and it is the only element either side can call established on the public record.",status:"ALLEGED"},
+{dir:"b",act:"Willfully deprived a Member of Congress of the oversight power, knowing the letter violated a specific constitutional protection.",actor:"Reitz",element:"\u00a7 242 (4) willfulness: specific intent to violate the right",evidence:"No evidence on the public record that Reitz knew the letter violated the Speech or Debate Clause or the oversight power and sent it anyway. His letter asserts a legal theory (donor association rights). Under Screws, asserting a theory, even a bad one, is not specific intent.",status:"NOT ESTABLISHED"}
+],
+checklist:[
+{statute:"241",element:"Two or more persons. A second conspirator must be identified.",evidence:"A named person and their role.",statusA:"NOT ESTABLISHED",statusB:"NOT ESTABLISHED"},
+{statute:"241",element:"An agreement. A shared plan, not parallel conduct or a shared opinion.",evidence:"Communications, meetings, or a joint act showing agreement.",statusA:"NOT ESTABLISHED",statusB:"NOT ESTABLISHED"},
+{statute:"241",element:"Intent to injure, oppress, threaten, or intimidate.",evidence:"Statements or documents showing the intent, not just the effect.",statusA:"CONTESTED",statusB:"CONTESTED"},
+{statute:"241",element:"The target right. A specific constitutional or federal right, and proof the conduct targeted its exercise. Direction A: freedom of association. Direction B: the oversight power and Speech or Debate.",evidence:"Proof the conduct targeted the right itself rather than a legitimate adjacent act.",statusA:"CONTESTED",statusB:"CONTESTED"},
+{statute:"241",element:"An overt act in furtherance.",evidence:"An act done to advance the conspiracy.",statusA:"ALLEGED",statusB:"ALLEGED"},
+{statute:"242",element:"Victim an inhabitant of a U.S. state, district, or territory. Satisfied in both directions on the facts as stated (donors in the U.S.; a Senator of Connecticut).",evidence:"None beyond the identity of the alleged victim.",statusA:"ALLEGED",statusB:"ALLEGED"},
+{statute:"242",element:"Acted under color of law. Direction A: a Senator conducting an inquiry \u2014 contested whether \u00a7 242 reaches legislative acts. Direction B: a U.S. Attorney sending an official letter \u2014 plainly under color of law.",evidence:"Direction B: Reitz's office and his official letterhead. Direction A: contested.",statusA:"CONTESTED",statusB:"ESTABLISHED"},
+{statute:"242",element:"Conduct deprived the victim of a constitutional right. Direction A: did a records request deprive donors of association? Direction B: did a preservation letter deprive a Member of oversight?",evidence:"Proof of an actual deprivation, not a theoretical one.",statusA:"CONTESTED",statusB:"CONTESTED"},
+{statute:"242",element:"Willfulness: specific intent to violate the right. The Screws standard. A generalized bad purpose is not enough; the actor must have intended to violate a known constitutional right.",evidence:"Proof the actor knew the right and acted to violate it anyway.",statusA:"NOT ESTABLISHED",statusB:"NOT ESTABLISHED"}
+],
+counterArgs:[
+{title:"The oversight defense (Blumenthal's side)",body:"Congressional oversight is a legitimate legislative function. The Supreme Court has repeatedly affirmed Congress's power to investigate the executive branch for legitimate legislative purposes (McGrain v. Daugherty, 273 U.S. 135 (1927); Watkins v. United States, 354 U.S. 178 (1957); Trump v. Mazars, 591 U.S. 848 (2020)). Investigating whether donors received lawsuits dismissed, contracts awarded, or regulations unenforced in exchange for gifts is squarely within that zone: it is the subject of existing anti-bribery and ethics statutes. Congress has wide latitude to determine legislative purpose, and a subject already covered by statute falls squarely in it.\n\nThe Speech or Debate Clause (U.S. Const. art. I, \u00a7 6, cl. 1) protects Members' legislative acts from being questioned in any other place. Sending inquiry letters in preparation for legislation is a legislative act. A prosecutor's letter threatening \"significant legal consequences\" over that act is, on this view, the intimidation \u2014 not the inquiry.\n\nRepublicans used the same oversight power while holding Congress: investigations into President Biden, his family, and his Cabinet, including the failed impeachment of Homeland Security Secretary Alejandro Mayorkas and attempts against Defense Secretary Lloyd Austin and Attorney General Merrick Garland. (USA TODAY, Nov 15.)"},
+{title:"The association defense (Reitz's side)",body:"The First Amendment protects freedom of association, including the right to give to a cause and to associate with a President without government harassment. NAACP v. Alabama (1958) blocked a state from forcing a civil rights group to disclose its membership list \u2014 the case Reitz cites. On this view, a senator demanding donor records under threat of subpoena, aimed at people who gave to the President's project, is a government effort to punish association, and the donor letters are the threat.\n\nThe honest weakness in this argument, as the Above the Law account notes: NAACP v. Alabama protected a civil rights group's membership list from segregationists. Applying it to shield billionaire corporate donors from an inquiry into whether their gifts bought government favors is a stretch, and the donors in question are corporations with federal contracts and regulatory interests before the administration, not a private association."},
+{title:"The procedural facts that cut against both sides' criminal theories",body:"A preservation letter is not a charge. Reitz's letter demands preservation and confirmation by November 18. It announces no indictment, no referral, and no finding. Blumenthal's reply is the same kind of document in reverse. Neither letter proves a crime; both preserve a record.\n\nNo charges have been filed against anyone. No court has ruled on any of this.\n\nThe DOJ itself says no open investigations exist. Attorney General Blanche told reporters November 12 that there are no open investigations into Democrats' rhetoric and that warning of looming investigations is not a crime. That statement sits awkwardly next to Reitz's letter, which is why Blumenthal's reply asks whether Blanche directed it.\n\nThe venue problem. A U.S. Attorney for the Southern District of Texas is writing to a Connecticut senator about an inquiry into a Washington project. That does not make the letter unlawful \u2014 Blanche said \"any office could investigate that\" \u2014 but it is the question every account of the exchange asks first, and it has not been answered on the record."}
+],
+sources:[
+{text:"Above the Law, Joe Patrice, \"Richard Blumenthal Humiliates Grandstanding Texas U.S. Attorney With Remedial Constitutional Law Lesson,\" Nov 13, 2026.",url:"https://abovethelaw.com/2026/11/richard-blumenthal-humiliates-grandstanding-texas-u-s-attorney-with-remedial-constitutional-law-lesson/"},
+{text:"Washington Examiner, \"DOJ concerned Blumenthal ballroom investigation is threat against Trump supporters,\" Nov 12, 2026.",url:"https://www.washingtonexaminer.com/news/senate/4801017/doj-blumenthal-ballroom-investigation-threat-trump/"},
+{text:"USA TODAY, Chris Brennan, \"Of course Trump wants to criminalize congressional oversight,\" Nov 15, 2026.",url:"https://www.usatoday.com/story/opinion/columnist/2026/11/15/democrats-investigate-trump-doj-fight-congress-oversight/92742166007/"},
+{text:"U.S. Code, Title 18, Chapter 13 (Civil Rights), \u00a7\u00a7 241\u2013242, govinfo, 2022 edition (PDF).",url:"https://www.govinfo.gov/content/pkg/USCODE-2022-title18/pdf/USCODE-2022-title18-partI-chap13.pdf"},
+{text:"Congressional Research Service, R43830, \"Overview of Selected Federal Criminal Civil Rights Statutes,\" Dec 16, 2014.",url:"https://www.EveryCrsReport.com/files/20141216_R43830_160a1a5dd68b4d06c76befb1b3e4df17ca0880e1.html"},
+{text:"Additional reporting consulted for dates and figures: New York Post, Nov 12, 2026 (nearly 60 letters, Jan 4 deadline); AP via syndication, Nov 13, 2026 (Blanche: no open investigations; \"wartime\" footing call); The Independent via Washington Post records, Nov 12, 2026 ($333 million in private gifts, cost up to $600 million); Sullivan & Cromwell client memo, Nov 2026 (Scharf letter text, Nov 7\u20139 sequence).",url:""}
+],
+labeling:"This page is an ALLEGATION MAP, not a finding. No one has been charged. No court has ruled. Every claim is attributed to its source. The actors named are public officials and the allegations concern their public acts; no private individual is scored or ranked.",
+method:"Statute text is quoted from the U.S. Code as published by govinfo. Elements for \u00a7 242 are from CRS R43830. Elements for \u00a7 241 are the standard five-part formulation from the statute's text. Statuses (ALLEGED / CONTESTED / NOT ESTABLISHED / ESTABLISHED) reflect the public record as of November 15, 2026, and will change if evidence is produced."
+};
+
+function paras(arr){return (arr||[]).filter(function(p){return String(p).trim()!=='';}).map(function(p){return '<p>'+esc(p)+'</p>';}).join('\n');}
+function parasFromText(text){return paras(String(text||'').split(/\n\s*\n/));}
+function splitParas(text){return String(text||'').split(/\n\s*\n/).map(function(s){return s.trim();}).filter(function(s){return s!=='';});}
+function badge(status){var s=STATUS_OPTIONS.indexOf(status)>=0?status:'ALLEGED';return '<span class="badge '+STATUS_CLASS[s]+'">'+esc(s)+'</span>';}
+function tallyFor(d,code,dir){
+  var items=d.checklist.filter(function(c){return String(c.statute)===String(code);});
+  var total=items.length;
+  var est=items.filter(function(c){return (dir==='a'?c.statusA:c.statusB)==='ESTABLISHED';}).length;
+  return {est:est,total:total};
+}
+function validate(d){
+  var errors=[],warnings=[];
+  if(!String(d.title||'').trim()) errors.push('Give the case a title (\u00a71).');
+  if(!d.statutes.length) errors.push('Add at least one statute (\u00a75).');
+  if(!d.rows.length) errors.push('Add at least one allegation map row (\u00a78). A bridge with no allegation cannot be generated.');
+  if(!d.sources.length) errors.push('Add at least one source (\u00a711). A bridge with no sources cannot be generated.');
+  d.checklist.forEach(function(c,i){
+    if(c.statusA==='ESTABLISHED'&&!String(c.evidence||'').trim()) warnings.push('Checklist \u00a7'+c.statute+' element '+(i+1)+': marked ESTABLISHED for Direction A without evidence. An element is established only when the public record proves it.');
+    if(c.statusB==='ESTABLISHED'&&!String(c.evidence||'').trim()) warnings.push('Checklist \u00a7'+c.statute+' element '+(i+1)+': marked ESTABLISHED for Direction B without evidence. An element is established only when the public record proves it.');
+  });
+  d.rows.forEach(function(r,i){
+    if(r.status==='ESTABLISHED'&&!String(r.evidence||'').trim()) warnings.push('Allegation row '+(i+1)+': marked ESTABLISHED without evidence or a source. An allegation is established only when the public record proves it.');
+  });
+  return {errors:errors,warnings:warnings};
+}
+
+function generateBridge(d){
+  var css=document.getElementById('bridge-css').textContent;
+  var firstStat=d.statutes[0];
+  var tA=firstStat?tallyFor(d,firstStat.code,'a'):{est:0,total:0};
+  var tB=firstStat?tallyFor(d,firstStat.code,'b'):{est:0,total:0};
+  var tallySentences=d.statutes.map(function(s){
+    var ta=tallyFor(d,s.code,'a'),tb=tallyFor(d,s.code,'b');
+    return '\u00a7'+esc(s.code)+': Direction A '+ta.est+' of '+ta.total+' elements established; Direction B '+tb.est+' of '+tb.total+' established.';
+  }).join(' ');
+  var chargeLine=(d.charges===0&&d.rulings===0)
+    ?'That is why there are no charges. No charges have been filed. No court has ruled.'
+    :'Charges filed: '+d.charges+'. Court rulings: '+d.rulings+'.';
+  var corr='';
+  if(String(d.correctionTitle||'').trim()){
+    corr='<div class="correction" id="correction">\n  <h2>'+esc(d.correctionTitle)+'</h2>\n'+paras(d.correctionBody)+'\n  <p class="note">'+esc(d.correctionSources)+'</p>\n</div>\n';
+  }
+  var cast=d.actors.map(function(a){return '<p><b>'+esc(a.name)+'</b> &mdash; '+esc(a.desc)+'</p>';}).join('\n');
+  var tl=d.timeline.map(function(t){return '<li><span class="d">'+esc(t.date)+'</span><span>'+esc(t.event)+'</span></li>';}).join('\n');
+  var statHtml=d.statutes.map(function(s){
+    var els=s.elements.map(function(e){return '<li>'+esc(e)+'</li>';}).join('\n');
+    var penRows=s.penalties.map(function(p){return '<tr><td>'+esc(p[0])+'</td><td>'+esc(p[1])+'</td></tr>';}).join('\n');
+    return '<div class="statute">\n<h3>18 U.S.C. \u00a7 '+esc(s.code)+' &mdash; '+esc(s.name)+' <span class="tag">'+esc(s.tag)+'</span></h3>\n<blockquote><p>'+esc(s.quote)+'</p></blockquote>\n<p><b>Elements'+(s.isConspiracy?' a prosecutor would have to prove':' (Congressional Research Service, R43830, 2014)')+':</b></p>\n<ol class="elements">\n'+els+'\n</ol>\n<table class="pen"><tr><th>Outcome</th><th>Maximum penalty</th></tr>\n'+penRows+'</table>\n<p class="note">'+esc(s.note)+'</p>\n</div>';
+  }).join('\n');
+  var bridgeRows=d.rows.map(function(r){
+    return '<tr class="dir-'+esc(r.dir)+'" data-dir="'+esc(r.dir)+'"><td>'+esc(r.act)+'</td><td>'+esc(r.actor)+'</td><td>'+esc(r.element)+'</td><td>'+esc(r.evidence)+'</td><td>'+badge(r.status)+'</td></tr>';
+  }).join('\n');
+  var checkCards=d.statutes.map(function(s){
+    var items=d.checklist.filter(function(c){return String(c.statute)===String(s.code);});
+    var lis=items.map(function(c){
+      return '<li><input type="checkbox" data-cl="'+esc(s.code)+'"><span><b>'+esc(c.element)+'</b> <i>Evidence needed:</i> '+esc(c.evidence)+'</span><span class="st">'+badge(c.statusA)+' '+badge(c.statusB)+'</span></li>';
+    }).join('\n');
+    return '<div class="card">\n<h3>\u00a7 '+esc(s.code)+' &mdash; '+esc(s.name)+' <span class="progress" id="prog-'+esc(s.code)+'">0 of '+items.length+' checked</span></h3>\n<ul class="checklist" id="cl-'+esc(s.code)+'">\n'+lis+'\n</ul>\n</div>';
+  }).join('\n');
+  var wireCalls=d.statutes.map(function(s){
+    var n=d.checklist.filter(function(c){return String(c.statute)===String(s.code);}).length;
+    return "  wire('cl-"+s.code+"','prog-"+s.code+"',"+n+");";
+  }).join('\n');
+  var counters=d.counterArgs.map(function(c){
+    return '<div class="card">\n<h3>'+esc(c.title)+'</h3>\n'+parasFromText(c.body)+'\n</div>';
+  }).join('\n');
+  var srcs=d.sources.map(function(s){
+    if(String(s.url||'').trim()) return '<li>'+esc(s.text)+' <a href="'+esc(s.url)+'">'+esc(s.url.replace(/^https?:\/\//,''))+'</a></li>';
+    return '<li>'+esc(s.text)+'</li>';
+  }).join('\n');
+  var html='<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>The Bridge: '+esc(d.title)+' \u2014 Allegation, Law, Actor</title>\n<style>'+css+'</style>\n</head>\n<body>\n<div class="wrap">\n\n<div class="dochead">\n  <div><b>THE BRIDGE</b> &middot; Allegation &rarr; Law &rarr; Actor</div>\n  <div>Document date: '+esc(d.docDate)+' &middot; Status: <b>ALLEGATION MAP</b>, not a finding</div>\n</div>\n\n'+corr+'\n<p class="kicker">Retardio &middot; The Bridge &middot; Policy pinned on actors</p>\n<h1>The Bridge: '+esc(d.title)+'</h1>\n<p class="sub">'+esc(d.subtitle)+'</p>\n\n<div class="scoreboard" aria-label="Status">\n  <div class="sb red"><div class="n">'+d.charges+'</div><div class="l">Charges filed against anyone</div></div>\n  <div class="sb red"><div class="n">'+d.rulings+'</div><div class="l">Court rulings on any of this</div></div>\n  <div class="sb"><div class="n" id="sb-a">'+tA.est+' / '+tA.total+'</div><div class="l">\u00a7'+esc(firstStat?firstStat.code:'')+' elements established, Direction A</div></div>\n  <div class="sb"><div class="n" id="sb-b">'+tB.est+' / '+tB.total+'</div><div class="l">\u00a7'+esc(firstStat?firstStat.code:'')+' elements established, Direction B</div></div>\n</div>\n<p class="note">The tally figures are computed from the element statuses in \u00a75. A preservation letter is not a charge, a press release is not evidence, and an allegation is not an element proved. Everything below is attributed to its source.</p>\n\n<h2>1. The cast</h2>\n<div class="card">\n'+cast+'\n</div>\n\n<h2>2. Timeline</h2>\n<ul class="timeline">\n'+tl+'\n</ul>\n'+(String(d.timelineNote||'').trim()?'<p class="note">'+esc(d.timelineNote)+'</p>\n':'')+'\n<h2>3. The statutes</h2>\n<p>Each statute below is quoted from the U.S. Code as published by govinfo. The distinction between them matters, and \u00a76 states it plainly. Neither one is a charge here.</p>\n\n'+statHtml+'\n\n<div class="card">\n<h3>The distinction, stated plainly</h3>\n'+paras(d.distinction)+'\n</div>\n\n<h2>4. The bridge: allegation &rarr; law &rarr; actor</h2>\n<p>Each row pins one alleged act to one statute element, one actor, one source, and one status. '+esc(d.dirA)+'. '+esc(d.dirB)+'. Use the toggle to view one side at a time.</p>\n\n<div class="toggle" role="group" aria-label="Perspective">\n  <button type="button" data-view="all" aria-pressed="true">Both directions</button>\n  <button type="button" data-view="a" aria-pressed="false">'+esc(d.dirA)+'</button>\n  <button type="button" data-view="b" aria-pressed="false">'+esc(d.dirB)+'</button>\n</div>\n<p class="note" id="rowcount">Showing '+d.rows.length+' of '+d.rows.length+' rows.</p>\n\n<table class="bridge" id="bridge">\n<thead><tr><th style="width:26%">Alleged act</th><th style="width:13%">Actor</th><th style="width:24%">Statute element it allegedly violates</th><th style="width:22%">Evidence / source</th><th style="width:15%">Status</th></tr></thead>\n<tbody>\n'+bridgeRows+'\n</tbody>\n</table>\n\n<p class="note">Reading the table: <span class="badge alleged">ALLEGED</span> means the act or fact is documented but the legal conclusion is not drawn. <span class="badge contested">CONTESTED</span> means both sides have stated a position and the public record does not resolve it. <span class="badge notest">NOT ESTABLISHED</span> means no evidence for that element has been produced publicly at all. <span class="badge established">ESTABLISHED</span> means the public record proves it. Nothing on this page is a finding. A finding would come from a court.</p>\n\n<h2>5. What would have to be proven</h2>\n<p>Work through each statute as a prosecutor would. Check an element only when you have seen evidence for it in the sources above. Checking a box is your own note-taking \u2014 it does not change the legal status of anything, and the counters below show where the public record actually stands.</p>\n\n'+checkCards+'\n<p class="note">The honest tally: on the public record, '+tallySentences+' '+chargeLine+'</p>\n\n<h2>6. Counter-arguments and defenses</h2>\n'+counters+'\n\n<h2>7. Sources</h2>\n<ol class="sources">\n'+srcs+'\n</ol>\n\n<footer>\n<p><b>Labeling.</b> '+esc(d.labeling)+'</p>\n<p><b>Method.</b> '+esc(d.method)+'</p>\n<p>The Bridge: '+esc(d.title)+' &middot; Built '+esc(d.docDate)+' &middot; Neuruh / Retardio &middot; Generated with the Bridge Builder &middot; Browser-local static page. No data leaves the page.</p>\n</footer>\n\n</div>\n<script>\n(function(){\n  var btns=document.querySelectorAll(\'.toggle button\');\n  var rows=document.querySelectorAll(\'#bridge tbody tr\');\n  var count=document.getElementById(\'rowcount\');\n  function apply(view){\n    var shown=0;\n    rows.forEach(function(r){\n      var show = view===\'all\' || r.getAttribute(\'data-dir\')===view;\n      r.style.display = show ? \'\' : \'none\';\n      if(show) shown++;\n    });\n    count.textContent=\'Showing \'+shown+\' of \'+rows.length+\' rows.\';\n    btns.forEach(function(b){ b.setAttribute(\'aria-pressed\', b.getAttribute(\'data-view\')===view ? \'true\':\'false\'); });\n  }\n  btns.forEach(function(b){ b.addEventListener(\'click\', function(){ apply(b.getAttribute(\'data-view\')); }); });\n  apply(\'all\');\n  function wire(id, progId, total){\n    var ul=document.getElementById(id);\n    var prog=document.getElementById(progId);\n    function update(){\n      var n=ul.querySelectorAll(\'input:checked\').length;\n      prog.textContent=n+\' of \'+total+\' checked\';\n    }\n    ul.querySelectorAll(\'input\').forEach(function(cb){ cb.addEventListener(\'change\', update); });\n    update();\n  }\n'+wireCalls+'\n})();\n<\/script>\n</body>\n</html>';
+  return html;
+}
+
+/* ---------- form rendering ---------- */
+function statusSelect(val){
+  return '<select>'+STATUS_OPTIONS.map(function(o){return '<option'+(o===val?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';
+}
+function rmBtn(){return '<button type="button" class="rmbtn">Remove</button>';}
+function actorRow(a){
+  var div=document.createElement('div');div.className='rowitem';
+  div.innerHTML='<label>Actor name<input type="text" class="f-name"></label><label>Description<textarea class="f-desc"></textarea></label>'+rmBtn();
+  div.querySelector('.f-name').value=a?a.name:'';div.querySelector('.f-desc').value=a?a.desc:'';
+  div.querySelector('.rmbtn').onclick=function(){div.remove();};
+  return div;
+}
+function timelineRow(t){
+  var div=document.createElement('div');div.className='rowitem';
+  div.innerHTML='<div class="grid2"><div><label>Date<input type="text" class="f-date"></label></div><div><label>Event<textarea class="f-event"></textarea></label></div></div>'+rmBtn();
+  div.querySelector('.f-date').value=t?t.date:'';div.querySelector('.f-event').value=t?t.event:'';
+  div.querySelector('.rmbtn').onclick=function(){div.remove();};
+  return div;
+}
+function statuteBlock(s){
+  var div=document.createElement('div');div.className='statblock';
+  div.innerHTML='<div class="grid3"><div><label>Statute code<input type="text" class="f-code"></label></div><div><label>Name<input type="text" class="f-name"></label></div><div><label>Tag<input type="text" class="f-tag"></label></div></div>'
+  +'<label class="checkline"><input type="checkbox" class="f-cons"> This is a conspiracy statute</label>'
+  +'<label>Quoted language<textarea class="f-quote"></textarea></label>'
+  +'<label>Elements, one per line<textarea class="f-elements"></textarea></label>'
+  +'<label>Penalties, one per line as "Outcome | Maximum penalty"<textarea class="f-penalties"></textarea></label>'
+  +'<label>Note<textarea class="f-note"></textarea></label>'+rmBtn();
+  div.querySelector('.f-code').value=s?s.code:'';div.querySelector('.f-name').value=s?s.name:'';div.querySelector('.f-tag').value=s?s.tag:'';
+  div.querySelector('.f-cons').checked=s?!!s.isConspiracy:false;
+  div.querySelector('.f-quote').value=s?s.quote:'';
+  div.querySelector('.f-elements').value=s?s.elements.join('\n'):'';
+  div.querySelector('.f-penalties').value=s?s.penalties.map(function(p){return p[0]+' | '+p[1];}).join('\n'):'';
+  div.querySelector('.f-note').value=s?s.note:'';
+  div.querySelector('.rmbtn').onclick=function(){div.remove();};
+  return div;
+}
+function bridgeRowEl(r){
+  var div=document.createElement('div');div.className='rowitem';
+  div.innerHTML='<div class="grid3"><div><label>Direction<select class="f-dir"><option value="a">Direction A</option><option value="b">Direction B</option></select></label></div><div><label>Actor<input type="text" class="f-actor"></label></div><div><label>Status'+statusSelect(r?r.status:'ALLEGED').replace('<select>','<select class="f-status">')+'</label></div></div>'
+  +'<label>Alleged act<textarea class="f-act"></textarea></label>'
+  +'<label>Statute element it allegedly violates<input type="text" class="f-element"></label>'
+  +'<label>Evidence / source<textarea class="f-evidence"></textarea></label>'+rmBtn();
+  div.querySelector('.f-dir').value=r?r.dir:'a';
+  div.querySelector('.f-actor').value=r?r.actor:'';
+  div.querySelector('.f-status').value=r?r.status:'ALLEGED';
+  div.querySelector('.f-act').value=r?r.act:'';
+  div.querySelector('.f-element').value=r?r.element:'';
+  div.querySelector('.f-evidence').value=r?r.evidence:'';
+  div.querySelector('.rmbtn').onclick=function(){div.remove();};
+  return div;
+}
+function checkRowEl(c){
+  var div=document.createElement('div');div.className='rowitem';
+  div.innerHTML='<div class="grid3"><div><label>Statute code<input type="text" class="f-statute"></label></div><div><label>Status, Direction A'+statusSelect(c?c.statusA:'NOT ESTABLISHED').replace('<select>','<select class="f-statusA">')+'</label></div><div><label>Status, Direction B'+statusSelect(c?c.statusB:'NOT ESTABLISHED').replace('<select>','<select class="f-statusB">')+'</label></div></div>'
+  +'<label>Element<textarea class="f-element"></textarea></label>'
+  +'<label>Evidence needed<textarea class="f-evidence"></textarea></label>'+rmBtn();
+  div.querySelector('.f-statute').value=c?c.statute:'';
+  div.querySelector('.f-statusA').value=c?c.statusA:'NOT ESTABLISHED';
+  div.querySelector('.f-statusB').value=c?c.statusB:'NOT ESTABLISHED';
+  div.querySelector('.f-element').value=c?c.element:'';
+  div.querySelector('.f-evidence').value=c?c.evidence:'';
+  div.querySelector('.rmbtn').onclick=function(){div.remove();};
+  return div;
+}
+function counterRowEl(c){
+  var div=document.createElement('div');div.className='rowitem';
+  div.innerHTML='<label>Title<input type="text" class="f-title"></label><label>Body (blank line between paragraphs)<textarea class="f-body"></textarea></label>'+rmBtn();
+  div.querySelector('.f-title').value=c?c.title:'';div.querySelector('.f-body').value=c?c.body:'';
+  div.querySelector('.rmbtn').onclick=function(){div.remove();};
+  return div;
+}
+function sourceRowEl(s){
+  var div=document.createElement('div');div.className='rowitem';
+  div.innerHTML='<label>Citation text<input type="text" class="f-text"></label><label>URL (blank if none)<input type="text" class="f-url"></label>'+rmBtn();
+  div.querySelector('.f-text').value=s?s.text:'';div.querySelector('.f-url').value=s?s.url:'';
+  div.querySelector('.rmbtn').onclick=function(){div.remove();};
+  return div;
+}
+function renderForm(d){
+  document.getElementById('f-title').value=d.title||'';
+  document.getElementById('f-docdate').value=d.docDate||'';
+  document.getElementById('f-subtitle').value=d.subtitle||'';
+  document.getElementById('f-charges').value=d.charges==null?0:d.charges;
+  document.getElementById('f-rulings').value=d.rulings==null?0:d.rulings;
+  document.getElementById('f-corr-title').value=d.correctionTitle||'';
+  document.getElementById('f-corr-body').value=(d.correctionBody||[]).join('\n\n');
+  document.getElementById('f-corr-sources').value=d.correctionSources||'';
+  document.getElementById('f-distinction').value=(d.distinction||[]).join('\n\n');
+  document.getElementById('f-dirA').value=d.dirA||'';
+  document.getElementById('f-dirB').value=d.dirB||'';
+  document.getElementById('f-timeline-note').value=d.timelineNote||'';
+  document.getElementById('f-labeling').value=d.labeling||'';
+  document.getElementById('f-method').value=d.method||'';
+  var c;
+  c=document.getElementById('actors');c.innerHTML='';(d.actors||[]).forEach(function(a){c.appendChild(actorRow(a));});
+  c=document.getElementById('timeline');c.innerHTML='';(d.timeline||[]).forEach(function(t){c.appendChild(timelineRow(t));});
+  c=document.getElementById('statutes');c.innerHTML='';(d.statutes||[]).forEach(function(s){c.appendChild(statuteBlock(s));});
+  c=document.getElementById('rows');c.innerHTML='';(d.rows||[]).forEach(function(r){c.appendChild(bridgeRowEl(r));});
+  c=document.getElementById('checklist');c.innerHTML='';(d.checklist||[]).forEach(function(x){c.appendChild(checkRowEl(x));});
+  c=document.getElementById('counters');c.innerHTML='';(d.counterArgs||[]).forEach(function(x){c.appendChild(counterRowEl(x));});
+  c=document.getElementById('sources');c.innerHTML='';(d.sources||[]).forEach(function(s){c.appendChild(sourceRowEl(s));});
+}
+function emptyCase(){
+  return {title:'',docDate:'2026-11-15',subtitle:'',charges:0,rulings:0,correctionTitle:'',correctionBody:[],correctionSources:'',actors:[{name:'',desc:''}],timeline:[{date:'',event:''}],timelineNote:'',statutes:[{code:'',name:'',tag:'',isConspiracy:false,quote:'',elements:[],penalties:[],note:''}],distinction:[],dirA:'Direction A:',dirB:'Direction B:',rows:[],checklist:[],counterArgs:[],sources:[],labeling:'This page is an ALLEGATION MAP, not a finding. No one has been charged. No court has ruled. Every claim is attributed to its source. The actors named are public officials and the allegations concern their public acts; no private individual is scored or ranked.',method:'Statute text is quoted from the U.S. Code as published by govinfo.'};
+}
+function collectForm(){
+  function val(id){return document.getElementById(id).value;}
+  function rowsOf(id,fn){
+    var out=[];
+    document.getElementById(id).querySelectorAll('.rowitem,.statblock').forEach(function(row){out.push(fn(row));});
+    return out;
+  }
+  function q(row,sel){var e=row.querySelector(sel);return e?e.value:'';}
+  function qc(row,sel){var e=row.querySelector(sel);return e?e.checked:false;}
+  return {
+    title:val('f-title').trim(),
+    docDate:val('f-docdate').trim(),
+    subtitle:val('f-subtitle').trim(),
+    charges:parseInt(val('f-charges'),10)||0,
+    rulings:parseInt(val('f-rulings'),10)||0,
+    correctionTitle:val('f-corr-title').trim(),
+    correctionBody:splitParas(val('f-corr-body')),
+    correctionSources:val('f-corr-sources').trim(),
+    actors:rowsOf('actors',function(r){return {name:q(r,'.f-name').trim(),desc:q(r,'.f-desc').trim()};}).filter(function(a){return a.name||a.desc;}),
+    timeline:rowsOf('timeline',function(r){return {date:q(r,'.f-date').trim(),event:q(r,'.f-event').trim()};}).filter(function(t){return t.date||t.event;}),
+    timelineNote:val('f-timeline-note').trim(),
+    statutes:rowsOf('statutes',function(r){
+      return {code:q(r,'.f-code').trim(),name:q(r,'.f-name').trim(),tag:q(r,'.f-tag').trim(),isConspiracy:qc(r,'.f-cons'),quote:q(r,'.f-quote').trim(),
+        elements:q(r,'.f-elements').split('\n').map(function(s){return s.trim();}).filter(function(s){return s!=='';}),
+        penalties:q(r,'.f-penalties').split('\n').map(function(s){return s.trim();}).filter(function(s){return s!=='';}).map(function(s){var p=s.split('|');return [p[0].trim(),(p[1]||'').trim()];}),
+        note:q(r,'.f-note').trim()};
+    }).filter(function(s){return s.code||s.name;}),
+    distinction:splitParas(val('f-distinction')),
+    dirA:val('f-dirA').trim(),
+    dirB:val('f-dirB').trim(),
+    rows:rowsOf('rows',function(r){return {dir:q(r,'.f-dir'),act:q(r,'.f-act').trim(),actor:q(r,'.f-actor').trim(),element:q(r,'.f-element').trim(),evidence:q(r,'.f-evidence').trim(),status:q(r,'.f-status')};}).filter(function(r){return r.act||r.actor;}),
+    checklist:rowsOf('checklist',function(r){return {statute:q(r,'.f-statute').trim(),element:q(r,'.f-element').trim(),evidence:q(r,'.f-evidence').trim(),statusA:q(r,'.f-statusA'),statusB:q(r,'.f-statusB')};}).filter(function(c){return c.element||c.statute;}),
+    counterArgs:rowsOf('counters',function(r){return {title:q(r,'.f-title').trim(),body:q(r,'.f-body').trim()};}).filter(function(c){return c.title||c.body;}),
+    sources:rowsOf('sources',function(r){return {text:q(r,'.f-text').trim(),url:q(r,'.f-url').trim()};}).filter(function(s){return s.text||s.url;}),
+    labeling:val('f-labeling').trim(),
+    method:val('f-method').trim()
+  };
+}
+
+/* ---------- actions ---------- */
+var lastGenerated=null,lastSlug='bridge';
+function showValidation(v){
+  var html='';
+  if(v.errors.length) html+='<div class="err">Cannot generate:<ul>'+v.errors.map(function(e){return '<li>'+esc(e)+'</li>';}).join('')+'</ul></div>';
+  if(v.warnings.length) html+='<div class="warn"><b>Warnings (generation proceeds):</b><ul>'+v.warnings.map(function(e){return '<li>'+esc(e)+'</li>';}).join('')+'</ul></div>';
+  if(!v.errors.length&&!v.warnings.length) html='<div class="ok">Bridge generated. Tally computed from the element statuses in \u00a79. Preview below; download the standalone HTML file to publish it.</div>';
+  document.getElementById('validation').innerHTML=html;
+  document.getElementById('validation2').innerHTML=html;
+}
+function doGenerate(){
+  var d=collectForm();
+  var v=validate(d);
+  showValidation(v);
+  if(v.errors.length){return false;}
+  lastGenerated=generateBridge(d);
+  lastSlug=String(d.title||'bridge').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'bridge';
+  document.getElementById('preview').srcdoc=lastGenerated;
+  document.getElementById('btn-download').disabled=false;
+  document.getElementById('btn-download2').disabled=false;
+  return true;
+}
+function doDownload(){
+  if(!lastGenerated) return;
+  var blob=new Blob([lastGenerated],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=lastSlug+'-bridge.html';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+}
+document.getElementById('btn-generate').addEventListener('click',doGenerate);
+document.getElementById('btn-generate2').addEventListener('click',doGenerate);
+document.getElementById('btn-download').addEventListener('click',doDownload);
+document.getElementById('btn-download2').addEventListener('click',doDownload);
+document.getElementById('btn-example').addEventListener('click',function(){renderForm(JSON.parse(JSON.stringify(DEFAULT_CASE)));document.getElementById('validation').innerHTML='<div class="ok">Reitz&ndash;Blumenthal example loaded. Click Generate bridge to see it.</div>';});
+document.getElementById('btn-clear').addEventListener('click',function(){renderForm(emptyCase());document.getElementById('validation').innerHTML='';document.getElementById('validation2').innerHTML='';});
+document.getElementById('add-actor').addEventListener('click',function(){document.getElementById('actors').appendChild(actorRow(null));});
+document.getElementById('add-timeline').addEventListener('click',function(){document.getElementById('timeline').appendChild(timelineRow(null));});
+document.getElementById('add-statute').addEventListener('click',function(){document.getElementById('statutes').appendChild(statuteBlock(null));});
+document.getElementById('add-row').addEventListener('click',function(){document.getElementById('rows').appendChild(bridgeRowEl(null));});
+document.getElementById('add-check').addEventListener('click',function(){document.getElementById('checklist').appendChild(checkRowEl(null));});
+document.getElementById('add-counter').addEventListener('click',function(){document.getElementById('counters').appendChild(counterRowEl(null));});
+document.getElementById('add-source').addEventListener('click',function(){document.getElementById('sources').appendChild(sourceRowEl(null));});
+
+renderForm(JSON.parse(JSON.stringify(DEFAULT_CASE)));
+window.BridgeBuilder={generate:generateBridge,defaultCase:DEFAULT_CASE,collect:collectForm,validate:validate,render:renderForm};
+</script>
+</body>
+</html>
