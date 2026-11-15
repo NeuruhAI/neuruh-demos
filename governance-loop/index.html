@@ -293,8 +293,19 @@
 
   /* Change-event backstop: clean the feedback-accuracy value after any edit. */
   document.getElementById('etaAcc').addEventListener('change', function () { roundStep('etaAcc'); });
+  /* Load-time normalization: the HTML default is already clean; this closes
+   * the assignment-time pattern so every value the page ever holds in this
+   * input has passed step-implied rounding. */
+  roundStep('etaAcc');
 
-  function set(id, value) { document.getElementById(id).value = value; }
+  function set(id, value) {
+    var el = document.getElementById(id);
+    el.value = value;
+    /* Assignment-time rounding: a preset write to a number input passes the
+     * same step-implied rounding as a calc or a change. Text inputs and
+     * selects are untouched. */
+    if (el.tagName === 'INPUT' && el.type === 'number') roundStep(id);
+  }
   function setChecked(id, value) { document.getElementById(id).checked = value; }
 
   document.getElementById('presetPass').addEventListener('click', function () {
