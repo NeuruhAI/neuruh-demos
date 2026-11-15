@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuruh Bridge: The Topology</title>
+<meta name="description" content="The topology layer for the Neuruh estate: core systems as nodes, their edges, the mission loop with seam statuses, the blocked gaps, and the shared receipt format.">
+<style>
+body{font-family:Archivo,Inter,Helvetica,Arial,sans-serif;background:#f5f2ea;color:#17191b;margin:0;padding:32px 20px 48px}
+.wrap{max-width:960px;margin:0 auto}
+.brand{font-size:11px;letter-spacing:3px;color:#6b5a2a}
+h1{font-size:30px;line-height:1.15;margin:18px 0 8px}
+.sub{color:#4a4640;font-size:14px;line-height:1.5}
+.docctl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid #c9c2ae;margin:22px 0 0;font-size:12px}
+.docctl div{padding:8px 10px;border-right:1px solid #c9c2ae}
+.docctl div:last-child{border-right:none}
+.docctl .k{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:1px;color:#6b5a2a;display:block;margin-bottom:2px}
+.banner{border:1.5px solid #9a7b2d;background:#efe9d8;padding:14px 16px;margin:22px 0;font-weight:bold;line-height:1.5}
+h2{font-size:17px;margin:30px 0 6px;border-bottom:2px solid #9a7b2d;padding-bottom:5px}
+h3{font-size:15px;margin:22px 0 6px}
+p,li{font-size:13px;line-height:1.55;color:#2a2a26}
+p.note{color:#4a4640}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;word-break:break-all}
+table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.45;margin:10px 0}
+th{text-align:left;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:1px;color:#6b5a2a;border-bottom:2px solid #9a7b2d;padding:6px 8px;vertical-align:bottom}
+td{border-bottom:1px solid #d8d2c2;padding:7px 8px;vertical-align:top}
+tr:hover td{background:#faf7ef}
+a{color:#17191b}
+a:hover{color:#6b5a2a}
+.badge{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10px;letter-spacing:1px;padding:2px 7px;border-radius:2px;white-space:nowrap}
+.st-live{background:#dcead9;color:#20511f}
+.st-sim{background:#efe6c8;color:#6b5a2a}
+.st-des{background:#dde5ec;color:#3d5a73}
+.st-block{background:#f3d9d4;color:#8c2b1d}
+.st-flight{background:#e6ddf0;color:#5b3f7d}
+.st-conn{background:#dcead9;color:#20511f}
+.ctl{margin:12px 0}
+.ctl button{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;padding:5px 10px;margin:0 4px 4px 0;background:#fffdf8;border:1px solid #c9c2ae;cursor:pointer}
+.ctl button.on{background:#9a7b2d;color:#fff;border-color:#9a7b2d}
+.ctl input{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;padding:5px 8px;border:1px solid #c9c2ae;background:#fffdf8;width:260px}
+.fig{background:#fffdf8;border:1px solid #d8d2c2;padding:14px 16px;margin:12px 0}
+.figcap{font-size:12px;color:#4a4640;margin:8px 0 0;line-height:1.5}
+.figcap b{color:#17191b}
+pre{background:#17191b;color:#e8e4d8;padding:14px 16px;font-size:12px;line-height:1.5;overflow-x:auto;white-space:pre}
+.num{font-family:"JetBrains Mono",ui-monospace,monospace}
+.foot{margin-top:30px;color:#6b655c;font-size:12px;line-height:1.5;border-top:1px solid #c9c2ae;padding-top:12px}
+.foot a{color:#6b5a2a}
+@media print{body{background:#fff}.fig,.banner{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand">NEURUH&reg; &middot; BRIDGE</div>
+<h1>The Topology: One Machine, All Its Seams</h1>
+<p class="sub">The topology layer for the Neuruh estate. Every core system as a node with its honest state, every edge between them with its honest status, the twelve-stage mission loop with each seam's status and what is missing, and the blocked gaps listed plainly. The page links to the live systems. It does not claim production automation that is not proven.</p>
+<div class="docctl">
+<div><span class="k">VERSION</span>Topology v1.0 &middot; 2026-11-15</div>
+<div><span class="k">COVERAGE</span>44 nodes &middot; 35 edges &middot; 12 mission-loop stages &middot; 12 blocked seams &middot; 6 upgrade layers &middot; full registry is the hub, 182 sites (v2.56)</div>
+<div><span class="k">SOURCES</span>Hub v2.56 (2026-11-15) &middot; Daybreak solution adaptation map (2026-11-15) &middot; Notebook Codex (2026-11-15) &middot; Six-layer upgrade spec (2026-11-15) &middot; live checks 2026-11-15</div>
+</div>
+<div class="banner">Everything below that is labeled SIMULATION runs as a simulation in your browser. Nothing here touches a live production system. DESIGNED is not DEPLOYED is not LIVE. A BLOCKED seam is a fact about the estate, not a defect in this page.</div>
+
+<h2>1. The map at a glance</h2>
+<p><span class="num">44</span> core nodes. <span class="num">1</span> LIVE (the hub itself), <span class="num">36</span> SIMULATION (live pages, browser-local), <span class="num">2</span> DESIGNED, <span class="num">4</span> BLOCKED, <span class="num">1</span> IN FLIGHT. <span class="num">35</span> edges: <span class="num">6</span> CONNECTED, <span class="num">20</span> SIMULATED, <span class="num">3</span> DESIGNED, <span class="num">1</span> IN FLIGHT, <span class="num">5</span> BLOCKED. The mission loop has <span class="num">12</span> stages; <span class="num">1</span> of them (ingest) is BLOCKED and <span class="num">2</span> (conductor, custody) are DESIGNED. Section 10 adds the six-layer upgrade path: the design that takes the estate from its current keyword-bank design to a contract-based design. The full registry of all 182 sites is the hub, linked below. This page covers the core systems only; it does not list all 182 sites as nodes.</p>
+<p class="note">State legend: <span class="badge st-live">LIVE</span> a real system, reachable and working. <span class="badge st-sim">SIMULATION</span> a live page that runs in the browser only. <span class="badge st-des">DESIGNED</span> specified on paper, not built as a runnable page. <span class="badge st-block">BLOCKED</span> down, paused, or unreachable, with the reason given. <span class="badge st-flight">IN FLIGHT</span> being built right now by a parallel build. Edge legend: <span class="badge st-conn">CONNECTED</span> a real link that works today. <span class="badge st-sim">SIMULATED</span> the flow exists inside a demo page. <span class="badge st-des">DESIGNED</span> the flow is specified, not wired. <span class="badge st-block">BLOCKED</span> the flow cannot run. <span class="badge st-flight">IN FLIGHT</span> the link is being built.</p>
+
+<h2>2. Figure 1. The mission loop</h2>
+<div class="fig">
+<svg viewBox="0 0 800 500" width="100%" role="img" aria-label="Twelve-stage mission loop diagram">
+<circle cx="400" cy="250" r="185" fill="none" stroke="#9a7b2d" stroke-width="1.5" stroke-dasharray="5 4"/>
+<polygon points="400,52 393,66 407,66" fill="#9a7b2d"/>
+<g font-family="Archivo,Inter,Helvetica,Arial,sans-serif" font-size="13" font-weight="bold" text-anchor="middle">
+<circle cx="400" cy="65" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="400" y="69" fill="#17191b">1</text><text x="400" y="22" fill="#17191b">Mission</text>
+<circle cx="492" cy="90" r="24" fill="#dde5ec" stroke="#5b7a99" stroke-width="2"/><text x="492" y="94" fill="#17191b">2</text><text x="514" y="52" fill="#17191b">Conductor</text>
+<circle cx="560" cy="158" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="560" y="162" fill="#17191b">3</text><text x="600" y="122" fill="#17191b">Worker</text>
+<circle cx="585" cy="250" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="585" y="254" fill="#17191b">4</text><text x="628" y="254" fill="#17191b">Receipt</text>
+<circle cx="560" cy="342" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="560" y="346" fill="#17191b">5</text><text x="600" y="388" fill="#17191b">Sentinel</text>
+<circle cx="492" cy="410" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="492" y="414" fill="#17191b">6</text><text x="514" y="456" fill="#17191b">Governance</text>
+<circle cx="400" cy="435" r="24" fill="#dde5ec" stroke="#5b7a99" stroke-width="2"/><text x="400" y="439" fill="#17191b">7</text><text x="400" y="482" fill="#17191b">Custody</text>
+<circle cx="308" cy="410" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="308" y="414" fill="#17191b">8</text><text x="286" y="456" fill="#17191b">Promotion</text>
+<circle cx="240" cy="342" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="240" y="346" fill="#17191b">9</text><text x="200" y="388" fill="#17191b">Deployment</text>
+<circle cx="215" cy="250" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="215" y="254" fill="#17191b">10</text><text x="172" y="254" fill="#17191b">Result</text>
+<circle cx="240" cy="158" r="24" fill="#f3d9d4" stroke="#a93226" stroke-width="2"/><text x="240" y="162" fill="#17191b">11</text><text x="200" y="122" fill="#a93226">Ingest</text>
+<circle cx="307" cy="90" r="24" fill="#efe6c8" stroke="#9a7b2d" stroke-width="2"/><text x="307" y="94" fill="#17191b">12</text><text x="286" y="52" fill="#17191b">Next mission</text>
+</g>
+<text x="400" y="250" text-anchor="middle" font-family="Archivo,Inter,Helvetica,Arial,sans-serif" font-size="14" font-weight="bold" fill="#17191b">ONE LOOP</text>
+<text x="400" y="270" text-anchor="middle" font-family="Archivo,Inter,Helvetica,Arial,sans-serif" font-size="12" fill="#4a4640">mission to next mission</text>
+</svg>
+<p class="figcap"><b>Figure 1.</b> The twelve-stage mission loop. Brass is SIMULATION (the stage runs inside a demo page), slate is DESIGNED, red is BLOCKED. Stage 11, ingest, is the one blocked stage: production Supabase is unreachable, so no real signal enters the loop. The loop as drawn is the Unified Chain's nine stages plus the organism stages around it; the full stage-by-stage status is in section 5. The loop closes only in the browser. In production it is open at ingest.</p>
+</div>
+
+<h2>3. Figure 2. The commercial spine</h2>
+<div class="fig">
+<svg viewBox="0 0 800 190" width="100%" role="img" aria-label="Commercial spine diagram">
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0,0 8,4 0,8" fill="#6b5a2a"/></marker></defs>
+<g font-family="Archivo,Inter,Helvetica,Arial,sans-serif" font-size="11" font-weight="bold" text-anchor="middle">
+<rect x="8" y="30" width="104" height="58" fill="#fffdf8" stroke="#6b5a2a" stroke-width="1.5"/><text x="60" y="55" fill="#17191b">County</text><text x="60" y="70" fill="#17191b">ArcGIS</text>
+<rect x="122" y="30" width="104" height="58" fill="#f3d9d4" stroke="#a93226" stroke-width="2"/><text x="174" y="55" fill="#a93226">LANDOS</text><text x="174" y="70" fill="#a93226">Ingest</text>
+<rect x="236" y="30" width="104" height="58" fill="#f3d9d4" stroke="#a93226" stroke-width="2"/><text x="288" y="55" fill="#a93226">LANDOS</text><text x="288" y="70" fill="#a93226">Engine</text>
+<rect x="350" y="30" width="104" height="58" fill="#f3d9d4" stroke="#a93226" stroke-width="2"/><text x="402" y="55" fill="#a93226">Lead Recipe</text><text x="402" y="70" fill="#a93226">OS registry</text>
+<rect x="464" y="30" width="104" height="58" fill="#f3d9d4" stroke="#a93226" stroke-width="2"/><text x="516" y="55" fill="#a93226">DeedSonar</text><text x="516" y="70" fill="#a93226">503 paused</text>
+<rect x="578" y="30" width="104" height="58" fill="#efe6c8" stroke="#9a7b2d" stroke-width="1.5"/><text x="630" y="55" fill="#17191b">Scan /</text><text x="630" y="70" fill="#17191b">Dossier</text>
+<rect x="692" y="30" width="100" height="58" fill="#f3d9d4" stroke="#a93226" stroke-width="2"/><text x="742" y="55" fill="#a93226">Money</text><text x="742" y="70" fill="#a93226">Stripe</text>
+</g>
+<g stroke="#6b5a2a" stroke-width="1.5" marker-end="url(#arr)">
+<line x1="112" y1="59" x2="120" y2="59"/><line x1="226" y1="59" x2="234" y2="59"/><line x1="340" y1="59" x2="348" y2="59"/><line x1="454" y1="59" x2="462" y2="59"/><line x1="568" y1="59" x2="576" y2="59"/><line x1="682" y1="59" x2="690" y2="59"/>
+</g>
+<text x="400" y="120" text-anchor="middle" font-family="Archivo,Inter,Helvetica,Arial,sans-serif" font-size="12" fill="#4a4640">Red is BLOCKED. Brass is SIMULATION: the Scan / Dossier step works as a demo page on synthetic data.</text>
+<text x="400" y="140" text-anchor="middle" font-family="Archivo,Inter,Helvetica,Arial,sans-serif" font-size="12" fill="#4a4640">The one proven end-to-end run is hunt 6071b7ad, 2026-09-16: 153 leads scored, 153 synced. Not repeatable now.</text>
+<text x="400" y="160" text-anchor="middle" font-family="Archivo,Inter,Helvetica,Arial,sans-serif" font-size="12" fill="#4a4640">What works today is the demo path: Lead Gen Console and DeedSonar Buyer Demo, synthetic data only.</text>
+</svg>
+<p class="figcap"><b>Figure 2.</b> The commercial spine, county data to money. Four of the seven steps are BLOCKED. The spine is the reason the organism loop cannot close in production: the loop needs real signals in (ingest) and real money out (Stripe), and both are down.</p>
+</div>
+
+<h2>4. Nodes: the core systems</h2>
+<p class="note">44 nodes. Filter by state, or search by name or role. Evidence is dated; a live page without a date is a page that was checked live on 2026-11-15 for this build (HTTP 200 and byte size recorded) unless stated otherwise.</p>
+<div class="ctl" id="nodeCtl">
+<button data-f="all" class="on" onclick="filterNodes('all',this)">ALL 44</button>
+<button data-f="LIVE" onclick="filterNodes('LIVE',this)">LIVE 1</button>
+<button data-f="SIMULATION" onclick="filterNodes('SIMULATION',this)">SIMULATION 36</button>
+<button data-f="DESIGNED" onclick="filterNodes('DESIGNED',this)">DESIGNED 2</button>
+<button data-f="BLOCKED" onclick="filterNodes('BLOCKED',this)">BLOCKED 4</button>
+<button data-f="IN FLIGHT" onclick="filterNodes('IN FLIGHT',this)">IN FLIGHT 1</button>
+<input id="nodeSearch" placeholder="Search nodes..." oninput="searchNodes(this.value)">
+<span id="nodeCount" class="num"></span>
+</div>
+<table id="nodeTable">
+<thead><tr><th>ID</th><th>System</th><th>Role</th><th>State</th><th>Evidence</th><th>Link</th></tr></thead>
+<tbody>
+<tr data-state="SIMULATION"><td class="num">N01</td><td>Polarity Theory</td><td>The physics. Productive polarity is an inverted-U of difference under containment; emergence is a derived outcome, not a primitive.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. 19 primitive terms; axioms A1-A12, each with a falsifier.</td><td><a href="https://polarity-theory-live-demo.pages.dev/">polarity-theory-live-demo.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N02</td><td>Blueprint</td><td>The engineering spec. 16 services, context compilation, emergence qualification at 18 of 24, machine-readable canon, 180-day roadmap.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14.</td><td><a href="https://blueprint-live-demo.pages.dev/">blueprint-live-demo.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N03</td><td>Neural Core</td><td>The engine. Facts stay out of weights, reasoning style in adapters, workflows as tools; memory objects with receipts.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Step 5 first deliverable: hybrid retrieval with citations.</td><td><a href="https://neural-core-live-demo.pages.dev/">neural-core-live-demo.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N04</td><td>Adaptive Intelligence</td><td>The operating picture. 12-step cycle, polarity phase space, LCDE, instrument panel, organism integration map.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page (Cloudflare-hosted, not GitHub), browser-verified WORKING 2026-11-14.</td><td><a href="https://adaptive-intelligence-live-demo.pages.dev/">adaptive-intelligence-live-demo.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N05</td><td>Case Zero</td><td>The proof method. 8-stage closed loop, triple-blind roles, sealed predictions specific enough to fail, 10,000-permutation nulls.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Notebook ruled NOT pre-AI by Jeramie, 2026-11-15.</td><td><a href="https://case-zero-live-demo.pages.dev/">case-zero-live-demo.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N06</td><td>CRUCIBLE</td><td>The gate. POST /v1/verify: eta plus self-check; uncited claims returned by exact text; hash-chained ledger from GENESIS.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Local shape is 127.0.0.1:8600 on the Mac; the page is the demo.</td><td><a href="https://crucible-live-demo.pages.dev/">crucible-live-demo.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N07</td><td>Governance Loop</td><td>The integrated reference implementation. N-Cell/64 header, governance intersection, memory write-gate, CRUCIBLE gate, receipt, promotion.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, 29 checks. Only a claim that passes all three gates AND carries a real external signal promotes.</td><td><a href="https://neuruhai.github.io/neuruh-demos/governance-loop/">governance-loop</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N08</td><td>N-Cell family</td><td>The authority model. N-Cell/64 header (8 bytes); governance intersection E* = proposed AND allowed AND available; 10 organ manifests.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live pages: position paper, worked example (header 1f0701070fa52d01), organ manifests 18/18 with 0 fully grounded, runtime adapter.</td><td><a href="https://neuruhai.github.io/neuruh-demos/ncell-organ-manifest/">ncell-organ-manifest</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N09</td><td>P0 Seam Reference Loop</td><td>The automatic handoff seam. Receipt watcher, Sentinel invocation, result ingest, custody, promotion.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, 33/33 tests, browser-verified WORKING. Reference implementation only; the production Mac loop is unproven.</td><td><a href="https://neuruhai.github.io/neuruh-demos/p0-seam-loop/">p0-seam-loop</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N10</td><td>Sentinel Court</td><td>The independent verifier, structurally separate from the actor. Failure classifier with 14 types; authority compiler; social engineering firewall.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page (JGI Sentinel V6), browser-verified WORKING 2026-11-14. No live Sentinel verdicts exist.</td><td><a href="https://jgi-sentinel-court.pages.dev/">jgi-sentinel-court.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N11</td><td>Eta Gate</td><td>The scoring gate. eta = (I_q x I_r x I_v) / (1 + E_wasted + C_violations), 0-100; SEED requires eta at or above 70 and feedback accuracy at or above 0.6.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live inside the CRUCIBLE demo and the eta Transform Lab in the hub. Eta qubit id is input-dependent (fill-qeta step matters).</td><td><a href="https://crucible-live-demo.pages.dev/">crucible-live-demo.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N12</td><td>Calibration Lab</td><td>The measurement suite. Brier score, forecast ledger, hallucination firewall, epistemic object model, causal attribution.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. No published Brier numbers on a held-out set yet (Grok advice: publish them).</td><td><a href="https://jgi-calibration-lab.pages.dev/">jgi-calibration-lab.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N13</td><td>Memory Gate / Workbench</td><td>The learning memory. Seven layers, write-gate with evidence thresholds, decay F(t)=2^(-t/h), quarantine, context compiler.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, memory-gate v1.0.0, 26/26 after the Section 39 build. Demo rule: evidence below 3 REJECT, contradiction QUARANTINE.</td><td><a href="https://neuruhai.github.io/neuruh-demos/memory-gate/">memory-gate</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N14</td><td>Decision Traces</td><td>The learning capture. Five-layer loop, episode simulator, triage rubric: REUSABLE DECISION, SYSTEM GAP, EXCEPTION.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Worked examples are real incidents (2026-11-04 Cloudflare deletions, the false Neuruh LLC name).</td><td><a href="https://neuruhai.github.io/neuruh-demos/decision-traces/">decision-traces</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N15</td><td>Autonomy Lab</td><td>The safe rollout machinery. Capability statuses, shadow mode, canary ladder, autonomy credit score, skill reliability by Beta posterior.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Self-improvement may NOT expand legal, financial, or security authority.</td><td><a href="https://jgi-autonomy-lab.pages.dev/">jgi-autonomy-lab.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N16</td><td>Unified Chain</td><td>The reference implementation of the full loop. Nine stages: claim ingest, header stamp, governance intersection, memory write-gate, CRUCIBLE verdict, receipt, promotion, outcome, next mission.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING twice. Real in-page SHA-256; tamper test returns TAMPERED. Live MD5 b6ef964e365cf42e96b2785a9208745e, checked 2026-11-15.</td><td><a href="https://neuruhai.github.io/neuruh-demos/unified-chain/">unified-chain</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N17</td><td>Receipt-Chain Explorer</td><td>The audit viewer. Receipt v1.0 verification: a link passes when the hash recomputes AND its prev hash equals the previous receipt hash; first receipt starts from GENESIS.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Sample chain includes the real pipeline first-run receipt (hash 5f46f39e...).</td><td><a href="https://neuruhai.github.io/neuruh-demos/receipt-chain-explorer/">receipt-chain-explorer</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N18</td><td>Canonical Receipt Index</td><td>The receipt registry pattern. 303 named artifacts, 95 explorer rows, reconciliation, completeness meter at 75%, contradictions preserved not erased.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14.</td><td><a href="https://canonical-receipt-index.pages.dev/">canonical-receipt-index.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N19</td><td>Liability Layer</td><td>The commitment governance for consequential actions. Insured Action Protocol: intent, risk scalar, micro-premium (0.0001 USDC), token, unlock, append-only record.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. The manufacturer is not the regulator is the answer to who verifies the verifier.</td><td><a href="https://liability-layer.pages.dev/">liability-layer.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N20</td><td>Aegis Intelligence Core</td><td>Seven-agent adjudication. Phase 1 parallel isolation, Phase 2 deliberation matrix with challenge rules, Phase 3 Chair adjudication, CRUCIBLE receipts.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page. Worked example: claim CLM-2026-0042, $18,500 vs $14,200 benchmark, reserve $3,391. External AI rated it 4.5-5/10 as a LARP (prompts, no running system); the rating was accepted 2026-11-15.</td><td><a href="https://aegis-intelligence-core.pages.dev/">aegis-intelligence-core.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N21</td><td>Modular Agentic Cockpit</td><td>The human-accountable command surface. Declare intent, inspect evidence, approve consequential action, monitor execution, review outcomes. 33 modules; commitment packet schema with receipt_required: true.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Control principle: sense broadly, qualify aggressively, commit selectively, execute completely, reconcile honestly.</td><td><a href="https://modular-agentic-cockpit.pages.dev/">modular-agentic-cockpit.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N22</td><td>Organization Compiler</td><td>Team formation. Smallest competent organization per job; cognitive router; Bayesian reliability per worker; bot birth and death; swarm diversity enforced.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. 20 identical workers are not 20 independent opinions.</td><td><a href="https://jgi-organization-compiler.pages.dev/">jgi-organization-compiler.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N23</td><td>AXON Lattice</td><td>The signal nervous system. 23-module code map, 6 organ halos; findings flow as events through the lattice.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live pages: substrate and verified code map, both browser-verified WORKING 2026-11-14.</td><td><a href="https://neuruhai.github.io/neuruh-demos/axon-lattice-substrate/">axon-lattice-substrate</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N24</td><td>Signal Pipeline family</td><td>The intake pattern. Scanner findings enter as signals, get ranked, become triage; 49 clean signals in 4 family clusters.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page (signal-to-outreach-pipeline). The pipeline is DESIGNED, not run: acceptance is 5 pulled, 3 verified, 1 composed, 1 sent, 1 receipt, 1 outcome. First run 2026-11-14: 5 signals, 3 verified, 1 draft queued unsent.</td><td><a href="https://neuruhai.github.io/neuruh-demos/signal-to-outreach-pipeline/">signal-to-outreach-pipeline</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N25</td><td>Recipe Engine 49</td><td>The decision-engine pattern. 49 ingredients; a finding enters, the engine scores it, kill switches fire, a verdict with a receipt comes out.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. 49 = 40 named + 9 unnamed; the two 49s (signals vs ingredients) are different objects, never merge.</td><td><a href="https://recipe-engine-49.pages.dev/">recipe-engine-49.pages.dev</a></td></tr>
+<tr data-state="BLOCKED"><td class="num">N26</td><td>Lead Recipe OS</td><td>The Signal-to-Opportunity kernel. 30 canonical recipe families (R1-R30); live registry holds 36 rows including aliases and variants.</td><td><span class="badge st-block">BLOCKED</span></td><td>Live registry sits in production Supabase, unreachable (curl 000, verified 2026-11-15). Recipe definitions survive in the demos; the live registry does not answer.</td><td><a href="https://github.com/NeuruhAI/lead-recipe-os">NeuruhAI/lead-recipe-os</a> (repo, not a live service)</td></tr>
+<tr data-state="SIMULATION"><td class="num">N27</td><td>Factory Operating Manual v2</td><td>The production lane. Core loop: intake, contract, risk lane, isolated repo, bounded AI build, deterministic verification outside the model, evidence-backed demo, human acceptance, independent ratification, production promotion.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. Authority columns: Autonomous, Approval Required, Never Automatic (production deployment, DNS changes, customer communication, destructive migration, production credentials are never automatic).</td><td><a href="https://factory-operating-manual.pages.dev/">factory-operating-manual.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N28</td><td>Autonomous Builder Factory</td><td>The build loop that produces patch and demo drafts. 64 cycles recorded.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14. 64 cycles: 51 Success, 10 No-op, 2 Failed, 1 Blocked; 28 draft packs.</td><td><a href="https://neuruhai.github.io/neuruh-demos/autonomous-builder-factory/">autonomous-builder-factory</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N29</td><td>Ops Console</td><td>The operations layer. Promotion pipeline (EXPERIMENT to RELIABLE, never jump stages), loop detector, rollback simulator, drift detector, bottleneck analyzer.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14.</td><td><a href="https://jgi-ops-console.pages.dev/">jgi-ops-console.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N30</td><td>Neuruh Codex (Master Codex v1.1.0)</td><td>The canon. Machine-readable, no floating claims; every claim with provenance, scope, confidence, falsifiers, lineage.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14.</td><td><a href="https://neuruhai.github.io/neuruh-demos/neuruh-codex/">neuruh-codex</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N31</td><td>Conceptual Lexicon</td><td>The term registry. 143 numbered slots in six layers; Add Words import assigns from 144 and reports duplicates.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, v1.0, 2026-11-03. Slot 130 Formation is PROPOSED, awaiting confirmation (notebook page 9 supports it). 12 words are image-sourced, UNVERIFIED.</td><td><a href="https://conceptual-lexicon.pages.dev/">conceptual-lexicon.pages.dev</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N32</td><td>Neuruh Constitution</td><td>The governance rules. The rules the loop cannot change without founder-approved governance change.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, browser-verified WORKING 2026-11-14.</td><td><a href="https://neuruh-constitution.pages.dev/">neuruh-constitution.pages.dev</a></td></tr>
+<tr data-state="BLOCKED"><td class="num">N33</td><td>LANDOS Ingest</td><td>County parcel ingestion, distress-signal acquisition, provenance. Free-first acquisition; paid pullers retired behind controlled logic.</td><td><span class="badge st-block">BLOCKED</span></td><td>Production Supabase unreachable (curl 000, verified 2026-11-15). Lead pull failed 30 straight nights through 2026-11-14. County ArcGIS endpoints still answer (St. Joseph 119,780 parcels, LaPorte 64,775).</td><td><a href="https://github.com/NeuruhAI/landos-ingest">NeuruhAI/landos-ingest</a> (repo, not a live service)</td></tr>
+<tr data-state="BLOCKED"><td class="num">N34</td><td>LANDOS Engine</td><td>Scoring, lead generation, opportunity ranking, provenance, downstream sync.</td><td><span class="badge st-block">BLOCKED</span></td><td>landos-engine.fly.dev down (curl 000, verified 2026-11-15). Not hosted anywhere live. The one end-to-end run is hunt 6071b7ad, 2026-09-16: 153 scored, 153 synced.</td><td><a href="https://github.com/NeuruhAI/landos-engine">NeuruhAI/landos-engine</a> (repo, not a live service)</td></tr>
+<tr data-state="BLOCKED"><td class="num">N35</td><td>DeedSonar</td><td>The flagship real-estate CRM and lead app. Next.js, Supabase, Vercel. Solely Jeramie Hicks's; the intended JV partner never signed.</td><td><span class="badge st-block">BLOCKED</span></td><td>deedsonar.com returns 503 DEPLOYMENT_PAUSED (verified 2026-11-15) on the anchorpointpg Vercel team. Ownership and access unresolved. Buyer demo is a separate SIMULATION page.</td><td><a href="https://deedsonar.com/">deedsonar.com</a> (503, paused)</td></tr>
+<tr data-state="SIMULATION"><td class="num">N36</td><td>Land Intelligence Report + Store</td><td>The buyable deliverable. One-page report (parcel, ownership chain, yield stack, mineral overlay, distress flags, SHA-256 receipt). Report $29, 3-pack $69, verified Dossier $295.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live pages, generator 35/35. The store is SIMULATION until Stripe reconnects: Stripe status reauthorization_required (verified 2026-11-10). No live money moves.</td><td><a href="https://neuruhai.github.io/neuruh-demos/land-report-store/">land-report-store</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N37</td><td>Threat Deterrence Console</td><td>The defender's console. Threat lattice, signal analyzer (7 banks, 90 words), scam scorer, bot farm detector with phantom-consensus flag, resolution intake with SHA-256 receipt, learning ledger.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, jsdom 14/14, live-browser control check 6/6 WORKING 2026-11-15 06:02 EST. Live MD5 471b025a739aaf6442f920f984366978, checked 2026-11-15. Defender's side only.</td><td><a href="https://neuruhai.github.io/neuruh-demos/threat-deterrence-console/">threat-deterrence-console</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N38</td><td>Unified Swarm</td><td>All 179 systems as one swarm. Seven legions (SENSORS 7, ANALYSTS 62, ADJUDICATORS 14, OPERATORS 44, PROOF 20, MEMORY 10, COMMAND 22); ten-stage mission loop with chained SHA-256 receipts; the loop stops before production promotion by design.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, jsdom full-mission pass, live-browser control check 5/5 WORKING 2026-11-15 06:11 EST. Live MD5 a8fd4be9ebd3683d8a9a24b6f8cdce8a, checked 2026-11-15.</td><td><a href="https://neuruhai.github.io/neuruh-demos/unified-swarm/">unified-swarm</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N39</td><td>Solution Swarm (JGI Core)</td><td>All 179 systems adapted as solution cards: summary, two polarities with measured tensions, capability reading against seven threat domains, emergent third thing, SHA-256 receipt. The JGI loop: measure, adjust weights, adjust messages, summarize, escalate, human sees everything.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Live page, live-browser control check 6/6 WORKING 2026-11-15 06:33 EST. 179 cards, 33,473 signal checks, 179/179 receipts VALID, one confirm rewrites 50 cards, 32 escalated at check time. Live MD5 ce09513a3872aa1f509057fed4478a54, checked 2026-11-15.</td><td><a href="https://neuruhai.github.io/neuruh-demos/solution-swarm/">solution-swarm</a></td></tr>
+<tr data-state="SIMULATION"><td class="num">N40</td><td>On-Chain Anchor</td><td>The lock-in. Full estate inventory with SHA-256 per artifact, one Merkle root over everything, a verify page that proves membership by Merkle path.</td><td><span class="badge st-sim">SIMULATION</span></td><td>Page LIVE 2026-11-15 (HTTP 200, 73,602 bytes, MD5 fa04611cdb0e71a691f5b549b832384f), hub-carded as site 182 in hub v2.56. Merkle root 0bdc4c196e2c80664f06c23cc36b0417e0121687233dfc390ac23235835cf3fd over 195 leaves (181 sites, 7 papers, 3 documents, 4 ledgers, hashed from real bytes), 195 verified, 0 unverified. No chain write exists yet: the on-chain transaction needs the founder's chain, wallet, and gas choice. Chain options: OpenTimestamps (Bitcoin, $0, recommended first), Solana memo about $0.00025, Base about $0.001-0.01, Polygon about $0.0006-0.002. An anchor is a timestamped claim of authorship, not a court ruling on ownership.</td><td><a href="https://neuruhai.github.io/neuruh-demos/onchain-anchor/">onchain-anchor</a></td></tr>
+<tr data-state="IN FLIGHT"><td class="num">N41</td><td>Hard Problems Atlas</td><td>The 150 hard problems, each adapted to the estate with measurable indicators and Daybreak adapter flow, plus 6 financial-crime typology sections.</td><td><span class="badge st-flight">IN FLIGHT</span></td><td>Being built in parallel by a separate build (ordered 2026-11-15). Scope grew 2026-11-15 06:39: 100 problems plus 50 more (Source B 16-65) plus 6 typology sections. Not live at last check (503, 2026-11-15). Real-estate signals in it are public patterns, not proof about any individual.</td><td>No live URL yet</td></tr>
+<tr data-state="LIVE"><td class="num">N42</td><td>Neuruh Hub</td><td>The registry. Every live site in one place, 181 sites in 8 sections, with the honest flag on each card.</td><td><span class="badge st-live">LIVE</span></td><td>Hub v2.56, live and reachable, 182 sites, MD5 59921431b3528e387241217e33c42fd8, checked 2026-11-15. Cloudflare project neuruh-hub (with the u). v2.56 adds the On-Chain Anchor (site 182) and corrects the Solution Swarm card to 28 escalated at load, 32 after a confirm.</td><td><a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a></td></tr>
+<tr data-state="DESIGNED"><td class="num">N43</td><td>Daybreak Adapter</td><td>The one new build named by the adaptation map. Finding to claim object, patch to gated output, retest to outcome coding, receipt to SARIF export.</td><td><span class="badge st-des">DESIGNED</span></td><td>Specified in the Daybreak solution adaptation map, build order step 6, 2026-11-15. Not built. It is the only new build the map calls for; the rest is integration.</td><td>No live URL (not built)</td></tr>
+<tr data-state="DESIGNED"><td class="num">N44</td><td>Mother / Axon</td><td>The conductor and the nervous system. Mother v3 is the organism-resilience and monitoring layer; Axon is the signal side.</td><td><span class="badge st-des">DESIGNED</span></td><td>Architecture exists; no production monitoring loop is proven. The conductor in the mission loop is this node, and it is the least proven seam after ingest.</td><td>No live URL (architecture)</td></tr>
+</tbody>
+</table>
+
+<h2>5. Edges: who consumes whom, who feeds whom</h2>
+<p class="note">35 edges. An edge is CONNECTED only when the link works today in the real world. A SIMULATED edge runs inside a demo page. A BLOCKED edge cannot run. Read the edges with the nodes: the four BLOCKED commercial edges are the reason the loop cannot close in production.</p>
+<div class="ctl" id="edgeCtl">
+<button data-f="all" class="on" onclick="filterEdges('all',this)">ALL 35</button>
+<button data-f="CONNECTED" onclick="filterEdges('CONNECTED',this)">CONNECTED 6</button>
+<button data-f="SIMULATED" onclick="filterEdges('SIMULATED',this)">SIMULATED 20</button>
+<button data-f="DESIGNED" onclick="filterEdges('DESIGNED',this)">DESIGNED 3</button>
+<button data-f="IN FLIGHT" onclick="filterEdges('IN FLIGHT',this)">IN FLIGHT 1</button>
+<button data-f="BLOCKED" onclick="filterEdges('BLOCKED',this)">BLOCKED 5</button>
+<span id="edgeCount" class="num"></span>
+</div>
+<table id="edgeTable">
+<thead><tr><th>ID</th><th>From</th><th>To</th><th>What flows</th><th>Status</th></tr></thead>
+<tbody>
+<tr data-state="BLOCKED"><td class="num">E01</td><td>LANDOS Ingest (N33)</td><td>LANDOS Engine (N34)</td><td>County parcels and distress signals, with SHA-256 provenance receipts</td><td><span class="badge st-block">BLOCKED</span></td></tr>
+<tr data-state="BLOCKED"><td class="num">E02</td><td>LANDOS Engine (N34)</td><td>DeedSonar (N35)</td><td>Ranked leads, synchronized to CRM</td><td><span class="badge st-block">BLOCKED</span></td></tr>
+<tr data-state="BLOCKED"><td class="num">E03</td><td>Lead Recipe OS (N26)</td><td>LANDOS Engine (N34)</td><td>Recipes: repeatable acquisition patterns (30 families, 36 registry rows)</td><td><span class="badge st-block">BLOCKED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E04</td><td>Recipe Engine 49 (N25)</td><td>Lead Recipe OS (N26)</td><td>49 ingredients that compose the recipes</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E05</td><td>Signal Pipeline (N24)</td><td>Unified Chain (N16)</td><td>Signals become claims at stage 1</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E06</td><td>Unified Chain (N16)</td><td>CRUCIBLE (N06)</td><td>Claims reach the verdict at stage 5</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E07</td><td>CRUCIBLE (N06)</td><td>Receipt-Chain Explorer (N17)</td><td>Hash-chained receipts, verifiable by anyone holding the chain</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E08</td><td>Governance Loop (N07)</td><td>Unified Chain (N16)</td><td>Header, intersection, and write-gate as stages 2 to 4</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E09</td><td>N-Cell (N08)</td><td>Governance Loop (N07)</td><td>The 64-bit header and the intersection rule</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E10</td><td>Memory Gate (N13)</td><td>Unified Chain (N16)</td><td>Write-gate and decay as stage 4</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E11</td><td>P0 Seam (N09)</td><td>Governance Loop (N07)</td><td>Receipt watcher to Sentinel invocation to result ingest</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E12</td><td>Sentinel Court (N10)</td><td>P0 Seam (N09)</td><td>Independent verification of the handoff</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E13</td><td>Aegis (N20)</td><td>Unified Chain (N16)</td><td>Deliberation: seven agents argue, the Chair adjudicates</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="DESIGNED"><td class="num">E14</td><td>Calibration Lab (N12)</td><td>Aegis (N20)</td><td>Per-agent Brier scores as weights for composed probability (log-odds, dependence-aware)</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E15</td><td>Threat Console (N37)</td><td>Unified Swarm (N38)</td><td>Threat signals enter the ten-stage mission loop; the deterrence modules are built in</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E16</td><td>Threat Console (N37)</td><td>Solution Swarm (N39)</td><td>All 179 systems adapted as solution cards against the console's seven threat domains</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E17</td><td>Unified Swarm (N38)</td><td>Solution Swarm (N39)</td><td>The same 179-system registry and the same seven legions feed the cards</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="CONNECTED"><td class="num">E18</td><td>Solution Swarm (N39)</td><td>Hub (N42)</td><td>Hub-carded first in Section A, site 181</td><td><span class="badge st-conn">CONNECTED</span></td></tr>
+<tr data-state="CONNECTED"><td class="num">E19</td><td>Unified Chain (N16)</td><td>Hub (N42)</td><td>Hub-carded, flagship demo</td><td><span class="badge st-conn">CONNECTED</span></td></tr>
+<tr data-state="CONNECTED"><td class="num">E20</td><td>Threat Console (N37)</td><td>Hub (N42)</td><td>Hub-carded, site 179</td><td><span class="badge st-conn">CONNECTED</span></td></tr>
+<tr data-state="CONNECTED"><td class="num">E21</td><td>Unified Swarm (N38)</td><td>Hub (N42)</td><td>Hub-carded, site 180</td><td><span class="badge st-conn">CONNECTED</span></td></tr>
+<tr data-state="CONNECTED"><td class="num">E22</td><td>On-Chain Anchor (N40)</td><td>Hub (N42)</td><td>Hub-carded as site 182 in hub v2.56</td><td><span class="badge st-conn">CONNECTED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E23</td><td>On-Chain Anchor (N40)</td><td>Receipt-Chain Explorer (N17)</td><td>The Merkle root commits to the same receipts the explorer verifies</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="IN FLIGHT"><td class="num">E24</td><td>Hard Problems Atlas (N41)</td><td>Daybreak Adapter (N43)</td><td>150 problems mapped to the adapter flow (finding to claim object, patch to gated output, retest to outcome coding)</td><td><span class="badge st-flight">IN FLIGHT</span></td></tr>
+<tr data-state="DESIGNED"><td class="num">E25</td><td>Daybreak Adapter (N43)</td><td>Governance Loop (N07)</td><td>The adapter plugs into the loop as its cyber content; the loop is identical with a finding swapped for a claim</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E26</td><td>Factory Manual (N27)</td><td>Builder Factory (N28)</td><td>The operating procedure the factory runs</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E27</td><td>Ops Console (N29)</td><td>Factory Manual (N27)</td><td>The promotion pipeline (EXPERIMENT to RELIABLE) as the factory's release path</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E28</td><td>Decision Traces (N14)</td><td>Memory Gate (N13)</td><td>Incidents become lessons: rules, system gaps, or exceptions</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E29</td><td>Cockpit (N21)</td><td>Organization Compiler (N22)</td><td>Intent becomes a team: the smallest competent organization for the job</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E30</td><td>AXON Lattice (N23)</td><td>Signal Pipeline (N24)</td><td>Events flow through the lattice into intake</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="DESIGNED"><td class="num">E31</td><td>Mother / Axon (N44)</td><td>Ops Console (N29)</td><td>Health monitoring: organism health, cognitive health, automatic autonomy reduction when degraded</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr data-state="SIMULATED"><td class="num">E32</td><td>Codex (N30)</td><td>Lexicon (N31)</td><td>Canon terms resolve to numbered lexicon slots</td><td><span class="badge st-sim">SIMULATED</span></td></tr>
+<tr data-state="BLOCKED"><td class="num">E33</td><td>Land Report Store (N36)</td><td>Stripe</td><td>Money: $29 report, $69 3-pack, $295 verified Dossier</td><td><span class="badge st-block">BLOCKED</span></td></tr>
+<tr data-state="BLOCKED"><td class="num">E34</td><td>DeedSonar (N35)</td><td>Stripe / CRM</td><td>Money and lead sync</td><td><span class="badge st-block">BLOCKED</span></td></tr>
+<tr data-state="CONNECTED"><td class="num">E35</td><td>Hub (N42)</td><td>All 181 sites</td><td>Registry links; every site verified WORKING in the 2026-11-14 doubt-removal program (178 of 178)</td><td><span class="badge st-conn">CONNECTED</span></td></tr>
+</tbody>
+</table>
+
+<h2>6. The mission loop, seam by seam</h2>
+<p class="note">The organism's intended execution loop, twelve stages. The loop is the standard the estate is measured against. A stage is SIMULATION when it runs inside a demo page and nowhere else. The loop closes only in the browser.</p>
+<table>
+<thead><tr><th>#</th><th>Stage</th><th>Status</th><th>What exists</th><th>What is missing</th></tr></thead>
+<tbody>
+<tr><td class="num">1</td><td>Mission</td><td><span class="badge st-sim">SIMULATION</span></td><td>Mission intake in the Real Estate Agent demo, intent declaration in the Cockpit, AUTHORIZE first in the OSINT pipeline.</td><td>A live mission queue fed by real signals. Supabase is down, so no real signal enters.</td></tr>
+<tr><td class="num">2</td><td>Conductor</td><td><span class="badge st-des">DESIGNED</span></td><td>Mother/Axon architecture; BOB as conductor; the Cockpit and Organization Compiler compose teams in demos.</td><td>A production conductor running continuously. No live conductor has been observed; the Mac loop is unproven.</td></tr>
+<tr><td class="num">3</td><td>Worker</td><td><span class="badge st-sim">SIMULATION</span></td><td>Workers run in demos: Builder Factory (64 cycles), the swarm mission loop, the Unified Chain stages.</td><td>Governed workers executing against live systems. No live worker fleet has been observed.</td></tr>
+<tr><td class="num">4</td><td>Receipt</td><td><span class="badge st-sim">SIMULATION</span></td><td>CRUCIBLE hash-chained receipts, real in-page SHA-256, GENESIS start, receipt v1.0 format.</td><td>Receipts anchored to a live store. The store is down; the on-chain anchor has no chain write yet.</td></tr>
+<tr><td class="num">5</td><td>Sentinel</td><td><span class="badge st-sim">SIMULATION</span></td><td>Sentinel Court demo (14 failure types); the P0 seam invokes Sentinel in the reference loop.</td><td>Sentinel verdict closure in production. No live verdicts exist; the gap is named in the autonomy state.</td></tr>
+<tr><td class="num">6</td><td>Governance</td><td><span class="badge st-sim">SIMULATION</span></td><td>Governance Loop demo (29 checks), N-Cell intersection, Eta Gate, the Constitution as the rule layer.</td><td>Governance deployment: the gate is a demo, not a live control on any production system.</td></tr>
+<tr><td class="num">7</td><td>Custody</td><td><span class="badge st-des">DESIGNED</span></td><td>Canonical Receipt Index as the registry pattern (303 artifacts, 75% complete); custody locations recorded.</td><td>A live custody store. The index is a demo page, not a store, and nothing writes to it.</td></tr>
+<tr><td class="num">8</td><td>Promotion</td><td><span class="badge st-sim">SIMULATION</span></td><td>Ops Console promotion pipeline (EXPERIMENT to RELIABLE, never jump stages); Factory Manual release procedure.</td><td>A proven promotion from demo to live with a recorded human acceptance. The manual forbids GENERATED to LIVE without it, by design.</td></tr>
+<tr><td class="num">9</td><td>Deployment</td><td><span class="badge st-sim">SIMULATION</span></td><td>Demo deploys work and are verified by MD5 after every push (GitHub Pages and Cloudflare Pages).</td><td>Production deployment: the deployment executor and armed scheduler are not proven; DeedSonar deploys are paused; Cloudflare is at the 100-project ceiling.</td></tr>
+<tr><td class="num">10</td><td>Result</td><td><span class="badge st-sim">SIMULATION</span></td><td>Outcome ledger in the Unified Chain; Builder Factory records outcomes (51 Success of 64 cycles).</td><td>A production outcome loop: no live system feeds outcomes back into the next mission.</td></tr>
+<tr><td class="num">11</td><td>Ingest</td><td><span class="badge st-block">BLOCKED</span></td><td>County ArcGIS endpoints still answer (St. Joseph 119,780 parcels; LaPorte 64,775). The free-first ingest design exists.</td><td>Everything downstream of the source: production Supabase unreachable (curl 000, verified 2026-11-15); lead pull failed 30 straight nights; LANDOS engine down.</td></tr>
+<tr><td class="num">12</td><td>Next mission</td><td><span class="badge st-sim">SIMULATION</span></td><td>Unified Chain stage 9 feeds stage 1; the next-mission queue exists in the demo.</td><td>A live loop: nothing feeds the next mission from a real outcome, because no real outcome is recorded.</td></tr>
+</tbody>
+</table>
+
+<h2>7. Blocked seams, stated plainly</h2>
+<p class="note">Twelve seams are blocked. Each names the reason and what unblocks it. Nothing here is a claim that the work is done; the list is the work.</p>
+<ol>
+<li><b>Ingest seam.</b> Production Supabase unreachable (curl 000, verified 2026-11-15); lead pull failed 30 straight nights. Unblocks: the Mac backup check, then restore into a new Supabase project in Jeramie's own account, or re-ingest from county ArcGIS.</li>
+<li><b>DeedSonar seam.</b> deedsonar.com returns 503 DEPLOYMENT_PAUSED (verified 2026-11-15); ownership and access unresolved. Unblocks: a founder decision on the Vercel team, then a redeploy.</li>
+<li><b>LANDOS engine seam.</b> landos-engine.fly.dev down (curl 000, verified 2026-11-15). Unblocks: re-hosting, for example Fly.io, which needs the founder's approval at about $2-5 a month.</li>
+<li><b>Production Mac loop.</b> The P0 seam exists only as a reference implementation (33/33 tests, SIMULATION). Unblocks: the Mac work order, executed on Jeramie's Mac.</li>
+<li><b>Sentinel verdict closure.</b> No live Sentinel verdicts; governance deployment, the deployment executor, and the armed scheduler are not proven. Unblocks: the P0 seam production build.</li>
+<li><b>Promotion to production.</b> The Factory Manual forbids GENERATED to LIVE without human acceptance, and no promotion with a recorded acceptance has run. Unblocks: one promotion run end to end, with a receipt.</li>
+<li><b>Money seam.</b> Stripe status is reauthorization_required (verified 2026-11-10); the store is SIMULATION until it is reconnected. Unblocks: Jeramie reconnects Stripe and says done.</li>
+<li><b>neuruh.com.</b> DNS swap pending (Jeramie only); the site is 404 and neuruh.com/proof is dead. Unblocks: the DNS edit (delete the Vercel A and CNAME, add proxied CNAMEs to neuruh-web.pages.dev; do not touch MX/TXT).</li>
+<li><b>Cloudflare ceiling.</b> The account is at 100 projects, the free-plan ceiling; new Cloudflare deploys are blocked. Workaround in use: GitHub Pages, which has no such ceiling for this estate.</li>
+<li><b>Comms seam.</b> Gmail is full; inbound mail has bounced since 2026-10-23. Unblocks: Jeramie deletes large sent mail and empties Trash (also Drive and Photos).</li>
+<li><b>Marketplace seam.</b> The Marketplace account locked 2026-11-04; the unlock is unconfirmed. Unblocks: Jeramie confirms the unlock, then the push resumes from the ottomans.</li>
+<li><b>Notion seam.</b> Free-plan blocks are exhausted; creating a database fails. Unblocks: a plan decision, which is the founder's call.</li>
+</ol>
+
+<h2>8. The shared receipt format</h2>
+<p>This page adopts the Solution Swarm case-packet JSON shape as the shared receipt format for the estate. It is the shape the Solution Swarm already writes (packet_version 1.0, verified in the live page source, 2026-11-15). Any system that wants its runs to be verifiable by the Receipt-Chain Explorer and committable by the On-Chain Anchor writes this shape.</p>
+<pre>{
+  "packet_version": "1.0",
+  "tool": "JGI Core: The Solution Swarm",
+  "run_id": "a69295e27016",
+  "operator": "jeramie",
+  "created": "2026-11-15T11:33:00.000Z",
+  "weights": { "Scammer": 1.10 },
+  "cards": [
+    { "slug": "crucible-live-demo", "url": "https://crucible-live-demo.pages.dev/",
+      "host": "cloudflare", "legion": "PROOF", "stage": 5,
+      "summary": "...", "tensionA": 62, "tensionB": 41,
+      "topBank": "Scammer", "topScore": 80, "composed": 80, "emergence": 5,
+      "band": "HIGH", "emergentTitle": "...", "emergentStatement": "...",
+      "receipt": "9f2c...", "escalated": true, "decision": null, "escDecision": null }
+  ],
+  "team": ["crucible-live-demo"],
+  "escalations": [
+    { "slug": "crucible-live-demo", "composed": 80, "emergence": 5,
+      "band": "HIGH", "receipt": "9f2c...", "decision": null }
+  ],
+  "weightLedger": [ { "at": "2026-11-15T11:33:00.000Z", "domain": "Scammer",
+    "from": 1.00, "to": 1.10, "action": "confirm", "card": "adaptive-intelligence-atlas" } ],
+  "decisions": [ { "at": "2026-11-15T11:33:00.000Z", "card": "adaptive-intelligence-atlas",
+    "action": "confirm", "domain": "Scammer" } ],
+  "receipt_chain": [
+    { "stage": 1, "name": "Intake", "verdict": "PASS", "detail": "...",
+      "prev_receipt_hash": "GENESIS", "receipt_hash": "3ab1..." },
+    { "stage": 2, "name": "Team formation", "verdict": "PASS", "detail": "...",
+      "prev_receipt_hash": "3ab1...", "receipt_hash": "7f9e..." }
+  ]
+}</pre>
+<p><b>Chain rule.</b> The first receipt's prev_receipt_hash is the string GENESIS. Every later receipt's prev_receipt_hash equals the previous receipt's receipt_hash. A link passes when the hash recomputes AND its prev hash equals the previous receipt hash. A broken link returns TAMPERED.</p>
+<p><b>Hash rule.</b> Each receipt_hash is SHA-256 of the canonical record for that stage (sorted keys, no whitespace). The packet hash is SHA-256 of the canonical packet. The On-Chain Anchor commits to the same bytes: its Merkle leaves are SHA-256 of the canonical JSON of each manifest entry, and its root is SHA-256 over the concatenated raw 32-byte child hashes, duplicating the last node on an odd level.</p>
+<p><b>What the format does not do.</b> A valid receipt proves the run happened in the page as recorded. It does not prove the underlying claim is true, the data is live, or the system is in production. A receipt from a SIMULATION page is a simulation receipt, and it says so in the packet's tool field.</p>
+
+<h2>9. How to traverse the machine</h2>
+<p>The connections this page wires, in the order a person walks them:</p>
+<ol>
+<li><b>Start at the hub</b> (<a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a>): the registry of all 182 sites, v2.56.</li>
+<li><b>Pick a system in the Unified Swarm registry</b> (<a href="https://neuruhai.github.io/neuruh-demos/unified-swarm/">unified-swarm</a>): search by legion, stage, or host; every system has its live link.</li>
+<li><b>See the same system as a solution card in the Solution Swarm</b> (<a href="https://neuruhai.github.io/neuruh-demos/solution-swarm/">solution-swarm</a>): its two polarities, its threat reading, its emergent third thing, its receipt. Confirm or reject a hit and watch the weights and the messages move.</li>
+<li><b>Run a signal through the Threat Deterrence Console</b> (<a href="https://neuruhai.github.io/neuruh-demos/threat-deterrence-console/">threat-deterrence-console</a>): paste a message, score it, check the bot farm detector, file a resolution intake and get a case packet.</li>
+<li><b>Run a claim through the Unified Chain</b> (<a href="https://neuruhai.github.io/neuruh-demos/unified-chain/">unified-chain</a>): nine stages, one chained receipt, tamper test.</li>
+<li><b>Verify the receipt chain</b> in the Receipt-Chain Explorer (<a href="https://neuruhai.github.io/neuruh-demos/receipt-chain-explorer/">receipt-chain-explorer</a>): paste the chain, watch each link pass or fail.</li>
+<li><b>Check the anchor</b> (<a href="https://neuruhai.github.io/neuruh-demos/onchain-anchor/">onchain-anchor</a>): the Merkle root over 195 artifacts, and the verifier that proves membership by Merkle path.</li>
+<li><b>Read the problems the machine is aimed at</b> in the Hard Problems Atlas (in flight): 150 problems plus typologies, each mapped to the estate with measurable indicators and the Daybreak adapter flow.</li>
+</ol>
+<p class="note">The Daybreak adapter (N43) is the one new build the adaptation map calls for. Everything else in the traversal already exists as a page; the work is wiring, not invention. The adapter's input is a finding, its output is a gated patch, its proof is a retest and an outcome code, and its export is a receipt in the format of section 8.</p>
+
+<h2>10. The six-layer upgrade path: from keyword banks to contracts</h2>
+<p>The six-layer upgrade spec (Jeramie, 2026-11-15 06:43 EST) is the design layer for this topology. It takes the estate from its current design to a contract-based design. The current design it replaces is named here so the upgrade is measurable: keyword banks for scoring, a polarity formula as the final decision, a static 7-legion by 10-stage matrix for topology, fixed-step weight moves on human votes, and doctrine standing in for an enforced gate. <b>All six layers are DESIGNED. None is implemented.</b> The upgrade changes no node state in section 4; it is the design the nodes must grow into.</p>
+<table>
+<thead><tr><th>Layer</th><th>What it requires</th><th>What exists now</th><th>What is missing</th><th>State</th></tr></thead>
+<tbody>
+<tr><td><b>1. Real observation</b><br>Replace keyword banks</td><td>A small set of external sources with stable schemas (public blockchain explorers, county property records via official APIs or bulk downloads, court dockets, sanctions lists, published scam reports, financial filings). Typed connectors emitting canonical observations with provenance: source URL or query, timestamp, hash of raw payload, retrieval method. Observations stored in a receipted append-only log. No observation enters without a hash. Start narrow: one domain.</td><td>Keyword banks: Threat Console signal analyzer (7 banks, 90 words) and Solution Swarm capability dictionary (97 words) plus message banks (90 words). County ArcGIS endpoints answer (St. Joseph 119,780 parcels; LaPorte 64,775) but nothing ingests them into a receipted log. The LANDOS ingest design exists and is BLOCKED (N33).</td><td>Every connector, every schema, and the log itself. No canonical observation has ever been emitted in this estate.</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr><td><b>2. Explicit models and forecasts</b><br>Instead of polarity formulas</td><td>Pre-registered forecasts (probability a wallet cluster matches a known pattern, probability a transaction matches a historical fraud typology), timestamped and stored before the outcome is observed. Scored by Brier or log loss. Scores published. Polarity and other simple composites kept only as interpretable features, not the final decision.</td><td>Calibration Lab demo has Brier scoring and a forecast ledger, with no published scores on held-out data (N12). The Solution Swarm scores cards with the breadth/clarity formula as the final decision (composed score), which is exactly what this layer demotes. Polarity Theory (N01) is the current physics.</td><td>Any forecast ever pre-registered and scored. Any published score. The Brier machinery exists as a demo; it has never scored a real forecast.</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr><td><b>3. Authority and action boundaries</b></td><td>Every proposed action (alert, report draft, weight update, data fetch) carries an authority header stating who or what authorized it, the scope, the expiry, and the single-use token or equivalent. A policy gate that can DENY or ESCALATE independently of the model or scoring function, with its decision logged and receipted. Human approval mandatory for any action that leaves the system or affects external state. The system prepares the packet; it cannot send it.</td><td>N-Cell/64 header plus governance intersection (N08) is the closest existing piece: it stamps authority on a claim, but it has no expiry and no single-use token. Sentinel Court (N10) is a policy-like gate as a demo. The Factory Manual's Never Automatic column (N27) already states the human-approval rule for production deployment, DNS, customer communication, destructive migration, and credentials, as doctrine. The Unified Swarm loop stops before production promotion by design.</td><td>Expiry and single-use tokens on any header. An enforced gate on any live path (none exists). The human-approval rule is doctrine, not a control.</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr><td><b>4. Closed-loop learning, actually measurable</b></td><td>Outcomes coded against the original forecast. Weights or model parameters updated only when the update is shown to improve calibration on a held-out or subsequent set, with before/after Brier logged. A promotion gate: a change in scoring or topology is retained only if it improves a pre-specified metric on data not used to propose the change. Recursive only in the narrow sense of improving the measurement apparatus, not recursive self-modification of arbitrary code.</td><td>Solution Swarm weight loop: confirm or reject moves a weight 0.1, clamped 0-2; one confirm rewrote 50 cards. That loop moves weights on human votes, not on measured calibration. Memory Gate decay and quarantine (N13), Ops Console promotion pipeline as a demo (N29), Autonomy Lab shadow and canary as demos (N15).</td><td>Any before/after Brier ever logged. Any held-out calibration check. Any update ever gated by measured improvement.</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr><td><b>5. Communication and topology, contract-based</b></td><td>Message types with schemas: observation, forecast, receipt, escalation, outcome. Signed or hash-chained messages; receivers verify provenance without trusting the sender. Topology as active leases or subscriptions, not a static 7x10 matrix. A legion or module only receives messages it is authorized to process. External communication is an explicit Layer 3 action.</td><td>The static 7-legion by 10-stage matrix in both swarm pages (N38, N39) is the exact structure this layer replaces. The Solution Swarm case packet (section 8) is the closest existing message shape: receipts, weights, decisions, escalations, and a hash-chained receipt_chain, but it is a downloadable packet, not a signed message stream. Unified Chain receipts are hash-chained in-page (N16). N-Cell headers stamp claims in demos.</td><td>Message schemas, signatures, leases, and authorization-scoped delivery. No message stream exists; the packet is a file, not a protocol.</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+<tr><td><b>6. Independent audit and adversarial testing</b></td><td>A parallel verification path that re-computes scores and receipts from the raw observation log; divergence is a failure. Periodic injection of synthetic or historical cases with known outcomes, measuring detection and calibration. Published verification results. External parties can re-run the receipt chain on exported logs. Red-team the observation connectors and the policy gate separately from the scoring logic.</td><td>Receipt-Chain Explorer re-computes receipt hashes from pasted chains (the receipt half, as a demo, N17). Unified Chain tamper test returns TAMPERED (N16). The 2026-11-14 doubt-removal program is the closest published verification result, but it verified pages, not scores from a raw log. The Aegis 4.5-5/10 external rating is the closest external check, and it was of a demo.</td><td>The raw observation log itself (Layer 1), so the parallel path has no input. No injected cases with known outcomes. No published verification of any score. No red-teaming of any connector or gate.</td><td><span class="badge st-des">DESIGNED</span></td></tr>
+</tbody>
+</table>
+<p><b>Order of work.</b> Layer 1 first: Layers 2, 4, and 6 need its log, and without it they have no input. Layer 3 in parallel as the safety precondition: nothing acts outside the system until the gate exists. Layer 5 after Layer 1, because messages need observations to carry. Layers 2 and 4 once the log flows. Layer 6 last, because it audits the rest. The dependency is the point: the layers are not six parallel options. Layer 1 is the foundation, Layer 3 is the fence, Layer 6 is the proof, and the rest is the machine between them.</p>
+<p class="note">The same six layers are mapped to the problems they address in the Hard Problems Atlas (N41, in flight). The Daybreak Adapter (N43) is the first build that must satisfy all six: its finding-to-claim-object step is Layer 1 and 2, its gated output is Layer 3, its retest-to-outcome coding is Layer 4, its message flow is Layer 5, and its receipt-to-SARIF export is Layer 6.</p>
+
+<h2>11. Scope, and what I could not verify</h2>
+<p class="note">Bound: this build worked from the canonical layer only (the hub, the Daybreak adaptation map, the Notebook Codex, MEMORY.md, and the four live swarm/console/chain pages, read live on 2026-11-15). It did not read every file in the estate. That bound is deliberate: the topology is a map of the core, not an inventory of every file.</p>
+<ul>
+<li>I did not re-run the jsdom test suites for the 44 nodes in this build. Test counts in the evidence column are the counts recorded when each page was verified (2026-11-14 doubt-removal program and the 2026-11-15 live-browser checks); they are dated, not re-proven here.</li>
+<li>I did not click through all 181 hub links in this build. The 178-of-178 WORKING tally is the 2026-11-14 doubt-removal result; the three sites added since (console, Unified Swarm, Solution Swarm) were each browser-verified separately on 2026-11-15.</li>
+<li>I verified the four swarm/console/chain pages and the hub and the anchor by HTTP 200 and MD5 on 2026-11-15. I did not re-verify the other 39 node URLs by fetch in this build; their live status is the hub's and the doubt-removal program's, dated 2026-11-14.</li>
+<li>The Unified Chain live MD5 recorded here (b6ef964e365cf42e96b2785a9208745e) is the first MD5 on record for that page in this build; it was not compared against an earlier hash.</li>
+<li>The On-Chain Anchor page is live, but no chain write exists. The Merkle root in N40 is the root the anchor page publishes; I read it from the page's own manifest file, confirmed the page returns 200, and verified the manifest's breakdown (181 sites, 7 papers, 3 documents, 4 ledgers = 195 leaves). I did not independently recompute the tree over all 195 leaves.</li>
+<li>The Hard Problems Atlas was not live at the last check (503, 2026-11-15). Its entry is IN FLIGHT, and its intended connections are stated as intended, not as live.</li>
+<li>The hub card for the Solution Swarm said 28 escalated at v2.55; hub v2.56 (verified live 2026-11-15) corrects it to 28 at load, 32 after a confirm. The correction is recorded in N42.</li>
+<li>Two notebook readings remain uncertain in the codex (page 3 last word, page 5 stick-figure word, page 1 margin "D.C."); they do not affect this topology.</li>
+</ul>
+
+<div class="foot">
+Topology v1.0 &middot; 2026-11-15 &middot; Built from the canonical layer: hub v2.55, Daybreak solution adaptation map, Notebook Codex, MEMORY.md, and live checks of the Unified Swarm, Solution Swarm, Threat Deterrence Console, Unified Chain, hub, and On-Chain Anchor. &middot; The notebook codex is the founder's own statement of this system: the wave is the physics (Polarity), the lattice is the topology (Blueprint, N-Cell), the recipe is the operation (Neural Core, Recipe Engine). 1+1+1=3 inputs; the cooked combo is worth 5; the gap of 2 is the emergence, named flavor. &middot; <a href="https://neuruh-hub.pages.dev/">Back to the hub</a>
+</div>
+</div>
+<script>
+var nodeFilter='all', nodeQuery='';
+function filterNodes(f,btn){nodeFilter=f;var b=document.querySelectorAll('#nodeCtl button');for(var i=0;i<b.length;i++)b[i].classList.remove('on');if(btn)btn.classList.add('on');applyNodeFilter();}
+function searchNodes(q){nodeQuery=q.toLowerCase();applyNodeFilter();}
+function applyNodeFilter(){var rows=document.querySelectorAll('#nodeTable tbody tr'),shown=0;for(var i=0;i<rows.length;i++){var r=rows[i];var okState=(nodeFilter==='all'||r.getAttribute('data-state')===nodeFilter);var okQ=(!nodeQuery||r.textContent.toLowerCase().indexOf(nodeQuery)>-1);var show=okState&&okQ;r.style.display=show?'':'none';if(show)shown++;}document.getElementById('nodeCount').textContent='Showing '+shown+' of 44 nodes';}
+var edgeFilter='all';
+function filterEdges(f,btn){edgeFilter=f;var b=document.querySelectorAll('#edgeCtl button');for(var i=0;i<b.length;i++)b[i].classList.remove('on');if(btn)btn.classList.add('on');var rows=document.querySelectorAll('#edgeTable tbody tr'),shown=0;for(var i=0;i<rows.length;i++){var r=rows[i];var show=(edgeFilter==='all'||r.getAttribute('data-state')===edgeFilter);r.style.display=show?'':'none';if(show)shown++;}document.getElementById('edgeCount').textContent='Showing '+shown+' of 35 edges';}
+applyNodeFilter();filterEdges('all',null);
+</script>
+</body>
+</html>
