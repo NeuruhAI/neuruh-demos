@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-First Source Control: Granular Trace and Deterministic Contracts</title>
+<style>
+:root{--paper:#f7f3ea;--bone:#efe9db;--ink:#1a1a1a;--muted:#5c5648;--brass:#9a7b2d;--line:#d8d0bd;--card:#fffdf7}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55}
+h1,h2,h3{font-family:Archivo,system-ui,sans-serif;line-height:1.2}
+h1{font-size:30px;margin:8px 0} h2{font-size:21px;border-top:2px solid var(--brass);padding-top:14px;margin-top:36px} h3{font-size:16px;margin-top:22px}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px 70px}
+.dochead{border:1px solid var(--line);background:var(--card);padding:16px 18px;margin:16px 0}
+.dochead table{border-collapse:collapse;width:100%} .dochead td{padding:4px 6px;vertical-align:top;font-size:14px} .dochead td.k{font-family:'JetBrains Mono',monospace;color:var(--muted);width:190px}
+.mono{font-family:'JetBrains Mono',monospace;font-size:13px} .muted{color:var(--muted)} .badge{display:inline-block;border:1px solid var(--brass);color:var(--brass);padding:2px 8px;font-family:'JetBrains Mono',monospace;font-size:12px}
+table.data{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0} table.data th,table.data td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top} table.data th{background:var(--bone);font-family:Archivo,sans-serif}
+.card{background:var(--card);border:1px solid var(--line);padding:14px 16px;margin:12px 0}
+code{font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--bone);padding:1px 4px}
+@media print{body{background:#fff} .wrap{max-width:100%}}
+</style></head><body><div class="wrap">
+<p class="mono muted">NEURUH / AGENT-FIRST SOURCE CONTROL / TRACE</p>
+<h1>Agent-First Source Control: Granular Trace and Deterministic Contracts</h1>
+<p><span class="badge">SIMULATION</span> <span class="badge">DRAFT</span></p>
+<p>GitHub is still the transport and the demo host. The estate has NOT replaced GitHub. The Anthropic internal source-control claim stays UNVERIFIED (poster claim only).</p>
+<div class="dochead"><table>
+<tr><td class="k">SOURCE FILE</td><td>~/workspace/segments/agent-first-trace.md</td></tr>
+<tr><td class="k">HTML TWIN</td><td>~/workspace/agent-first-docs/agent-first-trace.html</td></tr>
+<tr><td class="k">STRUCTURED DATA</td><td>~/workspace/agent-first-topology/trace-data.json</td></tr>
+<tr><td class="k">TOPOLOGY SOURCE</td><td>~/workspace/agent-first-topology/topology-data.json</td></tr>
+<tr><td class="k">AUDIT DATE</td><td>2026-11-16</td></tr>
+<tr><td class="k">STATE</td><td>DRAFT</td></tr>
+<tr><td class="k">COUNTS</td><td>22 nodes, 35 edges (CONNECTED 1, SIMULATED 25, BLOCKED 9), 9 traits, 11 stages, 11 contracts, 10 blocked seams</td></tr>
+<tr><td class="k">RECEIPT VERSION</td><td>Canonical v1.1 (unified-chain.js is v1.0; field names differ, see section 0)</td></tr>
+</table></div>
+<p class="muted">Document-control note: this HTML page is the twin of the Markdown source listed above. The Markdown file is the source of record. The link back to it is given as text in the control table, not as a hyperlink, so the path survives print and copy.</p>
+<h2>0. Shared contract rules (apply at every stage boundary)</h2>
+<p>Receipt shape, canonical v1.1 (<span class="mono">~/workspace/onchain-anchor/receipt-schema.json</span>): receipt_version 1.1; receipt_id equals receipt_hash; receipt_hash is SHA-256 of the canonical JSON of the receipt with receipt_hash and receipt_id removed; canonical JSON is keys sorted bytewise, separators comma and colon, no whitespace, UTF-8; required fields are receipt_version, receipt_id, receipt_hash, prev_hash, action (observation, forecast, outcome, gate, promotion, verification, anchor, build), actor, timestamp ISO 8601 UTC, merkle_root, anchor_root, payload. prev_hash is the previous receipt_hash, or GENESIS for the first receipt. anchor_root is null until a real anchor exists (seam S7). merkle_root is the Anchor v2 full root <span class="mono">afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f</span> over 235 leaves.</p>
+<p>Shape difference: <span class="mono">~/workspace/unified-chain/unified-chain.js</span> is receipt v1.0, with provenance.report_hash_sha256 and provenance.prev_receipt_hash. The v1.1 shape above is canonical for new receipts.</p>
+<p>Contract check, convergence item 94 (<span class="mono">~/workspace/convergence-100/contract.py</span>): check_message rejects unknown module, unaccepted message type, missing payload field, and missing authority where required. Tested: 9 checks, all pass.</p>
+<p>Latency, convergence item 95: the disposition records 863.7 ms total; the latency.json file on disk records 1236.4 ms total. Both are reported as recorded. They are two different runs, not one number. No latency budget is on record, so the budget is UNDEFINED.</p>
+<p>Eta formula, exact: eta equals (I_q times I_r times I_v) divided by (1 plus E_wasted plus C_violations), clamped to 0-100, threshold 70. Prefill fact: inputs 88, 90, 85, 1, 0 give raw 336600, clamped to 100, not 78.</p>
+<h2>1. Node trace: all 22 nodes</h2>
+<table class="data"><tr><th>ID</th><th>Label</th><th>Layer</th><th>State</th><th>Traits</th><th>Upstream chain</th><th>Downstream chain</th></tr>
+<tr><td class="mono">agent-worker</td><td>Agent Worker</td><td>actor</td><td>SIMULATION</td><td>T1, T7, T9</td><td class="mono">learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback, review-swarm, ncell-authority, change-packet, chair, ci-runner, diff-engine, identity, packet-composer, deliberation-matrix</td><td class="mono">change-packet, receipt-chain, ncell-authority, diff-engine, promotion-gate, receipt-explorer, identity, review-swarm, founder, merge-executor, deliberation-matrix, transport-github, rollback, outcome-ledger, chair, learning-loop, crucible</td></tr>
+<tr><td class="mono">packet-composer</td><td>Packet Composer</td><td>surface</td><td>SIMULATION</td><td>T1, T3, T9</td><td class="mono">none</td><td class="mono">change-packet, ncell-authority, diff-engine, receipt-chain, identity, review-swarm, promotion-gate, receipt-explorer, deliberation-matrix, founder, merge-executor, chair, agent-worker, transport-github, rollback, outcome-ledger, crucible, learning-loop</td></tr>
+<tr><td class="mono">change-packet</td><td>Change Packet</td><td>packet</td><td>SIMULATION</td><td>T1, T3, T7</td><td class="mono">agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback, review-swarm, ncell-authority, chair, ci-runner, diff-engine, identity, deliberation-matrix</td><td class="mono">ncell-authority, diff-engine, receipt-chain, identity, review-swarm, promotion-gate, receipt-explorer, deliberation-matrix, founder, merge-executor, chair, agent-worker, transport-github, rollback, outcome-ledger, crucible, learning-loop</td></tr>
+<tr><td class="mono">ncell-authority</td><td>N-Cell Authority</td><td>authority</td><td>IMPLEMENTED</td><td>T3, T5</td><td class="mono">change-packet, identity, agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback, review-swarm, chair, ci-runner, diff-engine, deliberation-matrix</td><td class="mono">identity, review-swarm, receipt-chain, deliberation-matrix, promotion-gate, receipt-explorer, chair, founder, merge-executor, crucible, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, diff-engine</td></tr>
+<tr><td class="mono">identity</td><td>Identity</td><td>authority</td><td>BLOCKED</td><td>T5</td><td class="mono">ncell-authority, change-packet, agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback, review-swarm, chair, ci-runner, diff-engine, deliberation-matrix</td><td class="mono">ncell-authority, review-swarm, receipt-chain, deliberation-matrix, promotion-gate, receipt-explorer, chair, founder, merge-executor, crucible, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, diff-engine</td></tr>
+<tr><td class="mono">diff-engine</td><td>Diff Engine</td><td>infrastructure</td><td>BLOCKED</td><td>T3</td><td class="mono">change-packet, agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback, review-swarm, ncell-authority, chair, ci-runner, identity, deliberation-matrix</td><td class="mono">review-swarm, deliberation-matrix, receipt-chain, chair, promotion-gate, receipt-explorer, crucible, founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, identity</td></tr>
+<tr><td class="mono">ci-runner</td><td>CI Runner</td><td>infrastructure</td><td>BLOCKED</td><td>T3, T6</td><td class="mono">none</td><td class="mono">crucible, review-swarm, receipt-chain, deliberation-matrix, promotion-gate, receipt-explorer, chair, founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity</td></tr>
+<tr><td class="mono">review-swarm</td><td>Review Swarm (7 lenses)</td><td>review</td><td>SIMULATION</td><td>T3, T4</td><td class="mono">ncell-authority, diff-engine, ci-runner, change-packet, identity, agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback, chair, deliberation-matrix</td><td class="mono">deliberation-matrix, receipt-chain, chair, promotion-gate, receipt-explorer, crucible, founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity</td></tr>
+<tr><td class="mono">deliberation-matrix</td><td>Deliberation Matrix</td><td>review</td><td>SIMULATION</td><td>T4</td><td class="mono">review-swarm, ncell-authority, diff-engine, ci-runner, change-packet, identity, agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback, chair</td><td class="mono">chair, crucible, receipt-chain, promotion-gate, receipt-explorer, founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity, review-swarm</td></tr>
+<tr><td class="mono">chair</td><td>Chair</td><td>review</td><td>SIMULATION</td><td>T4</td><td class="mono">deliberation-matrix, review-swarm, ncell-authority, diff-engine, ci-runner, change-packet, identity, agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, sentinel-court, crucible, rollback</td><td class="mono">crucible, receipt-chain, promotion-gate, receipt-explorer, founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity, review-swarm, deliberation-matrix</td></tr>
+<tr><td class="mono">crucible</td><td>CRUCIBLE</td><td>gate</td><td>IMPLEMENTED</td><td>T3, T6</td><td class="mono">chair, ci-runner, sentinel-court, deliberation-matrix, review-swarm, ncell-authority, diff-engine, change-packet, identity, agent-worker, packet-composer, learning-loop, founder, outcome-ledger, promotion-gate, receipt-explorer, merge-executor, receipt-chain, rollback</td><td class="mono">receipt-chain, promotion-gate, receipt-explorer, founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity, review-swarm, deliberation-matrix, chair</td></tr>
+<tr><td class="mono">sentinel-court</td><td>Sentinel Court</td><td>gate</td><td>DESIGNED</td><td>T4, T6</td><td class="mono">none</td><td class="mono">crucible, promotion-gate, receipt-chain, founder, merge-executor, receipt-explorer, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity, review-swarm, deliberation-matrix, chair</td></tr>
+<tr><td class="mono">receipt-chain</td><td>Receipt Chain</td><td>receipt</td><td>IMPLEMENTED</td><td>T2, T6, T8</td><td class="mono">crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, chair, ci-runner, sentinel-court, merge-executor, learning-loop, founder, diff-engine, identity, packet-composer, deliberation-matrix, promotion-gate, outcome-ledger, receipt-explorer</td><td class="mono">promotion-gate, receipt-explorer, founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity, review-swarm, deliberation-matrix, chair, crucible</td></tr>
+<tr><td class="mono">receipt-explorer</td><td>Receipt Explorer</td><td>surface</td><td>SIMULATION</td><td>T2, T8, T9</td><td class="mono">receipt-chain, crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, chair, ci-runner, sentinel-court, merge-executor, learning-loop, founder, diff-engine, identity, packet-composer, deliberation-matrix, promotion-gate, outcome-ledger</td><td class="mono">founder, promotion-gate, agent-worker, merge-executor, change-packet, receipt-chain, transport-github, rollback, outcome-ledger, ncell-authority, diff-engine, learning-loop, identity, review-swarm, deliberation-matrix, chair, crucible</td></tr>
+<tr><td class="mono">promotion-gate</td><td>Promotion Gate</td><td>gate</td><td>SIMULATION</td><td>T5, T6, T9</td><td class="mono">receipt-chain, founder, sentinel-court, crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, receipt-explorer, chair, ci-runner, merge-executor, learning-loop, diff-engine, identity, packet-composer, deliberation-matrix, outcome-ledger</td><td class="mono">founder, merge-executor, agent-worker, transport-github, rollback, outcome-ledger, change-packet, receipt-chain, learning-loop, ncell-authority, diff-engine, receipt-explorer, identity, review-swarm, deliberation-matrix, chair, crucible</td></tr>
+<tr><td class="mono">merge-executor</td><td>Merge Executor</td><td>execution</td><td>DESIGNED</td><td>T1, T5, T6</td><td class="mono">promotion-gate, receipt-chain, founder, sentinel-court, crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, receipt-explorer, chair, ci-runner, learning-loop, diff-engine, identity, packet-composer, deliberation-matrix, outcome-ledger</td><td class="mono">transport-github, rollback, outcome-ledger, receipt-chain, learning-loop, promotion-gate, receipt-explorer, agent-worker, change-packet, founder, ncell-authority, diff-engine, identity, review-swarm, deliberation-matrix, chair, crucible</td></tr>
+<tr><td class="mono">rollback</td><td>Rollback</td><td>execution</td><td>SIMULATION</td><td>T6</td><td class="mono">merge-executor, promotion-gate, receipt-chain, founder, sentinel-court, crucible, agent-worker, review-swarm, ncell-authority, change-packet, receipt-explorer, chair, ci-runner, learning-loop, diff-engine, identity, packet-composer, deliberation-matrix, outcome-ledger</td><td class="mono">receipt-chain, promotion-gate, receipt-explorer, founder, merge-executor, agent-worker, transport-github, outcome-ledger, change-packet, learning-loop, ncell-authority, diff-engine, identity, review-swarm, deliberation-matrix, chair, crucible</td></tr>
+<tr><td class="mono">repo-host</td><td>Repo Host</td><td>infrastructure</td><td>BLOCKED</td><td>T1</td><td class="mono">none</td><td class="mono">transport-github</td></tr>
+<tr><td class="mono">transport-github</td><td>Transport (GitHub, current)</td><td>infrastructure</td><td>LIVE</td><td>T1</td><td class="mono">merge-executor, repo-host, promotion-gate, receipt-chain, founder, sentinel-court, crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, receipt-explorer, chair, ci-runner, learning-loop, diff-engine, identity, packet-composer, deliberation-matrix, outcome-ledger</td><td class="mono">none</td></tr>
+<tr><td class="mono">outcome-ledger</td><td>Outcome Ledger</td><td>learning</td><td>IMPLEMENTED</td><td>T2, T6, T8</td><td class="mono">merge-executor, promotion-gate, receipt-chain, founder, sentinel-court, crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, receipt-explorer, chair, ci-runner, learning-loop, diff-engine, identity, packet-composer, deliberation-matrix</td><td class="mono">learning-loop, agent-worker, change-packet, receipt-chain, ncell-authority, diff-engine, promotion-gate, receipt-explorer, identity, review-swarm, founder, merge-executor, deliberation-matrix, transport-github, rollback, chair, crucible</td></tr>
+<tr><td class="mono">learning-loop</td><td>Learning Loop</td><td>learning</td><td>IMPLEMENTED</td><td>T6, T7, T8</td><td class="mono">outcome-ledger, merge-executor, promotion-gate, receipt-chain, founder, sentinel-court, crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, receipt-explorer, chair, ci-runner, diff-engine, identity, packet-composer, deliberation-matrix</td><td class="mono">agent-worker, change-packet, receipt-chain, ncell-authority, diff-engine, promotion-gate, receipt-explorer, identity, review-swarm, founder, merge-executor, deliberation-matrix, transport-github, rollback, outcome-ledger, chair, crucible</td></tr>
+<tr><td class="mono">founder</td><td>Founder (authorizer)</td><td>human</td><td>LIVE</td><td>T5, T9</td><td class="mono">promotion-gate, receipt-explorer, receipt-chain, sentinel-court, crucible, rollback, agent-worker, review-swarm, ncell-authority, change-packet, chair, ci-runner, merge-executor, learning-loop, diff-engine, identity, packet-composer, deliberation-matrix, outcome-ledger</td><td class="mono">promotion-gate, agent-worker, merge-executor, change-packet, receipt-chain, transport-github, rollback, outcome-ledger, ncell-authority, diff-engine, receipt-explorer, learning-loop, identity, review-swarm, deliberation-matrix, chair, crucible</td></tr>
+</table>
+<h3>agent-worker: Agent Worker</h3>
+<p>Layer: actor. State: SIMULATION. Traits: T1, T7, T9.</p>
+<p>Consumes: Mission intent from the Founder; learning updates from the Learning Loop</p><p>Produces: Change packets; consequential actions, each receipted</p><p class="muted">Evidence: Demo author agent field worker-7 (receipts) in ~/workspace/agent-first-source-control/index.html, 2026-11-16. No real worker fleet is wired to this system.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E24 [SIMULATED]</span> from learning-loop: updated rules to next worker. Traits T6, T7.</li>
+<li><span class="mono">E30 [SIMULATED]</span> from founder: intent and mission. Traits T9.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E01 [SIMULATED]</span> to change-packet: proposes. Traits T1, T7.</li>
+<li><span class="mono">E31 [SIMULATED]</span> to receipt-chain: every consequential action receipted. Traits T2, T6, T8.</li>
+</ul>
+<h3>packet-composer: Packet Composer</h3>
+<p>Layer: surface. State: SIMULATION. Traits: T1, T3, T9.</p>
+<p>Consumes: Author agent input, diff summary, files changed, claims with sources</p><p>Produces: One change packet: diff, N-Cell/64 header, claim set, evidence</p><p class="muted">Evidence: Phase 1 demo section 1, ~/workspace/agent-first-source-control/index.html, 2026-11-16. Browser-local only.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li>None by edge. No incoming edge is defined in topology-data.json for this node.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E02 [SIMULATED]</span> to change-packet: composes. Traits T3.</li>
+</ul>
+<h3>change-packet: Change Packet</h3>
+<p>Layer: packet. State: SIMULATION. Traits: T1, T3, T7.</p>
+<p>Consumes: Composed packet from the Packet Composer</p><p>Produces: The single reviewable unit that travels the whole loop</p><p class="muted">Evidence: Resolution doc section 2, ~/workspace/segments/agent-first-source-control-resolution.md, 2026-11-16: review is per packet, not per comment thread.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E01 [SIMULATED]</span> from agent-worker: proposes. Traits T1, T7.</li>
+<li><span class="mono">E02 [SIMULATED]</span> from packet-composer: composes. Traits T3.</li>
+<li><span class="mono">E25 [SIMULATED]</span> from learning-loop: learning informs next packet. Traits T7, T8.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E03 [SIMULATED]</span> to ncell-authority: requests authorization. Traits T3, T5.</li>
+<li><span class="mono">E07 [BLOCKED]</span> to diff-engine: parsed as a real diff. Traits T3.</li>
+<li><span class="mono">E35 [SIMULATED]</span> to receipt-chain: packet sealed at ingest. Traits T2, T8.</li>
+</ul>
+<h3>ncell-authority: N-Cell Authority</h3>
+<p>Layer: authority. State: IMPLEMENTED. Traits: T3, T5.</p>
+<p>Consumes: Change packet with authority header (authorizer, scope, expiry, 256-bit single-use token)</p><p>Produces: Authorization decision: ALLOW, DENY or ESCALATE, with a gate receipt</p><p class="muted">Evidence: Convergence-100 authority code, run_tests.py 91/91, 2026-11-15. Header encoder also exists in the phase 1 demo.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E03 [SIMULATED]</span> from change-packet: requests authorization. Traits T3, T5.</li>
+<li><span class="mono">E05 [BLOCKED]</span> from identity: returns authorization decision. Traits T5.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E04 [BLOCKED]</span> to identity: verifies identity and token. Traits T5.</li>
+<li><span class="mono">E06 [SIMULATED]</span> to review-swarm: authorized packet enters review. Traits T4, T5.</li>
+<li><span class="mono">E33 [CONNECTED]</span> to receipt-chain: gate decisions logged. Traits T2, T5.</li>
+</ul>
+<h3>identity: Identity</h3>
+<p>Layer: authority. State: BLOCKED. Traits: T5.</p>
+<p>Consumes: Agent identity claim, scope request, token</p><p>Produces: Verified identity, provisioned credentials, revocation status</p><p class="muted">Evidence: Resolution doc section 5 gap 5, 2026-11-16: no live identity provider is wired in; provisioning and rotation are not built.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E04 [BLOCKED]</span> from ncell-authority: verifies identity and token. Traits T5.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E05 [BLOCKED]</span> to ncell-authority: returns authorization decision. Traits T5.</li>
+</ul>
+<h3>diff-engine: Diff Engine</h3>
+<p>Layer: infrastructure. State: BLOCKED. Traits: T3.</p>
+<p>Consumes: Real diffs from real repos</p><p>Produces: Hunks mapped to files, functions and blast radius</p><p class="muted">Evidence: Resolution doc section 5 gap 2, 2026-11-16: no real diff engine exists in the estate; the demo reviews pasted packets.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E07 [BLOCKED]</span> from change-packet: parsed as a real diff. Traits T3.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E08 [BLOCKED]</span> to review-swarm: hunks mapped to files and blast radius. Traits T3.</li>
+</ul>
+<h3>ci-runner: CI Runner</h3>
+<p>Layer: infrastructure. State: BLOCKED. Traits: T3, T6.</p>
+<p>Consumes: Change packet, repo state</p><p>Produces: Test, lint, type-check and security-scan results feeding the eta verdict</p><p class="muted">Evidence: Resolution doc section 5 gap 3, 2026-11-16: the eta formula exists, the signals that feed it do not, except by hand.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li>None by edge. No incoming edge is defined in topology-data.json for this node.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E12 [BLOCKED]</span> to crucible: test and scan results feed eta. Traits T3, T6.</li>
+<li><span class="mono">E34 [BLOCKED]</span> to review-swarm: CI signals to reviewers. Traits T3, T6.</li>
+</ul>
+<h3>review-swarm: Review Swarm (7 lenses)</h3>
+<p>Layer: review. State: SIMULATION. Traits: T3, T4.</p>
+<p>Consumes: Authorized change packet; diff hunks (when the Diff Engine exists); CI signals (when the CI Runner exists)</p><p>Produces: Seven private verdicts: Hawkins Correctness, Orwell Security, Keystone Test Coverage, Advocate Blast Radius, Cicero Style/Consistency, Zeitgeist Documentation, Empath Risk</p><p class="muted">Evidence: Phase 1 demo, ~/workspace/agent-first-source-control/index.html, 2026-11-16. Pattern matches Aegis seven-agent adjudication, also a simulation.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E06 [SIMULATED]</span> from ncell-authority: authorized packet enters review. Traits T4, T5.</li>
+<li><span class="mono">E08 [BLOCKED]</span> from diff-engine: hunks mapped to files and blast radius. Traits T3.</li>
+<li><span class="mono">E34 [BLOCKED]</span> from ci-runner: CI signals to reviewers. Traits T3, T6.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E09 [SIMULATED]</span> to deliberation-matrix: private verdicts to deliberation. Traits T3, T4.</li>
+<li><span class="mono">E32 [SIMULATED]</span> to receipt-chain: private verdicts logged before deliberation. Traits T2, T4.</li>
+</ul>
+<h3>deliberation-matrix: Deliberation Matrix</h3>
+<p>Layer: review. State: SIMULATION. Traits: T4.</p>
+<p>Consumes: Seven private verdicts</p><p>Produces: Challenge log: conflicting claims only, per the debate limit</p><p class="muted">Evidence: Phase 1 demo, 2026-11-16. Debate limit from Grok advice in ~/workspace/research-drift-2026-11-15/daybreak-solution-adaptation-map.md, 2026-11-15: prefer a short challenge round over multi-round open debate.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E09 [SIMULATED]</span> from review-swarm: private verdicts to deliberation. Traits T3, T4.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E10 [SIMULATED]</span> to chair: conflicting claims to Chair. Traits T4.</li>
+</ul>
+<h3>chair: Chair</h3>
+<p>Layer: review. State: SIMULATION. Traits: T4.</p>
+<p>Consumes: Deliberation matrix, challenged claims</p><p>Produces: One adjudicated outcome</p><p class="muted">Evidence: Phase 1 demo, 2026-11-16. Pattern matches Aegis Phase 3 Chair adjudication.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E10 [SIMULATED]</span> from deliberation-matrix: conflicting claims to Chair. Traits T4.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E11 [SIMULATED]</span> to crucible: adjudicated outcome to verdict. Traits T4, T6.</li>
+</ul>
+<h3>crucible: CRUCIBLE</h3>
+<p>Layer: gate. State: IMPLEMENTED. Traits: T3, T6.</p>
+<p>Consumes: Adjudicated outcome, claims with sources, eta inputs (I_q, I_r, I_v, E_wasted, C_violations)</p><p>Produces: Eta verdict: PASS when eta at or above 70 and uncited count is zero, else FLAG with the exact claims to fix</p><p class="muted">Evidence: crucible.py and crucible_service.py per resolution doc section 2, 2026-11-16; eta formula and threshold 70 in the phase 1 demo.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E11 [SIMULATED]</span> from chair: adjudicated outcome to verdict. Traits T4, T6.</li>
+<li><span class="mono">E12 [BLOCKED]</span> from ci-runner: test and scan results feed eta. Traits T3, T6.</li>
+<li><span class="mono">E26 [SIMULATED]</span> from sentinel-court: independent verification of verdict. Traits T4, T6.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E13 [SIMULATED]</span> to receipt-chain: verdict sealed as receipt. Traits T2, T6, T8.</li>
+</ul>
+<h3>sentinel-court: Sentinel Court</h3>
+<p>Layer: gate. State: DESIGNED. Traits: T4, T6.</p>
+<p>Consumes: Verdicts, receipts, claims for independent re-verification</p><p>Produces: Independent verdict: confirm or veto, separate from the actor</p><p class="muted">Evidence: Daybreak map, 2026-11-15: independent epistemic immune system, structurally separate from the actor; failure classifier with 14 types. No live service exists.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li>None by edge. No incoming edge is defined in topology-data.json for this node.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E26 [SIMULATED]</span> to crucible: independent verification of verdict. Traits T4, T6.</li>
+<li><span class="mono">E27 [SIMULATED]</span> to promotion-gate: veto or confirm. Traits T6.</li>
+</ul>
+<h3>receipt-chain: Receipt Chain</h3>
+<p>Layer: receipt. State: IMPLEMENTED. Traits: T2, T6, T8.</p>
+<p>Consumes: Verdicts, gate decisions, promotions, rollbacks, observations</p><p>Produces: Canonical v1.1 hash-chained receipts from GENESIS; receipt_id equals receipt_hash</p><p class="muted">Evidence: Retardio loop receipts.jsonl, 17 receipts, chain VALID, 2026-11-16; Done Ledger 118 receipts chained from GENESIS, 2026-11-15; Anchor v2 root afd56cea, 235 leaves, 2026-11-15.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E13 [SIMULATED]</span> from crucible: verdict sealed as receipt. Traits T2, T6, T8.</li>
+<li><span class="mono">E21 [SIMULATED]</span> from rollback: rollback sealed as receipt. Traits T2, T8.</li>
+<li><span class="mono">E31 [SIMULATED]</span> from agent-worker: every consequential action receipted. Traits T2, T6, T8.</li>
+<li><span class="mono">E32 [SIMULATED]</span> from review-swarm: private verdicts logged before deliberation. Traits T2, T4.</li>
+<li><span class="mono">E33 [CONNECTED]</span> from ncell-authority: gate decisions logged. Traits T2, T5.</li>
+<li><span class="mono">E35 [SIMULATED]</span> from change-packet: packet sealed at ingest. Traits T2, T8.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E14 [SIMULATED]</span> to promotion-gate: sealed verdict to gate. Traits T6, T8.</li>
+<li><span class="mono">E28 [SIMULATED]</span> to receipt-explorer: chain read and verified offline. Traits T2, T8.</li>
+</ul>
+<h3>receipt-explorer: Receipt Explorer</h3>
+<p>Layer: surface. State: SIMULATION. Traits: T2, T8, T9.</p>
+<p>Consumes: Receipt chain (JSONL ingest)</p><p>Produces: Offline chain verification, per-link PASS/FAIL, tamper demonstration</p><p class="muted">Evidence: Receipt-Chain Explorer, live 2026-11-14 per overnight run log; ingests v1.0 JSONL, verifies SHA-256 chain, tamper breaks chain at exactly rcpt-20261114-0002.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E28 [SIMULATED]</span> from receipt-chain: chain read and verified offline. Traits T2, T8.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E29 [SIMULATED]</span> to founder: human-readable audit view. Traits T2, T9.</li>
+</ul>
+<h3>promotion-gate: Promotion Gate</h3>
+<p>Layer: gate. State: SIMULATION. Traits: T5, T6, T9.</p>
+<p>Consumes: Sealed verdict, founder approval, real external signal</p><p>Produces: Promote, iterate or kill decision, receipted</p><p class="muted">Evidence: Phase 1 demo promotion gate, 2026-11-16. Live service is BLOCKED (seam S6). Gate rejection proven in real code by retardio run 3, 2026-11-15.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E14 [SIMULATED]</span> from receipt-chain: sealed verdict to gate. Traits T6, T8.</li>
+<li><span class="mono">E16 [SIMULATED]</span> from founder: approves or denies. Traits T5, T9.</li>
+<li><span class="mono">E27 [SIMULATED]</span> from sentinel-court: veto or confirm. Traits T6.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E15 [SIMULATED]</span> to founder: escalates for approval. Traits T5, T9.</li>
+<li><span class="mono">E17 [BLOCKED]</span> to merge-executor: approved packet to merge. Traits T5, T6.</li>
+</ul>
+<h3>merge-executor: Merge Executor</h3>
+<p>Layer: execution. State: DESIGNED. Traits: T1, T5, T6.</p>
+<p>Consumes: Approved packet from the Promotion Gate</p><p>Produces: Merged change on the Repo Host via the Transport; merge receipt or failure</p><p class="muted">Evidence: Ops Console promotion pipeline shape exists (9 stages) per daybreak map, 2026-11-15. No merge execution exists in the estate.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E17 [BLOCKED]</span> from promotion-gate: approved packet to merge. Traits T5, T6.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E18 [BLOCKED]</span> to transport-github: pushes merge via GitHub. Traits T1.</li>
+<li><span class="mono">E20 [SIMULATED]</span> to rollback: merge failure triggers rollback. Traits T6.</li>
+<li><span class="mono">E22 [SIMULATED]</span> to outcome-ledger: merge outcome recorded. Traits T2, T6.</li>
+</ul>
+<h3>rollback: Rollback</h3>
+<p>Layer: execution. State: SIMULATION. Traits: T6.</p>
+<p>Consumes: Merge failure or bad promotion signal</p><p>Produces: Reversal of the promotion, itself a chained receipt, not a deletion</p><p class="muted">Evidence: Phase 1 demo rollback control, 2026-11-16: a rollback is itself a chained receipt, not a deletion.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E20 [SIMULATED]</span> from merge-executor: merge failure triggers rollback. Traits T6.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E21 [SIMULATED]</span> to receipt-chain: rollback sealed as receipt. Traits T2, T8.</li>
+</ul>
+<h3>repo-host: Repo Host</h3>
+<p>Layer: infrastructure. State: BLOCKED. Traits: T1.</p>
+<p>Consumes: Merged changes, access control policy, webhooks</p><p>Produces: Stored repos, refs, uptime</p><p class="muted">Evidence: Resolution doc section 5 gap 4, 2026-11-16: hosting real repos is a different commitment from GitHub Pages demo hosting; storage, access control, webhooks and uptime are not built.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li>None by edge. No incoming edge is defined in topology-data.json for this node.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E19 [BLOCKED]</span> to transport-github: hosted repos served over GitHub transport. Traits T1.</li>
+</ul>
+<h3>transport-github: Transport (GitHub, current)</h3>
+<p>Layer: infrastructure. State: LIVE. Traits: T1.</p>
+<p>Consumes: Pushes, fetches, Pages deploys</p><p>Produces: Transport and demo hosting for the estate</p><p class="muted">Evidence: Resolution doc section 4, 2026-11-16: GitHub is still the transport and the demo host; repo NeuruhAI/neuruh-demos. gh.py push-file proven; parallel pushes 404 on new files, pushes must be sequential.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E18 [BLOCKED]</span> from merge-executor: pushes merge via GitHub. Traits T1.</li>
+<li><span class="mono">E19 [BLOCKED]</span> from repo-host: hosted repos served over GitHub transport. Traits T1.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li>None by edge. No outgoing edge is defined in topology-data.json for this node.</li>
+</ul>
+<h3>outcome-ledger: Outcome Ledger</h3>
+<p>Layer: learning. State: IMPLEMENTED. Traits: T2, T6, T8.</p>
+<p>Consumes: Merge outcomes, resolutions, Brier scores</p><p>Produces: Coded outcomes against original forecasts; the record learning is scored from</p><p class="muted">Evidence: Done/Open Ledger, 118 items, chain VALID, 2026-11-15. Retardio loop outcome coding: 0 codable, deed history not in source (BUILD-NOTE.md, 2026-11-15).</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E22 [SIMULATED]</span> from merge-executor: merge outcome recorded. Traits T2, T6.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E23 [SIMULATED]</span> to learning-loop: coded outcomes feed learning. Traits T6, T8.</li>
+</ul>
+<h3>learning-loop: Learning Loop</h3>
+<p>Layer: learning. State: IMPLEMENTED. Traits: T6, T7, T8.</p>
+<p>Consumes: Coded outcomes from the Outcome Ledger</p><p>Produces: Rule change proposals through the promotion gate; updated guidance to Agent Workers; next packets</p><p class="muted">Evidence: Retardio loop, real Python, cron daily 07:23 Detroit, 6 runs, 17 receipts, 2026-11-16. Its application to source-control outcomes is not yet wired.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E23 [SIMULATED]</span> from outcome-ledger: coded outcomes feed learning. Traits T6, T8.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E24 [SIMULATED]</span> to agent-worker: updated rules to next worker. Traits T6, T7.</li>
+<li><span class="mono">E25 [SIMULATED]</span> to change-packet: learning informs next packet. Traits T7, T8.</li>
+</ul>
+<h3>founder: Founder (authorizer)</h3>
+<p>Layer: human. State: LIVE. Traits: T5, T9.</p>
+<p>Consumes: Escalations, approval requests, audit views from the Receipt Explorer</p><p>Produces: Intent, authorization decisions, exception rulings, quarantine overrides</p><p class="muted">Evidence: Jeramie Hicks, founder. Six-layer spec Layer 3, 2026-11-15: human approval mandatory for any action that leaves the system.</p>
+<p><b>Upstream (direct edges in):</b></p><ul>
+<li><span class="mono">E15 [SIMULATED]</span> from promotion-gate: escalates for approval. Traits T5, T9.</li>
+<li><span class="mono">E29 [SIMULATED]</span> from receipt-explorer: human-readable audit view. Traits T2, T9.</li>
+</ul><p><b>Downstream (direct edges out):</b></p><ul>
+<li><span class="mono">E16 [SIMULATED]</span> to promotion-gate: approves or denies. Traits T5, T9.</li>
+<li><span class="mono">E30 [SIMULATED]</span> to agent-worker: intent and mission. Traits T9.</li>
+</ul>
+<p>Nodes with no incoming edge: packet-composer, ci-runner, sentinel-court, repo-host. Nodes with no outgoing edge: transport-github. Those gaps are in the edge list itself, not in this trace.</p>
+<h2>2. Trait trace: all 9 traits</h2>
+<table class="data"><tr><th>ID</th><th>Name</th><th>State</th><th>Nodes</th><th>Edges</th></tr>
+<tr><td>T1</td><td>Volume and parallelism</td><td>PROVEN</td><td class="mono">agent-worker, packet-composer, change-packet, merge-executor, repo-host, transport-github</td><td class="mono">E01, E18, E19</td></tr>
+<tr><td>T2</td><td>No persistent memory across sessions</td><td>PROVEN</td><td class="mono">receipt-chain, receipt-explorer, outcome-ledger</td><td class="mono">E13, E21, E22, E28, E29, E31, E32, E33, E35</td></tr>
+<tr><td>T3</td><td>Need machine-readable verdicts, not prose</td><td>IMPLEMENTED</td><td class="mono">packet-composer, change-packet, ncell-authority, diff-engine, ci-runner, review-swarm, crucible</td><td class="mono">E02, E03, E07, E08, E09, E12, E34</td></tr>
+<tr><td>T4</td><td>Correlated errors and phantom consensus</td><td>DESIGNED</td><td class="mono">review-swarm, deliberation-matrix, chair, sentinel-court</td><td class="mono">E06, E09, E10, E11, E26, E32</td></tr>
+<tr><td>T5</td><td>Need explicit authority</td><td>PROVEN</td><td class="mono">ncell-authority, identity, promotion-gate, merge-executor, founder</td><td class="mono">E03, E04, E05, E06, E15, E16, E17, E33</td></tr>
+<tr><td>T6</td><td>Produce unverified claims unless gated</td><td>PROVEN</td><td class="mono">ci-runner, crucible, sentinel-court, receipt-chain, promotion-gate, merge-executor, rollback, outcome-ledger, learning-loop</td><td class="mono">E11, E12, E13, E14, E17, E20, E22, E23, E24, E26, E27, E31, E34</td></tr>
+<tr><td>T7</td><td>Need dedup</td><td>PROVEN</td><td class="mono">agent-worker, change-packet, learning-loop</td><td class="mono">E01, E24, E25</td></tr>
+<tr><td>T8</td><td>Stateless sessions, stateful system</td><td>PROVEN</td><td class="mono">receipt-chain, receipt-explorer, outcome-ledger, learning-loop</td><td class="mono">E13, E14, E21, E23, E25, E28, E31, E35</td></tr>
+<tr><td>T9</td><td>Human traits in the loop</td><td>PROVEN</td><td class="mono">agent-worker, packet-composer, receipt-explorer, promotion-gate, founder</td><td class="mono">E15, E16, E29, E30</td></tr>
+</table>
+<h3>T1. Volume and parallelism</h3>
+<p>Agents generate far more change volume than humans, in parallel, around the clock. A review system sized for human pull request rates will drown.</p><p>State: PROVEN. Scope: Proven for agent build volume in the overnight run and for lead scoring volume in the 2026-09-16 hunt job. Not yet proven against real pull request volume through a review queue; that part is DESIGNED.</p><p>Design consequence: Review must be per change packet, not per comment thread, and must run without a human in the per-packet path. Volume is absorbed by parallel isolated reviewers and a deterministic gate, not by adding human reviewers.</p>
+<h3>T2. No persistent memory across sessions</h3>
+<p>Agents forget between sessions. The system must remember for them. The receipt chain is the memory.</p><p>State: PROVEN. Scope: Proven that the estate loses context without written receipts (IDENTITY section 19) and that chained receipts survive as memory (Done Ledger chain VALID, 118 receipts). The receipt chain as the sole memory for source control review is IMPLEMENTED in the demo, not yet proven on real reviews.</p><p>Design consequence: Every consequential action writes a hash-chained receipt before it counts. Nothing is trusted to an agent&#x27;s session memory. The chain, not the agent, carries state forward.</p>
+<h3>T3. Need machine-readable verdicts, not prose</h3>
+<p>Agents cannot read threads. A verdict must be a value a machine can act on, with the exact failing claims named.</p><p>State: IMPLEMENTED. Scope: Implemented as a browser simulation in the phase 1 demo. No real pull request has been reviewed by this verdict format, so it is not PROVEN.</p><p>Design consequence: Review output is a verdict enum plus a list of exact failing claims, never a comment thread. The change packet carries the diff, the N-Cell/64 authority header, the claim set and the evidence in one machine-readable unit.</p>
+<h3>T4. Correlated errors and phantom consensus</h3>
+<p>Agents converge on each other&#x27;s errors. Agreement after interaction is not independent confirmation. Isolated parallel review exists to stop that.</p><p>State: DESIGNED. Scope: The isolation mechanism is implemented as a simulation. The phantom-consensus measurement itself is unproven in the estate: 0 resolved forecasts exist to score against, so no private vs post-interaction gap has ever been measured. See blocked seam S10.</p><p>Design consequence: Review runs in isolation first, then deliberation, then a Chair. Private verdicts are logged before any interaction so the private vs post-interaction gap can be measured. Agreement is composed by dependence-aware pooling weighted by per-agent Brier scores, never by majority vote.</p>
+<h3>T5. Need explicit authority</h3>
+<p>AI generates, founder authorizes, system executes (G-1). Agents do not self-authorize. Every proposed action carries who authorized it, the scope, the expiry and a single-use token.</p><p>State: PROVEN. Scope: Proven in real test code (91/91, including 29/29 authority and gate checks). Live enforcement against a real repo host is not built; credential provisioning is BLOCKED (seam S1).</p><p>Design consequence: No packet reaches review without a valid authority header. The gate is deterministic and independent of the scoring function. A merge is an external action, so it always needs founder approval; the system prepares the packet, it cannot send it.</p>
+<h3>T6. Produce unverified claims unless gated</h3>
+<p>Agents state claims as fact. Nothing promotes on a claim alone. Promotion needs a passing gate plus a real external signal, and provisional machine decisions stay provisional.</p><p>State: PROVEN. Scope: Proven that the gate rejects in a real run (retardio run 3) and that ungated claims were found and corrected in the overnight audit. The canonical promotion rule is not settled: D-006 records two demos with different rules, so the rule itself is a blocked seam (S9).</p><p>Design consequence: The eta gate, the CRUCIBLE verdict and the promotion gate sit in the promotion path, not beside it. A failed gate blocks promotion by default. Every gate decision is receipted, including rejections.</p>
+<h3>T7. Need dedup</h3>
+<p>Recursion without dedup re-issues the same work. A loop that cannot tell new from seen will flood the review queue with repeats.</p><p>State: PROVEN. Scope: Proven in the real Retardio loop across 6 runs. Not yet proven in a review queue; no real pull request volume has run through this dedup.</p><p>Design consequence: Every packet and every observation is deduped by content hash (observation_id is SHA-256 of canonical payload) against persistent state before review starts. A repeat packet is a no-op with a receipt, not a second review.</p>
+<h3>T8. Stateless sessions, stateful system</h3>
+<p>The agent session holds nothing durable. All durable state lives in the receipt chain and the state file the loop reads and continues.</p><p>State: PROVEN. Scope: Proven in the real loop: 6 runs continued from shared state, chain head advanced, verifier reports CHAIN VALID. The source-control application of this pattern is IMPLEMENTED in the demo only.</p><p>Design consequence: State is a file plus a chain, never a session. A new agent session starts by reading the chain head and the state file. If the chain does not verify, the session does not proceed.</p>
+<h3>T9. Human traits in the loop</h3>
+<p>The founder is the source of intent and consequential authority. The human is the authorizer and exception handler, not the typist.</p><p>State: PROVEN. Scope: Proven that the gate enforces human approval in real test code (91/91). The production exception-handler workflow for source control is DESIGNED, not yet run, because no live promotion service exists (seam S6).</p><p>Design consequence: The human appears at exactly three points: intent (the mission), authorization (the gate), and exception (escalation, quarantine override, rollback decision). Everything between those points is machine work with receipts.</p>
+<h2>3. Stage trace: all 11 stages</h2>
+<table class="data"><tr><th>Stage</th><th>Name</th><th>Nodes</th><th>Unified chain</th></tr>
+<tr><td>1</td><td>Compose packet</td><td class="mono">packet-composer, agent-worker</td><td>Unified chain stage 1, Claim ingest</td></tr>
+<tr><td>2</td><td>Stamp authority</td><td class="mono">change-packet, ncell-authority</td><td>Unified chain stage 2, N-Cell/64 header stamp</td></tr>
+<tr><td>3</td><td>Authorize and intersect</td><td class="mono">ncell-authority, identity</td><td>Unified chain stage 3, Governance intersection</td></tr>
+<tr><td>4</td><td>Isolated review</td><td class="mono">review-swarm, diff-engine, ci-runner</td><td>No unified chain match. New stage.</td></tr>
+<tr><td>5</td><td>Deliberation and Chair</td><td class="mono">deliberation-matrix, chair</td><td>No unified chain match. New stage.</td></tr>
+<tr><td>6</td><td>CRUCIBLE verdict</td><td class="mono">crucible, sentinel-court</td><td>Unified chain stage 5, CRUCIBLE verdict</td></tr>
+<tr><td>7</td><td>Seal receipt</td><td class="mono">receipt-chain</td><td>Unified chain stage 6, SHA-256 receipt. Also carries unified chain stage 4, memory write-gate: sealing is the write, because the receipt chain is the system memory.</td></tr>
+<tr><td>8</td><td>Promotion gate</td><td class="mono">promotion-gate, founder</td><td>Unified chain stage 7, Promotion decision</td></tr>
+<tr><td>9</td><td>Merge</td><td class="mono">merge-executor, transport-github, repo-host</td><td>No unified chain match. New stage.</td></tr>
+<tr><td>10</td><td>Outcome and rollback</td><td class="mono">outcome-ledger, rollback</td><td>Unified chain stage 8, Outcome ledger</td></tr>
+<tr><td>11</td><td>Learn and next packet</td><td class="mono">learning-loop, agent-worker</td><td>Unified chain stage 9, Next-mission queue</td></tr>
+</table>
+<p>Linear order, full loop: 1 Compose packet, 2 Stamp authority, 3 Authorize and intersect, 4 Isolated review, 5 Deliberation and Chair, 6 CRUCIBLE verdict, 7 Seal receipt, 8 Promotion gate, 9 Merge, 10 Outcome and rollback, 11 Learn and next packet, back to 1.</p>
+<h2>4. Blocked seams referenced by the trace</h2>
+<h3>S1. Identity</h3><p>What is blocked: No live identity provider. Who the agent is, who authorizes, what scope, what expiry. Provisioning, key management and revocation that works when a key leaks are not built.</p><p>What unblocks it: A real identity provider wired to the N-Cell header and gate, with provisioning, rotation and a working revocation list.</p><p>Whose decision: Jeramie: pick the identity approach and fund the build. Order of work in the resolution doc puts identity first, before diff engine, CI, transport, hosting and the live promotion service.</p><p class="muted">Source: ~/workspace/segments/agent-first-source-control-resolution.md, 2026-11-16, section 5 gap 5</p>
+<h3>S2. Diff engine</h3><p>What is blocked: No real diff engine. The demo reviews pasted packets, not real diffs from a real repo. Hunks are not mapped to files, functions or blast radius.</p><p>What unblocks it: A parser plus a language-aware layer that maps real diffs to files, functions and blast radius and feeds the review swarm.</p><p>Whose decision: Jeramie: product direction call on whether this graduates from simulation toward a real transport (resolution doc section 7, item 3).</p><p class="muted">Source: ~/workspace/segments/agent-first-source-control-resolution.md, 2026-11-16, section 5 gap 2</p>
+<h3>S3. CI runner</h3><p>What is blocked: No real CI. Tests, lint, type checks and security scans do not run against the change in an isolated runner. The eta formula exists; the signals that feed it do not, except by hand.</p><p>What unblocks it: Runner infrastructure plus result ingestion into the CRUCIBLE eta verdict.</p><p>Whose decision: Jeramie: same graduation call as S2.</p><p class="muted">Source: ~/workspace/segments/agent-first-source-control-resolution.md, 2026-11-16, section 5 gap 3</p>
+<h3>S4. Git transport</h3><p>What is blocked: No real git transport. No clone, fetch, push, refs or packfiles. Without this there is no source control product, only a review page.</p><p>What unblocks it: Either implement git hosting or wrap an existing git server and accept its limits. Largest single build of the six gaps.</p><p>Whose decision: Jeramie: same graduation call as S2.</p><p class="muted">Source: ~/workspace/segments/agent-first-source-control-resolution.md, 2026-11-16, section 5 gap 1</p>
+<h3>S5. Repo hosting</h3><p>What is blocked: No repo hosting. Storage, access control, webhooks and uptime for real repos are not built. GitHub Pages hosts demos free; hosting real repos is a different commitment.</p><p>What unblocks it: Hosting infrastructure and operations, or an accepted dependency on an existing host with its limits stated.</p><p>Whose decision: Jeramie: same graduation call as S2.</p><p class="muted">Source: ~/workspace/segments/agent-first-source-control-resolution.md, 2026-11-16, section 5 gap 4</p>
+<h3>S6. Live promotion service</h3><p>What is blocked: No live promotion service. The promotion gate exists only as a demo control and as gate code in convergence-100. The unified-chain demo is not a service with a database, a queue and an operator.</p><p>What unblocks it: Turn the unified-chain demo into a service: database, queue, operator, automatic rollback, Sentinel Court as independent verifier. The Retardio loop is the only live proof this pattern runs unattended, once a day on public data.</p><p>Whose decision: Jeramie: same graduation call as S2.</p><p class="muted">Source: ~/workspace/segments/agent-first-source-control-resolution.md, 2026-11-16, section 5 gap 6</p>
+<h3>S7. On-chain anchor write</h3><p>What is blocked: Anchor v2 criterion 2, actual chain write, is BLOCKED. The execution path is built (ots_anchor.sh, Solana memo template, Base/Polygon calldata templates, human approval gate). No chain write, no wallet, no spending.</p><p>What unblocks it: Jeramie picks a chain and a wallet. Until then every receipt carries anchor_root null.</p><p>Whose decision: Jeramie: chain and wallet choice. Already open elsewhere; this seam inherits it.</p><p class="muted">Source: ~/workspace/onchain-anchor/BUILD-NOTE-v2.md, 2026-11-15, criterion 2</p>
+<h3>S8. Outcome resolution</h3><p>What is blocked: Learning cannot score anything until outcomes resolve. The Retardio loop has 20 forecasts, 0 resolved, Brier NOT YET COMPUTABLE. The assessor source carries only the latest sale per parcel, no grantor, no deed history, no formation dates.</p><p>What unblocks it: Recorder bulk data or per-parcel record cards for deed history, plus Secretary of State formation dates. For source control, the equivalent is real merge outcomes recorded in the Outcome Ledger over time.</p><p>Whose decision: Jeramie: data source call for the measurement side; the source-control side resolves itself once real merges run through the loop.</p><p class="muted">Source: ~/workspace/retardio-loop/BUILD-NOTE.md, 2026-11-15, blocked section</p>
+<h3>S9. Canonical promotion rule conflict</h3><p>What is blocked: Two demos promote on different rules. The unified chain promotes when intersection is PROCEED, CRUCIBLE is not KILL, and write-gate is WRITE or QUARANTINE with explicit override. The governance-loop demo additionally requires SHIP-CANDIDATE plus a real external signal. An ITERATE crucible can promote in one and not the other.</p><p>What unblocks it: A canonical promotion rule from Jeramie or a court pass, applied to both demos.</p><p>Whose decision: Jeramie: define the canonical rule. Recorded in overnight decision D-006, 2026-11-14.</p><p class="muted">Source: ~/workspace/research-drift-2026-11-14/overnight-decisions.md, 2026-11-14, D-006</p>
+<h3>S10. Phantom-consensus measurement unproven</h3><p>What is blocked: No private vs post-interaction gap has ever been measured. The measurement needs resolved outcomes to score private verdicts against, and there are 0 resolved forecasts. Per-plugin reliability and per-agent Brier weights cannot be computed without a held-out eval set.</p><p>What unblocks it: Resolved outcomes (S8) plus private verdict logging in a real run, plus a public eval set of known-vulnerable and known-benign cases per the Grok advice.</p><p>Whose decision: Jeramie: eval set call and the S8 data call. No founder decision can substitute for resolved outcomes.</p><p class="muted">Source: ~/workspace/research-drift-2026-11-15/daybreak-solution-adaptation-map.md, 2026-11-15, consensus mechanisms section</p>
+<h2>5. Deterministic contracts: exactly 11, one per stage</h2>
+<p>Each contract has four parts: input schema, decision rule, output schema, and failure behavior (fail-closed). Where a rule has no fixed number on record, the value is marked UNDEFINED, not filled in.</p>
+<div class="card"><h3>Contract 1: Compose packet</h3>
+<p>Nodes: <span class="mono">packet-composer, agent-worker</span>. Unified chain: Unified chain stage 1, Claim ingest. Blocked seams: none.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>author_agent</code> (string): Demo field worker-7 in the phase 1 demo receipts; no real worker fleet is wired to this system.</li>
+<li><code>diff_summary</code> (string): Pasted text in the demo. No real diff engine exists, so this is not a real diff.</li>
+<li><code>files_changed</code> (array of string): File paths named in the packet.</li>
+<li><code>claims</code> (array of object {claim_text: string, source: string}): Each claim must carry a source. An empty source counts as uncited at stage 6.</li>
+<li><code>evidence</code> (array of object): Evidence attached to claims, in the packet.</li>
+</ul>
+<p><b>Decision rule:</b> Dedup first, by content hash. observation_id in the real loop is SHA-256 of the canonical payload only (~/workspace/onchain-anchor/observation.py). A repeat packet is a no-op with a receipt, not a second review. Dedup is PROVEN in the Retardio loop (run 2 fetched 25, 0 new, 0 new forecasts) and NOT proven in a review queue. No packet-size, claim-count, or file-count limit is on record, so those limits are UNDEFINED. Contract check (convergence item 94, ~/workspace/convergence-100/contract.py check_message): reject unknown module, unaccepted message type, missing payload field, or missing authority where required.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>packet_id</code> (string): SHA-256 of the canonical packet payload.</li>
+<li><code>diff</code> (string): Pasted diff summary, as supplied.</li>
+<li><code>ncell_header</code> (object, 8 bytes): Stamped at stage 2, carried in the packet from here on.</li>
+<li><code>claims</code> (array of object): Claim set with sources, as supplied.</li>
+<li><code>evidence</code> (array of object): Evidence, as supplied.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. Empty diff, empty claim set, or a failed contract check stops the walk here. No packet_id is issued. A v1.1 gate receipt is written (action gate, decision REJECTED, payload holds stage 1, reason, and input hash, not a fabricated packet). The operator sees: packet rejected at compose, reason named, no review started.</p></div>
+<div class="card"><h3>Contract 2: Stamp authority</h3>
+<p>Nodes: <span class="mono">change-packet, ncell-authority</span>. Unified chain: Unified chain stage 2, N-Cell/64 header stamp. Blocked seams: none.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>change_packet</code> (object): Output of stage 1.</li>
+<li><code>authorizer</code> (string): Who authorizes. Human approval is mandatory for any action that leaves the system (six-layer spec Layer 3).</li>
+<li><code>scope</code> (string): Non-empty. Empty scope is a DENY.</li>
+<li><code>expiry</code> (string, ISO 8601 date): Must be in the future. Expired header is a DENY.</li>
+<li><code>token</code> (string, 256-bit single-use token, hex): Single use. Reuse is a DENY. Revoked token is a DENY.</li>
+</ul>
+<p><b>Decision rule:</b> Stamp the N-Cell/64 header: 8 bytes in order routeMask, organMask, lifecycleMask, authorityMask, memoryMask, confidence, risk, outputMask (~/workspace/unified-chain/unified-chain.js stampHeader). Defaults in that file are confidence 128, organMask 0x07, every other byte 0. The worked example in that file is routeMask 0x1f, organMask 0x07, lifecycleMask 0x01, authorityMask 0x07, memoryMask 0x0f, confidence 165, risk 45, outputMask 0x01, hex 1F 07 01 07 0F A5 2D 01. The phase 1 demo derives confidence from eta and risk from blast-radius words in the diff summary; that derivation is demo-specific, not canonical. Rule: no header, no review. Header present and valid is ALLOW to stage 3; missing or invalid header is DENY.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>header_bytes</code> (array of 8 integers 0-255): In byte order above.</li>
+<li><code>header_hex</code> (string): Uppercase hex, space separated, for example 1F 07 01 07 0F A5 2D 01.</li>
+<li><code>stamped_packet</code> (object): Stage 1 packet plus header_bytes and header_hex.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. Missing authorizer, empty scope, expired expiry, empty token, token reuse, or revoked token gives DENY. A v1.1 gate receipt is written (action gate, decision DENIED, payload holds stage 2 and the exact failing check). The walk stops. The operator sees: authorization denied, failing check named, packet does not enter review.</p></div>
+<div class="card"><h3>Contract 3: Authorize and intersect</h3>
+<p>Nodes: <span class="mono">ncell-authority, identity</span>. Unified chain: Unified chain stage 3, Governance intersection. Blocked seams: S1.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>stamped_packet</code> (object): Output of stage 2.</li>
+<li><code>proposed</code> (array of integer edge ids): E_proposed.</li>
+<li><code>allowed</code> (array of integer edge ids): E_allowed.</li>
+<li><code>available</code> (array of integer edge ids): E_available.</li>
+</ul>
+<p><b>Decision rule:</b> Governance intersection from ~/workspace/unified-chain/unified-chain.js governanceIntersection: E* equals E_proposed intersect E_allowed intersect E_available. Verdicts, exact: NO PROPOSAL when proposed is empty; BLOCKED when the intersection is empty; PARTIAL when the intersection is non-empty but smaller than proposed; PROCEED only when the intersection equals proposed. Default sets in that file (decision D-001, provisional): propose 8 edges, allow 6, available 5, intersection 5, verdict PARTIAL, which blocks promotion. Identity is BLOCKED (seam S1, edges E04 and E05 BLOCKED): no live identity provider is wired in, so in the demo this stage runs on the header alone. Header-only authorization is NOT proven identity. That is a gap, not a pass.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>intersection</code> (array of integer edge ids): E*, sorted, unique.</li>
+<li><code>blocked_policy</code> (array of integer edge ids): Proposed edges missing from E_allowed.</li>
+<li><code>blocked_infra</code> (array of integer edge ids): Proposed edges allowed but missing from E_available.</li>
+<li><code>counts</code> (object {proposed, allowed, available, intersection, blockedPolicy, blockedInfra: integer}): Counts from intersectionDetail in unified-chain.js.</li>
+<li><code>verdict</code> (string, one of NO PROPOSAL, BLOCKED, PARTIAL, PROCEED): Exact verdict.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. NO PROPOSAL, BLOCKED, or PARTIAL stops the walk. A v1.1 gate receipt is written (action gate, decision DENIED or STOPPED, payload holds stage 3, verdict, blocked_policy, blocked_infra). The operator sees: intersection verdict named, blocked edges listed by id, packet does not enter review. Identity BLOCKED is also recorded on the receipt, so a header-only pass is never presented as identity-verified.</p></div>
+<div class="card"><h3>Contract 4: Isolated review</h3>
+<p>Nodes: <span class="mono">review-swarm, diff-engine, ci-runner</span>. Unified chain: No unified chain match. New stage.. Blocked seams: S2, S3.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>authorized_packet</code> (object): Output of stage 3, verdict PROCEED.</li>
+<li><code>diff_hunks</code> (array of object {file: string, function: string, blast_radius: string}): BLOCKED. Diff Engine does not exist (seam S2). In the demo reviewers read the pasted packet only.</li>
+<li><code>ci_signals</code> (object {tests, lint, type_check, security_scan}): BLOCKED. CI Runner does not exist (seam S3). No test, lint, type-check, or security-scan result is produced. The eta inputs that CI would feed are entered by hand in the demo.</li>
+</ul>
+<p><b>Decision rule:</b> Seven lenses read only the packet, in isolation: Hawkins Correctness, Orwell Security, Keystone Test Coverage, Advocate Blast Radius, Cicero Style/Consistency, Zeitgeist Documentation, Empath Risk. No agent reads another agent output. Confidence is seeded by a deterministic hash of the packet text plus the lens name (topology-data.json, T4 evidence). Per-lens verdict enum values are NOT on record, so they are UNDEFINED here; do not invent them. The debate limit is a short challenge round (Grok advice in the daybreak map); no round count is on record, so the count is UNDEFINED. Contract check (item 94) applies at entry: a message the review-swarm module does not accept, or a payload missing required fields, is rejected before any lens runs.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>private_verdicts</code> (array of 7 objects, one per lens {lens: string, verdict: UNDEFINED enum, confidence: number, claims_checked: array}): Private verdicts, logged to the Receipt Chain BEFORE deliberation (edge E32).</li>
+<li><code>review_receipt_refs</code> (array of string): Receipt ids for the seven logged private verdicts.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. A failed contract check, a missing packet, or a lens that cannot run stops the walk. A v1.1 gate receipt is written (action gate, decision STOPPED, payload holds stage 4 and the failing check). The operator sees: review stopped, failing lens or check named, no verdict issued. If diff hunks or CI signals are absent, the walk does NOT claim a full review: the verdict is labeled SIMULATION, pasted-packet only, and the missing inputs are named on the receipt.</p></div>
+<div class="card"><h3>Contract 5: Deliberation and Chair</h3>
+<p>Nodes: <span class="mono">deliberation-matrix, chair</span>. Unified chain: No unified chain match. New stage.. Blocked seams: S10.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>private_verdicts</code> (array of 7 objects): Output of stage 4, already logged to the Receipt Chain.</li>
+<li><code>challenge_log</code> (array of object): Built in this stage, conflicting claims only.</li>
+</ul>
+<p><b>Decision rule:</b> Deliberation challenges only conflicting claims, per the debate limit. The Chair then produces one adjudicated outcome. Agreement is composed by dependence-aware pooling weighted by per-agent Brier scores, never by majority vote (T4 design consequence). Per-agent Brier weights cannot be computed in the estate today: 0 resolved forecasts exist, so the weights are UNDEFINED and the pooling is DESIGNED, not PROVEN (seam S10). The adjudicated outcome enum values are NOT on record, so they are UNDEFINED here.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>challenge_log</code> (array of object {claim_text: string, challenged_by: string, resolution: string}): Conflicting claims only.</li>
+<li><code>adjudicated_outcome</code> (object {outcome: UNDEFINED enum, claims_upheld: array, claims_rejected: array}): One outcome from the Chair.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. If the seven private verdicts are missing, or were not logged before deliberation, the Chair does not adjudicate. A v1.1 gate receipt is written (action gate, decision STOPPED, payload holds stage 5 and the missing input). The operator sees: deliberation stopped, private verdicts missing or unlogged, no adjudicated outcome. The walk does not proceed to CRUCIBLE on an unlogged review.</p></div>
+<div class="card"><h3>Contract 6: CRUCIBLE verdict</h3>
+<p>Nodes: <span class="mono">crucible, sentinel-court</span>. Unified chain: Unified chain stage 5, CRUCIBLE verdict. Blocked seams: none.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>adjudicated_outcome</code> (object): Output of stage 5.</li>
+<li><code>claims</code> (array of object {claim_text: string, source: string}): Claims with sources.</li>
+<li><code>I_q</code> (number 0-100): Quality.</li>
+<li><code>I_r</code> (number 0-100): Relevance.</li>
+<li><code>I_v</code> (number 0-100): Verification.</li>
+<li><code>E_wasted</code> (number 0-10): Wasted effort.</li>
+<li><code>C_violations</code> (number 0-10): Constraint violations.</li>
+<li><code>feedback_accuracy</code> (number): Used only by etaGate in unified-chain.js; seed_allowed needs 0.6 or above. No feedback accuracy value is recorded for source control review, so it is UNDEFINED for this stage unless a caller supplies one.</li>
+</ul>
+<p><b>Decision rule:</b> Eta formula, exact: eta equals (I_q times I_r times I_v) divided by (1 plus E_wasted plus C_violations), clamped to 0-100, threshold 70. PASS needs eta at or above 70 AND uncited count zero, where uncited count is the number of claims with an empty source field. Prefill fact, verified: inputs I_q 88, I_r 90, I_v 85, E_wasted 1, C_violations 0 give raw 336600, clamped to 100, not 78. The demo pages show raw and capped. CRUCIBLE score bands in unified-chain.js crucibleVerdict are separate and also apply where that function is used: score equals max(0, emergence_raw minus objection_penalty) times signal multiplier (contract 1.00, pilot 0.50, lead 0.30, none 0.15); KILL below 20, ITERATE 20-49, SHIP-CANDIDATE at or above 50 only with a real external signal, else ITERATE. EtaGate seed_allowed needs eta at or above 70 AND feedback_accuracy at or above 0.6. Sentinel Court is the independent check on the verdict (edges E26, E27, SIMULATED); no independent verifier service exists, so its confirm or veto is SIMULATED, not a live second opinion.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>eta_raw</code> (number): Unclamped (I_q times I_r times I_v) divided by (1 plus E_wasted plus C_violations).</li>
+<li><code>eta</code> (number 0-100): eta_raw clamped to 0-100, rounded to 2 decimals.</li>
+<li><code>uncited_count</code> (integer): Claims with an empty source field.</li>
+<li><code>uncited_claims</code> (array of string): Exact text of each uncited claim.</li>
+<li><code>verdict</code> (string, PASS or FLAG): PASS only when eta at or above 70 AND uncited_count is 0.</li>
+<li><code>crucible_score</code> (number or null): Only when crucibleVerdict inputs are supplied; else null.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. FLAG stops the walk. The exact uncited claims are returned to fix; nothing promotes on a FLAG. A v1.1 receipt is written (action gate, decision FLAG, payload holds stage 6, eta_raw, eta, uncited_count, uncited_claims). The operator sees: FLAG, eta raw and capped, uncited claims by exact text. A KILL verdict also adds one strike (applyStrike in unified-chain.js); kill_move fires only at strike 3. The first KILL does not move the file.</p></div>
+<div class="card"><h3>Contract 7: Seal receipt</h3>
+<p>Nodes: <span class="mono">receipt-chain</span>. Unified chain: Unified chain stage 6, SHA-256 receipt. Also carries unified chain stage 4, memory write-gate: sealing is the write, because the receipt chain is the system memory.. Blocked seams: S7.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>stage_record</code> (object): The record to seal: verdict, gate decision, promotion, rollback, or observation, with its payload.</li>
+<li><code>prev_hash</code> (string): Previous receipt_hash in the same chain, or the literal string GENESIS for the first receipt.</li>
+<li><code>memory_gate_input</code> (object {memoryClass, source, freshness, evidence, contradiction, relevanceHorizon, kind, mutability}): Eight gate questions from unified-chain.js evaluateWrite. memoryClass is one of Working, Episodic, Semantic, Procedural, Negative, Strategic, Capability, Epistemic. freshness is one of Minutes, Hours, Days, Weeks, Months, Years. evidence is a number 0-10. contradiction is one of none, contradicts, supersedes. kind is Fact or Inference. mutability is Immutable history or Editable current state.</li>
+</ul>
+<p><b>Decision rule:</b> Canonical v1.1 receipt (~/workspace/onchain-anchor/receipt-schema.json, version 1.1): receipt_version 1.1, receipt_id equals receipt_hash, receipt_hash is SHA-256 of the canonical JSON of the receipt with receipt_hash and receipt_id removed, canonical JSON is keys sorted bytewise, separators comma and colon, no whitespace, UTF-8. Required fields: receipt_version, receipt_id, receipt_hash, prev_hash, action (one of observation, forecast, outcome, gate, promotion, verification, anchor, build), actor, timestamp ISO 8601 UTC, merkle_root, anchor_root, payload. anchor_root is null until a real anchor exists (seam S7, criterion 2 BLOCKED). merkle_root is the Anchor v2 full root afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f over 235 leaves, or null only when no manifest exists. Note the shape difference: ~/workspace/unified-chain/unified-chain.js is receipt v1.0, with provenance.report_hash_sha256 and provenance.prev_receipt_hash. The v1.1 shape above is canonical for new receipts; do not mix the two field names. Memory write-gate (evaluateWrite): evidence below 3 is REJECT, evidence below 6 is QUARANTINE, contradiction contradicts is QUARANTINE, else WRITE. Those thresholds are ILLUSTRATIVE ONLY: the JGI paper gives no numeric thresholds. Decay for retained memory is F(t) equals 2 to the power of minus t over h, t and h in days, with presets runtime 0.0167, repo 0.5, lead 7, strategy 30, historical 365 days.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>receipt</code> (object, canonical v1.1): As defined above.</li>
+<li><code>receipt_id</code> (string, 64 hex chars): Equals receipt_hash.</li>
+<li><code>receipt_hash</code> (string, 64 hex chars): SHA-256 as defined above.</li>
+<li><code>memory_verdict</code> (string, REJECT, QUARANTINE, or WRITE): From evaluateWrite, illustrative thresholds.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. An invalid gate input gives REJECT and no write. A hash mismatch on verify, a broken prev_hash link, or a first receipt whose prev_hash is not GENESIS gives CHAIN BROKEN and no state advance. The operator sees: receipt rejected or chain broken, receipt index and error named, walk stops. The ledger is never rewritten to hide a failure; a correction is a new receipt, not an edit.</p></div>
+<div class="card"><h3>Contract 8: Promotion gate</h3>
+<p>Nodes: <span class="mono">promotion-gate, founder</span>. Unified chain: Unified chain stage 7, Promotion decision. Blocked seams: S9, S6.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>sealed_verdict</code> (object): Output of stage 7, receipt included.</li>
+<li><code>founder_approval</code> (boolean): Founder approval. Required. approved_by system is DENIED (convergence-100 gate tests 53i and 53j).</li>
+<li><code>external_signal</code> (boolean): A real external signal. Signal multipliers in unified-chain.js: contract 1.00, pilot 0.50, lead 0.30, none 0.15.</li>
+<li><code>intersection_verdict</code> (string): From stage 3: NO PROPOSAL, BLOCKED, PARTIAL, or PROCEED.</li>
+<li><code>crucible_verdict</code> (string): From stage 6: KILL, ITERATE, SHIP-CANDIDATE, or PASS/FLAG where the eta gate is used.</li>
+<li><code>memory_verdict</code> (string): From stage 7: REJECT, QUARANTINE, or WRITE.</li>
+<li><code>override_quarantine</code> (boolean): Explicit override, noted on the record. False unless a human records it.</li>
+</ul>
+<p><b>Decision rule:</b> Two promotion rules are on record and they differ (seam S9, overnight decision D-006, provisional). Unified chain rule (decidePromotionUnified in unified-chain.js): PROCEED only when intersection is PROCEED AND CRUCIBLE verdict is not KILL AND memory write-gate is WRITE, or QUARANTINE with an explicit override noted on the record. Every other combination is STOP and names each blocking gate. Governance-loop rule (daybreak map): SHIP-CANDIDATE plus a real external signal is also required; an ITERATE crucible can promote under the unified rule and not under the governance-loop rule. Promotion gate function in unified-chain.js (promotionGate): promote only when verdict is SHIP-CANDIDATE AND external_signal is true. Canonical rule: UNDEFINED. It is a founder decision, pending (seam S9). Fail-closed tie-break, stated here and not a founder order: when the two recorded rules disagree, do NOT promote. Convergence-100 gate (items 46-47, run_tests.py 91/91, 29/29 authority and gate): export without header DENIED, expired header DENIED, revoked token DENIED, token reuse DENIED, export without human approval DENIED, approved_by system DENIED, model approval cannot override DENY. Probability at or above 0.80 escalates, escalation queued with receipt attached, human holds escalation (gate test 54).</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>promote</code> (boolean): True only under the rule applied, with all gates passing.</li>
+<li><code>decision</code> (string, PROCEED or STOP): Exact decision.</li>
+<li><code>blocking_gates</code> (array of string): Each blocking gate named, for example intersection, crucible, memory-gate.</li>
+<li><code>reasons</code> (array of string): One reason per gate checked.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. Any DENY, any STOP, any missing founder approval, or any disagreement between the two recorded rules gives no promotion. A v1.1 receipt is written for the rejection as well as for an approval (action promotion, payload holds decision, blocking_gates, reasons). The operator sees: promotion refused, blocking gates listed, packet stays unpromoted, no merge attempted. A rejection receipt is not a failure of the system; it is the gate working.</p></div>
+<div class="card"><h3>Contract 9: Merge</h3>
+<p>Nodes: <span class="mono">merge-executor, transport-github, repo-host</span>. Unified chain: No unified chain match. New stage.. Blocked seams: S4, S5, S6.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>approved_packet</code> (object): Output of stage 8, decision PROCEED.</li>
+<li><code>target_ref</code> (string): UNDEFINED. No target ref, branch, or repo naming is on record for a real merge.</li>
+<li><code>merge_strategy</code> (string): UNDEFINED. No merge strategy is on record.</li>
+</ul>
+<p><b>Decision rule:</b> BLOCKED end to end (seams S4, S5, S6). No merge executor exists in the estate. No repo hosting exists: storage, access control, webhooks, and uptime for real repos are not built. No real git transport exists: no clone, fetch, push, refs, or packfiles. GitHub is the transport only for demos (repo NeuruhAI/neuruh-demos, GitHub Pages demo hosting). Edges E17, E18, and E19 are BLOCKED. The only live transport fact is that gh.py push-file is proven and pushes must be sequential because parallel pushes 404 on new files; that is demo publishing, not a merge. No merge decision rule with numbers is on record, so the rule is UNDEFINED beyond the block itself.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>merge_receipt</code> (object or null): Null in the real system today. No merged change exists to receipt. Do not fabricate one.</li>
+<li><code>merge_status</code> (string, BLOCKED): Exact status.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed, always, in the real system today. The walk stops at stage 9. A v1.1 gate receipt is written (action gate, decision BLOCKED, payload holds stage 9 and seams S4, S5, S6). The operator sees: merge not attempted, blocked seams named, packet remains approved-but-unmerged. The demo rollback control (stage 10) is simulation only and does not change this.</p></div>
+<div class="card"><h3>Contract 10: Outcome and rollback</h3>
+<p>Nodes: <span class="mono">outcome-ledger, rollback</span>. Unified chain: Unified chain stage 8, Outcome ledger. Blocked seams: S8.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>merge_outcome</code> (object or null): Null today, because stage 9 never merges. When a merge exists, the outcome is coded against the original claims.</li>
+<li><code>merge_failure</code> (boolean): True when a merge fails or a bad promotion signal arrives.</li>
+<li><code>bad_promotion_signal</code> (boolean): True when post-promotion evidence contradicts the promotion.</li>
+</ul>
+<p><b>Decision rule:</b> Outcome coding: the merge outcome is coded against the original claims and forecasts, and appended as an outcome receipt chained onto the same ledger (ingestOutcome and recordOutcome in unified-chain.js). Rollback: a merge failure or bad promotion signal triggers rollback (edge E20, SIMULATED). A rollback is itself a chained receipt, not a deletion (phase 1 demo rollback control). Strike counting (applyStrike): a KILL adds one strike; kill_move fires only at strike 3; the first KILL does not move the file; non-KILL verdicts do not add strikes. Outcome resolution is BLOCKED (seam S8): the Retardio loop has 20 forecasts, 0 resolved, Brier NOT YET COMPUTABLE. The assessor source carries only the latest sale per parcel, no grantor, no deed history, no formation dates. For source control, the equivalent is real merge outcomes recorded in the Outcome Ledger over time; none exist yet.</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>outcome_receipt</code> (object, canonical v1.1, action outcome): Payload holds claim_id, result, notes, timestamp_utc.</li>
+<li><code>result</code> (string): success, failure, or unknown. Unknown is the honest value when no outcome can be coded.</li>
+<li><code>rollback_receipt</code> (object or null): A v1.1 receipt when a rollback runs; null when no rollback runs.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. A merge failure triggers rollback and a rollback receipt; the walk does not pretend the merge held. An outcome that cannot be coded is recorded as unknown with 0 codable, not fabricated. A v1.1 receipt is written either way (action outcome, or action gate for a rollback). The operator sees: outcome coded or unknown, rollback receipt id when a rollback ran, Brier NOT YET COMPUTABLE while resolved is 0.</p></div>
+<div class="card"><h3>Contract 11: Learn and next packet</h3>
+<p>Nodes: <span class="mono">learning-loop, agent-worker</span>. Unified chain: Unified chain stage 9, Next-mission queue. Blocked seams: S8.</p>
+<p><b>Input schema:</b></p><ul>
+<li><code>coded_outcomes</code> (array of object): Output of stage 10, from the Outcome Ledger.</li>
+<li><code>rule_proposal</code> (object {old_model_version: string, new_model_version: string}): Only via explicit human invocation. The loop never self-proposes (~/workspace/retardio-loop/loop.py --propose-rule).</li>
+<li><code>latency_measurement</code> (object or null): Convergence item 95 measurement, when taken. See decision rule.</li>
+</ul>
+<p><b>Decision rule:</b> Rule change proposals go through the promotion gate. A proposal is accepted ONLY if Brier improves on held-out data AND resolved is at least 200 (retardio loop gate; convergence item 62 held-out split is deterministic by hash, disjoint by construction, and refuses on an empty set). Proof: baseline_v2 was proposed in retardio run 3 and REJECTED (resolved 0 below 200, Brier NOT YET COMPUTABLE); the rejection was receipted and the rule stays baseline_v1. The loop never self-proposes. Next mission (nextMission in unified-chain.js): a success queues a follow-up claim pre-filled into stage 1; a failure queues a rework claim naming what failed. The card is a suggestion, not an execution. Contract check (item 94): a promotion_proposal message needs a valid authority header; without it, check_message returns authority-required and the proposal is rejected. Latency (item 95): the disposition records a live measurement of 863.7 ms total (fetch 863.3 ms, canonicalize plus hash 0.2 ms, forecast plus receipt 0.1 ms) against the public ArcGIS endpoint. The latency.json file on disk records a different run at 1236.4 ms total (fetch 1236.2 ms, canonicalize 0.2 ms, forecast 0.1 ms). Both numbers are reported here as recorded; they are two different runs, not one number. No latency budget or threshold is on record, so the budget is UNDEFINED. Kill switch: if a KILL file exists, halt before fetching, append a halt receipt, log, exit 0 (retardio run 4 halted, run 5 re-armed).</p>
+<p><b>Output schema:</b></p><ul>
+<li><code>rule_proposal_receipt</code> (object, canonical v1.1, action gate or promotion): Accepted false with reasons when rejected; accepted only on the held-out Brier rule above.</li>
+<li><code>next_packet_prefill</code> (object {kind: follow-up or rework, claim: string, notes: string}): From nextMission. Prefill only; no packet is composed until stage 1 runs.</li>
+<li><code>updated_guidance</code> (string or null): Updated guidance to Agent Workers when a rule change is accepted; null while baseline_v1 stands.</li>
+</ul>
+<p><b>Failure behavior (fail closed):</b> Fail closed. With 0 resolved, Brier is NOT YET COMPUTABLE, no promotion is accepted, and the rule stays baseline_v1. A proposal without a valid authority header is rejected by the contract check. A KILL file halts the loop before any fetch. A v1.1 receipt is written for a rejection, a halt, and a re-arm. The operator sees: proposal rejected with the resolved count and Brier status named, or loop halted on KILL, with the receipt id. The loop closes only when learning produces the next packet through stage 1; until then it waits, it does not invent outcomes.</p></div>
+<h2>6. What could not be traced, and why</h2>
+<p>packet-composer, ci-runner, sentinel-court, and repo-host have no incoming edge in topology-data.json. transport-github has no outgoing edge. Per-lens verdict enum values, the debate-limit round count, the adjudicated outcome enum values, per-agent Brier weights, the canonical promotion rule, merge target ref and merge strategy, and the latency budget are UNDEFINED. The latency record has two different measured totals (863.7 ms in the disposition, 1236.4 ms in latency.json). unified-chain.js is receipt v1.0 while the canonical receipt schema is v1.1.</p>
+<p class="muted">Sources: ~/workspace/agent-first-topology/topology-data.json; ~/workspace/segments/agent-first-topology.md; ~/workspace/segments/agent-first-source-control-resolution.md; ~/workspace/unified-chain/unified-chain.js; ~/workspace/onchain-anchor/receipt-schema.json; ~/workspace/onchain-anchor/BUILD-NOTE-v2.md; ~/workspace/retardio-loop/BUILD-NOTE.md; ~/workspace/research-drift-2026-11-15/convergence-100-spec.md; ~/workspace/research-drift-2026-11-15/convergence-100-disposition.md; ~/workspace/convergence-100/contract.py; ~/workspace/convergence-100/latency.json; ~/workspace/convergence-100/run_tests.py; ~/workspace/agent-first-source-control/index.html.</p>
+</div></body></html>
