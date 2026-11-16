@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retardio real autonomous recursive loop v1.0 , BUILD NOTE - Agent-First Documents</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fffdf7;--ink:#1a1a1a;--muted:#5c564a;--brass:#b08d3c;--line:#c9c2b0}
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bone);color:var(--ink);margin:0;padding:0}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 70px}
+.dochead{border:2px solid var(--ink);background:var(--paper);padding:16px 20px;margin:22px 0}
+.dochead table{border-collapse:collapse;width:100%;font-size:13px}
+.dochead td{padding:3px 8px 3px 0;vertical-align:top}
+.dochead td.k{font-family:'JetBrains Mono',monospace;color:var(--muted);width:170px}
+h1{font-family:Archivo,system-ui,sans-serif;font-size:30px;line-height:1.15;margin:10px 0 6px}
+h2{font-family:Archivo,system-ui,sans-serif;font-size:21px;border-bottom:2px solid var(--brass);padding-bottom:5px;margin-top:38px}
+h3{font-family:Archivo,system-ui,sans-serif;font-size:16px;margin:20px 0 6px}
+h4{font-family:Archivo,system-ui,sans-serif;font-size:15px;margin:16px 0 4px}
+p,li{font-size:15px;line-height:1.62}
+code{font-family:'JetBrains Mono',monospace;background:#e8e2d4;padding:1px 5px;border-radius:3px;font-size:13px}
+pre{background:#1a1a1a;color:#e8e2d4;padding:14px;border-radius:6px;overflow-x:auto;font-size:12.5px;line-height:1.5;font-family:'JetBrains Mono',monospace}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+a{color:#8a6d2b}
+table.data{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+table.data th,table.data td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.data th{background:#e8e2d4;font-family:Archivo,system-ui,sans-serif}
+blockquote{border-left:3px solid var(--brass);margin:12px 0;padding:4px 14px;color:var(--muted);background:var(--paper)}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.note{font-size:13px;color:var(--muted)}
+.nav{font-family:'JetBrains Mono',monospace;font-size:13px;margin:0 0 8px}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all}
+@media print{body{background:#fff}.wrap{max-width:100%;padding:0}a{color:#1a1a1a;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="nav"><a href="index.html">Agent-First Documents index</a> &middot; <a href="https://neuruhai.github.io/neuruh-demos/agent-first-source-control/">Agent-First Source Control demo</a></p>
+<div class="dochead"><table><tr><td class="k">TITLE</td><td>Retardio real autonomous recursive loop v1.0 , BUILD NOTE</td></tr><tr><td class="k">SOURCE FILE</td><td><span class="mono">~/workspace/retardio-loop/BUILD-NOTE.md</span></td></tr><tr><td class="k">AUDIT DATE</td><td>2026-11-16</td></tr><tr><td class="k">STATE</td><td>LIVE</td></tr><tr><td class="k">NOTE</td><td>Rendered from the workspace .md source file named above. The .md file is a workspace file, not a web page, so the source is named as a path, not a link.</td></tr></table></div>
+<h1>Retardio real autonomous recursive loop v1.0, BUILD NOTE</h1>
+<p>Built 2026-11-15. This is Part 1 of the two-part build from Jeramie&#x27;s 2026-11-15 12:36 order. Today&#x27;s earlier builds are browser-local simulations; this one actually runs on a schedule, reads real data, writes real receipts, and recurses. No hub changes were made. No cron job was created (parent creates it after this proof).</p>
+<h2>What was built</h2>
+<p><code>~/workspace/retardio-loop/</code></p>
+<table class="data"><thead><tr><th>File</th><th>What it is</th></tr></thead><tbody><tr><td><code>loop.py</code></td><td>The loop. Stdlib only plus the anchor modules (below). One network call only: the St. Joseph County IN Assessor ArcGIS parcel service (public, no auth).</td></tr><tr><td><code>state.json</code></td><td>Loop state: rule version, forecast set, receipt chain head, run count, totals. Read and continued by every run; never reset.</td></tr><tr><td><code>receipts.jsonl</code></td><td>Canonical v1.1 receipt chain, GENESIS-chained. One receipt per observation batch, per forecast batch, per run (+ gate/kill receipts when they occur).</td></tr><tr><td><code>run-log.txt</code></td><td>One line per run: time, fetched, new forecasts, resolved, Brier, receipts, status.</td></tr><tr><td><code>verifier.py</code></td><td>Standalone offline verifier (stdlib only, independent reimplementation of the canonical rule, so the check is not circular).</td></tr><tr><td><code>BUILD-NOTE.md</code></td><td>This file.</td></tr></tbody></table>
+<p>Reused, not reinvented (all read before building):</p>
+<ul><li><code>~/workspace/retardio-measurement-loop/build.py</code>, exact ArcGIS query, field mapping, <code>baseline_v1</code>.</li><li><code>~/workspace/onchain-anchor/observation.py</code>, canonicalization, observation schema, <code>observation_id</code> = SHA-256 of canonical PAYLOAD only.</li><li><code>~/workspace/onchain-anchor/receipts.py</code>, canonical v1.1 receipt chain.</li><li><code>~/workspace/onchain-anchor/brier.py</code>, <code>brier_score()</code> and the promotion rule shape.</li><li><code>~/workspace/research-drift-2026-11-15/narrow-measurement-loop-spec.md</code>, <code>convergence-100-spec.md</code> items 16-45, 61-75, 96.</li></ul>
+<h2>The loop, per run</h2>
+<ul><li>Kill-switch check first: if <code>KILL</code> exists, halt before fetching, append a halt receipt, log, exit 0.</li><li>Fetch the ArcGIS query (WHERE <code>NAME_1 LIKE &#x27;%LLC%&#x27; AND SALESPRICE IS NOT NULL AND SALESDATE IS NOT NULL</code>, 25 rows, <code>SALESDATE DESC</code>), record response SHA-256. Best-effort count query on the same endpoint keeps the sample frame current. Fetch failure → error observation receipted, exit 1, nothing fabricated.</li><li>Build + validate observations; dedup against <code>state.json</code> (recursion: run N continues from run N-1).</li><li>Issue <code>rapid_flip</code> forecasts under <code>baseline_v1</code> (prior 0.04, +0.03 if consideration &lt; $100,000, +0.02 if acreage &lt; 0.5, clamp [0.01, 0.50]) for new deed observations only; dedup by <code>observation_id</code>.</li><li>Resolution check: 0 codable, the assessor carries only the latest sale per parcel, no grantor, no deed history, no formation dates. Recorded honestly.</li><li>Brier only when resolved &gt; 0; otherwise <code>Brier NOT YET COMPUTABLE, 0 resolved</code>.</li><li>Promotion gate: a rule change is proposed only via explicit <code>--propose-rule</code>; accepted ONLY if Brier improves on held-out data AND resolved &gt;= 200. Otherwise REJECTED with <code>accepted: false</code>.</li><li>Append run receipt, update <code>state.json</code>, append one run-log line.</li></ul>
+<p>Governance: the loop never sends, posts, emails, messages, spends, or acts outside the system. It reads one public endpoint and writes local files only. No private-individual scoring. No Brier, resolution, or promotion fabricated.</p>
+<h2>Exact command to run the loop</h2>
+<pre><code>python3 ~/workspace/retardio-loop/loop.py</code></pre>
+<p>Propose a rule change through the gate (explicit only; the loop never self-proposes):</p>
+<pre><code>python3 ~/workspace/retardio-loop/loop.py --propose-rule baseline_v2</code></pre>
+<p>Verify the chain offline:</p>
+<pre><code>python3 ~/workspace/retardio-loop/verifier.py</code></pre>
+<h2>Recommended cron cadence</h2>
+<p>Daily at 07:00 America/Detroit. The source changes slowly (the live response was byte-identical 6 hours after the original 11:53Z fetch), so daily catches new sales without hammering a public county service. Suggested crontab (parent creates it):</p>
+<pre><code>TZ=America/Detroit
+0 7 * * * /usr/bin/python3 /home/hatch/workspace/retardio-loop/loop.py &gt;&gt; /home/hatch/workspace/retardio-loop/cron-output.log 2&gt;&amp;1</code></pre>
+<p>Note: the script appends its own one-line-per-run record to <code>run-log.txt</code>; cron stdout goes to the separate <code>cron-output.log</code> so the run log stays one line per run.</p>
+<h2>Proof runs (2026-11-15, all verified live)</h2>
+<table class="data"><thead><tr><th>Run</th><th>What happened</th></tr></thead><tbody><tr><td>1 (17:40:16Z)</td><td>Fetched 25 (25 new), issued 20 forecasts, resolved 0, Brier NOT YET COMPUTABLE, 3 receipts.</td></tr><tr><td>2 (17:40:18Z)</td><td>Fetched 25 (0 new), 0 new forecasts, resolved 0, 3 receipts. Proves recursion + dedup: run 2 read run 1&#x27;s state and continued from it.</td></tr><tr><td>3 (17:40:31Z)</td><td><code>--propose-rule baseline_v2</code> → REJECTED (<code>resolved 0 &lt; 200 threshold; Brier NOT YET COMPUTABLE</code>), rejection receipt logged, rule stays <code>baseline_v1</code>. 4 receipts.</td></tr><tr><td>4 (17:40:33Z)</td><td><code>KILL</code> created → HALTED before fetching, halt receipt appended, 1 receipt, exit 0.</td></tr><tr><td>5 (17:40:33Z)</td><td><code>KILL</code> removed → normal run, re-arm logged (<code>RE-ARMED</code> in run log, <code>rearmed_after_halt: true</code> in run receipt), 3 receipts.</td></tr></tbody></table>
+<h2>Live state after the proof runs</h2>
+<ul><li>Run count: 5</li><li>Chain head: <code>fe06dc1dc387b2118f2ce5d6b5aab21d105384092f804b02eb2ba9d67a77f0b5</code></li><li>Receipts: 14 (observation 4, forecast 4, gate 2, verification 4)</li><li>Verifier: <code>CHAIN VALID</code> (14 receipts). Tamper test: flipping one probability digit in a copy → <code>CHAIN BROKEN: line 2: receipt_hash mismatch</code>; real file still <code>CHAIN VALID</code>.</li><li>Observations: 25 total (20 deed, 5 parcel_record). All 25 <code>observation_id</code>s reproduce the Measurement Loop v1 originals exactly.</li><li>Forecasts: 20 <code>rapid_flip</code>, all UNRESOLVED (16 at 0.04, 4 at 0.07). Zero duplicate forecasts for any <code>observation_id</code>.</li><li>Resolved: 0. Brier: NOT YET COMPUTABLE.</li><li>Last response SHA-256: <code>a40226358055b7b7842d42a65856f31dbde5624db3cf92ef48453e2b84d18cf0</code> (byte-identical to the 2026-11-15 11:53:33Z sample).</li><li>Sample frame matching: 14,415 LLC-owned parcels with a recorded sale.</li><li>Rule: <code>baseline_v1</code> (unchanged; the one proposal was rejected).</li><li>Kill switch: halted once, re-armed once, currently disarmed (<code>KILL</code> file removed).</li></ul>
+<h2>What is still blocked</h2>
+<ul><li><strong>First real Brier: months away.</strong> Resolving a <code>rapid_flip</code> forecast needs deed history (the subsequent deed + grantee formation date). The assessor source cannot supply it. Unblocks only with recorder bulk data or per-parcel record cards (Measurement Loop next step 1), plus secretary-of-state formation dates (next step 2, also unlocks <code>entity_cluster</code> / <code>all_cash_new_entity</code>).</li><li><strong>Promotion gate cannot accept anything</strong> until resolved &gt;= 200 with a held-out Brier improvement. By design.</li><li><strong>Second county / second source</strong> only after 30 days of stable receipts from this one (convergence item 29).</li><li><strong>On-chain anchor of this chain</strong> is a founder decision (chain/wallet pick), same block as Anchor v2 criterion 2. The receipts are anchor-ready (canonical v1.1, GENESIS-chained).</li><li><strong>No chain write was performed</strong> and none is attempted by the loop.</li></ul>
+<h2>Facts I could not verify</h2>
+<ul><li>None in this build. Every claim above was demonstrated in the proof runs (fetch, dedup, gate rejection, kill halt + re-arm, chain validity, tamper rejection) except the future-dependent items listed as blocked.</li></ul>
+<h2>Cron created (2026-11-15, coordinator)</h2>
+<p>Job <code>retardio-loop-daily</code>, daily at about 07:00 America/Detroit (next run Mon 2026-11-16 07:23 EST, flexible minute applied by the scheduler). Body: run the loop, verify the chain, stay silent on routine runs, surface only failures, halts, new forecasts, resolutions, a computable Brier, chain failures, or gate decisions. The loop&#x27;s daily runs accumulate the receipts for convergence item 29 (30-day gate, until ~2026-12-15).</p>
+<p class="nav"><a href="index.html">Agent-First Documents index</a> &middot; <a href="https://neuruhai.github.io/neuruh-demos/agent-first-source-control/">Agent-First Source Control demo</a></p>
+</div>
+</body>
+</html>
