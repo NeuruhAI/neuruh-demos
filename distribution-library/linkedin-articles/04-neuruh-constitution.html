@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Reward Is the Problem: Why I Stopped Training Agents to Win | Neuruh Distribution Library</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="doc-control">
+  <div class="doc-control-inner">
+    <div class="doc-kicker">Neuruh Distribution Library | Document control</div>
+    <h1>The Reward Is the Problem: Why I Stopped Training Agents to Win</h1>
+    <dl class="meta-grid">
+      <div><dt>Series</dt><dd>LinkedIn Articles</dd></div>
+      <div><dt>Source file</dt><dd><code>distribution/linkedin-articles/04-neuruh-constitution.md</code></dd></div>
+      <div><dt>Word count</dt><dd>1,160 words (counted)</dd></div>
+      <div><dt>Status</dt><dd>Draft</dd></div>
+      <div><dt>Audit date</dt><dd>2026-11-16</dd></div>
+      <div><dt>Index</dt><dd><a href="../index.html">Back to the library index</a></dd></div>
+    </dl>
+    <p class="status-note">Draft on disk, unpublished.</p>
+    
+  </div>
+</header>
+<main class="article-body">
+<h1>The Reward Is the Problem: Why I Stopped Training Agents to Win</h1>
+<p>Most AI agents are built to chase cookies. Give them a reward function, point them at a goal, and watch them find the cheapest way to look like they succeeded. That is not intelligence. That is a raccoon in a dumpster.</p>
+<p>I spent two years building agent systems before I put words to this. The whitepaper I wrote recently lays out the full technical case, but here is the version that matters for anyone building with agents in production.</p>
+<p><strong>The core claim: stop optimizing for reward. Start minimizing surprise.</strong></p>
+<p>Reinforcement learning trains models to maximize a score. In practice, this produces mode collapse. The agent finds one pattern that earns the reward and repeats it until the work goes mediocre. Anyone who has watched a coding agent ship the same broken fix three times in a row has seen this happen. The agent is not confused. It is doing exactly what it was trained to do: collect the cookie as cheaply as possible.</p>
+<p>Active Inference flips the objective. Instead of chasing a score, the agent acts to reduce the gap between what it expected and what actually happened. Prediction error becomes the signal. When the agent's model of the world is wrong, it feels it. When the terminal returns a stack trace the agent did not predict, that is not a failed reward. That is information, and the agent updates.</p>
+<p>This is not philosophy. It is a practical difference in how agents behave when they hit friction. A reward-chasing agent retries the same broken approach. A surprise-minimizing agent stops, re-reads the environment, and changes strategy. One loops. The other learns.</p>
+<h2>Architecture replaces anatomy</h2>
+<p>Here is the second claim, and it is the one that changed how I build.</p>
+<p>Most of the industry is trying to make better models. Bigger weights, better steering vectors, more RLHF. That is anatomy work. It is trying to improve the brain.</p>
+<p>I think the leverage is in the architecture around the model. The orchestration, the constraints, the verification loops. A mid-tier model inside a tight Plan-Act-Verify loop will outperform a frontier model running on vibes. I have watched this happen on real work, not benchmarks.</p>
+<p>The loop is simple. Plan: the agent writes out what it intends to do before touching anything. Act: it executes against the real environment, not a simulation of it. Verify: the environment talks back through terminal output, test suites, compilers. If the result does not match the plan, the agent goes back to planning. Nothing ships until the environment confirms it works.</p>
+<p>This is what I mean by "the environment is the memory." The agent does not need to remember everything in its context window. The terminal, the test suite, the compiler, these are external, authoritative, and always current. Reading them is cheaper than remembering. Most production failures I have seen come from agents that stopped checking the environment and started trusting their own summaries.</p>
+<h2>The governance layer is the product</h2>
+<p>Here is where most agent demos die: the moment someone asks what happens when the agent does something wrong.</p>
+<p>If your agent can spend money, move data, or touch production, you need more than a prompt that says "be careful." You need architectural constraint. In my systems, consequential actions go through verification gates. Micro-decisions can flow. Anything above a threshold requires proof of necessity before the state machine allows the transition.</p>
+<p>The pattern I use: every machine action leaves a receipt. Who, what, when, why, input, output, authority, provenance. This is not audit theater. It is the mechanism that makes the system insurable, debuggable, and trustworthy enough to actually deploy. The receipt is what lets a human look at what the agent did and understand it without replaying the entire run.</p>
+<p>I also build kill switches at the state machine level, not the prompt level. A prompt-level instruction can be talked around. A binary state machine that freezes the wallet is physics, not persuasion. When I say governance, I mean constraints the agent cannot argue with, not guidelines it is asked to follow.</p>
+<h2>What this looks like in practice</h2>
+<p>I run DeedSonar, a real-estate intelligence system, on these principles. It ingests county parcel records, runs signal detection, and ranks opportunities. Every lead carries provenance: which records, which signals, which recipe produced it, when. If a ranking is wrong, I can trace it to the exact input. That is the receipt layer doing its job.</p>
+<p>I also run a recipe system with 30 canonical patterns for turning public records into qualified opportunities. Each recipe is a repeatable, machine-readable acquisition pattern. Not a prompt template. A recipe that encodes what to look for, how to verify it, and what evidence counts as proof.</p>
+<p>The SWARM work is the coordination layer: multiple agents working in parallel, each with bounded authority, each leaving receipts. This is where it gets real, and it is also where I am most honest about the current state. The architecture exists. The deployment exists. Full continuous autonomous operation does not, and I will not claim it until the receipts prove it.</p>
+<h2>The shift I am asking you to make</h2>
+<p>Stop being a typist. Start being an architect.</p>
+<p>The typist writes prompts and hopes the model figures it out. The architect designs the loop: what the agent is allowed to do, what it must verify, where the human gates are, what evidence it must produce. The typist optimizes the words. The architect optimizes the physics.</p>
+<p>This is the transition I see happening across the industry. The syntactic era was about model capability. The agentic era is about context engineering, orchestration, and verification. The winners will not be the people with the best prompts. They will be the people with the tightest loops.</p>
+<p>Eliminate drudgery, complexity, and the blank page. That is the mission. But do it with receipts, or do not do it at all.</p>
+<hr>
+<p><strong>VERIFIED (actually built and shipped):</strong>
+- DeedSonar: real-estate intelligence CRM ingesting county parcel records with provenance on every lead. Live.
+- Lead Recipe OS: 30 canonical recipe families for signal-to-opportunity conversion. Built and documented.
+- SWARM: multi-agent coordination site deployed at swarm-38g.pages.dev.
+- Parcel Reality Bench: AI benchmarking against real county parcel records.
+- Governed execution model: receipt-based, supervised, with human gates on consequential actions. This is the documented operating state, not full autonomy.
+- The Neuruh Papers: six-essay series on Substack covering the full technical argument.</p>
+<p><strong>DIRECTION / SPECULATION (architecture and thinking, not shipped systems):</strong>
+- The "Reality Compiler" text-to-object pipeline described in the whitepaper is a design target, not a working system.
+- Active Inference as implemented here is an engineering discipline (prediction-error-driven loops), not a claim of biological equivalence or solved AGI.
+- Full continuous autonomous operation of the agent fleet is not proven. Current state is governed, supervised execution with receipts.
+- Timeline references to 2027 milestones are planning horizons, not commitments.</p>
+</main>
+<footer class="doc-footer">
+  <p>Neuruh Distribution Library. Audit date 2026-11-16. Word counts are wc -w counts from the manifest, not estimates.</p>
+  <p><a href="../index.html">Back to the library index</a></p>
+</footer>
+</body>
+</html>
