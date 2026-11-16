@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Executive Agent Is a Build, Not a Download | Neuruh Distribution Library</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="doc-control">
+  <div class="doc-control-inner">
+    <div class="doc-kicker">Neuruh Distribution Library | Document control</div>
+    <h1>Your Executive Agent Is a Build, Not a Download</h1>
+    <dl class="meta-grid">
+      <div><dt>Series</dt><dd>Ebook Articles (Neuruh Papers repurposed)</dd></div>
+      <div><dt>Source file</dt><dd><code>distribution/ebook-articles/06-essay-sovereign-assistant-build.md</code></dd></div>
+      <div><dt>Word count</dt><dd>2,493 words (counted)</dd></div>
+      <div><dt>Status</dt><dd>Draft</dd></div>
+      <div><dt>Audit date</dt><dd>2026-11-16</dd></div>
+      <div><dt>Index</dt><dd><a href="../index.html">Back to the library index</a></dd></div>
+    </dl>
+    <p class="status-note">Draft on disk, unpublished.</p>
+    
+  </div>
+</header>
+<main class="article-body">
+<p>Subtitle: A founder's setup manual for the personal executive agent: what the supervisor really does, what the workers own, how to structure its memory, and the receipts that separate a system from a demo.</p>
+<h1>Your Executive Agent Is a Build, Not a Download</h1>
+<p>The earlier essay on this theme made the case: a personal executive agent should be an organization, not one brain. A supervisor plans and recovers. Four specialists do the actual work. Memory is a graph. Everything consequential goes through a gate.</p>
+<p>This one is the setup manual. How to actually build it, in what order, what to demand from it, and the failure modes you will hit along the way.</p>
+<p>The starting premise: you are not waiting on a breakthrough or a bigger model. The pieces are shipping, maintained by other people, and free or cheap. You are waiting on yourself to do the integration work.</p>
+<h2>The supervisor's actual job description</h2>
+<p>The supervisor is not a smarter question answerer. It is a manager. It takes your request, decomposes it into tasks, routes each task to the right specialist, watches the results, and recovers when things go wrong. Recovery is the job. Linear agent chains die at the first error. A supervisor with a cyclic control graph routes a failed step to a refine-and-retry node, exactly the way a person who cannot find the file in folder A checks folder B instead of giving up.</p>
+<p>The industry standard for this pattern is LangGraph, which models the agent as a graph of nodes with edges that can form cycles. Three build rules before you touch anything else:</p>
+<p>First, define the state schema before any node: messages, context, plan, current step, errors. If your state cannot represent "this step failed, here is why," your recovery logic has nowhere to live.</p>
+<p>Second, implement one retry edge before you implement the second specialist. Reliability is proven with a supervisor plus one worker, not imagined at four workers. Ask it questions about your data, watch it fail, watch the retry edge fire, watch it recover.</p>
+<p>Third, log every state transition. When something goes wrong, the first question is what the supervisor decided and when, and you need that answer in a file, not in a model's memory.</p>
+<p>Fourth, every destructive or externally visible action goes through a human-in-the-loop interrupt, and the interrupt is a node in the graph, not a comment in the code. Prompt instructions can be overridden by prompt injection. Graph nodes cannot.</p>
+<h2>Four workers, four boundaries</h2>
+<p>Under the supervisor sit four specialists. The separation is load-bearing: the prompting that extracts entities from chat logs interferes with the logic that securely executes code. Keep them separated.</p>
+<p>The Archivist owns retrieval and knowledge graph maintenance. Its scope is deliberately narrow: answer questions about your data from the graph and connected sources, and keep the graph fresh as new data arrives. It does not schedule. It does not run code. It does not send anything. Give it exactly two tools: hybrid graph-plus-vector search, and the ingestion pipeline trigger. If it needs email, that is the Executive's tool. The boundary is the feature.</p>
+<p>The Executive owns your commitments: scheduling, email, communication. It is the only specialist allowed to speak on your behalf, and it is the most heavily gated. Start it read-only for two weeks. It reads inbox and calendar and produces briefings. Promote it to drafting only when the read-only output is consistently correct. Sending comes later, and sending always goes through the gate.</p>
+<p>If the Executive does one thing well, it is the morning briefing, and a good briefing answers five questions: what needs a decision today, what changed since yesterday, what conflicts or risks exist in the schedule, what did you promise someone that is now due or overdue, and what can be ignored, and why. The last question is the one people skip, and it is the most valuable. The Executive earns trust not by surfacing everything but by confidently discarding the irrelevant and showing its work: "23 promotional emails and 4 FYI threads skipped; full list available."</p>
+<p>The Analyst owns code execution and data analysis, inside a sandbox. Never on your bare machine. Ever. The rule is architectural, not advisory. A model that executes arbitrary code on your machine is one prompt injection away from a quiet exfiltration of your credentials. Two real options: a local Docker container or a cloud sandbox like E2B. Local Docker maximizes sovereignty and costs nothing to run. E2B is the convenience choice. Running model-generated code directly on your laptop is not a choice at all.</p>
+<p>The model writes the code. The sandbox runs the code. That division of labor is the entire point, and it deserves emphasis because every beginner makes this mistake: they ask the language model to compute. Models predict tokens. They do not run arithmetic. They are approximately right the way a person doing mental math is approximately right, except the person knows they are approximating. The rule for the whole system: if the answer is a number, a date computation, a sort, a filter, or any transformation over more than a handful of items, the model writes code and the sandbox runs it. The model is the programmer. The sandbox is the computer. Programmers do not do arithmetic in their heads either.</p>
+<p>The Navigator owns the web for everything without an API. Vendor portals, bank exports, dashboards that never built an API, forms that only exist as buttons in a single-page app. Headless browser, screenshot to a vision model, click, observe, repeat. It is the least reliable specialist in the organization by a wide margin: websites change, buttons move, login flows add a CAPTCHA. Plan for that with an explicit small retry budget, three attempts, then escalate to the human. An agent clicking around a live website without a budget is a liability.</p>
+<p>Build the Navigator last. By then you will know which tasks genuinely lack an API, and most of what you thought needed browser automation will have turned out to have an API or an MCP server. Its credentials live in a vault with scoped access, short-lived session tokens, never raw passwords, and its browser profile is dedicated, never shared with your personal browsing.</p>
+<h2>How to structure its memory</h2>
+<p>Standard vector search is insufficient for personal data. Embedding your notes and searching by similarity finds text that resembles your query. It does not find the answer. Ask "why did the Meridian renewal slip" and vector search looks for the words "Meridian" and "slip." The real answer is a pattern across months of messages: the renewal node, its BLOCKED_BY edge to legal review, the person handling it, the expected clearance date that came and went. The answer is a traversal, not a similarity match.</p>
+<p>The fix is a personal knowledge graph built with a real pipeline, and the pipeline order matters. Clean first, with a tool like Unstructured.io that partitions documents, runs OCR, and normalizes chat dumps. Then define the entity schema before you extract anything. Start small: Person, Organization, Project, Document, Meeting, Concept, with edges like AUTHORED, ATTENDED, MENTIONED, IS_PART_OF, BLOCKED_BY. Every node type and edge type you add is a distinction the extraction model must make correctly thousands of times over messy text. A schema with forty edge types produces garbage, because the model cannot reliably distinguish HANDLES from MANAGES from OVERSEES in a Slack message. Add a type only when you have a real query the current schema cannot answer. Schema changes are migrations. Keep a version number and a log.</p>
+<p>Then extract with a cheap, consistent model. The extraction model does not need to be your smartest model. It runs over everything, nightly. Spend your model budget on the supervisor's reasoning, not on extraction.</p>
+<p>Store the triples in an embedded graph database. For a personal system, embedded beats enterprise. KuzuDB runs in-process, no separate server to babysit, and a cited benchmark study reported ingestion speeds far above Neo4j on the tested workload. Treat that multiplier as a cited benchmark, not a universal law. Pair it with a vector store like Qdrant for hybrid retrieval: graph structure plus vector similarity, each covering the other's blind spots. Run the whole pipeline on a nightly schedule. A knowledge graph that is not refreshed is a snapshot, and snapshots lie by omission.</p>
+<h2>The receipts you demand from your own system</h2>
+<p>A system has a plan for being wrong. A demo does not. The receipts:</p>
+<p>Supervisor state logs. Every decision, every transition, in a file. When the calendar gets double-booked at 2 AM, the first question is what the supervisor decided and when.</p>
+<p>Provenance on every answer. Every fact cited to its source node in the graph. A draft without provenance is a hallucination with good formatting.</p>
+<p>Rerunnable numbers. Every number the Analyst returns comes back with the script that produced it and the hash of the input file. Six weeks later, when a number looks wrong, you rerun the script and see whether the input changed or the logic was wrong. Receipts are not bureaucracy. They are how you debug reality.</p>
+<p>A written, reviewed list of which tools are classified sensitive. Money, deletion, outbound messages are the floor. Your list will be longer. Review it every time you add a tool.</p>
+<p>And the five-question checklist on every new tool: smallest workable scope, read-only or state-changing, where the gate sits on model-generated inputs, blast radius if the server is fully compromised, and where actions get logged. Five questions, two minutes, every time.</p>
+<h2>The failure modes you'll hit</h2>
+<p>Building everything at once. Five containers, four specialists, twelve data sources, then three months debugging the interactions. Build in an order where each step produces something useful on its own. If you stop after the graph, you have searchable memory on day one, with no agent at all.</p>
+<p>Asking the model to compute. It will give you a number that is almost right. You will not notice for three weeks. Sandboxed code or nothing.</p>
+<p>Letting the Executive send too early. Two weeks of read-only operation is calibration, not caution. You are verifying that it summarizes accurately and understands your priorities before it drafts, and that the drafts are right before the gate ever matters.</p>
+<p>One giant prompt doing everything. Entity extraction and shell commands in the same context interfere. That is the whole argument for specialists.</p>
+<p>Context dumping. A good MCP server lazy-loads: the agent sees filenames, then fetches one file. If a server dumps everything into context on connect, replace the server. It violates the property that keeps the system affordable and focused.</p>
+<p>No retry budget on the Navigator. Websites change. Three attempts, then the human. Explicit.</p>
+<p>Treating prompt injection as a patchable bug. An attacker can hide an instruction in an email signature and your agent will read it as data, because both arrive as text in context. There is no general fix. The defense is layered: the gate halts the send, the sandbox has no network by default, least privilege narrows what the trick can reach, and state logging records the attempt. No layer is sufficient alone.</p>
+<p>Skipping the schema. Extraction without a schema is noise with structure.</p>
+<h2>Local versus cloud: where everything runs</h2>
+<p>The rule of thumb: anything that touches your full history runs locally. Anything that requires frontier reasoning on a hard problem can call out. The boundary is cost and privacy per task, decided explicitly, not by accident.</p>
+<p>The local stack: Ollama for inference on consumer hardware, Python plus LangGraph for orchestration, KuzuDB plus Qdrant for memory, an MCP gateway for connectivity, Unstructured.io plus LangChain for the ETL pipeline. It runs as containers on one machine. You can back up the whole thing by copying a directory. The nightly ingest pipeline running over your entire history is where cloud API pricing bleeds you; local models make the marginal cost of that run effectively zero. The supervisor can still call a frontier API for the hardest decisions. That is a small, bounded cost.</p>
+<p>The tradeoffs: you are the operations team, and local models are weaker at hard reasoning, which is why the hybrid exists. If your email lives in Google Workspace, the MCP server talks to Google's API regardless of where your agent runs. Sovereignty is about where your memory and your reasoning live, not about pretending the cloud does not exist.</p>
+<h2>The assembly order</h2>
+<p>Do not build everything at once. Here is the order, each step a working system on its own:</p>
+<ol>
+<li>The knowledge graph, before you need it. One data source, clean, extract, query by hand. Useful on day one.</li>
+<li>MCP servers for your top three data sources. Email, calendar, and one of Drive or Slack. Device-flow OAuth, verify lazy loading. Three sources, working, beats twelve sources, broken.</li>
+<li>The supervisor plus one worker. State schema, one retry edge, the Archivist. Prove error recovery at small scale.</li>
+<li>The Analyst. Sandboxed code execution. Verify the sandbox boundary explicitly: run something that tries to escape, confirm it cannot.</li>
+<li>The Executive, read-only first. Two weeks of morning briefings. Promote to drafting when summaries are consistently right. Build and test the human gate before the Executive ever needs it.</li>
+<li>The Navigator, last. Only for tasks that genuinely lack an API.</li>
+<li>The nightly loop. ETL refresh, morning briefing, state logging, scheduled. This is when the system stops being a project and starts being infrastructure.</li>
+</ol>
+<p>This essay is adapted from The Sovereign Assistant: Build a Personal Executive Agent That Actually Works, part of The Neuruh Papers series. The book carries the full blueprint, including the proposed "Project Mnemosyne" architecture (a proposal, not a shipped system) and the complete security treatment.</p>
+<p>If this described a system you want but do not want to build alone, that is work Neuruh does directly. Start with a free 10-minute qualifying call at cal.com/neuruh, or the Workflow Replacement Sprint from $3,500 for a manual workflow you repeat weekly.</p>
+<hr>
+<p>Verification footer (September 30, 2026). VERIFIED: MCP (Model Context Protocol) is a real open standard introduced by Anthropic in late 2024, with broad industry adoption through 2026. LangGraph, Microsoft's AutoGen, CrewAI, KuzuDB, Qdrant, Unstructured.io, E2B, Ollama, and Playwright/Puppeteer are real products and frameworks as of this date. GraphRAG is real published research from Microsoft Research. The Leiden algorithm and the device authorization grant (RFC 8628) are real standards. The architecture described in this essay is assembled from these real, shipping components, dated to the audit date September 30, 2026. UNVERIFIED / PROPOSED / FORECAST: "Project Mnemosyne" as a named integrated system is the book's proposed architecture, not a shipped product. KuzuDB ingestion-speed multiples come from the cited benchmark study, not from independent verification here. Claims about the 2027 "agentic web" (machine-readable capability manifests, agent-to-agent negotiation as default) are forecasts, not facts. Product claims, prices, and APIs change quickly; verify current state before committing time or money. Nothing in this essay is financial, legal, or security advice.</p>
+</main>
+<footer class="doc-footer">
+  <p>Neuruh Distribution Library. Audit date 2026-11-16. Word counts are wc -w counts from the manifest, not estimates.</p>
+  <p><a href="../index.html">Back to the library index</a></p>
+</footer>
+</body>
+</html>
