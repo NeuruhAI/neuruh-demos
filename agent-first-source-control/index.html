@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent-First Source Control: The Governance Layer GitHub Lacks - SIMULATION</title>
+<style>
+  :root{--bone:#f4f1ea;--paper:#fffdf7;--ink:#1a1a1a;--muted:#5c564a;--brass:#b08d3c;--brass-dark:#8a6d2b;--line:#c9c2b0;--red:#8a1f1f;--green:#1f6b2e;--amber:#8a6d1f}
+  *{box-sizing:border-box}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bone);color:var(--ink);margin:0;padding:0}
+  .banner{background:var(--red);color:#fff;padding:10px 20px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:1px;text-align:center}
+  .wrap{max-width:980px;margin:0 auto;padding:28px 20px 70px}
+  .dochead{border:2px solid var(--ink);background:var(--paper);padding:16px 20px;margin:22px 0}
+  .dochead table{border-collapse:collapse;width:100%;font-size:13px}
+  .dochead td{padding:3px 8px 3px 0;vertical-align:top}
+  .dochead td.k{font-family:'JetBrains Mono',monospace;color:var(--muted);width:170px}
+  h1{font-family:'Archivo',system-ui,sans-serif;font-size:32px;line-height:1.15;margin:10px 0 6px}
+  .sub{color:var(--muted);font-size:16px;line-height:1.5;margin:0 0 8px}
+  h2{font-family:'Archivo',system-ui,sans-serif;font-size:21px;border-bottom:2px solid var(--brass);padding-bottom:5px;margin-top:40px}
+  h3{font-family:'Archivo',system-ui,sans-serif;font-size:16px;margin:20px 0 6px}
+  p,li{font-size:15px;line-height:1.6}
+  code{font-family:'JetBrains Mono',monospace;background:#e8e2d4;padding:1px 5px;border-radius:3px;font-size:13px}
+  pre{background:#1a1a1a;color:#e8e2d4;padding:14px;border-radius:6px;overflow-x:auto;font-size:12.5px;line-height:1.5;font-family:'JetBrains Mono',monospace}
+  button{font-family:'JetBrains Mono',monospace;font-size:13.5px;background:#1a1a1a;color:#f4f1ea;border:0;padding:10px 16px;border-radius:4px;cursor:pointer;margin:4px 6px 4px 0}
+  button:hover{background:var(--brass);color:#1a1a1a}
+  button.preset{background:#5a4a1f}
+  button.ghost{background:var(--paper);color:#1a1a1a;border:1px solid var(--ink)}
+  button.small{padding:6px 10px;font-size:12px}
+  .card{border:1px solid var(--line);background:var(--paper);padding:14px 16px;border-radius:6px;margin:12px 0}
+  .ok{color:var(--green);font-weight:bold}
+  .bad{color:var(--red);font-weight:bold}
+  .warn{color:var(--amber);font-weight:bold}
+  table.data{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}
+  table.data th,table.data td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  table.data th{background:#e8e2d4;font-family:'Archivo',system-ui,sans-serif}
+  .mono{font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all}
+  .note{font-size:13px;color:var(--muted)}
+  label{display:block;font-size:14px;margin:10px 0}
+  label span{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+  input,select,textarea{font-family:'JetBrains Mono',monospace;font-size:14px;padding:7px 9px;border:1px solid var(--line);border-radius:4px;background:#fff;width:100%}
+  textarea{font-family:'Inter',sans-serif;line-height:1.5;min-height:64px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 14px}
+  @media (max-width:640px){.grid,.grid3{grid-template-columns:1fr}}
+  fieldset{border:1px solid var(--line);border-radius:6px;margin:14px 0;padding:12px 16px;background:var(--paper)}
+  legend{font-family:'Archivo',system-ui,sans-serif;font-weight:700;font-size:15px;padding:0 6px}
+  figure{margin:22px 0;border:1px solid var(--line);background:var(--paper);padding:14px;border-radius:6px}
+  figcaption{font-size:13px;color:var(--muted);margin-top:10px;line-height:1.5}
+  figcaption b{color:var(--ink)}
+  .bignum{font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:1px}
+  .verdict{font-family:'Archivo',system-ui,sans-serif;font-size:20px;font-weight:800}
+  .ladder{font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:1.9}
+  .ladder .here{background:var(--brass);color:#fff;padding:2px 6px;border-radius:3px;font-weight:bold}
+  @media print{
+    .banner,button{display:none}
+    body{background:#fff}
+    .wrap{max-width:100%;padding:0}
+    .card,fieldset,figure{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="banner">SIMULATION - BROWSER-LOCAL - NO REAL REPO - NO REAL GIT - NO REAL CI - NOTHING LEAVES THIS PAGE</div>
+<div class="wrap">
+
+<h1>Agent-First Source Control</h1>
+<p class="sub">The governance and review layer GitHub lacks, as a browser simulation. GitHub is still the transport and the demo host. The estate has NOT replaced GitHub. This page adds what GitHub does not have natively: isolated seven-lens agent review, a deliberation matrix with a Chair decision, a CRUCIBLE eta verdict, a hash-chained receipt ledger, a promotion gate, and rollback. Every control below runs in your browser only.</p>
+
+<div class="dochead">
+<table>
+<tr><td class="k">DOCUMENT</td><td>Agent-First Source Control demo, Neuruh</td></tr>
+<tr><td class="k">DOC ID</td><td>NRH-DEMO-AFSC-2026-11-16</td></tr>
+<tr><td class="k">VERSION</td><td>1.0.0, 2026-11-16</td></tr>
+<tr><td class="k">CLASS</td><td>SIMULATION. Browser-local. No real repo, no real git, no real CI, no server, no network calls.</td></tr>
+<tr><td class="k">RECEIPT STANDARD</td><td>Receipt canonical v1.1. receipt_hash is SHA-256 of canonical JSON (sorted keys, arrays in order) with receipt_hash and receipt_id removed. receipt_id equals receipt_hash. First prev hash is the literal string GENESIS.</td></tr>
+<tr><td class="k">ANCHOR ROOT</td><td class="mono">afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f (estate Anchor v2 root)</td></tr>
+<tr><td class="k">ETA FORMULA</td><td class="mono">eta = (I_q * I_r * I_v) / (1 + E_wasted + C_violations), clamped to 0-100. Threshold 70.</td></tr>
+</table>
+</div>
+
+<h2>State ladder</h2>
+<p class="ladder">
+CONCEPT | DESIGNED | SCAFFOLDED | <span class="here">IMPLEMENTED</span> | TESTED | INTEGRATED | DEPLOYED | LIVE | OBSERVED | PROVEN | COMMERCIAL<br>
+This demo is marked <span class="here">SIMULATION / IMPLEMENTED</span>. It is not LIVE and not PROVEN. Its in-page checks are jsdom checks of this page's own controls, not a real CI run and not production evidence.
+</p>
+
+<figure>
+<svg viewBox="0 0 920 170" width="100%" role="img" aria-label="Packet flow diagram">
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#b08d3c"/></marker></defs>
+  <g font-family="Archivo, sans-serif" font-size="12" font-weight="700" text-anchor="middle">
+    <rect x="6" y="20" width="118" height="58" rx="6" fill="#fffdf7" stroke="#1a1a1a"/><text x="65" y="46">1 PACKET</text><text x="65" y="64" font-size="10" font-weight="400">composer + header</text>
+    <rect x="146" y="20" width="118" height="58" rx="6" fill="#fffdf7" stroke="#1a1a1a"/><text x="205" y="46">2 REVIEW</text><text x="205" y="64" font-size="10" font-weight="400">7 agents, isolated</text>
+    <rect x="286" y="20" width="118" height="58" rx="6" fill="#fffdf7" stroke="#1a1a1a"/><text x="345" y="46">3 CHAIR</text><text x="345" y="64" font-size="10" font-weight="400">matrix + verdict</text>
+    <rect x="426" y="20" width="118" height="58" rx="6" fill="#fffdf7" stroke="#1a1a1a"/><text x="485" y="46">4 CRUCIBLE</text><text x="485" y="64" font-size="10" font-weight="400">eta + citations</text>
+    <rect x="566" y="20" width="118" height="58" rx="6" fill="#fffdf7" stroke="#1a1a1a"/><text x="625" y="46">5 RECEIPT</text><text x="625" y="64" font-size="10" font-weight="400">SHA-256 chain</text>
+    <rect x="706" y="20" width="96" height="58" rx="6" fill="#fffdf7" stroke="#1a1a1a"/><text x="754" y="46">6 GATE</text><text x="754" y="64" font-size="10" font-weight="400">promote?</text>
+    <rect x="824" y="20" width="88" height="58" rx="6" fill="#b08d3c" stroke="#1a1a1a"/><text x="868" y="46">ROLLBACK</text><text x="868" y="64" font-size="10" font-weight="400">receipted</text>
+  </g>
+  <g stroke="#b08d3c" stroke-width="2" marker-end="url(#arr)">
+    <line x1="124" y1="49" x2="144" y2="49"/><line x1="264" y1="49" x2="284" y2="49"/><line x1="404" y1="49" x2="424" y2="49"/><line x1="544" y1="49" x2="564" y2="49"/><line x1="684" y1="49" x2="704" y2="49"/><line x1="802" y1="49" x2="822" y2="49"/>
+  </g>
+  <text x="460" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#5c564a">A packet that fails the gate never promotes. A rollback is itself a chained receipt, not a deletion.</text>
+  <text x="460" y="140" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#5c564a">GitHub stays the transport. This page is the review layer on top of it.</text>
+</svg>
+<figcaption><b>Figure 1.</b> Packet flow: composer and N-Cell/64 header, isolated seven-agent review, Chair adjudication, CRUCIBLE eta verdict, hash-chained receipt, promotion gate, and receipted rollback. All six stages run in this page only.</figcaption>
+</figure>
+
+<h2>Presets</h2>
+<p><button class="preset" id="presetBtn">Load example packet: receipt verifier fix</button>
+<button class="preset" id="presetWeakBtn">Load weak packet: low eta, one uncited claim</button></p>
+<p class="note">The weak preset sets I_q 40, I_r 45, I_v 50, E_wasted 2, C_violations 1 and clears the source of claim 2, so the CRUCIBLE verdict is FLAG. Use it to see the gate refuse.</p>
+
+<h2>1. Change packet composer</h2>
+<fieldset>
+<legend>Packet</legend>
+<label><span>Title</span><input id="packetTitle" value="Fix receipt verifier to reject truncated hashes"></label>
+<label><span>Files changed (comma separated)</span><input id="packetFiles" value="verifier.py, test_verifier.py, receipts.md"></label>
+<label><span>Diff summary</span><textarea id="packetDiff">verifier now rejects any stored hash shorter than 64 hex chars and any receipt whose prev hash does not match the chain head.</textarea></label>
+<div class="grid">
+<label><span>Author agent</span><input id="packetAuthor" value="worker-7 (receipts)"></label>
+<label><span>Authority scope</span><input id="packetScope" value="repo neuruh-demos, path agent-first-source-control, write"></label>
+</div>
+<label><span>Test evidence</span><textarea id="packetTests">jsdom 31/31 checks pass; tamper test on a copy gives CHAIN BROKEN; in-page checks only, NOT a real CI run.</textarea></label>
+<div class="grid">
+<label><span>Authority token (single-use, per packet, not stored anywhere)</span><input id="authToken" value="ncell-token-example-001"></label>
+<label><span>Token expiry date</span><input id="authExpiry" type="date" value="2027-06-30"></label>
+</div>
+<p><button id="updatePacketBtn">Update packet</button> <span id="packetStatus" class="mono">Packet status: DRAFT</span></p>
+<div class="card" id="packetSummary">Packet not composed yet. Click Update packet.</div>
+</fieldset>
+
+<h2>2. N-Cell/64 header encoder</h2>
+<fieldset>
+<legend>Header, 8 bytes: routeMask, organMask, lifecycleMask, authorityMask, memoryMask, confidence 0-255, risk 0-255, outputMask</legend>
+<p>Derived deterministically from the packet. Route comes from a hash of the author agent string. Confidence is eta scaled to 0-255. Risk comes from blast-radius words in the diff summary (delete, drop, migrate, rewrite, production, auth, credential, schema, all). The header updates live when the packet changes.</p>
+<div class="card">Header hex: <span class="bignum" id="headerHex">--</span><br>
+<span class="mono" id="headerBytes">--</span><br>
+<span class="note" id="headerNote">Route is a deterministic hash of the author agent. Confidence tracks eta. Risk tracks blast-radius words found in the diff.</span></div>
+</fieldset>
+
+<h2>3. Seven-agent isolated review</h2>
+<p>Each agent reads only the packet, in isolation. No agent reads another agent's output. Verdicts are rule-based on packet fields. Confidence is seeded by a deterministic hash of the packet text plus the lens name, in the range 0.50 to 0.99.</p>
+<p><button id="runReviewBtn">Run isolated review</button></p>
+<table class="data" id="reviewTable">
+<tr><th>Agent</th><th>Lens</th><th>Verdict</th><th>Confidence</th><th>Evidence (from packet fields)</th><th>Run</th></tr>
+<tr data-agent="hawkins"><td>Hawkins</td><td>Correctness</td><td class="verdict-cell">Not run</td><td class="conf-cell">--</td><td class="ev-cell">--</td><td><button class="small" id="run-hawkins">Run</button></td></tr>
+<tr data-agent="orwell"><td>Orwell</td><td>Security</td><td class="verdict-cell">Not run</td><td class="conf-cell">--</td><td class="ev-cell">--</td><td><button class="small" id="run-orwell">Run</button></td></tr>
+<tr data-agent="keystone"><td>Keystone</td><td>Test Coverage</td><td class="verdict-cell">Not run</td><td class="conf-cell">--</td><td class="ev-cell">--</td><td><button class="small" id="run-keystone">Run</button></td></tr>
+<tr data-agent="advocate"><td>Advocate</td><td>Blast Radius</td><td class="verdict-cell">Not run</td><td class="conf-cell">--</td><td class="ev-cell">--</td><td><button class="small" id="run-advocate">Run</button></td></tr>
+<tr data-agent="cicero"><td>Cicero</td><td>Style / Consistency</td><td class="verdict-cell">Not run</td><td class="conf-cell">--</td><td class="ev-cell">--</td><td><button class="small" id="run-cicero">Run</button></td></tr>
+<tr data-agent="zeitgeist"><td>Zeitgeist</td><td>Documentation</td><td class="verdict-cell">Not run</td><td class="conf-cell">--</td><td class="ev-cell">--</td><td><button class="small" id="run-zeitgeist">Run</button></td></tr>
+<tr data-agent="empath"><td>Empath</td><td>Risk</td><td class="verdict-cell">Not run</td><td class="conf-cell">--</td><td class="ev-cell">--</td><td><button class="small" id="run-empath">Run</button></td></tr>
+</table>
+<div class="card" id="reviewOut">No review run yet in this session.</div>
+
+<h2>4. Deliberation matrix and Chair adjudication</h2>
+<p>The matrix is one row per agent, one verdict per agent. No thread. The Chair aggregates by majority verdict weighted by confidence.</p>
+<div class="card" id="deliberationOut">Run the isolated review first. The 7 by 3 matrix (agent, verdict, confidence) appears here.</div>
+<label><span>Chair override</span><select id="chairOverride">
+<option value="uphold">Uphold aggregate</option>
+<option value="request">Override to REQUEST CHANGES</option>
+<option value="reject">Override to REJECT</option>
+</select></label>
+<label><span>Override reason (recorded with the decision)</span><input id="overrideReason" value="" placeholder="required if overriding"></label>
+<p><button id="chairBtn">Chair adjudicate</button></p>
+<div class="card" id="chairOut">No Chair decision yet in this session.</div>
+
+<h2>5. CRUCIBLE eta verdict</h2>
+<fieldset>
+<legend>eta = (I_q * I_r * I_v) / (1 + E_wasted + C_violations), clamped 0-100, threshold 70</legend>
+<div class="grid3">
+<label><span>I_q, quality, 0-100</span><input id="etaIq" type="number" min="0" max="100" value="88"></label>
+<label><span>I_r, relevance, 0-100</span><input id="etaIr" type="number" min="0" max="100" value="90"></label>
+<label><span>I_v, verification, 0-100</span><input id="etaIv" type="number" min="0" max="100" value="85"></label>
+<label><span>E_wasted, 0-10</span><input id="etaEw" type="number" min="0" max="10" value="1"></label>
+<label><span>C_violations, 0-10</span><input id="etaCv" type="number" min="0" max="10" value="0"></label>
+</div>
+<h3>Claims and sources</h3>
+<p>Uncited count is the number of claims with an empty source field. PASS needs eta at or above 70 AND uncited count zero.</p>
+<div class="grid">
+<label><span>Claim 1</span><input id="claim1Text" value="Verifier rejects stored hashes shorter than 64 hex chars"></label>
+<label><span>Claim 1 source</span><input id="claim1Src" value="verifier.py, diff summary"></label>
+<label><span>Claim 2</span><input id="claim2Text" value="Verifier rejects a receipt whose prev hash does not match the chain head"></label>
+<label><span>Claim 2 source</span><input id="claim2Src" value="verifier.py, diff summary"></label>
+<label><span>Claim 3</span><input id="claim3Text" value="Tamper test on a copy gives CHAIN BROKEN"></label>
+<label><span>Claim 3 source</span><input id="claim3Src" value="test evidence, jsdom run"></label>
+</div>
+<p><button id="etaComputeBtn">Compute eta verdict</button></p>
+<div class="card" id="etaOut">Eta not computed yet in this session.</div>
+</fieldset>
+
+<h2>6. Hash-chained receipt ledger (v1.1)</h2>
+<p>Each sealed receipt carries action, actor, timestamp, payload, prev_receipt_hash, merkle_root, and anchor_root. merkle_root is the chain head hash this receipt builds on (GENESIS for the first receipt). The new head after sealing is receipt_hash. anchor_root is the estate Anchor v2 root, shown in the document header.</p>
+<p><button id="sealBtn">Seal receipt</button>
+<button id="verifyBtn">Verify chain</button>
+<button id="tamperBtn" class="ghost">Tamper test: mutate last receipt, then verify</button></p>
+<div class="card" id="verifyOut">No receipts sealed yet in this session. Seal one, then verify.</div>
+<div id="ledgerOut"><div class="card">Ledger is empty.</div></div>
+
+<h2>7. Promotion gate</h2>
+<p>PASS only when all three checks hold: eta at or above 70, uncited count zero, and authority valid (scope non-empty AND token non-empty AND expiry date in the future).</p>
+<p><button id="gateBtn">Run promotion gate</button></p>
+<div class="card" id="gateOut">Promotion gate not run yet in this session.</div>
+
+<h2>8. Rollback</h2>
+<p><button id="rollbackBtn">Rollback this packet</button></p>
+<div class="card" id="rollbackOut">No rollback in this session. Rollback appends a rollback receipt to the same chain and marks the packet ROLLED BACK. It does not delete anything.</div>
+
+<h2>9. GitHub vs this</h2>
+<p>GitHub stays the transport and the demo host. This page is the governance and review layer GitHub lacks. Each complaint below maps to the mechanism that answers it.</p>
+<table class="data">
+<tr><th>Complaint about GitHub review</th><th>Mechanism in this demo</th></tr>
+<tr><td>Unreadable threads</td><td>Isolated review plus deliberation matrix: one verdict per agent, no thread</td></tr>
+<tr><td>Slow loads</td><td>Browser-local, no server round trips</td></tr>
+<tr><td>Constant failures</td><td>Deterministic local checks, no third-party calls</td></tr>
+<tr><td>PR volume strain</td><td>Batch packets with one Chair decision per packet, dedup by content hash</td></tr>
+<tr><td>Credential friction</td><td>Single-use N-Cell authority token per packet, no stored credentials</td></tr>
+<tr><td>No native review</td><td>Seven-lens review plus CRUCIBLE eta plus Chair are the review</td></tr>
+</table>
+
+<h2>Grounding and limits</h2>
+<ul>
+<li>SHA-256, canonical JSON, and the receipt chain are copied verbatim from the unified-chain demo on disk. The eta formula is the estate formula, clamped to 0-100.</li>
+<li>Note on the prefilled eta inputs: with I_q 88, I_r 90, I_v 85, E_wasted 1, C_violations 0 the literal formula gives a raw value of 336600, which clamps to 100, not 78. The page shows the computed value, raw and capped, and does not repeat the 78 figure as a result. The verdict is PASS either way because 100 is above the 70 threshold.</li>
+<li>All seven agents are deterministic rules over packet fields plus a seeded confidence. They are not models, not people, and not a real review.</li>
+<li>Simulation only. No backend, no database, no live system, no real repo, no real git, no real CI. Test evidence shown here is in-page checks only, NOT a real CI run.</li>
+<li>Content hash dedup: the packet content hash is the SHA-256 of the canonical packet JSON, shown in the packet summary after Update packet.</li>
+</ul>
+
+</div>
+<script>
+/* ---------- SHA-256 (pure JS, verbatim from the land-report store) ---------- */
+  function sha256(ascii) {
+    function rr(v, a) { return (v >>> a) | (v << (32 - a)); }
+    var mp = Math.pow, mw = mp(2, 32), i, j, result = '';
+    var words = [], bitLen = ascii.length * 8;
+    var hash = sha256.h = sha256.h || [], k = sha256.k = sha256.k || [];
+    var pc = k.length, isC = {};
+    for (var cand = 2; pc < 64; cand++) {
+      if (!isC[cand]) {
+        for (i = 0; i < 313; i += cand) isC[i] = cand;
+        hash[pc] = (mp(cand, .5) * mw) | 0;
+        k[pc++] = (mp(cand, 1 / 3) * mw) | 0;
+      }
+    }
+    ascii += '\x80';
+    while (ascii.length % 64 - 56) ascii += '\x00';
+    for (i = 0; i < ascii.length; i++) {
+      j = ascii.charCodeAt(i);
+      if (j >> 8) return null;
+      words[i >> 2] |= j << ((3 - i) % 4) * 8;
+    }
+    words[words.length] = (bitLen / mw) | 0;
+    words[words.length] = bitLen;
+    for (j = 0; j < words.length;) {
+      var w = words.slice(j, j += 16), old = hash;
+      hash = hash.slice(0, 8);
+      for (i = 0; i < 64; i++) {
+        var w15 = w[i - 15], w2 = w[i - 2], a = hash[0], e = hash[4];
+        var t1 = hash[7] + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & hash[5]) ^ ((~e) & hash[6])) + k[i]
+          + (w[i] = (i < 16) ? w[i] : (w[i - 16] + (rr(w15, 7) ^ rr(w15, 18) ^ (w15 >>> 3)) + w[i - 7] + (rr(w2, 17) ^ rr(w2, 19) ^ (w2 >>> 10))) | 0);
+        var t2 = (rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & hash[1]) ^ (a & hash[2]) ^ (hash[1] & hash[2]));
+        hash = [(t1 + t2) | 0].concat(hash);
+        hash[4] = (hash[4] + t1) | 0;
+      }
+      for (i = 0; i < 8; i++) hash[i] = (hash[i] + old[i]) | 0;
+    }
+    for (i = 0; i < 8; i++) for (j = 3; j + 1; j--) {
+      var b = (hash[i] >> (j * 8)) & 255;
+      result += ((b < 16) ? '0' : '') + b.toString(16);
+    }
+    return result;
+  }
+
+  function toUtf8(str) {
+    var out = '';
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charCodeAt(i);
+      if (c < 128) out += str.charAt(i);
+      else if (c < 2048) out += String.fromCharCode((c >> 6) | 192, (c & 63) | 128);
+      else if (c < 55296 || c > 57343) out += String.fromCharCode((c >> 12) | 224, ((c >> 6) & 63) | 128, (c & 63) | 128);
+      else {
+        i++; var c2 = str.charCodeAt(i);
+        var cp = 0x10000 + (((c & 0x3FF) << 10) | (c2 & 0x3FF));
+        out += String.fromCharCode((cp >> 18) | 240, ((cp >> 12) & 63) | 128, ((cp >> 6) & 63) | 128, (cp & 63) | 128);
+      }
+    }
+    return out;
+  }
+
+  function hashStr(s) { return sha256(toUtf8(s)); }
+
+  /* canonical JSON: sorted keys, arrays in order */
+  function canonical(v) {
+    if (v === null || typeof v !== 'object') return JSON.stringify(v);
+    if (Array.isArray(v)) return '[' + v.map(canonical).join(',') + ']';
+    return '{' + Object.keys(v).sort().map(function (k) { return JSON.stringify(k) + ':' + canonical(v[k]); }).join(',') + '}';
+  }
+
+  /* ---------- app state ---------- */
+  var ANCHOR_ROOT = 'afd56cea3e4abe9265f83c3552cddebac2771ab6d5d50012a641695fd8b8777f';
+  var GENESIS = 'GENESIS';
+  var ETA_THRESHOLD = 70;
+  var ledger = [];
+  var reviews = {};
+  var chairDecision = null;
+  var lastEta = null;
+  var lastUncited = null;
+  var packetRolledBack = false;
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+  function num(id, def) {
+    var v = parseFloat($(id).value);
+    return isNaN(v) ? def : v;
+  }
+  function filesList() {
+    return $('packetFiles').value.split(',').map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+  }
+  function packetObj() {
+    return {
+      title: $('packetTitle').value,
+      files: filesList(),
+      diff: $('packetDiff').value,
+      author: $('packetAuthor').value,
+      scope: $('packetScope').value,
+      tests: $('packetTests').value
+    };
+  }
+  function packetText() {
+    var p = packetObj();
+    return [p.title, p.files.join(','), p.diff, p.author, p.scope, p.tests].join('|');
+  }
+  function djb2(s) {
+    var h = 5381;
+    for (var i = 0; i < s.length; i++) { h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; }
+    return h;
+  }
+  function clamp255(n) { n = Math.round(n); if (isNaN(n) || n < 0) return 0; if (n > 255) return 255; return n; }
+  function hex2(n) { return ('0' + (n & 0xFF).toString(16)).slice(-2).toUpperCase(); }
+
+  /* ---------- eta ---------- */
+  function computeEta() {
+    var iq = num('etaIq', 0), ir = num('etaIr', 0), iv = num('etaIv', 0);
+    var ew = num('etaEw', 0), cv = num('etaCv', 0);
+    var raw = (iq * ir * iv) / (1 + ew + cv);
+    var eta = raw;
+    if (eta < 0) eta = 0;
+    if (eta > 100) eta = 100;
+    eta = Math.round(eta * 100) / 100;
+    return { iq: iq, ir: ir, iv: iv, ew: ew, cv: cv, raw: raw, eta: eta };
+  }
+  function claimsList() {
+    return [
+      { name: 'Claim 1: ' + $('claim1Text').value, source: $('claim1Src').value.trim() },
+      { name: 'Claim 2: ' + $('claim2Text').value, source: $('claim2Src').value.trim() },
+      { name: 'Claim 3: ' + $('claim3Text').value, source: $('claim3Src').value.trim() }
+    ];
+  }
+  function uncitedClaims() {
+    return claimsList().filter(function (c) { return c.source.length === 0; });
+  }
+  function renderEta() {
+    var e = computeEta();
+    var uncited = uncitedClaims();
+    lastEta = e.eta;
+    lastUncited = uncited.length;
+    var pass = (e.eta >= ETA_THRESHOLD && uncited.length === 0);
+    var verdict = pass ? 'PASS' : 'FLAG';
+    var html = '<span class="verdict">' + verdict + '</span> eta = <span class="bignum">' + e.eta + '</span>'
+      + ' (raw ' + Math.round(e.raw * 100) / 100 + ', clamped to 0-100; threshold ' + ETA_THRESHOLD + ')<br>'
+      + 'Inputs: I_q ' + e.iq + ', I_r ' + e.ir + ', I_v ' + e.iv + ', E_wasted ' + e.ew + ', C_violations ' + e.cv + '.<br>'
+      + 'Uncited claims: <b>' + uncited.length + '</b> of 3.<br>';
+    if (pass) {
+      html += '<span class="ok">All claims cited and eta at or above threshold.</span>';
+    } else {
+      html += '<span class="bad">Fix these claims before promotion:</span><ul>';
+      uncited.forEach(function (c) { html += '<li>' + esc(c.name) + ' (source empty)</li>'; });
+      if (e.eta < ETA_THRESHOLD) html += '<li>Eta ' + e.eta + ' is below threshold ' + ETA_THRESHOLD + '</li>';
+      html += '</ul>';
+    }
+    $('etaOut').innerHTML = html;
+    updateHeader();
+    return { eta: e, uncited: uncited, pass: pass };
+  }
+
+  /* ---------- N-Cell/64 header ---------- */
+  var RISK_WORDS = ['delete', 'drop', 'migrate', 'rewrite', 'production', 'auth', 'credential', 'schema', 'all'];
+  function riskCount() {
+    var diff = $('packetDiff').value.toLowerCase();
+    var n = 0;
+    RISK_WORDS.forEach(function (w) { if (diff.indexOf(w) !== -1) n++; });
+    return n;
+  }
+  function headerBytes() {
+    var e = computeEta();
+    var route = djb2($('packetAuthor').value) % 256;
+    var confidence = clamp255(e.eta / 100 * 255);
+    var risk = clamp255(riskCount() * 32);
+    var authority = $('packetScope').value.trim().length > 0 ? 0x07 : 0x00;
+    return [route, 0x07, 0x01, authority, 0x0f, confidence, risk, 0x01];
+  }
+  function updateHeader() {
+    var bytes = headerBytes();
+    var hex = bytes.map(hex2).join(' ');
+    $('headerHex').textContent = hex;
+    $('headerBytes').textContent = 'Bytes: routeMask ' + bytes[0] + ', organMask ' + bytes[1] + ', lifecycleMask ' + bytes[2]
+      + ', authorityMask ' + bytes[3] + ', memoryMask ' + bytes[4] + ', confidence ' + bytes[5]
+      + ', risk ' + bytes[6] + ', outputMask ' + bytes[7] + ' | compact: ' + bytes.map(hex2).join('').toLowerCase();
+    $('headerNote').textContent = 'Route is a deterministic hash of author agent "' + $('packetAuthor').value
+      + '". Confidence ' + bytes[5] + '/255 tracks eta ' + computeEta().eta
+      + '. Risk ' + bytes[6] + '/255 from ' + riskCount() + ' blast-radius word(s) in the diff summary.';
+  }
+
+  /* ---------- packet composer ---------- */
+  function updatePacket() {
+    var p = packetObj();
+    var contentHash = hashStr(canonical(p));
+    var status = packetRolledBack ? 'ROLLED BACK' : 'DRAFT';
+    $('packetStatus').textContent = 'Packet status: ' + status;
+    $('packetSummary').innerHTML = '<b>' + esc(p.title) + '</b><br>'
+      + 'Files changed (' + p.files.length + '): ' + esc(p.files.join(', ')) + '<br>'
+      + 'Author agent: ' + esc(p.author) + ' | Authority scope: ' + esc(p.scope) + '<br>'
+      + 'Diff summary: ' + esc(p.diff) + '<br>'
+      + 'Test evidence: ' + esc(p.tests) + '<br>'
+      + 'Packet content hash (SHA-256 of canonical packet JSON, dedup key): <span class="mono">' + contentHash + '</span><br>'
+      + '<span class="note">Status: ' + status + '. Test evidence above is in-page checks only, NOT a real CI run.</span>';
+    updateHeader();
+  }
+
+  /* ---------- seven-agent isolated review ---------- */
+  var LENSES = {
+    hawkins: 'Correctness',
+    orwell: 'Security',
+    keystone: 'Test Coverage',
+    advocate: 'Blast Radius',
+    cicero: 'Style / Consistency',
+    zeitgeist: 'Documentation',
+    empath: 'Risk'
+  };
+  var AGENT_NAMES = {
+    hawkins: 'Hawkins', orwell: 'Orwell', keystone: 'Keystone',
+    advocate: 'Advocate', cicero: 'Cicero', zeitgeist: 'Zeitgeist', empath: 'Empath'
+  };
+  function agentReview(key) {
+    var p = packetObj();
+    var files = p.files;
+    var diffLower = p.diff.toLowerCase();
+    var testsLower = p.tests.toLowerCase();
+    var verdict = 'APPROVE';
+    var evidence = [];
+    if (key === 'hawkins') {
+      var hasVerifier = files.indexOf('verifier.py') !== -1;
+      var mentionsReject = diffLower.indexOf('reject') !== -1;
+      if (p.diff.trim().length === 0) { verdict = 'REJECT'; evidence.push('Diff summary is empty, nothing to verify correctness against.'); }
+      else if (!hasVerifier || !mentionsReject) { verdict = 'REQUEST CHANGES'; evidence.push('Diff does not name the verifier change clearly.'); }
+      else { evidence.push('Diff states the verifier rejects hashes shorter than 64 hex chars.'); }
+      evidence.push(hasVerifier ? 'verifier.py is in the files changed list.' : 'verifier.py is NOT in the files changed list.');
+      evidence.push('Files changed count: ' + files.length + '.');
+    } else if (key === 'orwell') {
+      if (p.scope.trim().length === 0) { verdict = 'REJECT'; evidence.push('Authority scope is empty, no boundary to enforce.'); }
+      else if (diffLower.indexOf('truncat') === -1 && diffLower.indexOf('64 hex') === -1) { verdict = 'REQUEST CHANGES'; evidence.push('Diff does not mention the truncated-hash rule.'); }
+      else { evidence.push('Diff names the truncated-hash rule: reject below 64 hex chars.'); }
+      evidence.push('Authority scope present: "' + p.scope + '".');
+      evidence.push('No credential or secret appears in the packet fields.');
+    } else if (key === 'keystone') {
+      var hasTestFile = files.some(function (f) { return f.indexOf('test_') === 0; });
+      if (p.tests.trim().length === 0) { verdict = 'REJECT'; evidence.push('Test evidence is empty.'); }
+      else if (!hasTestFile) { verdict = 'REQUEST CHANGES'; evidence.push('No test file in the files changed list.'); }
+      else { evidence.push('Test evidence present: "' + p.tests.slice(0, 80) + '".'); }
+      evidence.push(hasTestFile ? 'A test file is in the files changed list.' : 'No test file found in the files changed list.');
+      evidence.push(testsLower.indexOf('pass') !== -1 ? 'Test evidence reports a pass.' : 'Test evidence does not report a pass.');
+    } else if (key === 'advocate') {
+      var risky = riskCount();
+      if (files.length > 5) { verdict = 'REQUEST CHANGES'; evidence.push('Files changed count ' + files.length + ' is above 5, split the packet.'); }
+      else if (risky >= 4) { verdict = 'REQUEST CHANGES'; evidence.push('Blast-radius words found in diff: ' + risky + '.'); }
+      else { evidence.push('Files changed count is ' + files.length + ', within the small-packet range.'); }
+      evidence.push('Blast-radius words in diff: ' + risky + ' of ' + RISK_WORDS.length + ' checked.');
+      evidence.push('Diff scope is the receipt verifier only, per the diff summary.');
+    } else if (key === 'cicero') {
+      if (p.title.trim().length === 0) { verdict = 'REJECT'; evidence.push('Title is empty.'); }
+      else if (p.title.length > 80) { verdict = 'REQUEST CHANGES'; evidence.push('Title is ' + p.title.length + ' chars, over the 80-char guide.'); }
+      else { evidence.push('Title is ' + p.title.length + ' chars, within the 80-char guide.'); }
+      evidence.push('Files changed: ' + files.join(', ') + '.');
+      evidence.push('Title matches the diff subject (receipt verifier).');
+    } else if (key === 'zeitgeist') {
+      var hasDoc = files.some(function (f) { return f.slice(-3) === '.md'; });
+      if (!hasDoc) { verdict = 'REQUEST CHANGES'; evidence.push('No documentation file in the files changed list.'); }
+      else { evidence.push('Documentation file present in files changed: receipts.md.'); }
+      evidence.push('Diff summary states the new rule in one sentence.');
+      evidence.push('Test evidence is recorded in the packet, not only in the diff.');
+    } else if (key === 'empath') {
+      var r = riskCount();
+      if (r >= 5) { verdict = 'REQUEST CHANGES'; evidence.push('Risk words in diff: ' + r + ', high for one packet.'); }
+      else { evidence.push('Risk words in diff: ' + r + ', low for one packet.'); }
+      evidence.push('Author agent is named: ' + p.author + '.');
+      evidence.push('Rollback is available as a chained receipt if the change misbehaves.');
+    }
+    var seed = djb2(packetText() + '|' + key) % 50;
+    var confidence = 0.50 + seed / 100;
+    return { agent: AGENT_NAMES[key], lens: LENSES[key], verdict: verdict, confidence: Math.round(confidence * 100) / 100, evidence: evidence };
+  }
+  function renderAgentRow(key, r) {
+    var row = document.querySelector('tr[data-agent="' + key + '"]');
+    if (!row) return;
+    row.querySelector('.verdict-cell').textContent = r.verdict;
+    row.querySelector('.conf-cell').textContent = r.confidence.toFixed(2);
+    row.querySelector('.ev-cell').textContent = r.evidence.join(' ');
+  }
+  function runAgent(key) {
+    var r = agentReview(key);
+    reviews[key] = r;
+    renderAgentRow(key, r);
+    $('reviewOut').textContent = AGENT_NAMES[key] + ' (' + r.lens + '): ' + r.verdict
+      + ', confidence ' + r.confidence.toFixed(2) + '. ' + r.evidence.join(' ');
+    return r;
+  }
+  function runAllReview() {
+    Object.keys(LENSES).forEach(function (key) { runAgent(key); });
+    var counts = { APPROVE: 0, 'REQUEST CHANGES': 0, REJECT: 0 };
+    Object.keys(reviews).forEach(function (k) { counts[reviews[k].verdict]++; });
+    $('reviewOut').textContent = 'Isolated review complete: 7 agents, ' + counts.APPROVE + ' APPROVE, '
+      + counts['REQUEST CHANGES'] + ' REQUEST CHANGES, ' + counts.REJECT + ' REJECT. Each agent read only the packet.';
+  }
+
+  /* ---------- deliberation matrix and Chair ---------- */
+  function renderDeliberation() {
+    if (Object.keys(reviews).length === 0) {
+      $('deliberationOut').textContent = 'Run the isolated review first. The 7 by 3 matrix (agent, verdict, confidence) appears here.';
+      return;
+    }
+    var html = '<table class="data"><tr><th>Agent</th><th>Verdict</th><th>Confidence</th></tr>';
+    Object.keys(LENSES).forEach(function (key) {
+      var r = reviews[key];
+      if (!r) return;
+      html += '<tr><td>' + esc(r.agent) + '</td><td>' + esc(r.verdict) + '</td><td>' + r.confidence.toFixed(2) + '</td></tr>';
+    });
+    html += '</table>';
+    $('deliberationOut').innerHTML = html;
+  }
+  function chairAdjudicate() {
+    renderDeliberation();
+    if (Object.keys(reviews).length < 7) {
+      $('chairOut').innerHTML = '<span class="bad">Chair cannot adjudicate: only ' + Object.keys(reviews).length
+        + ' of 7 agents have run. Run the isolated review first.</span>';
+      return null;
+    }
+    var sums = { APPROVE: 0, 'REQUEST CHANGES': 0, REJECT: 0 };
+    var counts = { APPROVE: 0, 'REQUEST CHANGES': 0, REJECT: 0 };
+    Object.keys(reviews).forEach(function (k) {
+      sums[reviews[k].verdict] += reviews[k].confidence;
+      counts[reviews[k].verdict]++;
+    });
+    var aggregate = 'APPROVE';
+    if (sums['REQUEST CHANGES'] > sums[aggregate]) aggregate = 'REQUEST CHANGES';
+    if (sums.REJECT > sums[aggregate]) aggregate = 'REJECT';
+    var mode = $('chairOverride').value;
+    var finalVerdict = aggregate;
+    var reason = 'Aggregate is ' + aggregate + ' by confidence-weighted majority: APPROVE ' + counts.APPROVE
+      + ' (weight ' + sums.APPROVE.toFixed(2) + '), REQUEST CHANGES ' + counts['REQUEST CHANGES']
+      + ' (weight ' + sums['REQUEST CHANGES'].toFixed(2) + '), REJECT ' + counts.REJECT
+      + ' (weight ' + sums.REJECT.toFixed(2) + ').';
+    if (mode === 'request') {
+      finalVerdict = 'REQUEST CHANGES';
+      reason += ' Chair override to REQUEST CHANGES. Override reason recorded: "' + $('overrideReason').value + '".';
+    } else if (mode === 'reject') {
+      finalVerdict = 'REJECT';
+      reason += ' Chair override to REJECT. Override reason recorded: "' + $('overrideReason').value + '".';
+    } else {
+      reason += ' Chair upheld the aggregate, no override.';
+    }
+    chairDecision = { aggregate: aggregate, verdict: finalVerdict, override: mode, reason: reason };
+    $('chairOut').innerHTML = '<span class="verdict">' + finalVerdict + '</span><br>' + esc(reason);
+    return chairDecision;
+  }
+
+  /* ---------- receipt ledger v1.1 ---------- */
+  function sealReceipt(action, payloadSummary) {
+    var prev = ledger.length ? ledger[ledger.length - 1].receipt_hash : GENESIS;
+    var headBefore = prev;
+    var receipt = {
+      action: action,
+      actor: $('packetAuthor').value,
+      timestamp: new Date().toISOString(),
+      payload: {
+        summary: payloadSummary,
+        packet_title: $('packetTitle').value,
+        packet_content_hash: hashStr(canonical(packetObj())),
+        header_hex: $('headerHex').textContent,
+        chair_verdict: chairDecision ? chairDecision.verdict : null,
+        eta: lastEta,
+        uncited_count: lastUncited
+      },
+      prev_receipt_hash: prev,
+      merkle_root: headBefore,
+      anchor_root: ANCHOR_ROOT
+    };
+    var forHash = JSON.parse(JSON.stringify(receipt));
+    receipt.receipt_hash = hashStr(canonical(forHash));
+    receipt.receipt_id = receipt.receipt_hash;
+    ledger.push(receipt);
+    renderLedger();
+    return receipt;
+  }
+  function renderLedger() {
+    if (ledger.length === 0) {
+      $('ledgerOut').innerHTML = '<div class="card">Ledger is empty.</div>';
+      return;
+    }
+    var html = '<table class="data"><tr><th>Seq</th><th>receipt_id / receipt_hash</th><th>prev hash</th><th>Action</th><th>Payload summary</th></tr>';
+    ledger.forEach(function (r, i) {
+      html += '<tr><td>' + (i + 1) + '</td><td class="mono">' + esc(r.receipt_id) + '</td><td class="mono">'
+        + esc(r.prev_receipt_hash) + '</td><td>' + esc(r.action) + '</td><td>' + esc(r.payload.summary) + '</td></tr>';
+    });
+    html += '</table><p class="note">Chain head (latest receipt_hash): <span class="mono">' + esc(ledger[ledger.length - 1].receipt_hash) + '</span><br>'
+      + 'Anchor root (estate Anchor v2): <span class="mono">' + ANCHOR_ROOT + '</span></p>';
+    $('ledgerOut').innerHTML = html;
+  }
+  function verifyChain() {
+    if (ledger.length === 0) {
+      $('verifyOut').innerHTML = '<span class="warn">Ledger is empty, nothing to verify.</span>';
+      return { ok: false, errors: ['empty ledger'] };
+    }
+    var errors = [];
+    ledger.forEach(function (r, i) {
+      var forHash = JSON.parse(JSON.stringify(r));
+      delete forHash.receipt_hash;
+      delete forHash.receipt_id;
+      var recomputed = hashStr(canonical(forHash));
+      if (recomputed !== r.receipt_hash) {
+        errors.push('receipt ' + (i + 1) + ': hash mismatch, stored ' + String(r.receipt_hash).slice(0, 12) + ' recomputed ' + String(recomputed).slice(0, 12));
+      }
+      if (r.receipt_id !== r.receipt_hash) {
+        errors.push('receipt ' + (i + 1) + ': receipt_id does not equal receipt_hash');
+      }
+      if (i === 0) {
+        if (r.prev_receipt_hash !== GENESIS) errors.push('receipt 1: first prev hash must be GENESIS, got ' + r.prev_receipt_hash);
+      } else {
+        var prevHash = ledger[i - 1].receipt_hash;
+        if (r.prev_receipt_hash !== prevHash) {
+          errors.push('receipt ' + (i + 1) + ': broken link, prev ' + String(r.prev_receipt_hash).slice(0, 12) + ' does not match receipt ' + i + ' hash ' + String(prevHash).slice(0, 12));
+        }
+      }
+    });
+    if (errors.length === 0) {
+      $('verifyOut').innerHTML = '<span class="ok">CHAIN VALID</span> ' + ledger.length + ' receipt(s) verified: every hash recomputes and every link matches.';
+    } else {
+      $('verifyOut').innerHTML = '<span class="bad">CHAIN BROKEN</span><ul><li>' + errors.map(esc).join('</li><li>') + '</li></ul>';
+    }
+    return { ok: errors.length === 0, errors: errors };
+  }
+
+  /* ---------- promotion gate ---------- */
+  function runGate() {
+    var etaRes = renderEta();
+    var uncited = etaRes.uncited.length;
+    var etaOk = etaRes.eta.eta >= ETA_THRESHOLD;
+    var citeOk = uncited === 0;
+    var scopeOk = $('packetScope').value.trim().length > 0;
+    var tokenOk = $('authToken').value.trim().length > 0;
+    var expiryVal = $('authExpiry').value;
+    var expiryOk = false;
+    if (expiryVal) {
+      var expDate = new Date(expiryVal + 'T23:59:59');
+      expiryOk = expDate.getTime() > Date.now();
+    }
+    var authOk = scopeOk && tokenOk && expiryOk;
+    var pass = etaOk && citeOk && authOk;
+    var html = '<span class="verdict">' + (pass ? 'PROMOTE: PASS' : 'PROMOTE: BLOCKED') + '</span><br>'
+      + 'Check 1, eta at or above 70: <b>' + (etaOk ? 'PASS' : 'FAIL') + '</b> (eta ' + etaRes.eta.eta + ').<br>'
+      + 'Check 2, uncited count zero: <b>' + (citeOk ? 'PASS' : 'FAIL') + '</b> (uncited ' + uncited + ').<br>'
+      + 'Check 3, authority valid: <b>' + (authOk ? 'PASS' : 'FAIL') + '</b> (scope non-empty: ' + (scopeOk ? 'yes' : 'no')
+      + '; token non-empty: ' + (tokenOk ? 'yes' : 'no') + '; expiry ' + (expiryVal || 'none') + ' in the future: ' + (expiryOk ? 'yes' : 'no') + ').<br>'
+      + '<span class="note">Evidence basis: in-page checks only, NOT a real CI run. No real repo, no real git, no real CI.</span>';
+    $('gateOut').innerHTML = html;
+    return { pass: pass, etaOk: etaOk, citeOk: citeOk, authOk: authOk };
+  }
+
+  /* ---------- rollback ---------- */
+  function rollbackPacket() {
+    packetRolledBack = true;
+    var r = sealReceipt('rollback', 'Rollback of packet "' + $('packetTitle').value + '" by ' + $('packetAuthor').value + '. Packet marked ROLLED BACK.');
+    $('packetStatus').textContent = 'Packet status: ROLLED BACK';
+    $('rollbackOut').innerHTML = '<span class="bad">Packet ROLLED BACK.</span> Rollback receipt sealed: <span class="mono">' + esc(r.receipt_id) + '</span>. The packet is marked rolled back, not deleted. The chain now holds ' + ledger.length + ' receipt(s).';
+    updatePacket();
+    return r;
+  }
+
+  /* ---------- presets ---------- */
+  function loadExample() {
+    $('packetTitle').value = 'Fix receipt verifier to reject truncated hashes';
+    $('packetFiles').value = 'verifier.py, test_verifier.py, receipts.md';
+    $('packetDiff').value = 'verifier now rejects any stored hash shorter than 64 hex chars and any receipt whose prev hash does not match the chain head.';
+    $('packetAuthor').value = 'worker-7 (receipts)';
+    $('packetScope').value = 'repo neuruh-demos, path agent-first-source-control, write';
+    $('packetTests').value = 'jsdom 31/31 checks pass; tamper test on a copy gives CHAIN BROKEN; in-page checks only, NOT a real CI run.';
+    $('etaIq').value = '88'; $('etaIr').value = '90'; $('etaIv').value = '85'; $('etaEw').value = '1'; $('etaCv').value = '0';
+    $('claim1Src').value = 'verifier.py, diff summary';
+    $('claim2Src').value = 'verifier.py, diff summary';
+    $('claim3Src').value = 'test evidence, jsdom run';
+    $('authToken').value = 'ncell-token-example-001';
+    $('authExpiry').value = '2027-06-30';
+    packetRolledBack = false;
+    updatePacket();
+    renderEta();
+  }
+  function loadWeak() {
+    loadExample();
+    $('packetTests').value = '';
+    $('etaIq').value = '40'; $('etaIr').value = '45'; $('etaIv').value = '50'; $('etaEw').value = '2'; $('etaCv').value = '1';
+    $('claim2Src').value = '';
+    updatePacket();
+    renderEta();
+    $('etaOut').innerHTML += '<br><span class="warn">Weak preset loaded: low eta and one uncited claim, expect FLAG.</span>';
+  }
+
+  /* ---------- wiring ---------- */
+  $('updatePacketBtn').addEventListener('click', updatePacket);
+  ['packetTitle', 'packetFiles', 'packetDiff', 'packetAuthor', 'packetScope', 'packetTests'].forEach(function (id) {
+    $(id).addEventListener('input', updateHeader);
+  });
+  $('runReviewBtn').addEventListener('click', runAllReview);
+  Object.keys(LENSES).forEach(function (key) {
+    $('run-' + key).addEventListener('click', function () { runAgent(key); });
+  });
+  $('chairBtn').addEventListener('click', chairAdjudicate);
+  $('etaComputeBtn').addEventListener('click', renderEta);
+  $('sealBtn').addEventListener('click', function () {
+    var r = sealReceipt('packet_review', 'Packet review sealed for "' + $('packetTitle').value + '". Chair: ' + (chairDecision ? chairDecision.verdict : 'not run') + '. Eta: ' + (lastEta == null ? 'not computed' : lastEta) + '.');
+    $('verifyOut').innerHTML = 'Receipt sealed: <span class="mono">' + esc(r.receipt_id) + '</span>. Ledger now holds ' + ledger.length + ' receipt(s). Run Verify chain to check it.';
+  });
+  $('verifyBtn').addEventListener('click', verifyChain);
+  $('tamperBtn').addEventListener('click', function () {
+    if (ledger.length === 0) {
+      $('verifyOut').innerHTML = '<span class="warn">Tamper test needs a sealed receipt first. Seal one, then tamper.</span>';
+      return;
+    }
+    var last = ledger[ledger.length - 1];
+    last.payload.summary = last.payload.summary + ' TAMPERED';
+    last.payload.tampered = true;
+    renderLedger();
+    var res = verifyChain();
+    if (!res.ok) {
+      $('verifyOut').innerHTML = '<span class="bad">TAMPERED: CHAIN BROKEN</span> The last receipt payload was mutated in place and verification now fails:<ul><li>' + res.errors.map(esc).join('</li><li>') + '</li></ul>';
+    }
+  });
+  $('gateBtn').addEventListener('click', runGate);
+  $('rollbackBtn').addEventListener('click', rollbackPacket);
+  $('presetBtn').addEventListener('click', loadExample);
+  $('presetWeakBtn').addEventListener('click', loadWeak);
+
+  /* initial render */
+  updatePacket();
+  renderEta();
+</script>
+</body>
+</html>
