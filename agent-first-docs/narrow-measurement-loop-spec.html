@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Narrow measurement loop , Jeramie, 2026-11-15 06:47 EST - Agent-First Documents</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fffdf7;--ink:#1a1a1a;--muted:#5c564a;--brass:#b08d3c;--line:#c9c2b0}
+*{box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bone);color:var(--ink);margin:0;padding:0}
+.wrap{max-width:920px;margin:0 auto;padding:28px 20px 70px}
+.dochead{border:2px solid var(--ink);background:var(--paper);padding:16px 20px;margin:22px 0}
+.dochead table{border-collapse:collapse;width:100%;font-size:13px}
+.dochead td{padding:3px 8px 3px 0;vertical-align:top}
+.dochead td.k{font-family:'JetBrains Mono',monospace;color:var(--muted);width:170px}
+h1{font-family:Archivo,system-ui,sans-serif;font-size:30px;line-height:1.15;margin:10px 0 6px}
+h2{font-family:Archivo,system-ui,sans-serif;font-size:21px;border-bottom:2px solid var(--brass);padding-bottom:5px;margin-top:38px}
+h3{font-family:Archivo,system-ui,sans-serif;font-size:16px;margin:20px 0 6px}
+h4{font-family:Archivo,system-ui,sans-serif;font-size:15px;margin:16px 0 4px}
+p,li{font-size:15px;line-height:1.62}
+code{font-family:'JetBrains Mono',monospace;background:#e8e2d4;padding:1px 5px;border-radius:3px;font-size:13px}
+pre{background:#1a1a1a;color:#e8e2d4;padding:14px;border-radius:6px;overflow-x:auto;font-size:12.5px;line-height:1.5;font-family:'JetBrains Mono',monospace}
+pre code{background:none;padding:0;color:inherit;font-size:inherit}
+a{color:#8a6d2b}
+table.data{border-collapse:collapse;width:100%;font-size:13.5px;margin:10px 0}
+table.data th,table.data td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.data th{background:#e8e2d4;font-family:Archivo,system-ui,sans-serif}
+blockquote{border-left:3px solid var(--brass);margin:12px 0;padding:4px 14px;color:var(--muted);background:var(--paper)}
+hr{border:0;border-top:1px solid var(--line);margin:28px 0}
+.note{font-size:13px;color:var(--muted)}
+.nav{font-family:'JetBrains Mono',monospace;font-size:13px;margin:0 0 8px}
+.mono{font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all}
+@media print{body{background:#fff}.wrap{max-width:100%;padding:0}a{color:#1a1a1a;text-decoration:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="nav"><a href="index.html">Agent-First Documents index</a> &middot; <a href="https://neuruhai.github.io/neuruh-demos/agent-first-source-control/">Agent-First Source Control demo</a></p>
+<div class="dochead"><table><tr><td class="k">TITLE</td><td>Narrow measurement loop , Jeramie, 2026-11-15 06:47 EST</td></tr><tr><td class="k">SOURCE FILE</td><td><span class="mono">~/workspace/research-drift-2026-11-15/narrow-measurement-loop-spec.md</span></td></tr><tr><td class="k">AUDIT DATE</td><td>2026-11-16</td></tr><tr><td class="k">STATE</td><td>DESIGNED</td></tr><tr><td class="k">NOTE</td><td>Rendered from the workspace .md source file named above. The .md file is a workspace file, not a web page, so the source is named as a path, not a link.</td></tr></table></div>
+<h1>Narrow measurement loop, Jeramie, 2026-11-15 06:47 EST</h1>
+<p>Instruction: &quot;Narrow first, resolve the measurement loop, then broaden.&quot; This is the concrete implementation plan for Layer 1 (real observation) and Layer 2 (pre-registered forecasts with Brier scoring) of the six-layer upgrade spec. It is the first working piece of Retardio (system name when complete, per Jeramie 2026-11-15). Strengthen, do not remove: additive only, it replaces nothing.</p>
+<h2>Principle</h2>
+<p>The highest-leverage starting point is a single public data source with clear, observable outcomes that can be scored later. Everything else (authority headers, topology, communication, weight updates) depends on having real observations and forecasts that can be checked.</p>
+<h2>Chosen narrow domain</h2>
+<p>Public county property records + related entity filings, focused on a small set of well-documented patterns that appear in published fraud, money-laundering, and scam typology reports (all-cash LLC purchases, rapid flips with large unexplained jumps, newly formed entities with no clear activity, clusters of properties controlled by related entities).</p>
+<p>This is fully public in most U.S. counties (assessor, recorder, secretary of state). Outcomes can later be coded from court dockets, news, enforcement actions, or subsequent public filings. It stays at the level of transactions and entities, not private individuals scored as &quot;corrupt.&quot;</p>
+<p>No other data sources are added until this loop produces calibrated forecasts on held-out historical data.</p>
+<h2>Layer 1: Observation schema (minimal, typed, receipted)</h2>
+<p>Every observation is a structured record with provenance. Nothing enters the system without a hash.</p>
+<pre><code>{
+  &quot;observation_id&quot;: &quot;sha256 of canonical payload&quot;,
+  &quot;source&quot;: &quot;county_recorder | secretary_of_state | court_docket&quot;,
+  &quot;source_locator&quot;: &quot;county + instrument_number or filing_id + retrieval_timestamp&quot;,
+  &quot;retrieved_at&quot;: &quot;ISO-8601&quot;,
+  &quot;raw_hash&quot;: &quot;sha256 of exact bytes retrieved&quot;,
+  &quot;entity_type&quot;: &quot;deed | llc_filing | ucc | lis_pendens | judgment&quot;,
+  &quot;payload&quot;: {
+    &quot;instrument_date&quot;: &quot;...&quot;,
+    &quot;grantor&quot;: &quot;...&quot;,
+    &quot;grantee&quot;: &quot;...&quot;,
+    &quot;consideration&quot;: &quot;number_or_null&quot;,
+    &quot;property_id&quot;: &quot;parcel or address hash&quot;,
+    &quot;entity_name&quot;: &quot;...&quot;,
+    &quot;formation_date&quot;: &quot;...&quot;,
+    &quot;related_entities&quot;: [&quot;...&quot;]
+  },
+  &quot;schema_version&quot;: &quot;1.0&quot;
+}</code></pre>
+<p>Rules:</p>
+<ul><li>Canonicalize the payload before hashing (sorted keys, normalized strings).</li><li>Store the raw bytes or a pointer to them so the hash can be recomputed by an independent party.</li><li>Append-only log. No updates; corrections are new observations that reference the prior ID.</li><li>Retrieval method and any API parameters are included in the source_locator so the observation can be reproduced.</li><li>Start with one county that publishes bulk or API access and has historical data going back at least 5-7 years. Ingest only the fields above. Ignore everything else.</li></ul>
+<h2>Layer 2: Concrete forecast + Brier loop</h2>
+<p>Define a small number of pre-registered forecasts. Each forecast is emitted before any outcome is known and is stored with its own receipt.</p>
+<p>Example forecasts (only these at first):</p>
+<ul><li><strong>Rapid-flip typology match.</strong> Probability that a deed will be followed, within 180 days, by a subsequent deed on the same parcel with consideration &gt;= 1.5x the prior consideration, and the grantee is an entity formed within the prior 12 months. Forecast issued at the time the first deed is observed.</li><li><strong>Entity-cluster signal.</strong> Probability that a newly observed LLC will appear as grantee on &gt;= 3 distinct parcels within 365 days. Forecast issued at LLC formation or first appearance.</li><li><strong>All-cash + new-entity signal.</strong> Probability that an all-cash (or nominal consideration) purchase by an entity formed &lt; 90 days earlier will later appear in a public enforcement action, civil suit, or published typology report within 24 months.</li></ul>
+<p>Each forecast record:</p>
+<pre><code>{
+  &quot;forecast_id&quot;: &quot;...&quot;,
+  &quot;observation_ids&quot;: [&quot;...&quot;],
+  &quot;forecast_type&quot;: &quot;rapid_flip | entity_cluster | all_cash_new_entity&quot;,
+  &quot;probability&quot;: &quot;0.0-1.0&quot;,
+  &quot;issued_at&quot;: &quot;ISO-8601&quot;,
+  &quot;model_version&quot;: &quot;baseline_v1&quot;,
+  &quot;features_used&quot;: [&quot;consideration_ratio&quot;, &quot;entity_age_days&quot;, &quot;prior_deed_count&quot;],
+  &quot;receipt&quot;: &quot;sha256 of the forecast record&quot;
+}</code></pre>
+<p>Outcome coding (later). When the window closes or a public record resolves the question, an outcome record is written:</p>
+<pre><code>{
+  &quot;outcome_id&quot;: &quot;...&quot;,
+  &quot;forecast_id&quot;: &quot;...&quot;,
+  &quot;resolved_at&quot;: &quot;...&quot;,
+  &quot;outcome&quot;: &quot;0 or 1&quot;,
+  &quot;evidence_observation_ids&quot;: [&quot;...&quot;],
+  &quot;coder&quot;: &quot;human | rule&quot;,
+  &quot;receipt&quot;: &quot;...&quot;
+}</code></pre>
+<p>Brier score. For a set of resolved forecasts: Brier = (1/N) * sum((p_i - o_i)^2). Lower is better. Track overall Brier, Brier by forecast type, and Brier over time. Publish the numbers. A model or weight update is retained only if it improves Brier on a subsequent or held-out set of forecasts (not the set used to propose the change).</p>
+<p>Initial model can be a simple logistic regression or even a transparent scoring rule on the features. The point is not sophistication; it is that every probability is issued in advance and later scored.</p>
+<h2>Narrow operating loop (resolve this before broadening)</h2>
+<ul><li>Ingest observations from one county into the append-only log.</li><li>On each new relevant observation, emit the applicable forecasts with receipts.</li><li>Wait for natural resolution windows or public outcomes.</li><li>Code outcomes and compute Brier.</li><li>Only after a stable Brier is demonstrated on historical back-test + forward test, allow a human-reviewed proposal to adjust the scoring rule.</li><li>Re-test the adjusted rule on new data. Keep it only if Brier improves.</li><li>All steps produce receipts. An independent party can re-compute hashes and Brier from the exported log.</li></ul>
+<p>Success criteria for this narrow slice (examples):</p>
+<ul><li>&gt;= 200 resolved forecasts.</li><li>Brier meaningfully better than a constant baseline (e.g., always predicting the base rate).</li><li>Receipt chain verifies end-to-end.</li><li>False-positive rate on a pre-specified threshold is acceptable to a human reviewer.</li></ul>
+<h2>Broaden only after the above is resolved</h2>
+<p>Once the observation schema, forecast issuance, outcome coding, and Brier gate are working on one county and one set of typologies:</p>
+<ul><li>Add a second county (same schema).</li><li>Add one additional public source (e.g., state corporate registry bulk data or a published scam-wallet list with on-chain observations).</li><li>Add one new forecast type that re-uses the same machinery.</li><li>Introduce a minimal authority header on any alert or export (who authorized the threshold, expiry, scope).</li><li>Only then consider topology or multi-module coordination.</li><li>Each broadening step must re-demonstrate calibration on the new data before the next step is allowed.</li></ul>
+<p class="nav"><a href="index.html">Agent-First Documents index</a> &middot; <a href="https://neuruhai.github.io/neuruh-demos/agent-first-source-control/">Agent-First Source Control demo</a></p>
+</div>
+</body>
+</html>
