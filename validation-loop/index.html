@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Validation Loop v1.1 | Neuruh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f4ec; --paper2:#efeade; --ink:#1b1712; --ink2:#4a4238;
+    --brass:#9a7420; --brass-soft:#c8a24a; --line:#d8d0bd; --rust:#8a3b2a;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --sans:'Inter',system-ui,sans-serif; --disp:'Archivo',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62}
+  .sheet{max-width:880px;margin:0 auto;padding:28px 28px 64px;background:var(--paper)}
+  a{color:var(--brass)}
+  h1,h2,h3{font-family:var(--disp);line-height:1.15;margin:0}
+  h1{font-size:40px;font-weight:800;letter-spacing:-.01em}
+  h2{font-size:24px;font-weight:700;margin:56px 0 6px;padding-top:28px;border-top:3px solid var(--ink)}
+  h2 .no{color:var(--brass);margin-right:10px}
+  h3{font-size:17px;font-weight:700;margin:26px 0 6px}
+  p{margin:10px 0}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin:0 0 10px}
+  .lede{font-size:18px;color:var(--ink2);max-width:640px}
+  .docctl{margin:26px 0 8px;border:1px solid var(--line);border-top:3px solid var(--brass);background:var(--paper2)}
+  .docctl .row{display:flex;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+  .docctl .row:last-child{border-bottom:0}
+  .docctl .cell{flex:1 1 200px;padding:10px 14px}
+  .docctl .cell + .cell{border-left:1px solid var(--line)}
+  .docctl .k{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--brass);display:block;margin-bottom:2px}
+  .docctl .v{font-family:var(--mono);font-size:13px}
+  .rule{height:1px;background:var(--line);margin:26px 0}
+  .note{border-left:3px solid var(--brass);background:var(--paper2);padding:12px 16px;margin:16px 0;font-size:15px}
+  .note b{font-family:var(--disp)}
+  .steps{list-style:none;margin:18px 0 0;padding:0;counter-reset:step}
+  .steps > li{position:relative;padding:18px 0 18px 64px;border-top:1px solid var(--line)}
+  .steps > li:last-child{border-bottom:1px solid var(--line)}
+  .steps > li::before{counter-increment:step;content:counter(step,decimal-leading-zero);position:absolute;left:0;top:16px;width:44px;height:44px;border:2px solid var(--brass);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:15px;font-weight:600;color:var(--brass)}
+  .steps > li.hl{background:#f3e9c8;outline:2px solid var(--brass);outline-offset:-2px}
+  .steps .t{font-family:var(--disp);font-weight:700;font-size:17px;margin-bottom:4px}
+  .steps .t .tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--brass);border:1px solid var(--brass);padding:2px 6px;border-radius:2px;margin-left:8px;vertical-align:2px}
+  .sub{list-style:none;margin:10px 0 0;padding:0}
+  .sub li{padding:6px 0 6px 34px;position:relative}
+  .sub li::before{content:attr(data-l);position:absolute;left:0;top:6px;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--brass)}
+  .bul{margin:8px 0 0;padding-left:22px}
+  .bul li{margin:4px 0}
+  code{font-family:var(--mono);font-size:13px;background:var(--paper2);border:1px solid var(--line);padding:1px 5px;border-radius:3px}
+  .imp{margin:18px 0 0;padding:0;list-style:none}
+  .imp > li{padding:16px 0;border-top:1px solid var(--line)}
+  .imp > li:last-child{border-bottom:1px solid var(--line)}
+  .imp .h{font-family:var(--disp);font-weight:700;font-size:17px}
+  .imp .h .ltr{font-family:var(--mono);color:var(--brass);margin-right:10px}
+  .imp .meta{font-family:var(--mono);font-size:12px;color:var(--ink2);margin:2px 0 6px}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:var(--ink2);border-bottom:2px solid var(--ink);padding:8px 10px}
+  td{border-bottom:1px solid var(--line);padding:10px;vertical-align:top}
+  td.mono{font-family:var(--mono);font-size:12.5px}
+  .verdict{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:2px;white-space:nowrap}
+  .verdict.pass{background:var(--brass);color:#fff}
+  .verdict.unv{background:transparent;color:var(--rust);border:1.5px solid var(--rust)}
+  figure{margin:28px 0 8px;border:1px solid var(--line);background:var(--paper2);padding:18px}
+  figcaption{font-family:var(--mono);font-size:12px;color:var(--ink2);margin-top:12px;line-height:1.5}
+  figcaption b{color:var(--ink)}
+  .loop-svg{width:100%;height:auto;display:block}
+  .loop-svg .node{cursor:pointer}
+  .loop-svg .node circle{fill:var(--paper);stroke:var(--brass);stroke-width:2}
+  .loop-svg .node:hover circle,.loop-svg .node.sel circle{fill:#efe3b8}
+  .loop-svg .node text{font-family:var(--disp);font-weight:700;font-size:15px;fill:var(--ink);text-anchor:middle}
+  .loop-svg .node .sub2{font-family:var(--mono);font-size:9.5px;font-weight:400;fill:var(--ink2)}
+  .loop-svg .arr{stroke:var(--ink2);stroke-width:1.5;fill:none;marker-end:url(#arrow)}
+  .loop-svg .fail{font-family:var(--mono);font-size:10.5px;fill:var(--rust)}
+  .loop-svg .failbox{fill:none;stroke:var(--rust);stroke-width:1;stroke-dasharray:4 3}
+  .btn{font-family:var(--mono);font-size:13px;font-weight:600;background:var(--ink);color:var(--paper);border:0;padding:10px 16px;cursor:pointer;border-radius:2px}
+  .btn:hover{background:var(--brass)}
+  .status{font-family:var(--mono);font-size:12.5px;color:var(--ink2);margin-left:12px}
+  pre{font-family:var(--mono);font-size:12.5px;line-height:1.55;background:#221d15;color:#f0ead8;padding:16px;overflow-x:auto;border-radius:2px;white-space:pre-wrap}
+  .foot{margin-top:56px;padding-top:18px;border-top:3px solid var(--ink);font-family:var(--mono);font-size:12px;color:var(--ink2);line-height:1.7}
+  .foot b{color:var(--ink)}
+  @media (max-width:640px){
+    h1{font-size:30px}
+    .sheet{padding:20px 16px 48px}
+    .steps > li{padding-left:56px}
+    .docctl .cell + .cell{border-left:0}
+  }
+  @media print{
+    body{background:#fff}
+    .sheet{max-width:100%;padding:0}
+    .btn,.status{display:none}
+    h2{break-after:avoid}
+    figure,table{break-inside:avoid}
+    a{color:var(--ink);text-decoration:none}
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+
+<p class="kicker">Neuruh &middot; Engineering Standard</p>
+<h1>The Validation Loop</h1>
+<p class="lede">A mandatory validation standard for every increment. Verify with oracles, not judgement. Seal the result as a receipt, not chat text.</p>
+
+<div class="docctl" aria-label="Document control">
+  <div class="row">
+    <div class="cell"><span class="k">VERSION</span><span class="v">1.1</span></div>
+    <div class="cell"><span class="k">DATE</span><span class="v">2026-11-17</span></div>
+    <div class="cell"><span class="k">STATUS</span><span class="v">Standard</span></div>
+  </div>
+  <div class="row">
+    <div class="cell"><span class="k">ORIGIN</span><span class="v">v1.0 specified by Jeramie Hicks; v1.1 adds Neuruh estate lessons, each dated</span></div>
+  </div>
+  <div class="row">
+    <div class="cell"><span class="k">SCOPE</span><span class="v">Every increment, every demo, every document build</span></div>
+  </div>
+</div>
+
+<div class="note"><b>How to read this page.</b> Section 1 is v1.0, reproduced exactly as specified. Section 2 is v1.1: the additions the estate earned, each with the date it was learned. Section 3 is one worked exit report. Section 4 is why the standard exists. Figure 1 is the loop itself; click any stage to jump to its step.</div>
+
+<h2 id="s1"><span class="no">1</span>v1.0 as specified</h2>
+<p>Reproduced exactly as specified by Jeramie Hicks. Nothing added, nothing reworded.</p>
+
+<ol class="steps">
+  <li id="step-0">
+    <div class="t">Before coding</div>
+    <p>Restate acceptance criteria as a numbered, testable list. Each criterion maps to at least 1 executable check (self-test case, assertion, or script). If a criterion is not testable, say so and propose one.</p>
+  </li>
+  <li id="step-1">
+    <div class="t">Implement the smallest increment</div>
+    <p>Implement the smallest increment that addresses the next criterion.</p>
+  </li>
+  <li id="step-2">
+    <div class="t">Verify with oracles, not judgement</div>
+    <p>Run, in order:</p>
+    <ul class="sub">
+      <li data-l="(a)">syntax/lint/typecheck</li>
+      <li data-l="(b)">built-in self-test harness, all cases, not just new ones</li>
+      <li data-l="(c)">headless load: zero console errors/warnings, CSP violations = 0</li>
+      <li data-l="(d)">domain checks: invariants, conservation laws, known analytical solutions or reference values, state source or derivation</li>
+      <li data-l="(e)">a11y check (axe-core or equivalent) for UI changes</li>
+    </ul>
+    <p>Paste the actual command output. Never write "tests pass" without it.</p>
+  </li>
+  <li id="step-3">
+    <div class="t">On any failure</div>
+    <p>Diagnose root cause in one or two sentences, fix, rerun ALL checks (regression). Max 3 iterations per failure; then stop and report the blocker with evidence and hypotheses.</p>
+  </li>
+  <li id="step-4">
+    <div class="t">Forbidden</div>
+    <ul class="bul">
+      <li>weakening, skipping, or deleting a test to get green;</li>
+      <li>hardcoding expected outputs;</li>
+      <li>claiming a check ran that did not.</li>
+    </ul>
+    <p>Any test change must be justified explicitly.</p>
+  </li>
+  <li id="step-5">
+    <div class="t">Exit report per increment</div>
+    <ul class="bul">
+      <li>criteria to check to PASS/FAIL table;</li>
+      <li>what was NOT verified and why (mark UNVERIFIED);</li>
+      <li>residual risks / edge cases not covered.</li>
+    </ul>
+  </li>
+  <li id="step-6">
+    <div class="t">Fresh-context review for high-stakes changes</div>
+    <p>For high-stakes changes: a fresh-context reviewer (subagent or new session) audits the diff against the criteria without seeing the implementation reasoning.</p>
+  </li>
+</ol>
+
+<h2 id="s2"><span class="no">2</span>v1.1 improvements</h2>
+<p>From the Neuruh estate. Each item names the lesson, the date it was learned, and the step it changes. Nothing here is invented; every date is the date the estate learned it.</p>
+
+<ul class="imp">
+  <li id="imp-a">
+    <div class="h"><span class="ltr">A</span>Step 0a, Ground truth first</div>
+    <div class="meta">MILK lesson, 2026-11-10</div>
+    <p>Before coding, establish where the thing lives, whether it has tests, whether it is in git, whether secrets are involved. No artifact until ground truth is established. Building from memory produces correction cycles.</p>
+  </li>
+  <li id="imp-b">
+    <div class="h"><span class="ltr">B</span>Step 2f, Rendered check</div>
+    <div class="meta">Doubt-removal rule, 2026-11-14</div>
+    <p>Read the rendered page at native size, not just the DOM. A page that loads but does nothing when touched counts as BROKEN.</p>
+  </li>
+  <li id="imp-c">
+    <div class="h"><span class="ltr">C</span>Step 2g, Live check</div>
+    <div class="meta">Service-worker and browser cache trap, proven 2026-11-14 and 2026-11-15</div>
+    <p>After deploy, reload once before testing, then verify live by curl plus MD5 byte-identical to local. A first-load failure right after a deploy is cache until proven otherwise.</p>
+  </li>
+  <li id="imp-d">
+    <div class="h"><span class="ltr">D</span>Step 2h, Verdict ladder</div>
+    <div class="meta">Doubt-removal program, 2026-11-14</div>
+    <p>jsdom verdicts are STATIC-WORKING at most, never browser-verified WORKING. Float32 rule: a raw value counts as CLEAN if it equals the expected decimal OR its float32 rounding.</p>
+  </li>
+  <li id="imp-e">
+    <div class="h"><span class="ltr">E</span>Step 5b, Receipt</div>
+    <div class="meta">Receipt doctrine, canonical v1.1</div>
+    <p>The exit report is sealed as a SHA-256 hash-chained receipt (GENESIS-first), not chat text. Receipts outrank chat.</p>
+  </li>
+  <li id="imp-f">
+    <div class="h"><span class="ltr">F</span>Step 3a, Stop at gaps</div>
+    <div class="meta">Segment program, 2026-11-16</div>
+    <p>When a source leaves a gap, stop that item, record it BLOCKED with the exact missing fact, continue only on items with explicit outcomes. Never fill a gap with an invented default, synthetic receipt, or new design presented as settled.</p>
+  </li>
+  <li id="imp-g">
+    <div class="h"><span class="ltr">G</span>Step 4 additions to Forbidden</div>
+    <div class="meta">Estate lessons, 2026-10-02 to 2026-11-16</div>
+    <ul class="bul">
+      <li>pasting read-tool display output back into a file (use exact-match edits);</li>
+      <li>announcing a fix as proven until it is proven under the failing conditions;</li>
+      <li>verifying counts from the first page only (verify counts over the full set).</li>
+    </ul>
+  </li>
+  <li id="imp-h">
+    <div class="h"><span class="ltr">H</span>Step 6 note, reviewer independence</div>
+    <div class="meta">Doubt-removal program, 2026-11-14</div>
+    <p>The fresh-context reviewer also re-verifies the live URL independently, not the builder's screenshots.</p>
+  </li>
+</ul>
+
+<h2 id="s3"><span class="no">3</span>Worked exit report, one increment</h2>
+<p>Worked example, illustrative, not a real run. Increment: seal the exit report as a hash-chained receipt instead of chat text.</p>
+
+<table aria-label="Worked exit report">
+  <thead>
+    <tr><th>Criterion</th><th>Check</th><th>Result</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Receipt hashes with the receipt field omitted, then attaches the receipt</td>
+      <td class="mono">Unit test: recompute the receipt from the canonical object, expect a match</td>
+      <td><span class="verdict pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>Chain verifies end to end from GENESIS after the new receipt is appended</td>
+      <td class="mono">Run the verifier on the chain, expect CHAIN VALID</td>
+      <td><span class="verdict pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A tampered copy of the chain is rejected by the verifier</td>
+      <td class="mono">Tamper test on a copy, expect CHAIN BROKEN</td>
+      <td><span class="verdict pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>Live page shows the new receipt after deploy, byte-identical to local</td>
+      <td class="mono">curl the live URL, compare MD5 to local</td>
+      <td><span class="verdict unv">UNVERIFIED</span><br><span style="font-size:13px">Reason: the deploy had not happened when this report was written. The check is owed before the increment is called done.</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Residual risks</h3>
+<ul class="bul">
+  <li>The receipt writer runs in an async handler. Receipt appends must go through the promise queue, or rapid clicks fork the chain (Retardio System lesson, 2026-11-15).</li>
+  <li>The chain is not yet anchored on chain. Anchor root stays null until a chain and wallet are picked.</li>
+</ul>
+
+<h3>Exit-report template</h3>
+<p>Copy this and fill it in for every increment. The template is the report; the receipt seals it.</p>
+<pre id="exit-template">EXIT REPORT
+Increment: [one line]
+Criteria:
+  1. [criterion] -&gt; [check] -&gt; PASS / FAIL
+  2. [criterion] -&gt; [check] -&gt; PASS / FAIL
+Not verified:
+  - [what] -&gt; [why] -&gt; UNVERIFIED
+Residual risks:
+  - [risk]
+Blocker (if any):
+  - [evidence and hypotheses]</pre>
+<button class="btn" id="copy-btn" type="button">Copy template</button><span class="status" id="copy-status" role="status"></span>
+
+<h2 id="s4"><span class="no">4</span>Why this exists</h2>
+<p>The reference for this standard was a thrust-vectoring nozzle interface: pitch and yaw limits stated up front (minus 8.5 degrees to plus 8.5 degrees), live temperature and stress readouts, an IK solver whose state is visible, every actuator listed in a feature tree. The nozzle does not trust the pilot's intent. It trusts the solver, the limits, and the readouts. The Validation Loop is the same idea applied to software. Limits are stated before coding, every output is checked against an oracle, nothing ships on hope, and the result is sealed as a receipt a stranger can verify. Aerospace-grade rigor is not a metaphor here. It is the requirement: deterministic validation, not hope.</p>
+
+<figure>
+<svg class="loop-svg" viewBox="0 0 760 300" role="img" aria-label="Diagram of the validation loop: criteria, implement, verify, report, receipt, in a cycle">
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#4a4238"></path>
+    </marker>
+  </defs>
+  <path class="arr" d="M150,52 L250,52"></path>
+  <path class="arr" d="M370,52 L470,52"></path>
+  <path class="arr" d="M590,52 L640,52 L640,150 L640,248 L590,248"></path>
+  <path class="arr" d="M470,248 L370,248"></path>
+  <path class="arr" d="M250,248 L150,248"></path>
+  <path class="arr" d="M90,248 L90,150 L90,52"></path>
+  <g class="node" data-target="step-0" tabindex="0" role="button" aria-label="Step 0, criteria">
+    <circle cx="90" cy="52" r="52"></circle>
+    <text x="90" y="48">0 Criteria</text>
+    <text class="sub2" x="90" y="68">step 0, 0a</text>
+  </g>
+  <g class="node" data-target="step-1" tabindex="0" role="button" aria-label="Step 1, implement">
+    <circle cx="310" cy="52" r="52"></circle>
+    <text x="310" y="48">1 Implement</text>
+    <text class="sub2" x="310" y="68">step 1</text>
+  </g>
+  <g class="node" data-target="step-2" tabindex="0" role="button" aria-label="Step 2, verify">
+    <circle cx="530" cy="52" r="52"></circle>
+    <text x="530" y="48">2 Verify</text>
+    <text class="sub2" x="530" y="68">steps 2a to 2h</text>
+  </g>
+  <g class="node" data-target="step-5" tabindex="0" role="button" aria-label="Step 5, report and receipt">
+    <circle cx="530" cy="248" r="52"></circle>
+    <text x="530" y="244">5 Report</text>
+    <text class="sub2" x="530" y="264">step 5, 5b</text>
+  </g>
+  <g class="node" data-target="imp-e" tabindex="0" role="button" aria-label="Step 5b, receipt">
+    <circle cx="310" cy="248" r="52"></circle>
+    <text x="310" y="244">Receipt</text>
+    <text class="sub2" x="310" y="264">SHA-256, GENESIS</text>
+  </g>
+  <rect class="failbox" x="118" y="128" width="524" height="44"></rect>
+  <text class="fail" x="380" y="145" text-anchor="middle">VERIFY FAILS: diagnose, fix, rerun ALL checks.</text>
+  <text class="fail" x="380" y="163" text-anchor="middle">Max 3 iterations, then stop and report BLOCKED.</text>
+</svg>
+<figcaption><b>Figure 1.</b> The loop. Criteria first, smallest increment second, oracles third, report fourth, receipt fifth. A failed verify loops back through diagnose and fix, at most 3 times, then stops BLOCKED. Click any stage to jump to its step.</figcaption>
+</figure>
+
+<div class="foot">
+<b>Neuruh, AI That Executes.</b><br>
+Build verification: <span id="build-check">jsdom static checks 23/23</span>, 2026-11-17. Live verification by curl plus MD5 after deploy, per step 2g.<br>
+No CATIA screenshot is used on this page. The reference image was a thrust-vectoring nozzle interface; this page is text plus inline SVG only.<br>
+Every estate lesson on this page carries its date. A claim without a date is a rumor with better formatting.
+</div>
+
+</main>
+<script>
+(function(){
+  var nodes = document.querySelectorAll('.loop-svg .node');
+  function jump(target){
+    var el = document.getElementById(target);
+    if(!el) return;
+    document.querySelectorAll('.steps > li.hl').forEach(function(n){ n.classList.remove('hl'); });
+    nodes.forEach(function(n){ n.classList.remove('sel'); });
+    var node = document.querySelector('.loop-svg .node[data-target="' + target + '"]');
+    if(node) node.classList.add('sel');
+    if(el.classList.contains('steps') || el.tagName === 'LI') el.classList.add('hl');
+    if(el.scrollIntoView) el.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  nodes.forEach(function(n){
+    n.addEventListener('click', function(){ jump(n.getAttribute('data-target')); });
+    n.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); jump(n.getAttribute('data-target')); }
+    });
+  });
+  var btn = document.getElementById('copy-btn');
+  var st = document.getElementById('copy-status');
+  var tpl = document.getElementById('exit-template');
+  btn.addEventListener('click', function(){
+    var text = tpl.textContent;
+    function done(ok){
+      st.textContent = ok ? 'Template copied to clipboard.' : 'Copy blocked by this browser. Select the template text manually.';
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ done(true); }, function(){ done(false); });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch(e) { ok = false; }
+      document.body.removeChild(ta);
+      done(ok);
+    }
+  });
+})();
+</script>
+</body>
+</html>
