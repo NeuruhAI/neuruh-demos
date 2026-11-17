@@ -1,6 +1,6 @@
 # Neuruh Token-Swap Image System: The Canonical Document
 
-**Document class:** Canonical reference, v1.0
+**Document class:** Canonical reference, v1.1
 **Date:** 2026-11-17
 **Audit date for current-model claims:** 2026-11-17
 **Owner:** Jeramie Hicks / Neuruh
@@ -10,7 +10,7 @@
 
 | Field | Value |
 |---|---|
-| Version | 1.0, 2026-11-17 |
+| Version | 1.1, 2026-11-17 (audit patch: 5 Creator Economy items added to Section 13.9; nothing else changed) |
 | Sources absorbed | 9 PDFs uploaded 2026-11-17 (listed in Section 19), plus the estate sources in Section 19 |
 | Live builds this document covers | Token-Swap Studio (token-swap-studio.pages.dev), Token-Swap Lab (neuruh-demos/token-swap-lab) |
 | Open decisions | P5 canonical name (Section 18.1), Norman banner lion count (18.2), German flag form (18.3) |
@@ -958,11 +958,19 @@ GTA Streamers (mods, mission packs, NPC logic; monetize RP systems, overlays, me
 
 "Where Builders Become Brands." Vision statement from the source: Buildstream is where builders become brands, turning their systems, agents, content, and ideas into fully licensed, monetizable assets under one AI-powered identity. Tagline stack: "Where Builders Become Brands." / "Not just what you built, what you own." / "Every system you launch is part of your story." / "Brand isn't a logo. It's your logic, licensed." / "One page. One agent. Infinite scale." / "Own your name. License your logic." / "Not just a profile. A platform in your name." / "Build once. Monetize forever. Powered by AI."
 
-### 13.9 The StudioGPT capsule launch series (source proposal)
+### 13.9 Branded capsule pages and the Become a Brand program
+
+Two more pieces from the Creator Economy source, found in the coverage audit (they were missed in v1.0).
+
+**Branded Creator Capsule Pages.** The source proposes creator pages that let a creator sell solutions instead of content, embed their agent on their profile, and license logic, prompts, flows, scripts, and formulas. Four example pages named in the source: "GTA Mod Studio" (logic remix shop), "LoFi Beat Capsule" (AI-synced mood agents), "AI Podcast Builder" (launch-to-promotion capsule), "Formula Lab" (smart compound automation agents). These are named examples in a design document, not live pages.
+
+**Become a Brand.** A launchpad program for top creators inside the CreatorOS vision: custom AI agents, capsule licensing help, merch integrations, branding systems, growth strategy, and featured placement. The program is how a creator moves from Builder tier to Architect tier (Section 13.6). Same status as the rest of the CreatorOS material: proposed in a 2023 design document, not a live program.
+
+### 13.10 The StudioGPT capsule launch series (source proposal)
 
 A weekly capsule drop the source proposes to demonstrate the CreatorOS in motion: Week 1 Skip Trace Agent, Week 2 Influencer Monetizer Agent, Week 3 Zoning Intel Generator, Week 4 Resale Intelligence Capsule. Each with a fork/remix button, an explainer video, a pre-filled logic template, and an outcome guarantee ("Run this and get leads in 10 minutes or less"). Note the overlap with Jeramie's actual work: skip tracing, zoning intel, and resale intelligence are all live Neuruh lanes. This is a launch plan waiting for a decision, not a shipped series.
 
-### 13.10 How this maps onto the token-swap system
+### 13.11 How this maps onto the token-swap system
 
 | Token-swap system piece | AaaS / CreatorOS equivalent |
 |---|---|
@@ -1153,7 +1161,7 @@ No source mentions seeds. No source mentions reference images as a consistency m
 3. German flag form (18.3).
 4. Stripe reconnect, which unblocks the Prompter and the Land Report store checkout (same reconnect as the segment program; not a token-swap decision, but it gates selling any of this).
 5. Whether the token-swap templates ship as capsules under the AaaS frame (Section 13) or as a standalone product line.
-6. Whether to build the StudioGPT capsule launch series (Section 13.9): Skip Trace Agent, Influencer Monetizer Agent, Zoning Intel Generator, Resale Intelligence Capsule.
+6. Whether to build the StudioGPT capsule launch series (Section 13.10): Skip Trace Agent, Influencer Monetizer Agent, Zoning Intel Generator, Resale Intelligence Capsule.
 7. The "0 to 110" question and the other six segment gap questions remain open from the segment program; they are not token-swap questions, but they sit on the same open-decisions list.
 
 ---
