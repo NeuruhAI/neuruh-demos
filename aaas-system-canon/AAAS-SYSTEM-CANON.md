@@ -97,6 +97,23 @@ It changes what is sold. Instead of a tool the buyer must learn and operate, the
 
 Agent to Framework to Outcome to Capsule to Royalty. The chain is the product: an agent runs a framework, produces an outcome, ships as a capsule, and pays royalties on remix. This chain is the commercial spine the rest of the canon hangs on.
 
+<figure class="fig">
+<svg viewBox="0 0 560 400" role="img" aria-label="The AaaS chain: Agent to Framework to Outcome to Capsule to Royalty">
+<defs><marker id="arr1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9a7b2d"/></marker></defs>
+<g font-family="Archivo, sans-serif" font-weight="700" font-size="16" letter-spacing="3" fill="#1c1a16" text-anchor="middle">
+<rect x="80" y="10" width="400" height="52" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="43">AGENT</text>
+<rect x="80" y="92" width="400" height="52" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="125">FRAMEWORK</text>
+<rect x="80" y="174" width="400" height="52" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="207">OUTCOME</text>
+<rect x="80" y="256" width="400" height="52" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="289">CAPSULE</text>
+<rect x="80" y="338" width="400" height="52" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="371">ROYALTY</text>
+</g>
+<g stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr1)">
+<line x1="280" y1="62" x2="280" y2="88"/><line x1="280" y1="144" x2="280" y2="170"/><line x1="280" y1="226" x2="280" y2="252"/><line x1="280" y1="308" x2="280" y2="334"/>
+</g>
+</svg>
+<figcaption><b>Figure 1.</b> The AaaS chain (Section 2). An agent runs a framework, produces an outcome, ships as a capsule, and pays royalties on remix.</figcaption>
+</figure>
+
 ### 2.6 What the source says is missing (to go over the top)
 
 Five items the Core Idea document lists as the gap between visionary and inevitable. All are proposals, none are built.
@@ -638,6 +655,38 @@ The canon is one machine, not ten documents. The connections:
 
 The loop, in one line: Clarity decomposes, Mirror knows the operator, the Builder conducts, AaaS prices it, Buildstream sells it, StudioGPT runs it for one person, AAASS runs it for a sector, and the founder narrative proves it.
 
+<figure class="fig">
+<svg viewBox="0 0 560 660" role="img" aria-label="How the systems connect: eight stations in one loop">
+<defs><marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9a7b2d"/></marker></defs>
+<g font-family="Archivo, sans-serif" font-weight="700" font-size="15" fill="#1c1a16" text-anchor="middle">
+<rect x="70" y="10" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="33">Clarity Builder</text>
+<rect x="70" y="92" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="115">Mirror Agent</text>
+<rect x="70" y="174" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="197">Superintelligence Builder</text>
+<rect x="70" y="256" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="279">AaaS</text>
+<rect x="70" y="338" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="361">Buildstream / CreatorOS</text>
+<rect x="70" y="420" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="443">StudioGPT</text>
+<rect x="70" y="502" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="525">AAASS</text>
+<rect x="70" y="584" width="420" height="56" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/><text x="280" y="607">Founder narrative</text>
+</g>
+<g font-family="Inter, sans-serif" font-size="12.5" fill="#4a463d" text-anchor="middle">
+<text x="280" y="52">decomposes</text>
+<text x="280" y="134">knows the operator</text>
+<text x="280" y="216">conducts</text>
+<text x="280" y="298">prices it</text>
+<text x="280" y="380">sells it</text>
+<text x="280" y="462">runs it for one person</text>
+<text x="280" y="544">runs it for a sector</text>
+<text x="280" y="626">proves it</text>
+</g>
+<g stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr2)">
+<line x1="280" y1="66" x2="280" y2="88"/><line x1="280" y1="148" x2="280" y2="170"/><line x1="280" y1="230" x2="280" y2="252"/><line x1="280" y1="312" x2="280" y2="334"/><line x1="280" y1="394" x2="280" y2="416"/><line x1="280" y1="476" x2="280" y2="498"/><line x1="280" y1="558" x2="280" y2="580"/>
+<path d="M 40 612 L 40 38" fill="none"/>
+</g>
+<text x="26" y="330" transform="rotate(-90 26 330)" font-family="JetBrains Mono, monospace" font-size="11" letter-spacing="2" fill="#9a7b2d" text-anchor="middle">LOOPS BACK</text>
+</svg>
+<figcaption><b>Figure 2.</b> How the systems connect (Section 13). One loop, eight stations. The loop returns to Clarity Builder.</figcaption>
+</figure>
+
 ## 14. Gaps, conflicts, and open decisions
 
 ### 14.1 Brand palette conflict (open, Jeramie's call)
@@ -718,19 +767,14 @@ Total new material in this canon: 8 PDFs, 185 pages, 6,939 lines of extracted te
 ```
 SYSTEM DEFINITION:
 [Description of the AI system's role and purpose]
-
 CONTEXT:
 [Relevant background information]
-
 OBJECTIVE:
 [Clear statement of what should be accomplished]
-
 CONSTRAINTS:
 [Boundaries and limitations to respect]
-
 PROCESS:
 [Step-by-step approach to follow]
-
 OUTPUT FORMAT:
 [Specific structure for the response]
 ```
