@@ -37,8 +37,8 @@
 17. Troubleshooting and fail modes
 18. Gaps, conflicts, and open decisions
 19. Source index
-- Appendix A: copy-paste master blocks
-- Appendix B: the Davinci "Just Sold" payload (verbatim)
+20. Appendix A: copy-paste master blocks
+21. Appendix B: the Davinci "Just Sold" payload (verbatim)
 
 ---
 
@@ -59,6 +59,33 @@ Two systems, one principle: **lock what must stay constant, vary only what must 
 ## 2. Anatomy of a token-swap template
 
 Think of it like a movie production. The set, lighting, and camera equipment stay locked. Only specific directions change.
+
+<figure class="fig">
+<svg viewBox="0 0 560 430" role="img" aria-label="Token-swap anatomy: locked foundation plus variable tokens make one consistent image">
+<defs><marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#9a7b2d"/></marker></defs>
+<rect x="80" y="10" width="400" height="150" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/>
+<text x="280" y="38" font-family="Archivo, sans-serif" font-weight="700" font-size="15" fill="#1c1a16" text-anchor="middle">MASTER FOUNDATION (LOCKED)</text>
+<g font-family="Inter, sans-serif" font-size="13" fill="#1c1a16" text-anchor="middle">
+<text x="280" y="64">Technical specs: camera, rendering, light</text>
+<text x="280" y="88">Core subject: estate, house, shield, altar</text>
+<text x="280" y="112">Environment: landscape, architecture, materials, color</text>
+<text x="280" y="136">Style directives: emphasize, avoid</text>
+</g>
+<text x="280" y="192" font-family="Archivo, sans-serif" font-weight="700" font-size="22" fill="#9a7b2d" text-anchor="middle">+</text>
+<rect x="80" y="210" width="400" height="110" fill="#fbfaf6" stroke="#1c1a16" stroke-width="1.5"/>
+<text x="280" y="238" font-family="Archivo, sans-serif" font-weight="700" font-size="15" fill="#1c1a16" text-anchor="middle">SWAP TOKENS (VARIABLE)</text>
+<g font-family="Inter, sans-serif" font-size="13" fill="#1c1a16" text-anchor="middle">
+<text x="280" y="264">Angle, focus, season, mood, emphasis</text>
+<text x="280" y="288">Tagged, e.g. &lt;ANGLE_TOKEN&gt;</text>
+<text x="280" y="312">Swap one, keep continuity</text>
+</g>
+<line x1="280" y1="320" x2="280" y2="346" stroke="#9a7b2d" stroke-width="2" marker-end="url(#arr3)"/>
+<rect x="80" y="350" width="400" height="64" fill="#211e19"/>
+<text x="280" y="378" font-family="Archivo, sans-serif" font-weight="700" font-size="16" letter-spacing="2" fill="#f2efe6" text-anchor="middle">ONE CONSISTENT IMAGE</text>
+<text x="280" y="400" font-family="Inter, sans-serif" font-size="12.5" fill="#d8d2c4" text-anchor="middle">same pool, same house, every shot</text>
+</svg>
+<figcaption><b>Figure 1.</b> The token-swap anatomy (Section 2). The foundation stays locked; only the tokens change. One consistent image out.</figcaption>
+</figure>
 
 ### 2.1 The Master Foundation (visual DNA)
 
@@ -259,6 +286,29 @@ Everything above is modular. Swap any variable. That is what makes the system in
 **16. COLOR_PALETTE_TOKEN:** Warm neutrals, icy blues, muted earth tones, monochrome, jewel tones, Miami pastels, grayscale
 
 **17. POSTPROCESS_TOKEN:** High-clarity, slight vignette, lens flare, film grain, ultra-sharp, HDR, glossy print
+
+<figure class="fig">
+<div class="bankgrid">
+<div class="cell"><b>01</b>ANGLE_TOKEN</div>
+<div class="cell"><b>02</b>HOUSE_TYPE_TOKEN</div>
+<div class="cell"><b>03</b>STYLE_TOKEN</div>
+<div class="cell"><b>04</b>LOCATION_TOKEN</div>
+<div class="cell"><b>05</b>ERA_TOKEN</div>
+<div class="cell"><b>06</b>ARCHITECTURE_DETAILS_TOKEN</div>
+<div class="cell"><b>07</b>MATERIAL_TOKEN</div>
+<div class="cell"><b>08</b>FEATURE_TOKEN</div>
+<div class="cell"><b>09</b>LANDSCAPE_TOKEN</div>
+<div class="cell"><b>10</b>SEASON_TOKEN</div>
+<div class="cell"><b>11</b>CONTEXT_TOKEN</div>
+<div class="cell"><b>12</b>WEATHER_TOKEN</div>
+<div class="cell"><b>13</b>LIGHTING_TOKEN</div>
+<div class="cell"><b>14</b>CAMERA_TOKEN</div>
+<div class="cell"><b>15</b>ASPECT_RATIO_TOKEN</div>
+<div class="cell"><b>16</b>COLOR_PALETTE_TOKEN</div>
+<div class="cell"><b>17</b>POSTPROCESS_TOKEN</div>
+</div>
+<figcaption><b>Figure 2.</b> The 17 token banks (Section 4.3). Each bank is one swappable token family. Full definitions are in the section.</figcaption>
+</figure>
 
 ### 4.4 Worked examples
 
