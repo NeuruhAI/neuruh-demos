@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReAuditor AI, Interactive Demo</title>
+<style>
+  :root{
+    --bone:#f4f1ea; --paper:#fbf9f4; --ink:#1c1a16; --muted:#6b655a;
+    --brass:#a07d2c; --brass-dark:#7d611f; --line:#ddd5c3; --green:#2e7d32;
+    --red:#b3261e; --amber:#8a6d00; --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bone);color:var(--ink);
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px 80px}
+  header.doc-control{border-top:6px solid var(--brass);padding:18px 0 0}
+  .doc-meta{display:flex;flex-wrap:wrap;gap:8px 24px;font-family:"JetBrains Mono",ui-monospace,monospace;
+    font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  h1{font-family:Archivo,Inter,system-ui,sans-serif;font-size:42px;line-height:1.05;margin:14px 0 6px;letter-spacing:-.01em}
+  .lede{font-size:18px;color:#3d382e;max-width:640px}
+  .banner{background:#fff7e0;border:1px solid #e3c878;border-left:5px solid var(--brass);
+    padding:12px 16px;margin:22px 0;font-size:14px}
+  .banner b{color:var(--brass-dark)}
+  h2{font-family:Archivo,Inter,sans-serif;font-size:24px;margin:44px 0 4px}
+  h3{font-size:17px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .steps{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}
+  .step{flex:1;min-width:180px;background:var(--card);border:1px solid var(--line);padding:14px}
+  .step .n{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--brass);letter-spacing:.08em}
+  .step.active{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass)}
+  .step.done{border-color:#9db98f}
+  .props{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:700px){.props{grid-template-columns:1fr}}
+  .prop{background:var(--card);border:1px solid var(--line);padding:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+  .prop:hover{border-color:var(--brass)}
+  .prop.sel{border-color:var(--brass);box-shadow:0 0 0 2px var(--brass)}
+  .prop .art{height:120px;display:flex;align-items:flex-end;justify-content:center;
+    background:linear-gradient(180deg,#dfe8ee 0%,#eef0e6 70%,#d9e2c9 100%);font-size:64px;padding-bottom:6px}
+  .prop .body{padding:12px 14px}
+  .prop .tag{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .btn{display:inline-block;background:var(--brass);color:#fff;border:0;padding:12px 22px;
+    font-size:15px;font-weight:600;cursor:pointer;border-radius:3px}
+  .btn:hover{background:var(--brass-dark)}
+  .btn:disabled{background:#b9b2a2;cursor:default}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btnrow{margin:16px 0;display:flex;gap:10px;flex-wrap:wrap}
+  .progress{height:8px;background:#e7e1d2;border-radius:4px;overflow:hidden;margin:10px 0}
+  .progress i{display:block;height:100%;background:var(--brass);width:0%;transition:width .3s}
+  .proglabel{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--muted)}
+  table{width:100%;border-collapse:collapse;background:var(--card);font-size:14px}
+  th,td{border-bottom:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+  th{font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .sev{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:600}
+  .sev.high{background:#fbe9e7;color:var(--red)}
+  .sev.med{background:#fff3d6;color:var(--amber)}
+  .sev.low{background:#e8f5e9;color:var(--green)}
+  .conf{font-family:"JetBrains Mono",monospace;font-size:13px}
+  .review{color:var(--amber);font-weight:600}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:700px){.grid2{grid-template-columns:1fr}}
+  .kpi{background:var(--card);border:1px solid var(--line);padding:16px}
+  .kpi .lbl{font-family:"JetBrains Mono",monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  .kpi .val{font-size:30px;font-weight:700;font-family:Archivo,Inter,sans-serif;margin-top:2px}
+  .kpi .note{font-size:13px;color:var(--muted)}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .tab{padding:9px 16px;border:1px solid var(--line);background:var(--card);cursor:pointer;font:inherit;font-weight:600;border-radius:3px}
+  .tab.sel{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+  .panel{background:var(--card);border:1px solid var(--line);padding:18px}
+  .panel .big{font-size:26px;font-weight:700}
+  .panel .assump{font-size:13px;color:var(--muted);margin-top:10px}
+  .formula{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--paper);border:1px solid var(--line);padding:10px 12px;margin-top:12px;overflow-x:auto}
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:700px){.tiers{grid-template-columns:1fr}}
+  .tier{background:var(--card);border:1px solid var(--line);padding:18px}
+  .tier .price{font-size:28px;font-weight:700}
+  .tier ul{margin:10px 0 0;padding-left:18px;font-size:14px}
+  .frames{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(max-width:700px){.frames{grid-template-columns:1fr}}
+  .frame{background:var(--card);border:1px solid var(--line);padding:16px}
+  .frame .fig{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--brass);text-transform:uppercase;letter-spacing:.06em}
+  .frame h4{margin:6px 0}
+  footer{margin-top:56px;border-top:1px solid var(--line);padding-top:16px;font-size:13px;color:var(--muted)}
+  .hidden{display:none}
+  input[type=number]{padding:8px 10px;border:1px solid var(--line);border-radius:3px;font:inherit;width:140px}
+  label{font-size:13px;color:var(--muted);display:block;margin:0 0 4px}
+  .inputs{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="doc-control">
+    <div class="doc-meta">
+      <span>Neuruh Drive Build, Slice 03</span><span>ReAuditor AI</span>
+      <span>Source docs July 2025</span><span>Demo build 2026-11-18</span>
+    </div>
+    <h1>ReAuditor AI</h1>
+    <p class="lede">Photograph a property. Get the repairs, the costs, the after-repair value, and the strategy. This page runs the three-step flow from the July 2025 storyboard exactly as specified: upload photos, AI analysis, report.</p>
+  </header>
+
+  <div class="banner"><b>Simulation, not a live product.</b> ReAuditor AI is a July 2025 spec (DESIGNED, not live, not deployed, not proven). Every finding, cost, and figure on this page is a worked example drawn from the spec docs and the demo video frame (repair cost $15,000). Nothing here is a computed estimate for a real property, and no AI analysis runs in your browser. The demo shows what the spec promises, so the promise can be inspected.</div>
+
+  <h2>How it works</h2>
+  <p class="sub">The three steps, verbatim from the storyboard Doc, "Update, ReAuditor AI, Storyboard, How It Works".</p>
+  <div class="steps">
+    <div class="step" id="stepBox1"><div class="n">STEP 1</div><h3>Upload Photos</h3><p>Take photos or upload existing images of your property using our mobile app or web interface.</p></div>
+    <div class="step" id="stepBox2"><div class="n">STEP 2</div><h3>AI Analysis</h3><p>Our advanced AI analyzes your images to identify repairs, calculate costs, and estimate property value.</p></div>
+    <div class="step" id="stepBox3"><div class="n">STEP 3</div><h3>Get Report</h3><p>Receive detailed reports with repair estimates, ARV calculations, and investment insights.</p></div>
+  </div>
+
+  <h2>Step 1, Upload photos</h2>
+  <p class="sub">Pick a sample property. The spec allows up to 10 photos per property. Each sample below ships with its photo set already attached.</p>
+  <div class="props" id="props"></div>
+  <div class="btnrow">
+    <button class="btn" id="analyzeBtn" disabled>Run AI analysis</button>
+    <button class="btn ghost" id="resetBtn">Start over</button>
+  </div>
+  <div id="progWrap" class="hidden">
+    <div class="progress"><i id="progBar"></i></div>
+    <div class="proglabel" id="progLabel">Analyzing photo 1 of 10</div>
+  </div>
+
+  <h2>Step 2, AI analysis</h2>
+  <p class="sub">Each finding carries what the MVP spec requires: issue, severity level, repair cost, and confidence score. Findings under 80% confidence are marked "needs review" and stay out of the totals until confirmed.</p>
+  <div id="findingsEmpty"><p>No analysis yet. Pick a property above and run the analysis.</p></div>
+  <div id="findingsWrap" class="hidden">
+    <table>
+      <thead><tr><th>Finding</th><th>Severity</th><th>Repair cost</th><th>Confidence</th></tr></thead>
+      <tbody id="findingsBody"></tbody>
+    </table>
+    <p id="reviewNote" style="font-size:13px;color:var(--amber)"></p>
+  </div>
+
+  <h2>Step 3, Get report</h2>
+  <p class="sub">Repair total, after-repair value, and profit, with the strategy comparison. Edit the purchase price and the ARV and the report recomputes.</p>
+  <div id="reportEmpty"><p>Run the analysis to build the report.</p></div>
+  <div id="reportWrap" class="hidden">
+    <div class="inputs">
+      <div><label for="purchaseInput">Purchase price ($)</label><input type="number" id="purchaseInput" step="1000" min="0"></div>
+      <div><label for="arvInput">After-repair value, ARV ($)</label><input type="number" id="arvInput" step="1000" min="0"></div>
+      <div><label for="rentInput">Monthly rent if held ($)</label><input type="number" id="rentInput" step="50" min="0"></div>
+    </div>
+    <div class="grid2">
+      <div class="kpi"><div class="lbl">Total repair cost</div><div class="val" id="kpiRepairs">$0</div><div class="note" id="kpiRepairsNote"></div></div>
+      <div class="kpi"><div class="lbl">Total investment</div><div class="val" id="kpiTotal">$0</div><div class="note">Purchase price plus repairs plus 5% contingency.</div></div>
+      <div class="kpi"><div class="lbl">After-repair value</div><div class="val" id="kpiArv">$0</div><div class="note">Comps-based in the real product. Worked example here.</div></div>
+      <div class="kpi"><div class="lbl">Profit at sale</div><div class="val" id="kpiProfit">$0</div><div class="note">ARV minus total investment minus 6% selling costs.</div></div>
+    </div>
+    <div class="tabs" id="stratTabs">
+      <button class="tab sel" data-strat="flip">Fix and Flip</button>
+      <button class="tab" data-strat="hold">Buy and Hold</button>
+      <button class="tab" data-strat="brrrr">BRRRR</button>
+    </div>
+    <div class="panel" id="stratPanel"></div>
+    <div class="btnrow">
+      <button class="btn" id="dlBtn">Download report (CSV)</button>
+    </div>
+    <p style="font-size:13px;color:var(--muted)" id="receiptLine"></p>
+  </div>
+
+  <h2>The storyboard, rebuilt clean</h2>
+  <p class="sub">The July 2025 storyboard PDF has four frames. Its art is AI-generated with garbled text, nonsense percentages, and lorem ipsum, so the frames below restate the same four beats with correct copy.</p>
+  <div class="frames">
+    <div class="frame"><div class="fig">Figure 1, Frame 1</div><h4>From Real World to Real-Time Analysis</h4><p>A phone is used to photograph a house, capturing the initial data for the AI analysis. This demo's Step 1.</p></div>
+    <div class="frame"><div class="fig">Figure 2, Frame 2</div><h4>Exploring Investment Strategies</h4><p>The ReAuditor AI interface displays a comprehensive analysis of the property, showcasing various investment strategies. This demo's Step 2.</p></div>
+    <div class="frame"><div class="fig">Figure 3, Frame 3</div><h4>Deeper Dive into Investment Strategies</h4><p>A close-up view highlights two of the primary investment strategies: Buy and Hold and Fix and Flip. This demo's Step 3 strategy tabs.</p></div>
+    <div class="frame"><div class="fig">Figure 4, Frame 4</div><h4>Highlighting Rental Properties</h4><p>The Rental Property strategy is showcased, detailing potential returns and benefits. This demo's Buy and Hold and BRRRR tabs, with computed numbers instead of placeholder percentages.</p></div>
+  </div>
+
+  <h2>Pricing</h2>
+  <p class="sub">Tiers from the MVP doc. These are the spec's prices, not a live checkout. No checkout exists until Stripe reconnects.</p>
+  <div class="tiers">
+    <div class="tier"><h3>Free</h3><div class="price">$0</div><ul><li>3 properties per month</li><li>Photo analysis and report</li></ul></div>
+    <div class="tier"><h3>Professional</h3><div class="price">$49/mo</div><ul><li>Unlimited properties</li><li>Advanced features</li></ul></div>
+    <div class="tier"><h3>Enterprise</h3><div class="price">$199/mo</div><ul><li>Team features</li><li>API access</li><li>Priority support</li></ul></div>
+  </div>
+  <p style="font-size:13px;color:var(--muted)">Pricing note: the Land Intelligence Report reprice (Report $29, 3-pack $69, verified Dossier $295, ordered 2026-11-10) is the newer commercial direction for report-style products. Whether ReAuditor follows these subscription tiers or the report ladder is an open founder decision.</p>
+
+  <footer>
+    <p>Sources: "ReAuditor AI, MVP" (Google Doc, 2025-07-23); "Update, ReAuditor AI, Storyboard, How It Works" (Google Doc, 2025-07-19); storyboard PDF (2025-07-19, 4 pages); ReAuditor_AI_Video_Creation_Request.mp4 and ReAuditor_AI_Demo_Script.mp4 (8 seconds each, Veo-generated, no speech). Full per-source build docs: Neuruh Drive build-out, slice 03, items s03-reauditor-ai-*.</p>
+    <p>Honesty lines: ReAuditor AI is DESIGNED, not live. Valuation, revenue, user, and market figures in the MVP doc are source claims on assumed user counts, never facts. Retailer integration (Home Depot, Lowe's, Menards live prices and ordering) is specified, not built. No sends, posts, spending, or irreversible actions happen from this page. Canonical base: Benton Harbor, Michigan.</p>
+  </footer>
+</div>
+
+<script>
+const PROPERTIES = [
+  {id:"yellow", name:"Distressed yellow two-story", tag:"From the demo video, roof damage",
+   art:"\u{1F3E0}", desc:"Peeling paint, torn roof shingles, cracked walkway, overgrowth.",
+   purchase:85000, arv:165000, rent:1350,
+   findings:[
+     {issue:"Roof damage, missing and torn shingles, underlayment exposed", sev:"high", cost:6800, conf:93},
+     {issue:"Exterior paint failure, peeling siding on two elevations", sev:"med", cost:3400, conf:88},
+     {issue:"Cracked concrete walkway, trip hazard, weeds through joints", sev:"med", cost:1800, conf:91},
+     {issue:"Overgrowth and debris at foundation line", sev:"low", cost:600, conf:84},
+     {issue:"Gutters and downspouts, sagging and detached at rear", sev:"med", cost:1400, conf:76},
+     {issue:"Front steps, spalled concrete nosing", sev:"low", cost:1000, conf:82}]},
+  {id:"ranch", name:"Brick ranch, dated kitchen", tag:"Interior-heavy rehab",
+   art:"\u{1F3E1}", desc:"Original 1978 kitchen and bath, panel upgrade needed, worn flooring.",
+   purchase:110000, arv:189000, rent:1500,
+   findings:[
+     {issue:"Kitchen, original cabinets and counters, full gut", sev:"med", cost:12500, conf:94},
+     {issue:"Electrical panel, 100A fuse box, upgrade to 200A breaker", sev:"high", cost:3200, conf:89},
+     {issue:"Bathroom, dated fixtures, tub surround failure", sev:"med", cost:4800, conf:86},
+     {issue:"Flooring, worn carpet and vinyl throughout", sev:"med", cost:3900, conf:92},
+     {issue:"Water heater, 14 years old, near end of life", sev:"low", cost:1400, conf:71}]},
+  {id:"duplex", name:"Duplex, peeling paint, two units", tag:"Small multifamily",
+   art:"\u{1F3E2}", desc:"Two units, one vacant, shared roof, deferred exterior maintenance.",
+   purchase:140000, arv:235000, rent:2100,
+   findings:[
+     {issue:"Roof, end of life, both slopes", sev:"high", cost:9400, conf:90},
+     {issue:"Exterior paint and trim failure, both units", sev:"med", cost:5200, conf:87},
+     {issue:"Unit B kitchen, partial update needed", sev:"med", cost:6800, conf:83},
+     {issue:"Plumbing, galvanized supply lines, replace", sev:"high", cost:4600, conf:78},
+     {issue:"Windows, six single-pane, draft and seal failure", sev:"med", cost:3900, conf:85},
+     {issue:"Driveway, cracked and heaved sections", sev:"low", cost:2200, conf:80}]}
+];
+let selected = null, analyzed = null, strat = "flip", timer = null;
+const $ = id => document.getElementById(id);
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const sevLabel = s => s==="high" ? "High" : s==="med" ? "Medium" : "Low";
+
+function renderProps(){
+  $("props").innerHTML = PROPERTIES.map(p =>
+    `<button class="prop${selected===p.id?" sel":""}" data-id="${p.id}">
+      <div class="art">${p.art}</div>
+      <div class="body"><div class="tag">${p.tag}</div><h3>${p.name}</h3><p>${p.desc}</p></div>
+    </button>`).join("");
+  document.querySelectorAll(".prop").forEach(b => b.addEventListener("click", () => {
+    selected = b.dataset.id; analyzed = null;
+    $("analyzeBtn").disabled = false;
+    $("findingsWrap").classList.add("hidden"); $("findingsEmpty").classList.remove("hidden");
+    $("reportWrap").classList.add("hidden"); $("reportEmpty").classList.remove("hidden");
+    setStep(1); renderProps();
+  }));
+}
+function setStep(n){
+  [1,2,3].forEach(i => {
+    const el = $("stepBox"+i);
+    el.classList.toggle("active", i===n);
+    el.classList.toggle("done", i<n);
+  });
+}
+function confirmedFindings(){
+  return analyzed.findings.filter(f => f.conf >= 80);
+}
+function repairTotal(){
+  return confirmedFindings().reduce((s,f)=>s+f.cost,0);
+}
+function renderFindings(){
+  const rows = analyzed.findings.map(f => {
+    const ok = f.conf >= 80;
+    return `<tr><td>${f.issue}${ok?"":' <span class="review">needs review, excluded from totals</span>'}</td>
+      <td><span class="sev ${f.sev}">${sevLabel(f.sev)}</span></td>
+      <td>${money(f.cost)}</td><td class="conf">${f.conf}%</td></tr>`;
+  }).join("");
+  $("findingsBody").innerHTML = rows;
+  const held = analyzed.findings.filter(f=>f.conf<80);
+  $("reviewNote").textContent = held.length
+    ? held.length + " finding(s) below 80% confidence held out of totals pending review: " + held.map(f=>f.issue.split(",")[0]).join("; ") + "."
+    : "All findings at or above 80% confidence. Nothing held out.";
+  $("findingsEmpty").classList.add("hidden");
+  $("findingsWrap").classList.remove("hidden");
+}
+function renderReport(){
+  const purchase = +$("purchaseInput").value || 0;
+  const arv = +$("arvInput").value || 0;
+  const rent = +$("rentInput").value || 0;
+  const repairs = repairTotal();
+  const contingency = repairs * 0.05;
+  const total = purchase + repairs + contingency;
+  const selling = arv * 0.06;
+  const profit = arv - total - selling;
+  $("kpiRepairs").textContent = money(repairs);
+  $("kpiRepairsNote").textContent = confirmedFindings().length + " confirmed findings. 5% contingency: " + money(contingency) + ".";
+  $("kpiTotal").textContent = money(total);
+  $("kpiArv").textContent = money(arv);
+  $("kpiProfit").textContent = money(profit);
+  let html = "";
+  if(strat === "flip"){
+    const roi = total>0 ? (profit/total*100) : 0;
+    html = `<div class="big">Fix and Flip: ${money(profit)} profit, ${roi.toFixed(1)}% ROI on total investment</div>
+      <p>Buy at ${money(purchase)}, repair for ${money(repairs)}, sell at ARV ${money(arv)} after 6% selling costs (${money(selling)}).</p>
+      <p class="assump">Deciding assumption: the ARV holds at sale. If ARV slips 10%, profit falls to ${money(arv*0.9 - total - arv*0.9*0.06)}.</p>
+      <div class="formula">profit = ARV - (purchase + repairs + 5% contingency) - 6% selling costs</div>`;
+  } else if(strat === "hold"){
+    const monthlyExp = rent*0.40;
+    const cashflow = rent - monthlyExp;
+    const annual = cashflow*12;
+    const coc = total>0 ? (annual/total*100) : 0;
+    html = `<div class="big">Buy and Hold: ${money(cashflow)}/mo cash flow, ${coc.toFixed(1)}% cash-on-cash</div>
+      <p>Rent ${money(rent)}/mo, expenses at 40% of rent (${money(monthlyExp)}/mo), net ${money(cashflow)}/mo on ${money(total)} all-in.</p>
+      <p class="assump">Deciding assumption: rent holds and vacancy stays under one month a year. Taxes, insurance, and financing are not in this worked example and change the result.</p>
+      <div class="formula">cash flow = rent - 40% expenses; cash-on-cash = annual cash flow / total investment</div>`;
+  } else {
+    const refi = arv*0.75;
+    const leftIn = total - refi;
+    const monthlyExp = rent*0.40;
+    const cashflow = rent - monthlyExp;
+    html = `<div class="big">BRRRR: refinance at 75% of ARV returns ${money(refi)}, leaving ${money(leftIn)} in the deal</div>
+      <p>Buy, rehab, rent at ${money(rent)}/mo, refinance at ${money(refi)}. Net cash flow after 40% expenses: ${money(cashflow)}/mo.</p>
+      <p class="assump">Deciding assumption: the lender appraises at ARV and the 75% loan-to-value holds. If the appraisal comes in 10% low, ${money(leftIn + arv*0.1*0.75)} stays in the deal.</p>
+      <div class="formula">cash left in = total investment - (ARV x 75% refinance)</div>`;
+  }
+  $("stratPanel").innerHTML = html;
+  $("reportEmpty").classList.add("hidden");
+  $("reportWrap").classList.remove("hidden");
+  const h = simpleHash(JSON.stringify({p:selected, purchase, arv, repairs}));
+  $("receiptLine").textContent = "Receipt: property " + selected + ", cost table v0.1 (worked example), model: simulated, hash " + h + ". Recompute this page and the hash matches; change an input and it changes.";
+}
+function simpleHash(s){
+  let h = 0;
+  for(let i=0;i<s.length;i++){ h = ((h<<5)-h+s.charCodeAt(i))|0; }
+  return ("0000000" + (h>>>0).toString(16)).slice(-8);
+}
+$("analyzeBtn").addEventListener("click", () => {
+  if(!selected) return;
+  analyzed = PROPERTIES.find(p=>p.id===selected);
+  setStep(2);
+  $("analyzeBtn").disabled = true;
+  $("progWrap").classList.remove("hidden");
+  const total = 10; let i = 0;
+  clearInterval(timer);
+  timer = setInterval(() => {
+    i++;
+    $("progBar").style.width = (i/total*100) + "%";
+    $("progLabel").textContent = i<total ? ("Analyzing photo " + i + " of 10") : "Analysis complete";
+    if(i>=total){
+      clearInterval(timer);
+      $("purchaseInput").value = analyzed.purchase;
+      $("arvInput").value = analyzed.arv;
+      $("rentInput").value = analyzed.rent;
+      renderFindings(); renderReport(); setStep(3);
+      $("analyzeBtn").disabled = false;
+    }
+  }, 260);
+});
+$("resetBtn").addEventListener("click", () => {
+  clearInterval(timer); selected = null; analyzed = null;
+  $("analyzeBtn").disabled = true;
+  $("progWrap").classList.add("hidden"); $("progBar").style.width = "0%";
+  $("findingsWrap").classList.add("hidden"); $("findingsEmpty").classList.remove("hidden");
+  $("reportWrap").classList.add("hidden"); $("reportEmpty").classList.remove("hidden");
+  setStep(1); renderProps();
+});
+document.querySelectorAll("#stratTabs .tab").forEach(t => t.addEventListener("click", () => {
+  strat = t.dataset.strat;
+  document.querySelectorAll("#stratTabs .tab").forEach(x=>x.classList.toggle("sel", x===t));
+  if(analyzed) renderReport();
+}));
+["purchaseInput","arvInput","rentInput"].forEach(id => $(id).addEventListener("input", () => { if(analyzed) renderReport(); }));
+$("dlBtn").addEventListener("click", () => {
+  if(!analyzed) return;
+  const purchase = +$("purchaseInput").value || 0, arv = +$("arvInput").value || 0;
+  const lines = [["ReAuditor AI, Report (simulated worked example)"],["Property", analyzed.name],["Purchase price", purchase],["ARV", arv],[""],["Finding","Severity","Repair cost","Confidence"],
+    ...analyzed.findings.map(f=>[f.issue, sevLabel(f.sev), f.cost, f.conf+"%"]),
+    [""],["Confirmed repair total", repairTotal()],["Total investment (incl 5% contingency)", purchase + repairTotal()*1.05]];
+  const csv = lines.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "reauditor-report-" + analyzed.id + ".csv";
+  a.click(); URL.revokeObjectURL(a.href);
+});
+renderProps(); setStep(1);
+</script>
+</body>
+</html>
