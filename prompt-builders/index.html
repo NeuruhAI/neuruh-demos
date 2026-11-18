@@ -256,12 +256,24 @@ function useExample(b, ex){
   var textLower = String(ex.text).toLowerCase();
   b.fields.forEach(function(f){
     var candidates = [];
-    if (f.default !== null && f.default !== undefined && String(f.default) !== "") candidates.push(String(f.default));
-    if (f.type === "select") (f.options || []).forEach(function(o){ if (o !== null && o !== undefined && String(o) !== "") candidates.push(String(o)); });
+    if (f.default !== null && f.default !== undefined && String(f.default) !== "") candidates.push({text: String(f.default), value: String(f.default)});
+    if (f.type === "select") (f.options || []).forEach(function(o){
+      if (o === null || o === undefined || String(o) === "") return;
+      var opt = String(o);
+      candidates.push({text: opt, value: opt});
+      var colon = opt.indexOf(": ");
+      if (colon !== -1) {
+        var label = opt.slice(0, colon);
+        var desc = opt.slice(colon + 2).trim();
+        if (desc !== "") candidates.push({text: desc, value: opt});
+        if (label.length >= 8 && label.indexOf(" ") !== -1) candidates.push({text: label, value: opt});
+      }
+    });
+    candidates.sort(function(a, c){ return c.text.length - a.text.length; });
     for (var i = 0; i < candidates.length; i++) {
-      if (candidates[i] && textLower.indexOf(candidates[i].toLowerCase()) !== -1) {
+      if (candidates[i].text && textLower.indexOf(candidates[i].text.toLowerCase()) !== -1) {
         if (!saved[b.id]) saved[b.id] = {};
-        saved[b.id][f.name] = candidates[i];
+        saved[b.id][f.name] = candidates[i].value;
         matched.push(f.name);
         break;
       }
