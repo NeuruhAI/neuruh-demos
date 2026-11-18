@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deal Radar Scorer</title>
+<style>
+:root{--paper:#f7f3ea;--ink:#1c1a16;--brass:#9a7b2d;--line:#d8cfba;--muted:#6b6455;--card:#fffdf7}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,serif;line-height:1.5}
+header{border-bottom:3px double var(--brass);padding:22px 20px 14px;max-width:960px;margin:0 auto}
+header .kicker{font-family:monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass)}
+h1{font-size:28px;margin:6px 0 4px}h2{font-size:19px;border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:28px}
+main{max-width:960px;margin:0 auto;padding:0 20px 40px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);padding:14px 16px}
+label{display:block;font-size:13px;margin:10px 0 3px;font-family:monospace}
+input,select{width:100%;padding:8px;border:1px solid var(--line);background:#fff;font-size:15px}
+button{background:var(--ink);color:var(--paper);border:0;padding:12px 22px;font-size:16px;cursor:pointer;margin-top:16px}
+button:hover{background:var(--brass)}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
+td:last-child,th:last-child{text-align:right}
+.score{font-size:52px;font-weight:bold;color:var(--brass);line-height:1}
+.note{font-size:13px;color:var(--muted)}
+.badge{display:inline-block;font-family:monospace;font-size:11px;border:1px solid var(--brass);color:var(--brass);padding:2px 8px;letter-spacing:.12em;text-transform:uppercase}
+.flag{color:#8a2f1d;font-weight:bold}
+pre{background:#211f1a;color:#f0ead8;padding:14px;overflow:auto;font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">Neuruh Drive Build &middot; Slice 04 &middot; Browser simulation, not a live system</div>
+<h1>Deal Radar Scorer</h1>
+<p>From the Drive spec &ldquo;Deal Radar Intelligence System&rdquo; (2025-07-29) and the &ldquo;$400 Signal Sniper Lite&rdquo; pitch in the same slice. The spec&rsquo;s idea: misspelled titles, photo-only posts, and wrong-category listings are where found deals hide. Paste a listing and this page scores it with fuzzy matching, price gap, and source risk. It monitors nothing live. All prices, ROI multiples, and case-study results in the source doc are source claims, not verified facts.</p>
+<p><span class="badge">Simulation</span> <span class="badge">No live monitoring</span></p>
+</header>
+<main>
+<h2>1. Listing to score</h2>
+<div class="grid">
+<div class="card">
+<label>Listing title (try: &ldquo;Micheal Jordn Topps Crom rookie lot&rdquo;)</label><input id="title" type="text" value="Micheal Jordn Topps Crom rookie lot">
+<label>Asking price ($)</label><input id="price" type="number" value="50">
+<label>Your estimated market value ($)</label><input id="value" type="number" value="500">
+<label>Photo count</label><input id="photos" type="number" value="1">
+</div>
+<div class="card">
+<label>Source</label><select id="source"><option>Facebook Marketplace</option><option>Facebook group</option><option>eBay</option><option>Craigslist</option><option>OfferUp / Mercari</option><option>Estate sale / auction</option></select>
+<label>Listed how long ago (hours)</label><input id="age" type="number" value="2">
+<label>Category looks wrong?</label><select id="cat"><option value="no">No, category fits</option><option value="yes">Yes, wrong category</option></select>
+<p class="note">Try the sample titles: &ldquo;1952 Topps Mantel PSA&rdquo;, &ldquo;Charzard base set booster&rdquo;, &ldquo;Fleer Jordn rookie&rdquo;. The scorer fuzzy-matches against a card keyword list (Jordan, Mantle, Topps, Chrome, Fleer, Charizard, Pokemon, rookie).</p>
+</div>
+</div>
+<button onclick="run()">Score this listing</button>
+<h2>2. Score</h2>
+<div id="out"><p class="note">Press Score this listing.</p></div>
+<h2>3. What the source tiers claim</h2>
+<table>
+<tr><th>Tier (source claim)</th><th>Setup (source claim)</th><th>Monthly (source claim)</th></tr>
+<tr><td>Deal Radar Lite</td><td>$597</td><td>$97</td></tr>
+<tr><td>Authority Builder Pro</td><td>$2,497</td><td>$397</td></tr>
+<tr><td>Market Domination Ops</td><td>$6,997</td><td>$997</td></tr>
+<tr><td>White-Label Intelligence Suite</td><td>$14,997 to $19,997</td><td>$2,500+</td></tr>
+</table>
+<p class="note">Tier prices, ROI multiples (2.0x to 4.6x), and client case studies in the source are the author&rsquo;s claims. None are verified here. Do not quote them as facts in an offer. The scorer above is the only part this page proves: it runs the fuzzy-match and gap math on text you paste.</p>
+</main>
+<script>
+const KEYS=["jordan","mantle","topps","chrome","fleer","charizard","pokemon","rookie","psa","mint","sealed","vintage"];
+function lev(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=0;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
+const $=id=>document.getElementById(id);
+const money=n=>"$"+Math.round(n).toLocaleString("en-US");
+function run(){
+ const title=$("title").value.trim(), price=+$("price").value||0, value=+$("value").value||0;
+ const photos=+$("photos").value||0, age=+$("age").value||0, src=$("source").value;
+ const words=title.toLowerCase().replace(/[^a-z0-9 ]/g,"").split(/\s+/).filter(Boolean);
+ let flags=[], score=0, matched=[];
+ for(const w of words){
+   for(const k of KEYS){
+     if(w===k){matched.push(k+" (exact)");score+=6}
+     else if(lev(w,k)===1){flags.push(`Misspelling: "${w}" looks like "${k}"`);score+=14;matched.push(k+" (fuzzy)")}
+     else if(lev(w,k)===2&&w.length>4){flags.push(`Near miss: "${w}" close to "${k}"`);score+=6}
+   }
+ }
+ const gap=value>0?(value-price)/value:0;
+ if(gap>=0.9){score+=30;flags.push("Price gap 90%+ below estimated value")}
+ else if(gap>=0.7){score+=22;flags.push("Price gap 70%+ below estimated value")}
+ else if(gap>=0.5){score+=14;flags.push("Price gap 50%+ below estimated value")}
+ else if(gap>0){score+=5}
+ if(photos<=1){score+=12;flags.push("Low-photo post (1 or fewer photos): seller may not know value")}
+ else if(photos<=2){score+=5;flags.push("Only 2 photos")}
+ if($("cat").value==="yes"){score+=10;flags.push("Wrong-category listing")}
+ if(age<=3){score+=10;flags.push("Fresh: listed within 3 hours")}
+ else if(age>=48){score-=5;flags.push("Stale: listed 48+ hours ago")}
+ if(src.includes("Facebook")){score+=4;flags.push("Facebook source: fast-moving, posts can vanish within hours")}
+ score=Math.max(0,Math.min(100,score));
+ const verdict=score>=70?"ACT FAST: high-signal found deal. Verify the card, the seller, and the price in person before paying anything.":score>=45?"WORTH A LOOK: real signal. Ask for more photos and confirm the exact card and set.":"WEAK SIGNAL: likely a fair-priced or correctly listed item. Pass unless the price gap grows.";
+ const profit=value-price;
+ $("out").innerHTML=`
+ <div class="card"><div class="score">${score} / 100</div><p><b>${verdict}</b></p>
+ <p>Asking ${money(price)} vs estimated value ${money(value)}: gap ${money(profit)} (${(gap*100).toFixed(0)}%). Keywords matched: ${[...new Set(matched)].join(", ")||"none"}.</p>
+ <p>Flags (${flags.length}):</p><ul>${flags.map(f=>`<li class="flag">${f}</li>`).join("")||"<li>None.</li>"}</ul>
+ <p class="note">Receipt: title hash ${[...new Uint8Array(new TextEncoder().encode(title))].reduce((a,b)=>a+b,0)}-chars, scored locally ${new Date().toISOString()}. No listing was fetched, no alert was sent, no post was made. Facebook scraping is against Facebook TOS per the Signal Sniper source; this page does none of it.</p></div>`;
+}
+</script>
+</body>
+</html>
