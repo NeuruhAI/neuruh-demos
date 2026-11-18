@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estate Sale Probability Scorer</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fbf9f4;--ink:#1c1a16;--muted:#6b655a;--brass:#9a7b2d;--line:#d8d2c4;--card:#fffdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.55}
+header{background:var(--ink);color:var(--bone);padding:22px 28px}header .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;color:#c9a86a;text-transform:uppercase}
+header h1{font-family:Archivo,system-ui,sans-serif;font-size:26px;margin:6px 0 4px}header p{margin:0;color:#cfc9bb;font-size:14px}
+main{max-width:980px;margin:0 auto;padding:24px 20px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 16px}
+h2{font-family:Archivo,system-ui,sans-serif;font-size:18px;margin:0 0 8px}
+.muted{color:var(--muted);font-size:13px}.badge{display:inline-block;border:1px solid var(--brass);color:var(--brass);border-radius:999px;padding:2px 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+label{font-size:12px;color:var(--muted);display:block;margin:12px 0 4px}
+select,input{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.score{font-family:Archivo,system-ui,sans-serif;font-size:52px;line-height:1;margin:4px 0}
+.bar{height:12px;background:#e8e2d2;border-radius:99px;overflow:hidden}.bar i{display:block;height:100%;background:var(--brass)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.note{border-left:3px solid var(--brass);padding:8px 12px;background:#f6efdc;font-size:13px}
+.warn{border-left:3px solid #a33d2a;padding:8px 12px;background:#f7e8e3;font-size:13px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><div class="k">Neuruh Drive Build | Slice 01 | Estate Sale Prediction System</div>
+<h1>Estate Sale Probability Scorer</h1>
+<p>Score a probate estate's likelihood of a sale, its timeline, and its disposition. Built from the source doc's own prediction variables. Browser simulation, no real probate data.</p></header>
+<main>
+<div class="card"><span class="badge">Simulation only</span>
+<p class="muted">Source: Google Doc "Estate Sale Prediction System - Neuruh - Real Estate - Master", Drive 2025-06-21. All market and revenue figures in the source are source claims, not verified facts, and none are used here. Scoring weights are transparent and adjustable. No owner or heir PII is collected. No heir contact is offered. Automated heir contact in the source's Phase 2 is gated by the founder-authorization boundary.</p></div>
+
+<div class="card"><h2>Score an estate</h2>
+<div class="grid2">
+<div>
+<label>Executor relationship to decedent</label>
+<select id="exec"><option value="20">Spouse or child, local (strong)</option><option value="12">Child, out of state</option><option value="6">Distant relative</option><option value="2">Unrelated administrator / court appointed</option></select>
+<label>Geographic proximity of heirs</label>
+<select id="prox"><option value="20">All heirs local</option><option value="12">Mixed local and distant</option><option value="4">All heirs out of state</option></select>
+<label>Property condition and market value</label>
+<select id="cond"><option value="20">Good condition, strong market</option><option value="13">Fair condition, average market</option><option value="6">Poor condition or weak market</option></select>
+<label>Estate liquidity needs</label>
+<select id="liq"><option value="20">High: debts and taxes due, low cash</option><option value="12">Moderate: some cash, some obligations</option><option value="4">Low: estate is liquid, no pressure</option></select>
+</div>
+<div>
+<label>Local market conditions</label>
+<select id="mkt"><option value="10">Hot: low inventory, fast sales</option><option value="6">Balanced</option><option value="2">Cold: high inventory, slow sales</option></select>
+<label>Estate complexity</label>
+<select id="cplx"><option value="10">Simple: one property, clear title</option><option value="5">Moderate: several assets, some title issues</option><option value="0">Complex: disputes, liens, unclear title</option></select>
+<label>Property type</label>
+<select id="ptype"><option value="0">Single-family residential</option><option value="0">Land</option><option value="0">Commercial</option></select>
+<label>Filing age (months since probate opened)</label>
+<input id="age" type="number" min="0" max="36" value="4">
+</div></div>
+<p class="muted">Weights: executor 20, heir proximity 20, condition/value 20, liquidity 20, market 10, complexity 10. Total 100. The property type selector is recorded for the file, per the source, and carries no weight in this version because the source gives no weight for it.</p>
+</div>
+
+<div class="card"><h2>Result</h2>
+<div class="score" id="score">--</div>
+<div class="bar"><i id="bar" style="width:0%"></i></div>
+<p id="band" style="font-size:17px;margin:12px 0 4px"></p>
+<p id="detail" class="muted"></p>
+<table><tr><th>Output</th><th>Value</th><th>Basis in the source</th></tr>
+<tr><td>Sale probability</td><td id="prob">--</td><td>Doc's prediction engine: estate complexity, executor location, property type, market conditions</td></tr>
+<tr><td>Timeline band</td><td id="tl">--</td><td>Doc's bands: 3-6 months, 6-12 months, 12+ months</td></tr>
+<tr><td>Disposition likelihood</td><td id="disp">--</td><td>Doc's options: keep, sell, rent</td></tr>
+<tr><td>Priority</td><td id="prio">--</td><td>Doc's dashboard: lead scoring and prioritization</td></tr></table>
+<h3 style="margin-top:16px">Score breakdown</h3>
+<table id="breakdown"></table>
+</div>
+
+<div class="card"><h2>Doc's metric targets (targets, not results)</h2>
+<table><tr><th>Metric</th><th>Target in the source</th><th>Status</th></tr>
+<tr><td>Data accuracy (property matching)</td><td>&gt; 95%</td><td>Unmeasured</td></tr>
+<tr><td>Prediction accuracy (sale timeline)</td><td>&gt; 70%</td><td>Unmeasured</td></tr>
+<tr><td>Lead quality (conversion to sale)</td><td>&gt; 15%</td><td>Unmeasured</td></tr>
+<tr><td>Customer LTV (per estate sale company client)</td><td>$10,000+</td><td>Source claim, unverified</td></tr></table>
+<div class="note" style="margin-top:12px"><b>Pipeline reality check:</b> the lead pull has failed 33 straight nights as of the Nov 17 evening log. No live probate feed exists. This scorer runs on inputs you type, not on court data.</div>
+<div class="warn" style="margin-top:12px"><b>Compliance:</b> the source requires legal review across target states, public-record-only usage, opt-out systems, and rate limiting against court systems before any automated collection or contact. None of that is built here.</div></div>
+</main>
+<script>
+const F=[['Executor relationship','exec'],['Heir proximity','prox'],['Property condition and value','cond'],['Estate liquidity needs','liq'],['Local market conditions','mkt'],['Estate complexity','cplx']];
+function calc(){let total=0;let rows='';
+F.forEach(([label,id])=>{const v=+document.getElementById(id).value;total+=v;rows+='<tr><td>'+label+'</td><td>'+v+'</td><td>'+(id==='exec'||id==='prox'||id==='cond'||id==='liq'?'of 20':'of 10')+'</td></tr>';});
+const age=+document.getElementById('age').value||0;
+let tl, disp, prio;
+if(total>=75){tl='3-6 months';disp='Sell (likely)';prio='P0: high-value alert';}
+else if(total>=50){tl='6-12 months';disp='Sell (possible)';prio='P1: active pipeline';}
+else if(total>=30){tl='12+ months';disp='Keep or rent (likely)';prio='P2: monitor';}
+else{tl='12+ months';disp='Keep (likely)';prio='P3: cold archive';}
+if(age>=12&&total>=50){tl='3-6 months (filing is aged, decision pressure rises)';}
+document.getElementById('score').textContent=total+' / 100';
+document.getElementById('bar').style.width=total+'%';
+document.getElementById('band').textContent=total>=75?'High sale probability':total>=50?'Moderate sale probability':total>=30?'Low sale probability':'Very low sale probability';
+document.getElementById('detail').textContent='Filing age '+age+' months. Property type: '+document.getElementById('ptype').value+'. Score is a transparent weighted sum of the source doc\'s own prediction variables. It is not a trained model. The source\'s machine-learning engine is not built.';
+document.getElementById('prob').textContent=total+'% (score, not a calibrated probability)';
+document.getElementById('tl').textContent=tl;
+document.getElementById('disp').textContent=disp;
+document.getElementById('prio').textContent=prio;
+document.getElementById('breakdown').innerHTML='<tr><th>Factor</th><th>Points</th><th>Max</th></tr>'+rows;}
+document.querySelectorAll('select,input').forEach(el=>el.addEventListener('change',calc));
+calc();
+</script></body></html>
