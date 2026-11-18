@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cockpit Galaxy-Live: Knowledge Graph</title>
+<style>
+  :root{ --paper:#f7f3ea; --bone:#efe9db; --ink:#1c1a16; --muted:#6b6455; --brass:#9a7b2d; --line:#d8d0bd; --card:#fffdf7; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, "Times New Roman", serif; line-height:1.55; }
+  .wrap{ max-width:1100px; margin:0 auto; padding:0 20px 60px; }
+  header{ border-bottom:3px double var(--ink); padding:28px 0 14px; }
+  .kicker{ font-family:"Courier New", monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--brass); }
+  h1{ font-size:36px; line-height:1.1; margin:8px 0 4px; }
+  h2{ font-size:22px; border-bottom:1px solid var(--line); padding-bottom:6px; margin:36px 0 12px; }
+  h3{ font-size:17px; margin:20px 0 6px; }
+  p, li{ font-size:16px; }
+  .sub{ color:var(--muted); font-style:italic; }
+  .banner{ background:var(--bone); border:1px solid var(--brass); border-left:6px solid var(--brass); padding:14px 18px; margin:20px 0; }
+  .banner b{ color:var(--brass); }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:14px 0; }
+  .card{ background:var(--card); border:1px solid var(--line); padding:14px 16px; }
+  .card h3{ margin-top:0; }
+  button{ background:var(--ink); color:var(--paper); border:none; cursor:pointer; margin:6px 6px 0 0; font-family:"Courier New", monospace; font-size:14px; padding:8px 14px; }
+  button.ghost{ background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  button.brass{ background:var(--brass); color:#fff; }
+  button.active{ background:var(--brass); color:#fff; }
+  input[type=text]{ font-family:"Courier New", monospace; font-size:14px; padding:10px 12px; width:100%; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  .mono{ font-family:"Courier New", monospace; font-size:13px; }
+  .note{ color:var(--muted); font-size:14px; font-style:italic; }
+  .result-row{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--line); font-size:14px; }
+  .stat{ font-family:"Courier New", monospace; font-size:14px; }
+  .stat b{ font-size:22px; color:var(--brass); }
+  #graphCanvas{ width:100%; height:520px; border:1px solid var(--line); background:var(--card); display:block; cursor:grab; }
+  .ticker{ background:var(--ink); color:#cfe3c0; font-family:"Courier New", monospace; font-size:12px; padding:12px 14px; height:220px; overflow-y:auto; white-space:pre-wrap; }
+  .health-down{ color:#b3261e; font-weight:bold; }
+  .health-ok{ color:#2f7d32; font-weight:bold; }
+  .two-col{ display:grid; grid-template-columns:1.6fr 1fr; gap:16px; }
+  .layout{ display:grid; grid-template-columns:1fr 320px; gap:16px; }
+  footer{ border-top:1px solid var(--line); margin-top:40px; padding-top:14px; color:var(--muted); font-size:14px; }
+  @media (max-width:860px){ .layout, .two-col{ grid-template-columns:1fr; } h1{ font-size:28px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Neuruh &middot; Drive Build Slice 10 &middot; Cockpit screenshots, 2026-07-22</div>
+  <h1>Cockpit Galaxy-Live: Knowledge Graph</h1>
+  <p class="sub">The NEURUH COCKPIT read-only ops surface, as captured in three screenshots on 2026-07-22 at 3:28:51 PM, 3:30:07 PM, and 3:30:33 PM. Every glyph in the original maps to a receipt line on disk. This surface writes nothing.</p>
+  <p><span class="mono">Health: <span class="health-down">DOWN</span> (per the 3:28:51 PM screenshot)</span></p>
+</header>
+
+<div class="banner">
+  <b>Status: STATIC RECREATION from screenshots.</b> This page redraws the Galaxy-Live graph from the three screenshot transcriptions. It is not connected to the Cockpit, not live data, and not a real knowledge graph. All counts, labels, ticker lines, and health states are the screenshots' own values from 2026-07-22. The original used a dark theme with a dense purple graph; this recreation uses the light document style, so colors differ from the original. Nothing here writes anywhere.
+</div>
+
+<h2>Figure 1. Galaxy Stats</h2>
+<div class="grid">
+  <div class="card"><span class="stat">Worlds<br><b>12</b></span></div>
+  <div class="card"><span class="stat">Assets<br><b>231</b></span></div>
+  <div class="card"><span class="stat">Nodes<br><b>661</b></span></div>
+  <div class="card"><span class="stat">Edges<br><b>2,829</b></span><p class="note">3,418 resolved, dropped</p></div>
+  <div class="card"><span class="stat">Orphans<br><b>331 / 982</b></span></div>
+  <div class="card"><span class="stat">Events today<br><b>18</b></span><p class="note">2026-07-22</p></div>
+</div>
+
+<h2>Figure 2. The Graph</h2>
+<p>Drag to pan, use the zoom buttons or the wheel, double-click or Fit to reset. Click a world node to inspect it. Search highlights matching nodes.</p>
+<input type="text" id="searchBox" placeholder="Search nodes...">
+<div style="margin-top:10px;">
+  <button id="zoomInBtn" type="button">Zoom In</button>
+  <button id="zoomOutBtn" type="button">Zoom Out</button>
+  <button id="fitBtn" type="button">Fit / Reset</button>
+  <button class="ghost toggle" id="toggleEdges" type="button">Edges: on</button>
+  <button class="ghost toggle" id="toggleLabels" type="button">Labels: on</button>
+</div>
+<canvas id="graphCanvas" width="1000" height="520"></canvas>
+<p class="note" id="graphHint">Legend: ring color is ETA (70 or above green, rising amber, proxy gray). Dots are assets and nodes by vertical. The center label in the original reads NEURUH.</p>
+<div class="card" id="nodeDetail" style="display:none; margin-top:12px;">
+  <h3 id="nodeTitle">Node</h3>
+  <div class="result-row"><span>ETA:</span><span class="mono" id="nodeEta"></span></div>
+  <div class="result-row"><span>Vertical:</span><span class="mono" id="nodeVertical"></span></div>
+  <div class="result-row"><span>State:</span><span class="mono" id="nodeState"></span></div>
+  <p class="note" id="nodeNote"></p>
+</div>
+
+<div class="layout" style="margin-top:16px;">
+  <div>
+    <h2>Figure 3. Vertical Counts</h2>
+    <p class="note">Counts from the 3:30:07 PM zoomed view. Click a vertical to highlight its nodes on the graph.</p>
+    <div id="verticalList"></div>
+  </div>
+  <div>
+    <h2>Figure 4. Event Ticker</h2>
+    <p class="note">The ledger, humanized. Lines from the 3:28:51 PM screenshot.</p>
+    <div class="ticker" id="ticker"></div>
+    <h2>Figure 5. Organ Health, 15:28:51</h2>
+    <div id="healthList"></div>
+  </div>
+</div>
+
+<h2>Figure 6. Review Tray and Building Shelf</h2>
+<div class="two-col">
+  <div class="card">
+    <h3>Review Tray: content drafts</h3>
+    <p class="note">Real files in _graph/_DRAFTS, per the screenshot.</p>
+    <div class="result-row"><span>Deep-dive: PhantomDeck.js</span><span class="mono">Deploy Ready</span></div>
+    <div class="result-row"><span>Deep-dive: Notion Auto-Exporter</span><span class="mono">Deploy Ready</span></div>
+    <p class="note" id="draftNote"></p>
+    <button class="ghost" id="draftBtn" type="button">Show draft details</button>
+  </div>
+  <div class="card">
+    <h3>Building Shelf</h3>
+    <div class="result-row"><span>Gate:</span><span class="mono">PASS</span></div>
+    <div class="result-row"><span>Queue:</span><span class="mono">publish-queue</span></div>
+    <p class="note">Footer from the original: NEURUH COCKPIT, read-only ops surface, NOT PROMOTED, no unauthorized write, client and internal data remain separate.</p>
+  </div>
+</div>
+
+<footer>
+  <p>Sources: s10-screenshot-2026-07-22-at-3-28-51-pm-png.md (Drive id 1EKbUALQXTMsIFKVFHN808KZR4VkCcMVp), s10-screenshot-2026-07-22-at-3-30-07-pm-png.md (Drive id 1qwL1UFpHFTk3uvOKEFid_y9M0QzvVjsW), s10-screenshot-2026-07-22-at-3-30-33-pm-png.md (Drive id 19Bquf3wsQXtPBDsnA1Udreuk4tIZTQQJ). Node positions on this canvas are illustrative: the screenshots show a dense graph, not coordinates, so positions are laid out for readability and labeled as such.</p>
+</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var NODES = [
+        { name: 'Sovereign Agent Platform', eta: null, vertical: 'PLATFORM CORE', x: 0.22, y: 0.30, state: 'live' },
+        { name: 'Sovereign AI Infrastructure', eta: null, vertical: 'PLATFORM/NEUROOS', x: 0.38, y: 0.18, state: 'live' },
+        { name: 'Hermetic AI Infrastructure', eta: null, vertical: 'PLATFORM/NEUROOS', x: 0.55, y: 0.30, state: 'live' },
+        { name: 'resale', eta: 88.8, vertical: 'RESALE and ARBITRAGE', x: 0.70, y: 0.22, state: 'live' },
+        { name: 'Omnia Sovereign Core', eta: null, vertical: 'PLATFORM CORE', x: 0.50, y: 0.50, state: 'live' },
+        { name: 'Real Estate Intelligence', eta: null, vertical: 'REAL ESTATE', x: 0.30, y: 0.62, state: 'live' },
+        { name: 'Real Estate Intelligence 2', eta: null, vertical: 'REAL ESTATE', x: 0.44, y: 0.72, state: 'live' },
+        { name: 'Sovereign Real Estate Intelligence', eta: null, vertical: 'REAL ESTATE', x: 0.62, y: 0.66, state: 'live' },
+        { name: 'Lead Conversion Intelligence', eta: 88.8, vertical: 'LEAD GENERATION', x: 0.76, y: 0.48, state: 'live' },
+        { name: 'Lead Conversion Engine', eta: null, vertical: 'LEAD GENERATION', x: 0.80, y: 0.68, state: 'live' },
+        { name: 'Sales Pipeline Intelligence', eta: null, vertical: 'SALES', x: 0.60, y: 0.86, state: 'live' },
+        { name: 'vacancy-world', eta: null, vertical: 'REAL ESTATE', x: 0.18, y: 0.52, state: 'stale' }
+    ];
+    var EDGES = [[0,1],[1,2],[2,3],[1,4],[4,0],[4,5],[5,6],[6,7],[7,4],[8,9],[9,10],[10,7],[4,8],[5,11],[3,8],[0,5],[2,4],[6,10]];
+    var VERTICALS = [
+        ['REAL ESTATE', 274], ['PLATFORM CORE', 246], ['PLATFORM/NEUROOS', 115], ['AUTOMATION', 41],
+        ['RESALE and ARBITRAGE', 35], ['DEFENSE', 22], ['FINANCE and LEGAL', 21], ['CONTENT and MEDIA', 20],
+        ['HOME IMPROVEMENT', 20], ['LEAD GENERATION', 17], ['HEALTH and WELLNESS', 12], ['EDUCATION', 11],
+        ['DISPATCH', 10], ['INVESTOR', 9], ['RESALE/FSP', 8], ['CREATOR-TOOLS', 8], ['SALES', 7],
+        ['CROSS-VERTICAL', 7], ['AGRICULTURE', 7], ['ENERGY and INFRASTRUCTURE', 4], ['DOWNSTREAM-ACQUISITION', 4],
+        ['AUTOMOTIVE', 3], ['MARKETING', 3], ['UNMAPPED', 2], ['REAL-ESTATE-DEV', 1], ['INSURANCE', 1]
+    ];
+    var HEALTH = [
+        ['IAR / AEGIS', 'HEALTHY'], ['AXON Daemon', 'DOWN'], ['Gateway', 'HEALTHY'], ['AnythingLM', 'HEALTHY'],
+        ['Ollama', 'HEALTHY'], ['Bonsai-8B', 'DOWN'], ['Ollama UP-3', 'DOWN'], ['Galaxy Live Emitter', 'HEALTHY'],
+        ['LandOS', 'DISABLED'], ['Recipe Engine', 'DISABLED'], ['Governance Core', 'DISABLED'],
+        ['Governance Core', 'HEALTHY'], ['Client Health', 'HEALTHY'], ['Cockpit', 'HEALTHY']
+    ];
+    var TICKER = [
+        '[02:32:44] CHAIN note-swarm AI-CB-KBPLUGIN-001.md +1656ch; MANIFEST-001.md +230ch',
+        '[02:32:44] NOTE note-swarm - AXON-RUNTIME-001.md +1656ch; links: AXON-019, PLAT-SASS-FORMS-1.0-001.md +1656ch; unresolved refs: 22',
+        '[02:32:44] CHAIN chain - note_swarm OK',
+        '[02:32:44] CHAIN git - 504b2d69',
+        '[02:32:44] CHAIN chain - orphan_census 2026-07-22',
+        '[02:32:44] CHAIN chain - orphan 331/982 (recovered 0) - unclassified 0 - queue = 22',
+        '[02:32:44] CHAIN chain - extraction_eval OK',
+        '[02:33:20] CHAIN chain - extraction_eval',
+        '[02:33:20] CHAIN chain - galaxy_pulse OK; pulse chain 0/1, 2 drafts, 0 conflicts',
+        '[08:00:02] GIT git - 357ef33'
+    ];
+
+    var canvas = document.getElementById('graphCanvas');
+    var ctx = canvas.getContext('2d');
+    var scale = 1, ox = 0, oy = 0;
+    var showEdges = true, showLabels = true;
+    var searchQuery = '';
+    var highlightVertical = '';
+    var dragging = false, lastX = 0, lastY = 0;
+
+    function worldPos(n) {
+        return { x: n.x * canvas.width * scale + ox, y: n.y * canvas.height * scale + oy };
+    }
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fffdf7';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#6b6455';
+        ctx.font = 'bold 15px Courier New, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('NEURUH', canvas.width / 2, 24);
+        if (showEdges) {
+            ctx.strokeStyle = '#c9b98a';
+            ctx.lineWidth = 1;
+            EDGES.forEach(function (e) {
+                var a = worldPos(NODES[e[0]]), b = worldPos(NODES[e[1]]);
+                ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+            });
+        }
+        NODES.forEach(function (n) {
+            var p = worldPos(n);
+            var match = !searchQuery || n.name.toLowerCase().indexOf(searchQuery) !== -1;
+            var vmatch = !highlightVertical || n.vertical === highlightVertical;
+            var dim = !match || !vmatch;
+            var r = 16 + (n.eta ? 6 : 0);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = n.eta !== null && n.eta >= 70 ? '#2f7d32' : '#9a7b2d';
+            ctx.lineWidth = 2.5;
+            ctx.globalAlpha = dim ? 0.25 : 1;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = n.state === 'stale' ? '#d8d0bd' : '#5b4a8a';
+            ctx.fill();
+            ctx.globalAlpha = 1;
+            if (showLabels) {
+                ctx.fillStyle = dim ? '#b0a894' : '#1c1a16';
+                ctx.font = '12px Courier New, monospace';
+                ctx.textAlign = 'center';
+                var label = n.name + (n.eta !== null ? ' (eta ' + n.eta + ')' : '');
+                ctx.fillText(label, p.x, p.y + r + 18);
+            }
+        });
+    }
+
+    canvas.addEventListener('mousedown', function (e) { dragging = true; lastX = e.offsetX; lastY = e.offsetY; canvas.style.cursor = 'grabbing'; });
+    canvas.addEventListener('mousemove', function (e) {
+        if (!dragging) return;
+        ox += (e.offsetX - lastX) * 2; oy += (e.offsetY - lastY) * 2;
+        lastX = e.offsetX; lastY = e.offsetY;
+        draw();
+    });
+    canvas.addEventListener('mouseup', function () { dragging = false; canvas.style.cursor = 'grab'; });
+    canvas.addEventListener('mouseleave', function () { dragging = false; });
+    canvas.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        scale = Math.max(0.5, Math.min(3, scale * (e.deltaY < 0 ? 1.1 : 0.9)));
+        draw();
+    }, { passive: false });
+    canvas.addEventListener('dblclick', function () { scale = 1; ox = 0; oy = 0; draw(); });
+    canvas.addEventListener('click', function (e) {
+        var rect = canvas.getBoundingClientRect();
+        var mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+        var my = (e.clientY - rect.top) * (canvas.height / rect.height);
+        var hit = null;
+        NODES.forEach(function (n) {
+            var p = worldPos(n);
+            var d = Math.sqrt((p.x - mx) * (p.x - mx) + (p.y - my) * (p.y - my));
+            if (d < 30) hit = n;
+        });
+        var detail = document.getElementById('nodeDetail');
+        if (hit) {
+            detail.style.display = 'block';
+            document.getElementById('nodeTitle').textContent = hit.name;
+            document.getElementById('nodeEta').textContent = hit.eta !== null ? hit.eta + ' (green ring, 70 or above)' : 'not shown in the screenshots';
+            document.getElementById('nodeVertical').textContent = hit.vertical;
+            document.getElementById('nodeState').textContent = hit.state;
+            document.getElementById('nodeNote').textContent = 'World node from the 2026-07-22 Galaxy-Live screenshots. Position on this canvas is illustrative, not the original coordinate.';
+        } else {
+            detail.style.display = 'none';
+        }
+    });
+
+    document.getElementById('searchBox').addEventListener('input', function (ev) {
+        searchQuery = ev.target.value.toLowerCase();
+        draw();
+    });
+    document.getElementById('zoomInBtn').addEventListener('click', function () { scale = Math.min(3, scale * 1.25); draw(); });
+    document.getElementById('zoomOutBtn').addEventListener('click', function () { scale = Math.max(0.5, scale / 1.25); draw(); });
+    document.getElementById('fitBtn').addEventListener('click', function () { scale = 1; ox = 0; oy = 0; searchQuery = ''; highlightVertical = ''; document.getElementById('searchBox').value = ''; draw(); });
+    document.getElementById('toggleEdges').addEventListener('click', function (ev) {
+        showEdges = !showEdges;
+        ev.target.textContent = 'Edges: ' + (showEdges ? 'on' : 'off');
+        draw();
+    });
+    document.getElementById('toggleLabels').addEventListener('click', function (ev) {
+        showLabels = !showLabels;
+        ev.target.textContent = 'Labels: ' + (showLabels ? 'on' : 'off');
+        draw();
+    });
+
+    var vList = document.getElementById('verticalList');
+    vList.innerHTML = VERTICALS.map(function (v) {
+        return '<div class="result-row"><span>' + v[0] + '</span><span class="mono">' + v[1] + '</span></div>';
+    }).join('');
+    vList.querySelectorAll('.result-row').forEach(function (row, i) {
+        row.style.cursor = 'pointer';
+        row.addEventListener('click', function () {
+            highlightVertical = (highlightVertical === VERTICALS[i][0]) ? '' : VERTICALS[i][0];
+            document.getElementById('graphHint').textContent = highlightVertical ? 'Highlighting vertical: ' + highlightVertical + '. Click the row again to clear.' : 'Legend: ring color is ETA (70 or above green, rising amber, proxy gray). Dots are assets and nodes by vertical. The center label in the original reads NEURUH.';
+            draw();
+        });
+    });
+
+    document.getElementById('ticker').textContent = TICKER.join('\n');
+
+    document.getElementById('healthList').innerHTML = HEALTH.map(function (h) {
+        var cls = h[1] === 'HEALTHY' ? 'health-ok' : (h[1] === 'DOWN' ? 'health-down' : '');
+        return '<div class="result-row"><span>' + h[0] + '</span><span class="mono ' + cls + '">' + h[1] + '</span></div>';
+    }).join('') + '<p class="note">Surfaces and organs, per the screenshot: Galaxy Live (internal), Client Property View (client), HelmAI, Field Scout, DeedSonar, World Emitter (external, offline). Recorded port map: AnythingLM AXON-BRAIN :3001 external; Territory Engine :4373 cockpit.</p>';
+
+    document.getElementById('draftBtn').addEventListener('click', function () {
+        document.getElementById('draftNote').textContent = 'PhantomDeck.js: Mobile Command Hub React Component, Deploy Ready. Notion Auto-Exporter: NoteBookLM Source Downloader, Deploy Ready. Both from the review tray in the 3:28:51 PM screenshot.';
+    });
+
+    draw();
+});
+</script>
+</body>
+</html>
