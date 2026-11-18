@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appliance ROI Calculator - Neuruh</title>
+<style>
+:root{--paper:#f7f4ec;--ink:#1c1a16;--muted:#6b6455;--brass:#9a7b2d;--line:#ddd5c2;--card:#fffdf7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;line-height:1.55}
+header{border-bottom:3px solid var(--brass);padding:28px 20px 18px;max-width:860px;margin:0 auto}
+header .kicker{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-size:30px;margin:8px 0 4px;line-height:1.2}
+.sub{color:var(--muted);max-width:640px}
+main{max-width:860px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);padding:20px;margin:16px 0}
+h2{font-size:19px;margin:0 0 10px}
+label{display:block;font-family:ui-monospace,Menlo,monospace;font-size:13px;margin:14px 0 4px}
+input[type=number]{width:100%;padding:10px;font-size:17px;border:1px solid var(--line);background:#fff;font-family:ui-monospace,Menlo,monospace}
+button{background:var(--brass);color:#fff;border:0;padding:12px 22px;font-size:16px;cursor:pointer;margin-top:16px}
+button:hover{opacity:.9}
+#score{font-size:44px;font-weight:bold;color:var(--brass);margin:10px 0 0}
+#verdict{font-size:17px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+th{background:#f1ebdb}
+.note{font-size:13px;color:var(--muted)}
+code{background:#f1ebdb;padding:1px 5px}
+footer{max-width:860px;margin:0 auto;padding:10px 20px 34px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">Neuruh Builds - Home Improvement - Demo</div>
+<h1>Appliance ROI Calculator</h1>
+<p class="sub">Scores a kitchen appliance on the ROI formula from the source module: use frequency, time saved, batch prep, annual savings, and repair cost against lifespan. Built for the KitchenGPT Appliance_ROI_Analyzer logic layer.</p>
+</header>
+<main>
+<div class="card">
+<h2>Calculator</h2>
+<label for="uses">Monthly use frequency (uses per month)</label>
+<input id="uses" type="number" min="0" step="1" value="16">
+<label for="time">Time saved per use (%)</label>
+<input id="time" type="number" min="0" max="100" step="1" value="40">
+<label for="batch">Batch prep score (1-10)</label>
+<input id="batch" type="number" min="1" max="10" step="1" value="8">
+<label for="servings">Max servings per use</label>
+<input id="servings" type="number" min="1" step="1" value="6">
+<label for="savings">Estimated annual savings in utilities or groceries ($)</label>
+<input id="savings" type="number" min="0" step="1" value="120">
+<label for="repair">Average repair / replacement cost ($)</label>
+<input id="repair" type="number" min="0" step="1" value="90">
+<label for="life">Lifespan (years)</label>
+<input id="life" type="number" min="1" step="1" value="6">
+<button id="calc" type="button">Calculate ROI score</button>
+<div id="out" aria-live="polite"></div>
+</div>
+<div class="card">
+<h2>Source formula</h2>
+<p><code>ROI Score = (Monthly Use Frequency x Time Saved %) + (Batch Prep Score x Max Servings per Use) + (Estimated Annual Savings) - (Avg Repair/Replacement Cost / Lifespan)</code></p>
+<p>Normalized to a scale of 1-10 in the source.</p>
+<p class="note">Normalization note: the source states scores are normalized to 1-10 but gives no normalization constants, so the source's table scores (9.4, 9.2, and so on) cannot be reproduced from the formula as written. This demo therefore reports the raw score and bands it on the raw scale (150+ excellent, 100-150 strong, 50-100 moderate, under 50 weak). Those bands are a demo interpretation, stated here, and the demo does not claim to reproduce the source's 1-10 scores.</p>
+</div>
+<div class="card">
+<h2>Source ROI table (source scores, reproduced as source claims)</h2>
+<table>
+<tr><th>Appliance</th><th>ROI score</th><th>Max weekly use</th><th>Batch prep fit</th><th>Energy efficiency</th><th>Best for</th></tr>
+<tr><td>Instant Pot 6qt</td><td>9.4</td><td>4-6 uses</td><td>Excellent</td><td>High</td><td>Families, busy schedules</td></tr>
+<tr><td>Ninja Foodi Air Fryer Oven</td><td>9.2</td><td>4+</td><td>Good</td><td>Excellent</td><td>Apartment dwellers, reheat champs</td></tr>
+<tr><td>Midea Chest Freezer (5 cu ft)</td><td>9.1</td><td>1-2</td><td>Indirect (storage)</td><td>Excellent</td><td>Bulk meat buyers, hunters</td></tr>
+<tr><td>Cuisinart 13-Cup Food Processor</td><td>8.7</td><td>2-3</td><td>Good</td><td>Not applicable (non-heated)</td><td>High-volume cookers</td></tr>
+<tr><td>Breville Smart Oven</td><td>8.4</td><td>3-5</td><td>Moderate</td><td>Good</td><td>Daily heat-and-eat users</td></tr>
+<tr><td>Hamilton Beach Deep Fryer</td><td>6.8</td><td>1</td><td>Poor</td><td>Poor</td><td>Rare use, low savings</td></tr>
+</table>
+<p class="note">Table scores are the source's own figures. They are source claims, not independently verified measurements.</p>
+</div>
+<div class="card">
+<h2>Source recommendation matrix (budget paths)</h2>
+<table>
+<tr><th>Budget</th><th>Recommendation path</th></tr>
+<tr><td>Under $100</td><td>Start with 6qt Instant Pot or air fryer</td></tr>
+<tr><td>$100-$200</td><td>Add processor or mid-range freezer</td></tr>
+<tr><td>$200-$500</td><td>Combo: Pressure Cooker + Air Fryer Oven + Small Deep Freezer</td></tr>
+<tr><td>Over $500</td><td>Add smart integrations + multi-function devices</td></tr>
+</table>
+<p class="note">Source: "APPLIANCE_ROI_ANALYSIS", Google Drive, Neuruh Builds / Home Improvement, modified 2025-04-20. Agent module: Appliance_ROI_Analyzer. State: DESIGNED demo, not a purchasing service. No data leaves the browser.</p>
+</div>
+</main>
+<footer>Neuruh - AI That Executes. Demo built from the Drive source in slice-05-builds-b. Formula and tables are the source's own content, reproduced in full.</footer>
+<script>
+function num(id){var v=parseFloat(document.getElementById(id).value);return isNaN(v)?0:v;}
+function calc(){
+  var uses=num('uses'),time=num('time'),batch=num('batch'),serv=num('servings'),
+      sav=num('savings'),rep=num('repair'),life=num('life')||1;
+  var raw=(uses*(time/100))+(batch*serv)+sav-(rep/life);
+  var verdict=raw>=150?'Excellent ROI. Function over flash: this appliance earns its counter space.':
+    raw>=100?'Strong ROI. A solid buy for the stated use pattern.':
+    raw>=50?'Moderate ROI. Worth it only if the use pattern holds.':
+    'Weak ROI. Rare use and low savings: skip unless a specific need demands it.';
+  document.getElementById('out').innerHTML=
+    '<div id="score">'+raw.toFixed(1)+' raw</div>'+
+    '<p id="verdict">'+verdict+'</p>'+
+    '<p class="note">Breakdown: uses x time saved fraction = '+(uses*(time/100)).toFixed(1)+
+    ', batch x servings = '+(batch*serv).toFixed(1)+
+    ', annual savings = '+sav.toFixed(0)+
+    ', repair/lifespan = '+(rep/life).toFixed(1)+'. Bands (150+ / 100+ / 50+ / under 50) are demo bands on the raw scale. The source gives no normalization constants, so no 1-10 score is shown.</p>';
+}
+document.getElementById('calc').addEventListener('click',calc);
+calc();
+</script>
+</body>
+</html>
