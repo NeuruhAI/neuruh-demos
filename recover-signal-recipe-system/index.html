@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recover Signal Recipe System: Signal-Opportunity Core</title>
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --ink-soft:#4a463d;
+  --brass:#9a7b2d; --brass-light:#c9a227; --line:#d8d2c4; --code-bg:#efece3;
+  --green:#2e6b3a; --amber:#8a6d1b; --red:#8a2f26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.25;margin:0 0 .5em}
+p{margin:0 0 .9em}
+a{color:var(--brass)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+code{font-size:.88em}
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#f4f1ea;display:flex;align-items:center;gap:16px;padding:10px 20px;font-size:13px;flex-wrap:wrap}
+.topbar .mark{font-family:Archivo,sans-serif;font-weight:700;letter-spacing:.12em;color:var(--brass-light)}
+.topbar a{color:#f4f1ea;text-decoration:none;border-bottom:1px solid transparent}
+.topbar a:hover{border-bottom-color:var(--brass-light)}
+.topbar .spacer{flex:1}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 20px 60px}
+.dochead{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--brass);padding:22px 24px;margin-bottom:20px}
+.dochead .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+.dochead h1{font-size:30px;margin-bottom:8px}
+.dochead .sub{color:var(--ink-soft);font-size:15px}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.meta-grid div{background:var(--paper);padding:10px 12px;font-size:13px}
+.meta-grid .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:2px}
+.banner{border:2px solid var(--brass);background:#fdf6dd;padding:16px 20px;margin-bottom:24px}
+.banner h2{font-size:16px;color:var(--ink);margin-bottom:6px}
+.banner p{font-size:14px;margin-bottom:.5em}
+.banner ul{margin:.2em 0 .4em 1.2em;font-size:14px}
+.banner li{margin-bottom:.25em}
+.contents{background:var(--paper);border:1px solid var(--line);padding:16px 20px;margin-bottom:28px}
+.contents h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+.contents ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+.contents li{margin-bottom:4px;font-size:14px}
+.contents a{text-decoration:none;color:var(--ink)}
+.contents a:hover{color:var(--brass);text-decoration:underline}
+section{margin-bottom:36px}
+.fig{background:var(--paper);border:1px solid var(--line);padding:20px 22px}
+.fig .fignum{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:4px}
+.fig h2{font-size:22px}
+.fig h3{font-size:16px;margin-top:18px}
+.figcap{font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:16px;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-family:Archivo,sans-serif;font-size:13px}
+tbody tr:nth-child(even){background:#f7f4ec}
+.pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass);margin-right:6px}
+.pill.solid{background:var(--brass);color:#fff}
+.pill.green{border-color:var(--green);color:var(--green)}
+.pill.amber{border-color:var(--amber);color:var(--amber)}
+.pill.red{border-color:var(--red);color:var(--red)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:14px 0}
+.flow .step{flex:1 1 140px;background:var(--code-bg);border:1px solid var(--line);padding:10px 12px;font-size:13px;text-align:center;font-weight:600}
+.flow .arrow{align-self:center;padding:0 6px;color:var(--brass);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);background:var(--bone);padding:14px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--ink-soft)}
+.card.active{border-color:var(--brass);border-width:2px;background:var(--paper)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{font-family:Inter,sans-serif;font-size:13px;padding:8px 14px;border:1px solid var(--brass);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:4px}
+button:hover{background:var(--code-bg)}
+button.on{background:var(--brass);color:#fff;border-color:var(--brass)}
+.panel{border:1px solid var(--line);background:var(--paper);padding:14px 16px;margin-top:8px;font-size:14px}
+.panel h4{font-size:15px;margin-bottom:4px}
+.hidden{display:none}
+.famgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:12px 0}
+.famgrid button{padding:10px 4px;font-size:13px}
+details{border:1px solid var(--line);background:var(--paper);margin-bottom:8px}
+details summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ ";color:var(--brass);font-weight:700}
+details[open] summary::before{content:"- ";color:var(--brass)}
+details .body{padding:0 14px 12px;font-size:14px;color:var(--ink-soft)}
+details .body p{margin-bottom:.5em}
+.secnum{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:12px;margin-right:8px}
+ol.tight{columns:2;column-gap:28px;font-size:13px;padding-left:22px}
+ol.tight li{margin-bottom:5px;break-inside:avoid}
+ol.tight.single{columns:1}
+input[type="text"]{font-family:Inter,sans-serif;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;width:100%;max-width:420px;background:var(--paper)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.tabs button{padding:6px 10px;font-size:12px}
+.turnpanel{border:1px solid var(--line);background:var(--paper);padding:16px 18px;font-size:14px}
+.turnpanel .who{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+blockquote{border-left:3px solid var(--brass);margin:10px 0;padding:4px 0 4px 14px;color:var(--ink-soft);font-style:italic}
+.note{font-size:13px;color:var(--ink-soft)}
+.callout{background:var(--code-bg);border-left:4px solid var(--brass);padding:12px 16px;margin:14px 0;font-size:14px}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:16px;font-size:13px;color:var(--ink-soft)}
+@media (max-width:760px){
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .cards{grid-template-columns:1fr}
+  .famgrid{grid-template-columns:repeat(3,1fr)}
+  .contents ol{columns:1}
+  ol.tight{columns:1}
+  .dochead h1{font-size:24px}
+}
+@media print{
+  .topbar,.btnrow,.tabs,input[type="text"]{display:none}
+  body{background:#fff}
+  .fig,.dochead,.banner,.contents{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="mark">NEURUH</span>
+  <span>Recover Signal Recipe System</span>
+  <span class="spacer"></span>
+  <a href="#contents">Contents</a>
+  <a href="#fig1">Codex</a>
+  <a href="#fig8">Conversation</a>
+  <a href="#fidelity">Fidelity</a>
+</div>
+<div class="wrap">
+
+<div class="dochead">
+  <div class="kicker">Document Control: Interactive Page 11</div>
+  <h1>Recover Signal Recipe System</h1>
+  <p class="sub">The Signal-Opportunity Core: a universal signal, ingredient, recipe, search and opportunity compilation system. Master Architecture V2, 500+ recipes with open-ended composition.</p>
+  <div class="meta-grid">
+    <div><span class="k">Source conversation</span><a href="https://chatgpt.com/share/6afd8f7b-d3a8-83ea-bd77-085df83661dc">chatgpt.com/share/6afd8f7b</a></div>
+    <div><span class="k">Page date</span>Not shown in the saved report</div>
+    <div><span class="k">Read</span>2026-11-18, live browser</div>
+    <div><span class="k">Turns</span>6 user, 5 assistant (11 messages)</div>
+    <div><span class="k">Verbatim filing</span>drive-pull/recover-signal-recipe-system.md<br>141,064 bytes, 620 lines</div>
+    <div><span class="k">State</span><span class="pill solid">Architecture</span> Not a built system</div>
+  </div>
+</div>
+
+<div class="banner">
+  <h2>Read this first: what this is and what it is not</h2>
+  <p>This page presents an architecture from a conversation, not a built system. Nothing on this page executes a search, runs a recipe, or touches a live database.</p>
+  <ul>
+    <li><strong>500 recipes do not exist.</strong> What exists is 30 canonical recipes plus 36 live registry rows. The 500+ library is a proposed curated library, and infinite composition is a proposed governed capability.</li>
+    <li><strong>Donor tools are named, not verified.</strong> DirtHunter, StormStack, House Agent, Estate Sale Prediction, Hidden Equity Extractor, TitleTrace, Probate Miner, ListPredict, Equity Sniper, OffMarketeer, Municipal Lead Machine and Contact Intelligence are named in the conversation. Their existence, code, and state were not verified here.</li>
+    <li><strong>The Kimi build did not happen.</strong> The conversation ends with a handoff to Kimi, then a pivot to a Claude terminal prompt because Kimi was busy. No build from either handoff is on record in this filing.</li>
+    <li><strong>Record only.</strong> The conversation contains build directives and a Claude terminal prompt. They are filed and presented as record only. Nothing on this page acts on them.</li>
+    <li><strong>Two user prompts are only partly captured.</strong> The 500-recipes prompt and the "JUST WANT THIS EXACTLY WHATS FUCKING PROPOSED BUILT" prompt were visible in full only in part or in the page navigation panel. Their full text is not in the filing, and this page does not reconstruct it.</li>
+    <li><strong>Long lines are shown truncated.</strong> Inside the three large code blocks, the browser view cut long lines and they appear with "..." or "[...]" exactly as in the report. Missing characters were not reconstructed.</li>
+    <li><strong>The 30 recipes are not named individually here.</strong> The conversation does not list the 30 canonical recipes by name. The codex requires each to receive a maturity status, but no roster is presented because the source does not give one.</li>
+  </ul>
+</div>
+
+<div class="contents" id="contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#fig1">Figure 1: The 30 to 500 to Infinite model</a></li>
+    <li><a href="#fig2">Figure 2: Mode A prebuilt vs Mode B composable</a></li>
+    <li><a href="#fig3">Figure 3: Ingredient families A to K</a></li>
+    <li><a href="#fig4">Figure 4: The compilation pipeline</a></li>
+    <li><a href="#fig5">Figure 5: Score vector and recipe maturity</a></li>
+    <li><a href="#fig6">Figure 6: The 55-section master codex</a></li>
+    <li><a href="#fig7">Figure 7: Donor tools and the 500-recipe library</a></li>
+    <li><a href="#fig8">Figure 8: The conversation in order</a></li>
+    <li><a href="#fig9">Figure 9: The final Claude prompt, sections 1 to 256</a></li>
+    <li><a href="#ruling">The final architectural ruling</a></li>
+    <li><a href="#fidelity">Fidelity register</a></li>
+  </ol>
+</div>
+
+<section class="fig" id="fig1">
+  <div class="fignum">Figure 1</div>
+  <h2>The 30 to 500 to Infinite model</h2>
+  <p>The correction that reshaped the whole conversation. The assistant's second pass changed the architecture materially: 30 is not the ceiling, 30 is the current prebuilt menu. Click a layer to read what it means.</p>
+  <div class="btnrow" id="layerBtns">
+    <button data-layer="l30" class="on">Layer 1: The 30</button>
+    <button data-layer="l500">Layer 2: The 500</button>
+    <button data-layer="linf">Layer 3: Infinite composition</button>
+  </div>
+  <div class="panel" id="l30">
+    <h4>Layer 1: The 30 canonical recipes</h4>
+    <p>The existing 30 canonical real-estate recipes remain. They are the prebuilt, known strategies. They are not the architecture. They are the initial menu. Each must have: recipe_id, name, purpose, target_object, required_ingredients, optional_ingredients, required_signals, boosts, and more. No recipe is allowed to be represented merely as "filter A + filter B". It is a strategy contract.</p>
+    <p class="note">Three-layer system, Layer 1: Canonical Recipes, human-approved. Examples named in the codex: Tax Pressure + Equity; Open Probate + Property; Estate Sale to Property; Long Hold High Equity; Assemblage, and more.</p>
+  </div>
+  <div class="panel hidden" id="l500">
+    <h4>Layer 2: The 500+ curated recipe library</h4>
+    <p>The system should maintain a 500+ curated Recipe Library. The first 500 should be deliberately authored from: the existing 30 canonical recipes; REI-X lineage; LandOS; Signal-IQ lineage; DirtHunter; StormStack; House Agent; Estate Sale Prediction; Hidden Equity Extractor; TitleTrace; Probate Miner; ListPredict; Equity Sniper; OffMarketeer; Municipal Lead Machine; Contact Intelligence; valuation and comps work; tax-sale work; field-pin work; county adapter work; physical-world signals; commercial real estate; land development; automotive; resale; equipment; business acquisition; market intelligence; demand signals; geographic overlays; temporal patterns; anomaly detection; relationship graphs; outcome history.</p>
+    <p class="note">The 500 are not 500 copies of the same real-estate recipe. They are a structured library spanning verticals and strategy families. Seed allocations are in Figure 7.</p>
+  </div>
+  <div class="panel hidden" id="linf">
+    <h4>Layer 3: Infinite composition, governed</h4>
+    <p>The 500 recipes are not the upper limit. The system must support INGREDIENTS x SIGNALS x RELATIONSHIPS x TERRITORIES x TIME WINDOWS x ECONOMIC OBJECTIVES x STRATEGIES to generate candidate recipes. A generated recipe must pass: schema validation, ingredient compatibility, source feasibility, evidence feasibility, territory compatibility, and more. Only then may it become executable.</p>
+    <p class="note">Three-layer system, Layer 3: Experimental Recipes, generated by the system for exploration. These cannot silently become production recipes. They enter: PROPOSED to SIMULATED to BACKTESTED to SHADOW to QUALIFIED to APPROVED to PRODUCTION.</p>
+  </div>
+  <div class="figcap">Figure 1: The hierarchy from the codex, section 1. The old "30 recipes" framing was the error; the proper hierarchy is 30 as the seed menu, 500 as the curated library, and governed composition beyond that.</div>
+</section>
+
+<section class="fig" id="fig2">
+  <div class="fignum">Figure 2</div>
+  <h2>Mode A prebuilt vs Mode B composable</h2>
+  <p>The product has two fundamental modes. The first provides speed. The second provides the moat. Use the toggle to compare them.</p>
+  <div class="btnrow">
+    <button id="btnA" class="on">Mode A: Prebuilt recipes</button>
+    <button id="btnB">Mode B: Composable / generated recipes</button>
+    <button id="btnBoth">Both, side by side</button>
+  </div>
+  <div id="modeA" class="panel">
+    <h4>Mode A: Prebuilt recipes</h4>
+    <p>The 30 canonical recipes, ready to run. Known strategies, human-approved, with fixed ingredients, signals, and sources. Speed is the point: an operator picks a proven strategy and runs it. The 30 are the initial menu, not the architecture.</p>
+  </div>
+  <div id="modeB" class="panel hidden">
+    <h4>Mode B: Composable / generated recipes</h4>
+    <p>The Recipe Composer generates new recipes from ingredients, subject to evidence, compatibility, and governance checks. This is the moat: the system can produce strategies nobody wrote by hand, from reusable primitives. Generated recipes begin as PROPOSED and must pass validation, simulation, backtesting, and shadow runs before they can become production recipes.</p>
+  </div>
+  <table id="modeTable" class="hidden">
+    <thead><tr><th></th><th>Mode A: Prebuilt</th><th>Mode B: Composable</th></tr></thead>
+    <tbody>
+      <tr><td>What it is</td><td>30 canonical recipes, fixed and known</td><td>Composer generates new recipes from ingredients</td></tr>
+      <tr><td>Strength</td><td>Speed, proven strategies</td><td>The moat: unbounded strategy space</td></tr>
+      <tr><td>Risk control</td><td>Human-approved, strategy contracts</td><td>Governed gates: validation, simulation, backtest, shadow, approval</td></tr>
+      <tr><td>Where it lives</td><td>Layer 1 of the three-layer recipe system</td><td>Layers 2 and 3: Derived and Experimental</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Figure 2: The two modes from the codex executive ruling, section 0. Mode B is explicitly named as the moat; Mode A is explicitly named as the speed layer.</div>
+</section>
+
+<section class="fig" id="fig3">
+  <div class="fignum">Figure 3</div>
+  <h2>Ingredient families A to K</h2>
+  <p>An ingredient is not simply "a field." An ingredient is a reusable intelligence capability. Every ingredient must declare: id, name, family, description, inputs, outputs, prerequisites, source, and more. The registry must be substantially larger than the original taxonomy. Click a family to read what it covers.</p>
+  <div class="famgrid" id="famBtns">
+    <button data-fam="famA" class="on">A. Source</button>
+    <button data-fam="famB">B. Observation</button>
+    <button data-fam="famC">C. Identity</button>
+    <button data-fam="famD">D. Enrichment</button>
+    <button data-fam="famE">E. Derivation</button>
+    <button data-fam="famF">F. Reasoning</button>
+    <button data-fam="famG">G. Contact</button>
+    <button data-fam="famH">H. Economic</button>
+    <button data-fam="famI">I. Temporal</button>
+    <button data-fam="famJ">J. Geospatial</button>
+    <button data-fam="famK">K. Physical-world</button>
+  </div>
+  <div class="panel" id="famA">
+    <h4>A. Source ingredients</h4>
+    <p>County assessor, parcel GIS, tax records, probate, court, code enforcement, permit, recorder, auction, estate, and more. These are the adapters that bring raw public records into the canonical model.</p>
+  </div>
+  <div class="panel hidden" id="famB">
+    <h4>B. Observation ingredients</h4>
+    <p>Sale, listing, price change, tax event, probate event, death event, estate event, auction, permit, code violation, and more. Observations are what happened, recorded as events the system can reason over.</p>
+  </div>
+  <div class="panel hidden" id="famC">
+    <h4>C. Identity ingredients</h4>
+    <p>Person resolution, parcel resolution, address resolution, entity resolution, company resolution, estate resolution, and more. Identity answers the question: are these records about the same person, parcel, or entity? Never silently merge uncertain identities.</p>
+  </div>
+  <div class="panel hidden" id="famD">
+    <h4>D. Enrichment ingredients</h4>
+    <p>Owner tenure, structure age, equity estimate, debt estimate, market value, replacement cost, rent estimate, and more. Enrichment turns a bare record into a usable fact about the object.</p>
+  </div>
+  <div class="panel hidden" id="famE">
+    <h4>E. Derivation ingredients</h4>
+    <p>Long-hold, high-equity, free-and-clear candidate, under-improved, over-improved, distress, succession, transition, and more. Derivations are computed conditions, kept distinct from observed facts.</p>
+  </div>
+  <div class="panel hidden" id="famF">
+    <h4>F. Reasoning ingredients</h4>
+    <p>Comparables, valuation, scenario model, risk model, probability model, expected-value model, information-gain, and more. Reasoning ingredients model what a fact means, not just what it is.</p>
+  </div>
+  <div class="panel hidden" id="famG">
+    <h4>G. Contact ingredients</h4>
+    <p>Contact discovery, contact verification, relationship discovery, authority verification, business relations, and more. Contactability is first-class: finding the right person through the right authority matters as much as finding the property.</p>
+  </div>
+  <div class="panel hidden" id="famH">
+    <h4>H. Economic ingredients</h4>
+    <p>ARV, equity, margin, spread, yield, cap rate, cash-on-cash, IRR, replacement cost, land residual, development, and more. Economics are explicit, never buried inside one opaque score.</p>
+  </div>
+  <div class="panel hidden" id="famI">
+    <h4>I. Temporal ingredients</h4>
+    <p>Age, tenure, duration, recency, velocity, frequency, seasonality, sequence, time since event, time to event, event, and more. Time is a first-class dimension: how long, how recently, how often, in what order.</p>
+  </div>
+  <div class="panel hidden" id="famJ">
+    <h4>J. Geospatial ingredients</h4>
+    <p>Distance, adjacency, corridor, frontage, water proximity, road access, parcel shape, assemblage adjacency, geospatial, and more. Place is a first-class dimension: where, next to what, along which corridor.</p>
+  </div>
+  <div class="panel hidden" id="famK">
+    <h4>K. Physical-world ingredients</h4>
+    <p>The major expansion. Estate-sale company detected; auctioneer detected; cleanout activity; moving activity; contractor activity, and more. These become legitimate intelligence inputs. They do not automatically become conclusions. Physical-world signals can reveal transitions before conventional real-estate sources do.</p>
+  </div>
+  <div class="figcap">Figure 3: The eleven ingredient families from codex section 6. Family descriptions are condensed from the filing; where the filing itself truncates a list, this page does not invent the missing entries.</div>
+</section>
+
+<section class="fig" id="fig4">
+  <div class="fignum">Figure 4</div>
+  <h2>The compilation pipeline</h2>
+  <p>The system takes a goal and compiles it into an opportunity. Inputs on the top row, pipeline stages on the bottom row.</p>
+  <div class="flow">
+    <div class="step">GOAL</div><div class="arrow">+</div>
+    <div class="step">OBJECT</div><div class="arrow">+</div>
+    <div class="step">TERRITORY</div><div class="arrow">+</div>
+    <div class="step">CONSTRAINTS</div><div class="arrow">+</div>
+    <div class="step">AVAILABLE INGREDIENTS</div><div class="arrow">+</div>
+    <div class="step">AVAILABLE SOURCES</div><div class="arrow">+</div>
+    <div class="step">ECONOMIC OBJECTIVE</div>
+  </div>
+  <div class="flow">
+    <div class="step">SEARCH STRATEGY</div><div class="arrow">to</div>
+    <div class="step">SOURCE PLAN</div><div class="arrow">to</div>
+    <div class="step">EVIDENCE PLAN</div><div class="arrow">to</div>
+    <div class="step">SIGNAL PLAN</div><div class="arrow">to</div>
+    <div class="step">IDENTITY PLAN</div><div class="arrow">to</div>
+    <div class="step">RECIPE CANDIDATES</div><div class="arrow">to</div>
+    <div class="step">OPPORTUNITY</div>
+  </div>
+  <h3>The natural-language search box is a compiler</h3>
+  <p>The query text box becomes a first-class compiler. The filing gives the example of a user asking for old houses near the St Joseph River where the owner has held it a long time and there are signals of transition. The system parses intent (object: property; territory: St Joseph River corridor; signals: structure age, owner tenure, estate, listing, GIS; probate and estate-sale availability marked as unknown), then compiles the best runnable plan.</p>
+  <p>The text box must explain itself. It should show: "I interpreted your request as: Find: Properties; Geography: St Joseph River corridor; Required: 50+." This prevents silent interpretation errors.</p>
+  <h3>Search UI</h3>
+  <p>Natural language, structured filters (Object, County, City, Distance, Asset class, Age, Owner tenure, Equity, Tax, Probate, Estate, Listing, Zoning, Acreage, and more), presets (Estate Transition, Long Hold, Hidden Equity, Land Assembly, Tax Distress, Storm Recovery, Commercial Repossession), and an advanced recipe builder with WHEN, AND, OR, NOT, BOOST, PENALIZE, REQUIRE, EXCLUDE.</p>
+  <div class="figcap">Figure 4: The compilation model from codex sections 0, 22, 23, and 24. The search box is the human interface to the entire machine, and it must show its interpretation back to the operator.</div>
+</section>
+
+<section class="fig" id="fig5">
+  <div class="fignum">Figure 5</div>
+  <h2>Score vector and recipe maturity</h2>
+  <h3>Never reduce the opportunity to one number</h3>
+  <p>Every candidate gets a score vector, not a single score. A global ranking may exist for a specific operator objective, but the underlying dimensions remain visible.</p>
+  <table>
+    <thead><tr><th>Dimension</th><th>What it measures</th></tr></thead>
+    <tbody>
+      <tr><td>Eligibility</td><td>Does the candidate qualify for this recipe at all?</td></tr>
+      <tr><td>Evidence strength</td><td>How well supported are the claims behind the match?</td></tr>
+      <tr><td>Signal convergence</td><td>How many independent signals point the same way?</td></tr>
+      <tr><td>Economic attractiveness</td><td>What is the economic case, stated explicitly?</td></tr>
+      <tr><td>Actionability</td><td>Can an operator actually act on this now?</td></tr>
+      <tr><td>Contactability</td><td>Can the right party be reached through the right authority?</td></tr>
+    </tbody>
+  </table>
+  <p class="note">No values are shown here because the source assigns none. A score vector with invented numbers would be worse than no vector at all.</p>
+  <h3>Recipe maturity: click a stage</h3>
+  <p>Every recipe gets a maturity state. The 30 existing recipes must each receive this status. The 500 library must never pretend every recipe is production-ready.</p>
+  <div class="btnrow" id="matBtns">
+    <button data-mat="matIdea" class="on">IDEA</button>
+    <button data-mat="matProp">PROPOSED</button>
+    <button data-mat="matSpec">SPECIFIED</button>
+    <button data-mat="matSim">SIMULATED</button>
+    <button data-mat="matBack">BACKTESTED</button>
+    <button data-mat="matShadow">SHADOW</button>
+    <button data-mat="matCounty">COUNTY_VALIDATED</button>
+    <button data-mat="matProd">PRODUCTION</button>
+    <button data-mat="matDeg">DEGRADED</button>
+    <button data-mat="matRet">RETIRED</button>
+  </div>
+  <div class="panel" id="matIdea"><h4>IDEA</h4><p>A named idea for a strategy. No contract yet, no evidence attached. Ideas are recorded, not run.</p></div>
+  <div class="panel hidden" id="matProp"><h4>PROPOSED</h4><p>A written recipe proposal with a contract draft. Generated recipes begin here and cannot silently leave it.</p></div>
+  <div class="panel hidden" id="matSpec"><h4>SPECIFIED</h4><p>The contract is complete: ingredients, signals, sources, constraints, economics, evidence requirements, and scoring are all stated.</p></div>
+  <div class="panel hidden" id="matSim"><h4>SIMULATED</h4><p>The recipe has been simulated against available data to check that it executes, that its sources are reachable, and that its logic holds.</p></div>
+  <div class="panel hidden" id="matBack"><h4>BACKTESTED</h4><p>Where historical data exists, the recipe has been run against it and its results compared with known outcomes.</p></div>
+  <div class="panel hidden" id="matShadow"><h4>SHADOW</h4><p>The recipe runs against live conditions without becoming customer-visible production. Shadow execution captures results, signals, scores, and cost for qualification.</p></div>
+  <div class="panel hidden" id="matCounty"><h4>COUNTY_VALIDATED</h4><p>The recipe has been validated in a real county with real sources, identity joins, historical depth, and freshness checked.</p></div>
+  <div class="panel hidden" id="matProd"><h4>PRODUCTION</h4><p>Approved and running for operators. Promotion requires governed approval; production status is earned, not assumed.</p></div>
+  <div class="panel hidden" id="matDeg"><h4>DEGRADED</h4><p>A production recipe whose sources, coverage, or performance have decayed. It stays visible with its degraded state shown, not silently dropped.</p></div>
+  <div class="panel hidden" id="matRet"><h4>RETIRED</h4><p>Withdrawn from use. Lineage is preserved: the recipe, its versions, and its history remain in the registry.</p></div>
+  <h3>Next-best-evidence engine</h3>
+  <p>Every incomplete candidate asks: what piece of information would most improve the decision? Possible answers: probate lookup, title lookup, tax history, mortgage release, listing status, owner contact, zoning confirmation. Prioritized by expected information gain, cost, latency, availability, reliability, and decision impact.</p>
+  <div class="figcap">Figure 5: The score vector from codex section 35, the maturity states from section 38, and the next-best-evidence engine from section 36. Maturity descriptions are the page's plain reading of the states the codex names; the states themselves are verbatim from the source.</div>
+</section>
+
+<section class="fig" id="fig6">
+  <div class="fignum">Figure 6</div>
+  <h2>The 55-section master codex</h2>
+  <p>NEURUH SIGNAL / OPPORTUNITY CORE: Universal Signal, Ingredient, Recipe, Search and Opportunity Compilation System. Master Architecture V2, 500+ recipes with open-ended composition. Click a section to read it. Where the filing truncates a passage, the text is shown as recorded and the gap is marked.</p>
+
+  <details><summary><span class="secnum">0</span>Executive ruling</summary><div class="body"><p>The system is not a lead scraper, not a property-search application, not a collection of 30 saved filters, not a CRM, not DeedSonar, not LandOS, not FSP. It is a universal opportunity compilation engine. The product has two fundamental modes: Mode A prebuilt recipes, Mode B composable and generated recipes. The first provides speed. The second provides the moat.</p></div></details>
+
+  <details><summary><span class="secnum">1</span>The 30 to 500 to Infinite model</summary><div class="body"><p>The 30 are the prebuilt menu. The 500+ are the curated library, deliberately authored across verticals. Infinite composition generates candidate recipes from ingredients, signals, relationships, territories, time windows, economic objectives, and strategies, gated by schema validation, ingredient compatibility, source feasibility, evidence feasibility, and territory compatibility. The three-layer recipe system: Layer 1 canonical (human-approved), Layer 2 derived (recombined approved ingredients), Layer 3 experimental (PROPOSED to SIMULATED to BACKTESTED to SHADOW to QUALIFIED to APPROVED to PRODUCTION).</p></div></details>
+
+  <details><summary><span class="secnum">5</span>The ingredient is the real moat</summary><div class="body"><p>An ingredient is not simply "a field." An ingredient is a reusable intelligence capability. Every ingredient must declare: id, name, family, description, inputs, outputs, prerequisites, source, and more. The filing truncates the full field list here; the missing entries are not reconstructed.</p></div></details>
+
+  <details><summary><span class="secnum">6</span>Ingredient families A to K</summary><div class="body"><p>Source, Observation, Identity, Enrichment, Derivation, Reasoning, Contact, Economic, Temporal, Geospatial, Physical-world. See Figure 3 for the full family explorer.</p></div></details>
+
+  <details><summary><span class="secnum">7</span>Donor tools are ingredient factories</summary><div class="body"><p>Existing systems such as DirtHunter, StormStack, House Agent, Estate Sale Prediction, Hidden Equity Extractor, TitleTrace, Probate Miner, and more must be decomposed. A donor tool can produce signals, sources, parsers, normalizers, resolvers, enrichers, scorers, economic models, strategies, and query operators. The donor tool itself is preserved as lineage. Its reusable components become canonical ingredients. Example: Hidden Equity Extractor might yield estimated_equity, debt_age, and mortgage_release_gap ingredients. This is how the old work becomes useful without destroying its provenance.</p></div></details>
+
+  <details><summary><span class="secnum">8</span>The donor lineage graph</summary><div class="body"><p>Every ingredient should know where it came from. DirtHunter branches into parcel acquisition, rural land signals, acreage filters, and access signals. Nothing is lost. Nothing gets falsely promoted. Everything becomes composable.</p></div></details>
+
+  <details><summary><span class="secnum">9</span>Signals are not ingredients</summary><div class="body"><p>An ingredient is a capability. A signal is an observation or derived condition. Example: the probate source adapter (ingredient) produces the signal probate_opened = TRUE. The county assessment adapter produces structure_age = 74. The estate-sale detector produces estate_sale_event = TRUE. Then the recipe consumes the signals.</p></div></details>
+
+  <details><summary><span class="secnum">10</span>Signal graph</summary><div class="body"><p>Every signal should carry: id, subject_id, object_id, type (FACT, EVENT, DERIVED, or PREDICTIVE), and value. The existing Signal Ledger work already establishes much of this structure. The filing truncates the full field list here.</p></div></details>
+
+  <details><summary><span class="secnum">11</span>Signal fusion</summary><div class="body"><p>One signal should rarely determine the final opportunity. The engine should support single signal, signal pair, signal cluster, signal sequence, signal convergence, signal contradiction, and signal fusion. Example: old structure + long tenure + estate sale + no active listing + high equity + probate is materially different from old structure alone. The engine records the causal and evidentiary graph instead of collapsing everything into one opaque score.</p></div></details>
+
+  <details><summary><span class="secnum">12</span>Linear signals</summary><div class="body"><p>Signals where magnitude matters continuously: owner tenure of 3, 8, 17, or 42 years; equity of 20%, 45%, or 80%; distance of 0.2, 1.5, or 8 miles; tax delinquency duration. These should not be forced into TRUE or FALSE. They need continuous value, normalization, thresholds, curves, decay, boosts, and penalties.</p></div></details>
+
+  <details><summary><span class="secnum">13</span>Temporal signals</summary><div class="body"><p>More than "event exists." The engine must recognize event age, event sequence, event frequency, event acceleration, event clustering, event recency, and event decay. Example: tax delinquency to probate to estate sale to listing is different from estate sale to no listing. The sequence itself becomes an ingredient.</p></div></details>
+
+  <details><summary><span class="secnum">14</span>Relational signals</summary><div class="body"><p>Signals can exist between objects: property adjacent to property; owner owns multiple parcels; estate owns multiple properties; auction company related to property, and more. The graph should support ENTITY, PROPERTY, PERSON, COMPANY, EVENT, LOCATION, and ASSET with typed relationships.</p></div></details>
+
+  <details><summary><span class="secnum">15</span>Negative signals</summary><div class="body"><p>Explicit negative evidence: active listing; recent arm's-length sale; recent refinance; owner recently updated property; recent major work, and more. Negative evidence should reduce or block recipe membership where appropriate.</p></div></details>
+
+  <details><summary><span class="secnum">16</span>Absence is also data, but only when testable</summary><div class="body"><p>The system must distinguish NO RECORD FOUND from RECORD DOES NOT EXIST and SOURCE WAS NOT SEARCHED and SOURCE FAILED and SOURCE DOES NOT COVER COUNTY. These are separate states. Never convert source failure into a false negative.</p></div></details>
+
+  <details><summary><span class="secnum">17</span>Predictive ingredients</summary><div class="body"><p>Predictions must remain distinct from observed facts. Example: FACT owner tenure = 31 years; FACT property built = 1958; FACT estate sale event = TRUE; FACT probate opened. The model never gets to rewrite the facts.</p></div></details>
+
+  <details><summary><span class="secnum">18</span>JGI / AGI layer</summary><div class="body"><p>JGI and AGI-style reasoning should operate as strategy synthesis and gap resolution, not as an unbounded hallucination engine. It can discover candidate ingredients, identify missing evidence, generate recipe variants, and detect hidden relationships. But all generated artifacts enter PROPOSED before becoming authoritative.</p></div></details>
+
+  <details><summary><span class="secnum">19</span>Autonomous county resolution</summary><div class="body"><p>One of the highest-value capabilities. Suppose Recipe X worked in County A. County B has the same canonical concept but a different field name, different source, different endpoint, and different document format. The autonomous system should detect the source mismatch, identify the missing canonical field, and search the approved source registry. The recipe itself does not change. The adapter changes.</p></div></details>
+
+  <details><summary><span class="secnum">20</span>Source adapter contract</summary><div class="body"><p>Every external tool, API, or source must declare: source_id, provider, endpoint, authentication, rate_limit, cost, coverage, rights, schema, version, freshness. If an external API is required, the recipe explicitly declares it. There is never a hidden dependency.</p></div></details>
+
+  <details><summary><span class="secnum">21</span>External tool execution plan</summary><div class="body"><p>A recipe run produces a plan covering prerequisites, credentials, source availability, source health, and territory. If a provider is unavailable, the result is SOURCE_UNAVAILABLE, not 0 RESULTS.</p></div></details>
+
+  <details><summary><span class="secnum">22</span>Query text box</summary><div class="body"><p>The natural-language search box becomes a first-class compiler. It parses intent, checks available ingredients, and compiles the best runnable plan. See Figure 4.</p></div></details>
+
+  <details><summary><span class="secnum">23</span>The text box must explain itself</summary><div class="body"><p>It should show its interpretation back to the operator: what it is finding, the geography, and the required signals. This prevents silent interpretation errors.</p></div></details>
+
+  <details><summary><span class="secnum">24</span>Search UI</summary><div class="body"><p>Natural language, structured filters, presets, and an advanced recipe builder with WHEN, AND, OR, NOT, BOOST, PENALIZE, REQUIRE, EXCLUDE. See Figure 4.</p></div></details>
+
+  <details><summary><span class="secnum">25</span>500-recipe library structure</summary><div class="body"><p>The first 500 should be organized into families. Real Estate: Residential about 100; Land, Rural, and Development about 75; Commercial about 75; Distress, Legal, and Succession about 50; Property, Condition, and Physical World about 40; Market, Geographic, and Macro about 40; Automotive about 40; Resale and Marketplace about 40; Equipment and Industrial about 20; Business Acquisition about 20. These are seed targets, not permanent limits. See Figure 7.</p></div></details>
+
+  <details><summary><span class="secnum">26</span>Real-estate recipe families</summary><div class="body"><p>The 500-library should include combinations around ownership, tenure, equity, tax, probate, estate, title, liens, mortgage, listing, vacancy, condition, storm, and fire. The filing truncates the full list here.</p></div></details>
+
+  <details><summary><span class="secnum">27</span>LandOS</summary><div class="body"><p>LandOS becomes the real-estate data and spatial execution substrate, not a competing product. Its responsibilities include ingest, normalize, parcel identity, spatial joins, county adapters, property facts, land facts, and geospatial work. The Signal-Opportunity Core consumes those capabilities. LandOS can also consume Core recipes where appropriate. No duplicated truth.</p></div></details>
+  <div class="figcap">Figure 6, part 1 of 2: Codex sections 0 and 1, then 5 through 27. Sections 2, 3, and 4 in the filing are the numbered sub-parts of section 1 (the 500, infinite composition, and the three-layer system), presented in Figure 1.</div>
+</section>
+
+<section class="fig">
+  <div class="fignum">Figure 6, continued</div>
+  <h2>The 55-section master codex, sections 28 to 55</h2>
+
+  <details><summary><span class="secnum">28</span>Ingest</summary><div class="body"><p>Ingest is the source-to-canonical pipeline: RAW to PARSE to NORMALIZE to VALIDATE to IDENTITY to EVIDENCE to STORE to EMIT SIGNAL. It must emit durable receipts.</p></div></details>
+
+  <details><summary><span class="secnum">29</span>DeedSonar integration</summary><div class="body"><p>DeedSonar remains the real-estate execution surface. Do not rebuild it. Do not fork it. Do not replace its existing CRM, acquisition, underwriting, or workflow machinery. Instead: Signal Core to canonical Opportunity to DeedSonar adapter to existing DeedSonar object. Enhancements should be additive.</p></div></details>
+
+  <details><summary><span class="secnum">30</span>DeedSonar must be able to call back</summary><div class="body"><p>DeedSonar should be able to request find_more_like_this, find_adjacent, find_same_recipe, find_same_signal_cluster, and find_related_owner. That makes DeedSonar a client of the intelligence engine rather than a dead-end recipient.</p></div></details>
+
+  <details><summary><span class="secnum">31</span>Find Sell Profit</summary><div class="body"><p>FSP becomes another vertical pack. Same engine, different ontology: asset, listing, seller, market, price, condition, demand, margin, shipping, parts, scarcity, velocity. Recipes become mispriced item, estate liquidation, regional arbitrage, bad listing, poor categorization, parts-value opportunity, and more.</p></div></details>
+
+  <details><summary><span class="secnum">32</span>Automotive</summary><div class="body"><p>Automotive should support VIN, make and model, year, mileage, condition, auction, seller, title, parts value, market value, and regional spread. Recipes: underpriced vehicle, misclassified vehicle, parts arbitrage, auction spread, regional arbitrage, high-equity, and more.</p></div></details>
+
+  <details><summary><span class="secnum">33</span>Commercial</summary><div class="body"><p>Commercial recipes need rent roll, occupancy, lease maturity, tenant concentration, cap rate, NOI, debt, refinance, vacancy, and deferred maintenance. The filing truncates the full list here.</p></div></details>
+
+  <details><summary><span class="secnum">34</span>Opportunity genome</summary><div class="body"><p>Every candidate gets a machine-readable genome: object, identity (parcel, address, owner), signals, and more. The filing truncates the full genome example here.</p></div></details>
+
+  <details><summary><span class="secnum">35</span>Recipe score vector</summary><div class="body"><p>Never reduce the opportunity to one number. Use eligibility, evidence_strength, signal_convergence, economic_attractiveness, actionability, and contactability. A global ranking may exist for a specific operator objective, but the underlying dimensions remain visible. See Figure 5.</p></div></details>
+
+  <details><summary><span class="secnum">36</span>Next-best-evidence engine</summary><div class="body"><p>Every incomplete candidate asks what piece of information would most improve the decision. Possible answers: probate lookup, title lookup, tax history, mortgage release, listing status, owner contact, zoning confirmation. Prioritized by expected information gain, cost, latency, availability, reliability, and decision impact. See Figure 5.</p></div></details>
+
+  <details><summary><span class="secnum">37</span>Outcome learning</summary><div class="body"><p>Every completed opportunity feeds back recipe, ingredients, signals, sources, territory, score, action, result, time, economics, and failure reason. The system learns which signals actually mattered, which sources were wrong, which counties differ, and which combinations worked. No silent mutation. Learning proposes recipe change proposals, ingredient change proposals, source change proposals, and scoring change proposals. Then governed promotion.</p></div></details>
+
+  <details><summary><span class="secnum">38</span>Recipe maturity</summary><div class="body"><p>Every recipe gets a maturity state: IDEA, PROPOSED, SPECIFIED, SIMULATED, BACKTESTED, SHADOW, COUNTY_VALIDATED, PRODUCTION, DEGRADED, RETIRED. The 30 existing recipes must each receive this status. The 500 library must never pretend every recipe is production-ready. See Figure 5.</p></div></details>
+
+  <details><summary><span class="secnum">39</span>Recipe card</summary><div class="body"><p>Every recipe must display name, purpose, target, required signals, optional signals, boosts, negatives, exclusions, ingredients, and sources. The filing truncates the full field list here. This solves the exact issue with the current 30: they become documented, inspectable intelligence assets.</p></div></details>
+
+  <details><summary><span class="secnum">40</span>Recipe differentials</summary><div class="body"><p>If two recipes are nearly identical, the system should know. Example: Recipe A, Long Hold High Equity; Recipe B, Long Hold High Equity + Estate Signal. The system displays: B adds estate_sale, probate, and ownership_transition; B removes pure equity-only qualification. This makes the library manageable even at 500+.</p></div></details>
+
+  <details><summary><span class="secnum">41</span>Recipe graph</summary><div class="body"><p>Recipes themselves become nodes. Recipe A is derived from B, uses ingredient C, improves D, overlaps E, and conflicts with another recipe. This prevents 500 recipes from becoming an unsearchable pile.</p></div></details>
+
+  <details><summary><span class="secnum">42</span>Ingredient graph</summary><div class="body"><p>Same for ingredients. The estate_sale_event ingredient supports Estate Sale to Property and Estate + Tax recipes, and more. This tells us what an ingredient is actually worth.</p></div></details>
+
+  <details><summary><span class="secnum">43</span>Ingredient economics</summary><div class="body"><p>Every ingredient should have acquisition cost, API cost, compute cost, latency, coverage, reliability, maintenance cost, and legal and data-rights cost. This enables recipe optimization. The source gives an example: Recipe A, 12 ingredients, $4.20 per run, 94% coverage; Recipe B, 7 ingredients, $0.81 per run, 89% coverage. Those figures are the source's example, not measured costs. The operator can choose the operating mode.</p></div></details>
+
+  <details><summary><span class="secnum">44</span>Recipe operating modes</summary><div class="body"><p>FAST, CHEAP, BALANCED, DEEP, FORENSIC, AUTONOMOUS. Fast may use fewer sources. Forensic may exhaust every lawful source.</p></div></details>
+
+  <details><summary><span class="secnum">45</span>Search operating modes</summary><div class="body"><p>BROWSE, FILTER, RECIPE, DISCOVERY, INVESTIGATION, MONITOR, AUTONOMOUS.</p></div></details>
+
+  <details><summary><span class="secnum">46</span>Autonomous discovery</summary><div class="body"><p>The system can be asked to find opportunities nobody has thought of. It should inspect installed ingredients, historical outcomes, and current signal clusters, then present new recipe proposals with evidence.</p></div></details>
+
+  <details><summary><span class="secnum">47</span>Cross-vertical transfer</summary><div class="body"><p>A major moat. If a signal pattern works in real estate, long tenure plus transition event plus asset age, the engine can ask whether the same abstract pattern exists elsewhere. Automotive: long ownership plus vehicle age plus estate event. Equipment: long ownership plus equipment age plus business closure. Business: long operation plus owner transition plus property or control transition. The system learns structural patterns, not just domain labels.</p></div></details>
+
+  <details><summary><span class="secnum">48</span>Lineage preservation</summary><div class="body"><p>Every generated thing must know what created it, what sources it, what donor system contributed, what recipe generated it, and what version it is. This is the antidote to AI spaghetti.</p></div></details>
+
+  <details><summary><span class="secnum">49</span>The 100X layer</summary><div class="body"><p>The "100X" system is not simply more recipes. It is 500+ curated recipes plus an unbounded ingredient registry plus a source registry plus a signal graph plus an identity graph, and more. That is the multiplicative system.</p></div></details>
+
+  <details><summary><span class="secnum">50</span>What "Lead Gen God" actually means</summary><div class="body"><p>The system should be able to answer: what are we looking for, why does it qualify, which signals support it, which signals contradict it, and more. The filing truncates the full list here.</p></div></details>
+
+  <details><summary><span class="secnum">51</span>The master topology</summary><div class="body"><p>The filing shows only the start of this section: USER, natural language, and then the text is cut. The topology itself is not fully captured in the filing, and this page does not reconstruct it.</p></div></details>
+
+  <details><summary><span class="secnum">52</span>Canonical repository topology</summary><div class="body"><p>signal-opportunity-core, with constitution, ontology, contracts, QuerySpec, Ingredient, and more. The filing truncates the tree here.</p></div></details>
+
+  <details><summary><span class="secnum">53</span>Non-negotiable integration rule</summary><div class="body"><p>Do not build a replacement for existing systems. LandOS owns ingestion, property, and spatial substrate; Ingest owns raw-source acquisition; Signals own the signal layer. The Signal Core orchestrates capabilities through contracts. It does not absorb every existing subsystem.</p></div></details>
+
+  <details><summary><span class="secnum">54</span>What we are building now</summary><div class="body"><p>The immediate canonical deliverable should therefore be SIGNAL_OPPORTUNITY_CORE_MASTER_SPEC_V2 plus INGREDIENT_REGISTRY_V1, SIGNAL_REGISTRY_V1, RECIPE_REGISTRY_V1, SOURCE_REGISTRY_V1, and TERRITORY_REGISTRY_V1. Then the existing 30 recipes are migrated into the registry. Then donor systems are decomposed. Then the first 500 recipes are authored. Then the autonomous composer becomes capable of generating recipes beyond 500.</p></div></details>
+
+  <details><summary><span class="secnum">55</span>Final architectural ruling</summary><div class="body"><p>One core. One canonical ingredient registry. One canonical signal registry. One evidence model. One identity graph. One opportunity genome. One recipe registry. One query compiler. One execution architecture. 500+ curated recipes. Unbounded generated recipes. Many vertical packs. Many county and source adapters. Many products. One truth substrate. DeedSonar is one consumer. Find Sell Profit is another. LandOS is an underlying real-estate data capability. The old donor tools become reusable intelligence. The 30 known recipes become the first proven menu. The 500 become the library. The ingredient graph enables the infinite layer. And the natural-language search box becomes the human interface to the entire machine. The final objective is not "Find leads." It is: give the system a commercial objective, and have it determine what should be searched, which ingredients to use, and more. See the ruling section below for the key correction that follows this section in the conversation.</p></div></details>
+
+  <div class="callout">
+    <strong>The key correction.</strong> After section 55, the assistant adds a correction to the old "30 recipes" framing: the proper hierarchy is now universal goal to query and intent, with a feedback loop that makes 500 eventually irrelevant. The old tools are not discarded; they become the genetic material of the system. And the change the assistant would make most strongly from its previous answer: do not merely write a master spec and hand it to Kimi. Make the master spec itself machine-addressable. Every ingredient has an ID, every signal has an ID, every recipe has an ID, every donor has lineage, every source has coverage, every county has an adapter state, every recipe has maturity, every external dependency has a contract, every capability has tests, every recipe has limitations, every failure has a resolution path, every generated recipe has provenance, every production claim has a receipt. Then Kimi is not being asked to interpret 1,000 pages of prose. It is being handed a typed intelligence operating system specification. That is how we keep it from building a pretty search box around a pile of bullshit.
+  </div>
+  <div class="figcap">Figure 6, part 2 of 2: Codex sections 28 through 55, plus the key correction that closes the assistant's master codex reply. Section texts are condensed from the filing; where the filing truncates a passage with "...", the truncation is preserved and noted.</div>
+</section>
+
+<section class="fig" id="fig7">
+  <div class="fignum">Figure 7</div>
+  <h2>Donor tools and the 500-recipe library</h2>
+  <h3>Donor tools: named, not verified</h3>
+  <p>Twelve donor tools are named as ingredient factories. The conversation asserts they exist and can be decomposed. No repository, commit, or test was checked in this build. Status is NAMED, not PROVEN.</p>
+  <table>
+    <thead><tr><th>Donor tool</th><th>Named as</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>DirtHunter</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>StormStack</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>House Agent</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>Estate Sale Prediction</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>Hidden Equity Extractor</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>TitleTrace</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>Probate Miner</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>ListPredict</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>Equity Sniper</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>OffMarketeer</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>Municipal Lead Machine</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+      <tr><td>Contact Intelligence</td><td>Donor tool, ingredient factory</td><td><span class="pill amber">Named, not verified</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note">Also named as sources for the 500 library: REI-X lineage, LandOS, Signal-IQ lineage, valuation and comps work, tax-sale work, field-pin work, and county adapter work.</p>
+  <h3>The 500-recipe library: seed allocations</h3>
+  <table>
+    <thead><tr><th>Family</th><th>Seed target</th></tr></thead>
+    <tbody>
+      <tr><td>Real Estate: Residential</td><td>about 100</td></tr>
+      <tr><td>Land / Rural / Development</td><td>about 75</td></tr>
+      <tr><td>Commercial</td><td>about 75</td></tr>
+      <tr><td>Distress / Legal / Succession</td><td>about 50</td></tr>
+      <tr><td>Property / Condition / Physical World</td><td>about 40</td></tr>
+      <tr><td>Market / Geographic / Macro</td><td>about 40</td></tr>
+      <tr><td>Automotive</td><td>about 40</td></tr>
+      <tr><td>Resale / Marketplace</td><td>about 40</td></tr>
+      <tr><td>Equipment / Industrial</td><td>about 20</td></tr>
+      <tr><td>Business Acquisition</td><td>about 20</td></tr>
+      <tr><td><strong>Total</strong></td><td><strong>500</strong></td></tr>
+    </tbody>
+  </table>
+  <p class="note">Seed targets, not permanent limits, and not an inventory. The allocations sum to 500 exactly as the codex states them.</p>
+  <div class="figcap">Figure 7: Donor tools from codex sections 1, 7, and 8, and the library allocations from section 25. Nothing in this figure is a claim that any of these tools or recipes exist in a verified, runnable state.</div>
+</section>
+
+<section class="fig" id="fig8">
+  <div class="fignum">Figure 8</div>
+  <h2>The conversation in order</h2>
+  <p>Eleven messages: 6 from Jeramie, 5 from ChatGPT. The panels below present what each turn said, in order. Short quotations are verbatim from the filing; longer passages are condensed from it. The verbatim record is the filing itself. Click a turn to read it.</p>
+  <div class="tabs" id="turnTabs">
+    <button data-turn="t1" class="on">T1 User</button>
+    <button data-turn="t2">T2 User</button>
+    <button data-turn="t3">T3 Assistant</button>
+    <button data-turn="t4">T4 User</button>
+    <button data-turn="t5">T5 Assistant</button>
+    <button data-turn="t6">T6 User</button>
+    <button data-turn="t7">T7 Assistant</button>
+    <button data-turn="t8">T8 User</button>
+    <button data-turn="t9">T9 Assistant</button>
+    <button data-turn="t10">T10 User</button>
+    <button data-turn="t11">T11 Assistant</button>
+  </div>
+
+  <div class="turnpanel" id="t1">
+    <div class="who">Turn 1: User</div>
+    <p>Go find the topology and all of the highest-tier recipe, signal, and lead generation work. Hundreds and thousands of things, examples, and issues with building them. Find how signals are structured to take ingredients to build recipes for certain types of searches. National. Each county may be different, but what is learned can be borrowed and reapplied.</p>
+    <p>It needs to be its own separate thing, repurposed into Find Sell Profit, and it must plug into DeedSonar and work perfectly. It also needs to work as its own thing. Searchable and filterable like a regular search for eBay. Find physical signals like estate sale companies and auctions to try to get houses. Prediction around older people and older houses and their certain age. Take it all to Kimi and have it build the tooling side so the work does not get sandbagged.</p>
+  </div>
+  <div class="turnpanel hidden" id="t2">
+    <div class="who">Turn 2: User: partly captured</div>
+    <p>The 30 canonical recipes are real. Jeramie wants 500. He wants base ingredients and to allow infinite creation. Apply JGI and AGI and anything else to make this the 100X thing nobody has. Donor tools named: DirtHunter, StormStack, House Agent, Estate Sale Prediction, Hidden Equity Extractor, TitleTrace.</p>
+    <p class="note">Fidelity: this prompt continues past a "Show more" expansion on the page. The navigation panel shows it truncated as "THE 30 CANONICAL RECIPES ARE REAL I WANT 500. I WANT BASE...". The full expanded text was not captured in the main-flow view, and this page does not reconstruct it.</p>
+  </div>
+  <div class="turnpanel hidden" id="t3">
+    <div class="who">Turn 3: Assistant, worked for 15 seconds</div>
+    <p>The correction: 30 is not the ceiling, 30 is the current prebuilt menu. 500+ is the curated recipe library. The ingredient, signal, and capability graph is effectively open-ended. The Recipe Composer can generate new recipes from those ingredients, subject to evidence, compatibility, and governance checks.</p>
+    <p>Donor tools should not be flattened into recipes. They should be atomized into reusable capabilities, signals, transforms, source adapters, and scoring logic. The existing Lead Recipes Codex already gives the foundation. What was missing was taking that doctrine to its highest form.</p>
+    <p>The reply then delivers the 55-section master codex, presented in full in Figure 6, and closes with the key correction: make the master spec itself machine-addressable, so Kimi is handed a typed intelligence operating system specification rather than 1,000 pages of prose.</p>
+  </div>
+  <div class="turnpanel hidden" id="t4">
+    <div class="who">Turn 4: User</div>
+    <blockquote>ok so now what? paste this into Kimi?</blockquote>
+  </div>
+  <div class="turnpanel hidden" id="t5">
+    <div class="who">Turn 5: Assistant</div>
+    <p>Yes, but not the giant architecture as-is with a simple "build this." The architecture is the master specification. Kimi should receive it as the build authority, but first it must be turned into an implementation handoff Kimi can execute without interpreting the vision incorrectly.</p>
+    <p>Three points: give Kimi the architecture as MASTER_SPEC; explicitly tell Kimi not to rebuild DeedSonar, and to inspect existing systems first and extend them rather than create parallel replacements; give Kimi a phased build order starting with Phase 0, archaeology, an inventory of existing repos, schemas, recipes, signals, tools, APIs, and databases.</p>
+    <p>One addition before sending it: a hard "DO NOT FAKE COMPLETION" contract. Kimi must report states such as IMPLEMENTED, PARTIALLY IMPLEMENTED, STUB, SIMULATED, SHADOW MODE, BLOCKED, and REQUIRES CREDENTIAL, and every recipe, source, and ingredient needs a real status. Otherwise the risk is exactly what the system is trying to eliminate: beautiful architecture that looks finished but is not actually executing.</p>
+    <p>The next artifact should be LEAD_GEN_GOD_MASTER_BUILD_SPEC_V1, with 37 sections: 1 Mission, 2 Non-negotiable principles, 3 Existing-system preservation rules, 4 Canonical architecture, 5 Ontology, 6 Ingredient contract, 7 Signal contract, 8 Evidence contract, 9 Identity contract, 10 Opportunity Genome, 11 Recipe contract, 12 30 existing recipes, 13 500-recipe seed taxonomy, 14 Donor-tool decomposition rules, 15 National/county adapter architecture, 16 Source/API registry, 17 Query compiler, 18 Natural-language search, 19 Scoring, 20 Next-Best-Evidence, 21 Outcome learning, 22 JGI/AGI reasoning layer, 23 DeedSonar integration, 24 LandOS integration, 25 FSP, automotive, and commercial verticals, 26 UI requirements, 27 Database and schema requirements, 28 API contracts, 29 Testing and validation, 30 Migration strategy, 31 Security and governance, 32 Execution phases, 33 Acceptance tests, 34 Definition of done, 35 Known existing gaps, 36 Explicit anti-patterns, 37 Kimi's required first actions. The last section should tell Kimi: do not begin by writing code. First inventory the existing system and produce an implementation map.</p>
+  </div>
+  <div class="turnpanel hidden" id="t6">
+    <div class="who">Turn 6: User: partly captured</div>
+    <blockquote>JUST WANT THIS EXACTLY WHATS FUCKING PROPOSED BUILT. YOU ...</blockquote>
+    <p class="note">Fidelity: this prompt appears in the page navigation as "JUST WANT THIS EXACTLY WHATS FUCKING PROPOSED BUILT. YOU ...". Its full text was not rendered as a separate message in the main flow the report could read. The continuation beyond its first lines was not readable in the views obtained. This page shows only what the filing shows.</p>
+  </div>
+  <div class="turnpanel hidden" id="t7">
+    <div class="who">Turn 7: Assistant</div>
+    <p>Yes. Then paste it into Kimi. The ask is not to redesign the proposal. The ask is for the proposed system to actually be built, and Kimi is the better tool for carrying that large implementation through the codebase. Use the architecture exactly as proposed. Do not let Kimi reduce it to a toy version, collapse the 500 recipes into "future work," or reinterpret it.</p>
+    <p>The Kimi build directive, with non-negotiables: build the proposed architecture; preserve and enhance existing systems rather than replacing them unnecessarily; do not reduce the system to a demo; do not interpret the existing 30 recipes as a maximum; build the architecture for 500+ curated recipes; build the composition system so new recipes can be generated beyond the curated library; donor tools are reusable intelligence capabilities and must be decomposed into ingredients and signals, not flattened into recipes; do not invent completion; do not replace functioning production components merely because a new implementation is cleaner; inspect existing repositories, databases, schemas, services, recipes, signals, and integrations before modifying; reuse existing canonical work wherever it fits; when something already exists, integrate with it; when something is missing, build it; when something conflicts, identify the conflict and resolve it according to the canonical architecture; every implementation must have real validation; clearly distinguish IMPLEMENTED, PARTIAL, STUB, SIMULATED, SHADOW, BLOCKED, and NOT VALIDATED states.</p>
+    <p>First action: before substantial implementation, perform a complete repository and system archaeology and produce an implementation map covering existing components, databases and schemas, recipes, signals, ingredients and capabilities, donor tools, LandOS functionality, DeedSonar functionality, ingest infrastructure, source adapters, contact intelligence, property intelligence, scoring, search and query infrastructure, UI, APIs, tests, production deployments, gaps, duplicate or conflicting implementations, migration requirements, and dependencies and execution order. Then build the specified architecture into the existing system.</p>
+    <p>Critical acceptance principle: the finished system must be capable of human idea or search to structured intent to ingredient discovery to signal selection to recipe selection or composition, working nationally while allowing county, state, and source-specific adapters and learned transfer. Do not stop at architecture. Build the machinery that makes the architecture execute.</p>
+  </div>
+  <div class="turnpanel hidden" id="t8">
+    <div class="who">Turn 8: User</div>
+    <p>Kimi is busy. Give the full prompt to feed to a Claude terminal so it can run in the local project directory where all the repos and tools and all the existing work are. Do not give a plan. Do not give a spec to read. Give a prompt that tells Claude to inspect the system, recover the work, and build the entire system. Build it. It does not matter how long it is. Make it complete.</p>
+  </div>
+  <div class="turnpanel hidden" id="t9">
+    <div class="who">Turn 9: Assistant</div>
+    <p>Yes. If Kimi is busy, use Claude Terminal now. A single operator prompt that makes Claude inspect the actual machine and repositories first, then build. Paste it as the first instruction in the Claude terminal session, then give it the architecture and spec immediately after.</p>
+    <p>The prompt is LEAD GEN GOD: Claude Terminal Master Execution Prompt, in 59 sections, listed in Figure 9A. It opens with the prime directive (build the system exactly according to the supplied architecture), the do-not-sandbag rule, inspect-before-modifying, recover-existing-work, and the canonicality rule (one canonical system, no parallel Recipe System A and B), then the full core model, signal model, recipe system, 500+ library, composition, natural-language search, JGI and AGI reasoning, LandOS and DeedSonar integration, vertical packs, testing, observability, governance, receipts, execution order in 20 stages, and the final rule: the purpose of the session is not to tell Jeramie how to build it. The purpose is to build it.</p>
+  </div>
+  <div class="turnpanel hidden" id="t10">
+    <div class="who">Turn 10: User</div>
+    <p>Redo the prompt how it was asked, because the assistant surely regressed and sandbagged and did not capture the full depth of what was asked for. The build directive is fine. The prompt needs to be redone exactly as asked. It does not matter how long it is.</p>
+  </div>
+  <div class="turnpanel hidden" id="t11">
+    <div class="who">Turn 11: Assistant, worked for 19 seconds</div>
+    <p>This is the one. Paste it as the entire master instruction to Claude Terminal. It explicitly says inspection is only an internal mechanism for convergence, not an audit project. Build first, converge while building. Inspect enough to determine where the capability already lives, then immediately begin integrating. Desired behavior: discover existing capability, understand it, map it into the canonical system. Not audit to report to plan to wait. There is no waiting stage. There is no permission stage. There is no "what would you like me to do next" stage. Continue executing.</p>
+    <p>The final directive runs sections 1 to 256, listed in full in Figure 9B, and ends with the single line:</p>
+    <blockquote>BUILD IT.</blockquote>
+    <p>It is deliberately redundant on the critical points, because the failure mode being prevented is Claude interpreting a huge specification as a request for a plan. Paste it as the master instruction and let the terminal session work from the actual repositories.</p>
+  </div>
+  <div class="figcap">Figure 8: The conversation in order. Turn counts verified against the filing: 6 user turns, 5 assistant turns. Turns 2 and 6 are flagged as partly captured, exactly as the filing flags them.</div>
+</section>
+
+<section class="fig" id="fig9">
+  <div class="fignum">Figure 9</div>
+  <h2>The final Claude prompt, sections 1 to 256</h2>
+  <p>Two prompts were delivered in this conversation. The first, in Turn 9, runs 59 sections. The second, in Turn 11, is the final master directive and runs 256 sections, ending "BUILD IT." Both are listed below by section title, exactly as recorded in the filing. Where the filing truncates a section's body with "..." or "[...]", the title is shown and the body is not reconstructed. Use the filter box to find a section.</p>
+  <input type="text" id="secFilter" placeholder="Filter sections, for example: county, recipe, governance, DeedSonar">
+  <h3>9A. The first Claude terminal prompt: 59 sections</h3>
+  <ol class="tight" id="list59">
+    <li>Prime directive</li>
+    <li>Do not sandbag</li>
+    <li>First rule: inspect before modifying</li>
+    <li>Recover existing work</li>
+    <li>Canonicality rule</li>
+    <li>The core model</li>
+    <li>Signal model</li>
+    <li>Signal graph</li>
+    <li>Linear signals</li>
+    <li>Temporal intelligence</li>
+    <li>Relational intelligence</li>
+    <li>Evidence</li>
+    <li>Identity</li>
+    <li>Opportunity genome</li>
+    <li>Score vector</li>
+    <li>Next-best-evidence</li>
+    <li>Ingredient economics</li>
+    <li>Source adapters</li>
+    <li>National / county architecture</li>
+    <li>Autonomous county resolution</li>
+    <li>Donor tools</li>
+    <li>Recipes</li>
+    <li>Three recipe classes</li>
+    <li>30 existing recipes</li>
+    <li>500+ curated recipes</li>
+    <li>Recipe composition</li>
+    <li>Recipe graph</li>
+    <li>Ingredient graph</li>
+    <li>Natural language search</li>
+    <li>Search UI</li>
+    <li>Search modes</li>
+    <li>Operating modes</li>
+    <li>JGI / AGI reasoning</li>
+    <li>Outcome learning</li>
+    <li>Cross-vertical transfer</li>
+    <li>LandOS</li>
+    <li>Ingest</li>
+    <li>DeedSonar</li>
+    <li>Find Sell Profit</li>
+    <li>Automotive</li>
+    <li>Commercial</li>
+    <li>Physical-world signals</li>
+    <li>Source / API registry</li>
+    <li>Credentials</li>
+    <li>Database</li>
+    <li>Testing</li>
+    <li>Real data vs synthetic data</li>
+    <li>Observability</li>
+    <li>Governance</li>
+    <li>Receipts</li>
+    <li>File / repository structure</li>
+    <li>Execution order</li>
+    <li>Continuous execution rule</li>
+    <li>Git safety</li>
+    <li>Existing uncommitted work</li>
+    <li>Production safety</li>
+    <li>Definition of done</li>
+    <li>Reporting format</li>
+    <li>Final rule</li>
+  </ol>
+  <h3>9B. The final master directive: 256 sections</h3>
+  <p class="note">Count check: 256 numbered items below. The final section is START NOW, and the directive closes with the line "BUILD IT."</p>
+  <ol class="tight" id="list256">
+    <li>Primary objective</li>
+    <li>The core principle</li>
+    <li>Existing systems are assets</li>
+    <li>No questions</li>
+    <li>Do not sandbag</li>
+    <li>No audit detour</li>
+    <li>Start immediately</li>
+    <li>Recover the existing work</li>
+    <li>Known existing architecture anchors</li>
+    <li>Canonical terminology</li>
+    <li>Ingredient system</li>
+    <li>Ingredient contract</li>
+    <li>Donor tools are ingredient factories</li>
+    <li>Signal system</li>
+    <li>Signal graph</li>
+    <li>Negative signals and absence</li>
+    <li>Linear signals</li>
+    <li>Temporal intelligence</li>
+    <li>Relational intelligence</li>
+    <li>Evidence model</li>
+    <li>Identity resolution</li>
+    <li>Opportunity genome</li>
+    <li>Score vector</li>
+    <li>Next-best-evidence engine</li>
+    <li>Source registry</li>
+    <li>API / tool registry</li>
+    <li>National architecture</li>
+    <li>Autonomous county adaptation</li>
+    <li>Learned territory transfer</li>
+    <li>Recipe system</li>
+    <li>The 30 existing recipes</li>
+    <li>The 30 are the seed, not the limit</li>
+    <li>Minimum 500 curated recipes</li>
+    <li>Residential recipe families</li>
+    <li>Land / rural / development recipes</li>
+    <li>Commercial recipes</li>
+    <li>Distress / legal / succession</li>
+    <li>Property / condition / physical-world</li>
+    <li>Market / geographic / macro</li>
+    <li>Automotive vertical</li>
+    <li>Find Sell Profit vertical</li>
+    <li>Equipment / industrial</li>
+    <li>Business acquisition</li>
+    <li>Cross-vertical transfer</li>
+    <li>Generated recipes</li>
+    <li>Recipe classes</li>
+    <li>Recipe graph</li>
+    <li>Ingredient graph</li>
+    <li>Opportunity generation</li>
+    <li>Natural-language search compiler</li>
+    <li>Search modes</li>
+    <li>Operating modes</li>
+    <li>Standard search / filter UI</li>
+    <li>Search result experience</li>
+    <li>JGI / AGI reasoning layer</li>
+    <li>Autonomous discovery</li>
+    <li>LandOS integration</li>
+    <li>Ingest pipeline</li>
+    <li>DeedSonar integration</li>
+    <li>DeedSonar operator acceptance path</li>
+    <li>DeedSonar preservation rule</li>
+    <li>Existing production data</li>
+    <li>Data migrations</li>
+    <li>Outcome learning</li>
+    <li>Governance</li>
+    <li>Receipts</li>
+    <li>Neuruh organism integration</li>
+    <li>One organism, many bounded worlds</li>
+    <li>Vertical pack architecture</li>
+    <li>Physical-world intelligence</li>
+    <li>Contact intelligence</li>
+    <li>Economic engine</li>
+    <li>Information value</li>
+    <li>Search compilation</li>
+    <li>Query execution</li>
+    <li>Source fallbacks</li>
+    <li>Source health</li>
+    <li>Territory health</li>
+    <li>National coverage</li>
+    <li>Recipe coverage matrix</li>
+    <li>Recipe limitations</li>
+    <li>Recipe differentials</li>
+    <li>Recipe duplication control</li>
+    <li>Recipe simulation</li>
+    <li>Backtesting</li>
+    <li>Shadow mode</li>
+    <li>Experimental learning</li>
+    <li>Autonomous strategy synthesis</li>
+    <li>National learning</li>
+    <li>County learning</li>
+    <li>Search text box as compiler</li>
+    <li>Explainability</li>
+    <li>Failure modes</li>
+    <li>Data provenance</li>
+    <li>No fake data</li>
+    <li>Testing requirements</li>
+    <li>Operator acceptance tests</li>
+    <li>Production vs shadow vs simulation</li>
+    <li>Status truth</li>
+    <li>Git execution</li>
+    <li>Uncommitted existing work</li>
+    <li>Local resource constraints</li>
+    <li>Dependency management</li>
+    <li>Database ownership</li>
+    <li>API design</li>
+    <li>Event / job architecture</li>
+    <li>Live progress</li>
+    <li>Observability</li>
+    <li>Economic cost controls</li>
+    <li>Data rights / privacy</li>
+    <li>Canonical repository topology</li>
+    <li>Canonical ownership</li>
+    <li>Existing work must become reusable</li>
+    <li>Universal opportunity compiler</li>
+    <li>Recipe composition example</li>
+    <li>Signal fusion</li>
+    <li>Contradiction</li>
+    <li>Multi-hypothesis opportunities</li>
+    <li>Marketplace-like search</li>
+    <li>Saved searches / hunts</li>
+    <li>Monitoring</li>
+    <li>Autonomous search</li>
+    <li>National recipe portability</li>
+    <li>Recipe + county matrix</li>
+    <li>Recipe + source matrix</li>
+    <li>Recipe + outcome matrix</li>
+    <li>Learning loop</li>
+    <li>No black box replacement</li>
+    <li>Natural language is not the database</li>
+    <li>Machine-readable contracts</li>
+    <li>Version everything that matters</li>
+    <li>Recovery / replay</li>
+    <li>Durable state</li>
+    <li>No terminal dependency for ordinary users</li>
+    <li>Current existing work is not sacred if broken</li>
+    <li>Convergence over entitlement</li>
+    <li>Anti-duplication rule</li>
+    <li>Implementation priority</li>
+    <li>Continuous execution loop</li>
+    <li>When blocked</li>
+    <li>Credential handling</li>
+    <li>Production execution</li>
+    <li>Existing production migrations</li>
+    <li>Test real integrations</li>
+    <li>Build the 500 library as data + logic</li>
+    <li>Recipe generator must use the real registry</li>
+    <li>Recipe quality</li>
+    <li>Recipe library organization</li>
+    <li>Donor lineage</li>
+    <li>Existing recipe lineage</li>
+    <li>Property intelligence</li>
+    <li>Contact intelligence</li>
+    <li>Physical signal ingest</li>
+    <li>Property / land special cases</li>
+    <li>"Old owner" / tenure intelligence</li>
+    <li>Estate / auction signals</li>
+    <li>Recipe example: transition</li>
+    <li>Recipe example: land</li>
+    <li>Recipe example: automotive</li>
+    <li>Recipe example: resale</li>
+    <li>Recipe example: commercial</li>
+    <li>Search discovery</li>
+    <li>Recipe composer</li>
+    <li>Signal builder</li>
+    <li>Ingredient builder</li>
+    <li>Source adapter builder</li>
+    <li>County adapter builder</li>
+    <li>Opportunity explorer</li>
+    <li>"Find more like this"</li>
+    <li>"Why this opportunity?"</li>
+    <li>"What next?"</li>
+    <li>Outcome capture</li>
+    <li>Learning from failure</li>
+    <li>Source learning</li>
+    <li>Ingredient learning</li>
+    <li>Territory learning</li>
+    <li>Governed calibration</li>
+    <li>Autonomous research</li>
+    <li>Source discovery</li>
+    <li>Schema drift</li>
+    <li>Recipe drift</li>
+    <li>Ingredient drift</li>
+    <li>National core vs local adapter</li>
+    <li>UI / API / database must share the same canonical model</li>
+    <li>Migration strategy</li>
+    <li>Backward compatibility</li>
+    <li>No greenfield rebuild</li>
+    <li>Use the existing codebase as the source of truth</li>
+    <li>Do not regress</li>
+    <li>Final production character</li>
+    <li>The system should be able to invent new searches</li>
+    <li>Effectively unbounded search strategies</li>
+    <li>Curated vs generated</li>
+    <li>Recipe economics</li>
+    <li>Opportunity economics</li>
+    <li>Evidence quality</li>
+    <li>Data freshness</li>
+    <li>Temporal decay</li>
+    <li>Recipe-specific freshness</li>
+    <li>Opportunity deduplication</li>
+    <li>Multi-recipe match</li>
+    <li>Opportunity state</li>
+    <li>Opportunity history</li>
+    <li>Search reproducibility</li>
+    <li>Recipe promotion</li>
+    <li>Do not wait for perfect data</li>
+    <li>Partial opportunities</li>
+    <li>Build for real operators</li>
+    <li>Advanced user mode</li>
+    <li>Internal debug mode</li>
+    <li>No hard-coded county limit</li>
+    <li>No hard-coded recipe limit</li>
+    <li>No hard-coded vertical limit</li>
+    <li>No hard-coded source assumption</li>
+    <li>No hard-coded LLM output</li>
+    <li>Recipe safety / governance</li>
+    <li>Learned knowledge must be traceable</li>
+    <li>Auditability</li>
+    <li>External dependencies</li>
+    <li>Cost awareness</li>
+    <li>Information pipeline optimization</li>
+    <li>Recipe execution plan</li>
+    <li>Adaptive execution</li>
+    <li>Mission continuation</li>
+    <li>Retries</li>
+    <li>Idempotency</li>
+    <li>Data quality</li>
+    <li>Schema validation</li>
+    <li>Source record normalization</li>
+    <li>Address normalization</li>
+    <li>Entity graph</li>
+    <li>Spatial graph</li>
+    <li>Time graph</li>
+    <li>Evidence graph</li>
+    <li>Recipe graph</li>
+    <li>One graph, multiple semantics</li>
+    <li>Search result ranking</li>
+    <li>User-controllable weights</li>
+    <li>Discovery mode</li>
+    <li>Investigation mode</li>
+    <li>Monitor mode</li>
+    <li>Autonomous mode</li>
+    <li>Recipe library discovery</li>
+    <li>Ingredient library discovery</li>
+    <li>Signal library discovery</li>
+    <li>Source library discovery</li>
+    <li>Coverage matrix UI</li>
+    <li>National scale</li>
+    <li>Performance</li>
+    <li>Final principle</li>
+    <li>Final definition of done</li>
+    <li>Required execution behavior</li>
+    <li>Required reporting</li>
+    <li>End-of-session report</li>
+    <li>Important: do not wait for me</li>
+    <li>Start now</li>
+  </ol>
+  <p class="note" id="secCount"></p>
+  <div class="figcap">Figure 9: Section titles from the final two assistant replies. The first prompt (59 sections) and the final directive (256 sections) are both recorded in full in the filing, including the closing line "BUILD IT." Section bodies are in the filing; this page lists the titles so the structure is navigable without reproducing 141,064 bytes of prompt text.</div>
+</section>
+
+<section class="fig" id="ruling">
+  <div class="fignum">Final ruling</div>
+  <h2>One core, one truth substrate</h2>
+  <p>The final architectural ruling, from codex section 55, restated by the assistant in its closing correction:</p>
+  <div class="flow">
+    <div class="step">ONE CORE</div><div class="arrow">to</div>
+    <div class="step">ONE INGREDIENT REGISTRY</div><div class="arrow">to</div>
+    <div class="step">ONE SIGNAL REGISTRY</div><div class="arrow">to</div>
+    <div class="step">ONE EVIDENCE MODEL</div><div class="arrow">to</div>
+    <div class="step">ONE IDENTITY GRAPH</div><div class="arrow">to</div>
+    <div class="step">ONE OPPORTUNITY GENOME</div><div class="arrow">to</div>
+    <div class="step">ONE RECIPE REGISTRY</div><div class="arrow">to</div>
+    <div class="step">ONE QUERY COMPILER</div>
+  </div>
+  <p>500+ curated recipes. Unbounded generated recipes. Many vertical packs. Many county and source adapters. Many products. One truth substrate. DeedSonar is one consumer. Find Sell Profit is another. LandOS is an underlying real-estate data capability. The old donor tools become reusable intelligence. The 30 known recipes become the first proven menu. The 500 become the library. The ingredient graph enables the infinite layer. And the natural-language search box becomes the human interface to the entire machine.</p>
+  <p>The final objective is not "Find leads." It is: give the system a commercial objective, and have it determine what should be searched, which ingredients to use, which signals to watch, and which recipes to compose. And the final instruction of the conversation, in full, is two words:</p>
+  <blockquote>BUILD IT.</blockquote>
+  <div class="figcap">Final ruling: Codex section 55 and the closing of Turn 11. The ruling is architecture. Whether it gets built, and by whom, is a founder decision; this page records the ruling, it does not execute it.</div>
+</section>
+
+<section class="fig" id="fidelity">
+  <div class="fignum">Fidelity register</div>
+  <h2>What is complete, what is partial, what is missing</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Status</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td>Verbatim filing</td><td><span class="pill green">Complete</span></td><td>drive-pull/recover-signal-recipe-system.md, 141,064 bytes, 620 lines, 6 user / 5 assistant turns, zero em dashes, zero en dashes.</td></tr>
+      <tr><td>Final Claude prompt (Turn 11)</td><td><span class="pill green">Complete</span></td><td>Sections 1 to 256 present in full, ending "BUILD IT.", verified against the context file beside the saved report.</td></tr>
+      <tr><td>First Claude prompt (Turn 9)</td><td><span class="pill green">Complete</span></td><td>Sections 1 to 59 present in full in the filing.</td></tr>
+      <tr><td>55-section master codex (Turn 3)</td><td><span class="pill green">Complete</span></td><td>Sections 0 to 55 present; long lines truncated by the browser view are shown with "..." as in the report.</td></tr>
+      <tr><td>Turn 2 user prompt</td><td><span class="pill amber">Partly captured</span></td><td>Visible in full only in part; the page navigation shows it truncated. Full expanded text was not captured in the main-flow view.</td></tr>
+      <tr><td>Turn 6 user prompt</td><td><span class="pill amber">Partly captured</span></td><td>Full text not rendered in the main flow; only the navigation-panel first lines are on record.</td></tr>
+      <tr><td>Long lines in code blocks</td><td><span class="pill amber">Truncated as shown</span></td><td>Long lines inside the three large code blocks were cut by the browser view and appear with "..." or "[...]". Characters were not reconstructed.</td></tr>
+      <tr><td>Page date</td><td><span class="pill amber">Not shown</span></td><td>No page date appears in the saved report; the header says so rather than inventing one.</td></tr>
+      <tr><td>The 30 recipes by name</td><td><span class="pill red">Not in source</span></td><td>The conversation does not name the 30 canonical recipes individually. No roster is presented on this page.</td></tr>
+      <tr><td>Any built system</td><td><span class="pill red">Not built</span></td><td>No Signal Core, registry, composer, or recipe library is claimed as built anywhere on this page.</td></tr>
+      <tr><td>Donor tool verification</td><td><span class="pill red">Not verified</span></td><td>Twelve donor tools are named in the conversation. None was verified against a repository in this build.</td></tr>
+      <tr><td>Kimi build</td><td><span class="pill red">Did not happen</span></td><td>Kimi was busy. No build from the Kimi handoff is on record in this filing.</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Fidelity register: every limit in the filing, stated on the page. Nothing on this page fills a gap the source leaves open.</div>
+</section>
+
+<footer>
+  <p>Built from the verbatim filing only: <code>~/workspace/drive-pull/recover-signal-recipe-system.md</code> (141,064 bytes, 620 lines, 6 user / 5 assistant turns). Source conversation: <a href="https://chatgpt.com/share/6afd8f7b-d3a8-83ea-bd77-085df83661dc">chatgpt.com/share/6afd8f7b</a>. This page is a presentation of a recorded architecture. It is not the system, and it does not execute any part of the build directives it records.</p>
+  <p>Page 11 of the drive-pull interactive series. No em dashes. No alert or prompt calls. No external scripts.</p>
+</footer>
+
+</div>
+<script>
+(function(){
+  function wire(btns, panels, attr){
+    var bs = document.querySelectorAll(btns);
+    bs.forEach(function(b){
+      b.addEventListener("click", function(){
+        bs.forEach(function(x){ x.classList.remove("on"); });
+        b.classList.add("on");
+        var target = b.getAttribute(attr);
+        panels.forEach(function(id){
+          var el = document.getElementById(id);
+          if(el){ el.classList.toggle("hidden", id !== target); }
+        });
+      });
+    });
+  }
+  wire("#layerBtns button", ["l30","l500","linf"], "data-layer");
+  wire("#famBtns button", ["famA","famB","famC","famD","famE","famF","famG","famH","famI","famJ","famK"], "data-fam");
+  wire("#matBtns button", ["matIdea","matProp","matSpec","matSim","matBack","matShadow","matCounty","matProd","matDeg","matRet"], "data-mat");
+  wire("#turnTabs button", ["t1","t2","t3","t4","t5","t6","t7","t8","t9","t10","t11"], "data-turn");
+  var btnA = document.getElementById("btnA"),
+      btnB = document.getElementById("btnB"),
+      btnBoth = document.getElementById("btnBoth"),
+      modeA = document.getElementById("modeA"),
+      modeB = document.getElementById("modeB"),
+      modeTable = document.getElementById("modeTable");
+  function setMode(which){
+    btnA.classList.toggle("on", which === "A");
+    btnB.classList.toggle("on", which === "B");
+    btnBoth.classList.toggle("on", which === "both");
+    modeA.classList.toggle("hidden", which === "B");
+    modeB.classList.toggle("hidden", which === "A");
+    modeTable.classList.toggle("hidden", which !== "both");
+  }
+  btnA.addEventListener("click", function(){ setMode("A"); });
+  btnB.addEventListener("click", function(){ setMode("B"); });
+  btnBoth.addEventListener("click", function(){ setMode("both"); });
+  var filter = document.getElementById("secFilter"),
+      count = document.getElementById("secCount");
+  var items59 = document.querySelectorAll("#list59 li").length,
+      items256 = document.querySelectorAll("#list256 li").length;
+  function updateCount(visible){
+    count.textContent = "Section counts: 59 in the first prompt, 256 in the final directive. " + (visible === null ? "" : visible + " sections match the current filter.");
+  }
+  updateCount(null);
+  filter.addEventListener("input", function(){
+    var q = filter.value.trim().toLowerCase(), visible = 0;
+    document.querySelectorAll("#list59 li, #list256 li").forEach(function(li){
+      var show = !q || li.textContent.toLowerCase().indexOf(q) !== -1;
+      li.style.display = show ? "" : "none";
+      if(show){ visible += 1; }
+    });
+    updateCount(q ? visible : null);
+  });
+})();
+</script>
+</body>
+</html>
