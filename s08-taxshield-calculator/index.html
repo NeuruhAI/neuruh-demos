@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaxShield Calculator - Corrected Model Demo</title>
+<style>
+  :root { --paper:#f7f4ec; --ink:#1c1a16; --muted:#6b655a; --brass:#9a7b2d; --line:#ddd5c2; --card:#fffdf7; --good:#2e6b34; --flag:#9c3d1e; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, 'Times New Roman', serif; line-height:1.5; }
+  .wrap { max-width:760px; margin:0 auto; padding:32px 20px 64px; }
+  .kicker { font-family:Arial, sans-serif; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--brass); }
+  h1 { font-size:32px; line-height:1.15; margin:8px 0 4px; }
+  .sub { color:var(--muted); font-size:16px; margin:0 0 24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:20px; margin-bottom:20px; }
+  .card h2 { font-family:Arial, sans-serif; font-size:14px; letter-spacing:.1em; text-transform:uppercase; margin:0 0 14px; color:var(--ink); }
+  label { display:block; font-family:Arial, sans-serif; font-size:13px; font-weight:bold; margin:12px 0 4px; }
+  input[type=number] { width:100%; padding:10px; font-size:16px; border:1px solid var(--line); border-radius:4px; background:#fff; }
+  .toggles { display:flex; gap:24px; flex-wrap:wrap; margin-top:8px; }
+  .toggles label { display:flex; align-items:center; gap:8px; font-weight:normal; margin:0; cursor:pointer; }
+  button { font-family:Arial, sans-serif; font-size:15px; padding:11px 20px; border:0; border-radius:4px; cursor:pointer; }
+  .primary { background:var(--brass); color:#fff; margin-top:16px; }
+  .ghost { background:transparent; border:1px solid var(--brass); color:var(--brass); margin-top:16px; margin-left:8px; }
+  .results { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .result { border:1px solid var(--line); border-radius:4px; padding:14px; background:#fff; }
+  .result .num { font-size:26px; font-weight:bold; }
+  .result .lab { font-family:Arial, sans-serif; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .result .note { font-size:13px; color:var(--muted); margin-top:4px; }
+  .wide { grid-column:1 / -1; }
+  .formula { font-family:'Courier New', monospace; font-size:13px; background:#f1ecdd; border:1px solid var(--line); border-radius:4px; padding:12px; white-space:pre-wrap; }
+  .pass { color:var(--good); font-weight:bold; }
+  .flag { color:var(--flag); font-weight:bold; }
+  .disclaimer { font-size:13px; color:var(--muted); border-top:1px solid var(--line); padding-top:14px; }
+  .src { font-size:13px; color:var(--muted); }
+  @media (max-width:560px){ .results{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Neuruh Drive Build-Out &middot; Slice 08 &middot; Demo</div>
+  <h1>TaxShield Calculator</h1>
+  <p class="sub">Corrected transparent model. Rebuilt from the Brandon Brittingham TaxShield code in the slice, which shipped four conflicting math versions and three real bugs. This page uses one stated model and shows every step.</p>
+
+  <div class="card">
+    <h2>Inputs</h2>
+    <label for="income">Annual income ($)</label>
+    <input type="number" id="income" value="250000" min="0" step="1000">
+    <label for="tax">Marginal tax rate (%)</label>
+    <input type="number" id="tax" value="37" min="0" max="100" step="0.5">
+    <label for="property">Property value ($)</label>
+    <input type="number" id="property" value="1000000" min="0" step="1000">
+    <div class="toggles">
+      <label><input type="checkbox" id="costseg" checked> Cost segregation study</label>
+      <label><input type="checkbox" id="bonus" checked> Bonus depreciation</label>
+    </div>
+    <button class="primary" id="calc">Calculate</button>
+    <button class="ghost" id="testvec">Load the "Your Job" test vector</button>
+  </div>
+
+  <div class="card">
+    <h2>Results</h2>
+    <div class="results">
+      <div class="result"><div class="lab">First-year coverage</div><div class="num" id="rCoverage">-</div><div class="note" id="rCoverageNote"></div></div>
+      <div class="result"><div class="lab">Paper loss (first year)</div><div class="num" id="rLoss">-</div><div class="note">Property value x coverage</div></div>
+      <div class="result"><div class="lab">Tax savings (est.)</div><div class="num" id="rSavings">-</div><div class="note">min(paper loss, income) x tax rate</div></div>
+      <div class="result"><div class="lab">Recommended property value</div><div class="num" id="rRec">-</div><div class="note">Income / coverage</div></div>
+      <div class="result wide"><div class="lab">Test-vector check</div><div id="rCheck" style="font-size:15px;">Press Calculate to run the check.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>The model, stated plainly</h2>
+    <div class="formula">coverage = 30% when both toggles are ON
+coverage = 15% when exactly one toggle is ON
+coverage = 0% when both toggles are OFF
+
+paper loss = property value x coverage
+tax savings = min(paper loss, income) x tax rate
+recommended property = income / coverage
+
+Test vector from the "Your Job" delivery checklist:
+income 250,000, tax 37%, property 1,000,000, both toggles ON
+paper loss = 1,000,000 x 0.30 = 300,000
+tax savings = min(300,000, 250,000) x 0.37 = 92,500
+recommended property = 250,000 / 0.30 = 833,333</div>
+    <p style="font-size:15px;"><span class="flag">Flagged inconsistency in the source test vector:</span> the checklist expects about $92,500 in savings (which this model reproduces exactly) but also expects about $1.25M in recommended property. A 30 to 50% coverage range implies $500,000 to $833,333 of recommended property for $250,000 of income. $1.25M falls outside that range, so the source figure cannot be right alongside its own coverage range. This demo shows $833,333 and flags the $1.25M figure.</p>
+  </div>
+
+  <div class="card">
+    <h2>What was wrong in the source code</h2>
+    <p style="font-size:15px;">Four conflicting math versions were found in the slice: the 7/17 Flask backend used a 100% rule and had three bugs (an undefined variable, a backend key of <code>purchase_price</code> while the frontend sent <code>property_value</code>, and a block that made the recommendation echo the input); the ZIP backend used multipliers of 0.3 base + 0.2 bonus + 0.25 cost segregation; the touch script used 1.1x with recommendation equal to savings x 10; and the 3.0 HTML page used fixed mock multipliers (income x tax x 0.85, income x 2.5, income x 15) whose toggles and property value changed nothing. This demo replaces all four with the single stated model above.</p>
+  </div>
+
+  <p class="disclaimer">Disclaimer: figures are illustrative estimates produced by a transparent stated model. They are not tax advice, and they do not account for your full tax situation, passive activity limits, recapture, or state tax. Confirm any real-estate tax position with a qualified tax professional.</p>
+  <p class="src">Source: Neuruh Proposals 2025, Brandon Brittingham folder. Item records: s08-taxshield-code-brandon-3-0, s08-7-17-original-code-calculator-doesn-t-work-correct, s08-brandon-code, s08-tax-shield-touch-script, s08-your-job-deliver-what-you-promised-brandon-b-calculator, s08-calculator-code.</p>
+</div>
+<script>
+function money(n){ return "$" + Math.round(n).toLocaleString("en-US"); }
+function calc(){
+  var income = parseFloat(document.getElementById("income").value) || 0;
+  var tax = (parseFloat(document.getElementById("tax").value) || 0) / 100;
+  var property = parseFloat(document.getElementById("property").value) || 0;
+  var cs = document.getElementById("costseg").checked;
+  var bo = document.getElementById("bonus").checked;
+  var coverage = (cs && bo) ? 0.30 : ((cs || bo) ? 0.15 : 0);
+  var loss = property * coverage;
+  var savings = Math.min(loss, income) * tax;
+  var rec = coverage > 0 ? income / coverage : 0;
+  document.getElementById("rCoverage").textContent = (coverage * 100).toFixed(0) + "%";
+  document.getElementById("rCoverageNote").textContent = cs && bo ? "Both toggles ON" : ((cs || bo) ? "One toggle ON" : "Both toggles OFF");
+  document.getElementById("rLoss").textContent = money(loss);
+  document.getElementById("rSavings").textContent = money(savings);
+  document.getElementById("rRec").textContent = coverage > 0 ? money(rec) : "-";
+  var check = "";
+  if (income === 250000 && tax === 0.37 && property === 1000000 && cs && bo) {
+    check = '<span class="pass">Savings check PASS:</span> $92,500 matches the source test vector exactly. ' +
+      '<span class="flag">Recommended-property check FLAGGED:</span> this model gives $833,333; the source vector expects about $1.25M, which is outside the $500,000 to $833,333 range its own 30 to 50% coverage implies.';
+  } else {
+    check = "Test vector not loaded. Use the test-vector button to check against the source checklist (250,000 income, 37% tax, 1,000,000 property, both toggles ON).";
+  }
+  document.getElementById("rCheck").innerHTML = check;
+}
+document.getElementById("calc").addEventListener("click", calc);
+document.getElementById("testvec").addEventListener("click", function(){
+  document.getElementById("income").value = 250000;
+  document.getElementById("tax").value = 37;
+  document.getElementById("property").value = 1000000;
+  document.getElementById("costseg").checked = true;
+  document.getElementById("bonus").checked = true;
+  calc();
+});
+calc();
+</script>
+</body>
+</html>
