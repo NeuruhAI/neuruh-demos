@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TaxShield AI: Real Estate Tax Calculator</title>
+<style>
+  :root{ --paper:#f7f3ea; --bone:#efe9db; --ink:#1c1a16; --muted:#6b6455; --brass:#9a7b2d; --line:#d8d0bd; --card:#fffdf7; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, "Times New Roman", serif; line-height:1.55; }
+  .wrap{ max-width:960px; margin:0 auto; padding:0 20px 60px; }
+  header{ border-bottom:3px double var(--ink); padding:28px 0 14px; }
+  .kicker{ font-family:"Courier New", monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--brass); }
+  h1{ font-size:36px; line-height:1.1; margin:8px 0 4px; }
+  h2{ font-size:22px; border-bottom:1px solid var(--line); padding-bottom:6px; margin:36px 0 12px; }
+  h3{ font-size:17px; margin:20px 0 6px; }
+  p, li{ font-size:16px; }
+  .sub{ color:var(--muted); font-style:italic; }
+  .banner{ background:var(--bone); border:1px solid var(--brass); border-left:6px solid var(--brass); padding:14px 18px; margin:20px 0; }
+  .banner b{ color:var(--brass); }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:14px 0; }
+  .card{ background:var(--card); border:1px solid var(--line); padding:14px 16px; }
+  .card h3{ margin-top:0; }
+  .controls{ background:var(--card); border:1px solid var(--line); padding:16px; margin:14px 0; }
+  .controls label{ display:block; font-family:"Courier New", monospace; font-size:13px; margin:12px 0 2px; }
+  .controls input[type=range]{ width:100%; }
+  .controls input[type=number], .controls input[type=text], .controls select{ font-family:"Courier New", monospace; font-size:14px; padding:8px 10px; width:100%; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  button{ background:var(--ink); color:var(--paper); border:none; cursor:pointer; margin:6px 6px 0 0; font-family:"Courier New", monospace; font-size:14px; padding:10px 16px; }
+  button.ghost{ background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  button.brass{ background:var(--brass); color:#fff; }
+  .mono{ font-family:"Courier New", monospace; font-size:14px; }
+  .big{ font-family:"Courier New", monospace; font-size:28px; font-weight:bold; color:var(--brass); }
+  .tab{ padding:8px 16px; border:1px solid var(--line); border-bottom:none; background:var(--bone); cursor:pointer; font-family:"Courier New", monospace; font-size:14px; }
+  .tab.active{ background:var(--card); color:var(--brass); font-weight:bold; }
+  .tab-content{ display:none; }
+  .tab-content.active{ display:block; }
+  .toggle-row{ display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-top:1px solid var(--line); }
+  .toggle-row input{ width:22px; height:22px; accent-color:var(--brass); }
+  .result-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:15px; }
+  .spin{ display:inline-block; width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--brass); border-radius:50%; animation:spin 1s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .note{ color:var(--muted); font-size:14px; font-style:italic; }
+  footer{ border-top:1px solid var(--line); margin-top:40px; padding-top:14px; color:var(--muted); font-size:14px; }
+  .navrow{ display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
+  .navrow a{ color:var(--brass); font-family:"Courier New", monospace; font-size:13px; }
+  #mobileMenu{ display:none; border:1px solid var(--line); background:var(--card); padding:10px 14px; margin-top:8px; }
+  #mobileMenu.open{ display:block; }
+  @media (max-width:640px){ h1{ font-size:28px; } .big{ font-size:22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Neuruh &middot; Drive Build Slice 08 &middot; Brandon Brittingham proposals</div>
+  <h1>TaxShield AI: Real Estate Tax Calculator</h1>
+  <p class="sub">How much real estate do you need to eliminate your tax burden using cost segregation strategies. Ported faithfully from the source Google Doc, which contains a full working calculator as HTML and JavaScript.</p>
+  <div class="navrow">
+    <a href="#features">Features</a>
+    <a href="#how-it-works">How It Works</a>
+    <a href="#calculator">Calculator</a>
+    <button class="ghost" id="mobileMenuBtn" type="button">Menu</button>
+  </div>
+  <div id="mobileMenu">
+    <a href="#features">Features</a><br>
+    <a href="#how-it-works">How It Works</a><br>
+    <a href="#calculator">Calculator</a>
+  </div>
+</header>
+
+<div class="banner">
+  <b>Status: WORKING CALCULATOR, ported from the source.</b> The calculation logic below is the source's own: required investment equals taxable income divided by a 0.25 cost segregation factor, down payment is 20 percent of that investment. The 25 percent bonus depreciation factor and the 20 percent down payment rate are <b>source claims</b>, not verified tax facts. This tool is for informational purposes only and does not constitute financial advice. Source: Google Doc titled &lt;html lang="en"&gt;, Drive folder /Neuruh Proposals - 2025/Brandon Brittingham, modified 2025-08-08.
+</div>
+
+<h2 id="features">Figure 1. Lead Qualification Made Simple</h2>
+<div class="grid">
+  <div class="card"><h3>Instant Investment Target</h3><p>Get the exact dollar amount of real estate needed to offset your entire tax burden.</p></div>
+  <div class="card"><h3>Down Payment Calculator</h3><p>See exactly how much cash you need to get started with your tax-saving real estate strategy.</p></div>
+  <div class="card"><h3>Personalized Strategy</h3><p>Tailored recommendations based on your income, tax situation, and investment timeline.</p></div>
+</div>
+
+<h2 id="how-it-works">Figure 2. Three Questions to Tax Freedom</h2>
+<ol>
+  <li><b>Your Income and Tax Rate.</b> Tell us your annual income and effective tax rate to calculate your tax burden.</li>
+  <li><b>Additional Income Sources.</b> Include K1s, 1099s, and existing deductions for a complete picture.</li>
+  <li><b>Get Your Investment Target.</b> Instantly see exactly how much real estate you need to buy to eliminate your taxes.</li>
+</ol>
+
+<h2 id="calculator">Figure 3. The Calculator</h2>
+<div class="controls">
+  <div>
+    <button class="tab active" data-tab="basic-info" type="button">Basic Info</button>
+    <button class="tab" data-tab="advanced-info" type="button">Advanced Info</button>
+  </div>
+  <div id="basic-info" class="tab-content active" style="border:1px solid var(--line); padding:14px;">
+    <label for="incomeSlider">Annual Income</label>
+    <input type="range" id="incomeSlider" min="50000" max="2000000" step="10000" value="500000">
+    <div class="mono" id="incomeValue" style="font-size:18px; color:var(--brass);">$500,000</div>
+    <label for="taxRateSlider">Effective Tax Rate</label>
+    <input type="range" id="taxRateSlider" min="10" max="50" step="1" value="25">
+    <div class="mono" id="taxRateValue" style="font-size:18px; color:var(--brass);">25%</div>
+    <label for="otherIncomeBasic">Other Income (K1s, 1099s)</label>
+    <input type="number" id="otherIncomeBasic" placeholder="0" value="0">
+    <label for="existingDeductionsBasic">Existing Deductions</label>
+    <input type="number" id="existingDeductionsBasic" placeholder="0" value="0">
+    <h3>Quick Calculation Preview</h3>
+    <div class="result-row"><span>Total Taxable Income:</span><span class="mono" id="previewTaxable">$500,000</span></div>
+    <div class="result-row"><span>Estimated Tax Burden:</span><span class="mono" id="previewTaxBurden">$125,000</span></div>
+  </div>
+  <div id="advanced-info" class="tab-content" style="border:1px solid var(--line); padding:14px;">
+    <label for="investmentTimeline">Investment Timeline</label>
+    <select id="investmentTimeline">
+      <option>0-1 Years</option>
+      <option selected>1-5 Years</option>
+      <option>5-10 Years</option>
+      <option>10+ Years</option>
+    </select>
+    <label for="stateOfResidence">State of Residence</label>
+    <input type="text" id="stateOfResidence" placeholder="e.g., California">
+    <div class="toggle-row"><span>Considering a 1031 Exchange?</span><input type="checkbox" id="considering1031"></div>
+    <div class="toggle-row"><span>Using a Self-Directed IRA?</span><input type="checkbox" id="usingSelfDirectedIRA"></div>
+  </div>
+  <div style="text-align:center; margin-top:16px;">
+    <button class="brass" id="calculateBtn" type="button">Calculate My Required Investment</button>
+  </div>
+</div>
+
+<div id="resultsSection" class="card" style="display:none;">
+  <h3 style="text-align:center;">Your Investment Requirements</h3>
+  <div id="loadingIndicator" style="text-align:center; padding:20px; display:none;">
+    <div class="spin"></div>
+    <p class="note">Calculating your optimal investment strategy...</p>
+  </div>
+  <div id="resultsContent" style="display:none;">
+    <div class="grid">
+      <div class="card"><h3>Required Real Estate Purchase</h3><div class="big" id="requiredInvestment">$0</div><p class="note">Total investment needed</p></div>
+      <div class="card"><h3>Estimated Tax Savings</h3><div class="big" id="taxSavings">$0</div><p class="note">Annual tax elimination</p></div>
+      <div class="card"><h3>Down Payment Needed</h3><div class="big" id="downPayment">$0</div><p class="note">Cash to get started (20%)</p></div>
+    </div>
+    <h3>Investment Qualification Summary</h3>
+    <div class="result-row"><span>Total Taxable Income:</span><span class="mono" id="totalTaxableIncome">$0</span></div>
+    <div class="result-row"><span>Investment Timeline:</span><span class="mono" id="timelineDisplay">1-5 Years</span></div>
+    <div class="result-row"><span>1031 Exchange:</span><span class="mono" id="exchange1031Display">No</span></div>
+    <div class="result-row"><span>Self-Directed IRA:</span><span class="mono" id="selfDirectedIRADisplay">No</span></div>
+  </div>
+  <div id="recommendationContent" style="display:none; margin-top:16px;">
+    <h3>Personalized Strategy Recommendation</h3>
+    <p id="recommendationText">Based on your inputs...</p>
+    <div style="text-align:center;">
+      <button id="strategistBtn" type="button">Speak with a Tax Strategist</button>
+      <p class="note" id="strategistNote"></p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>TaxShield AI. Source: Google Doc &lt;html lang="en"&gt;, Drive id 1V2z2e2M19IJB_Rp0yXISlr4WuZjTnz41jz0obXYMByw, modified 2025-08-08. Item doc: s08-html-lang-en.md. This page is a faithful port of the source calculator into a standalone page. Figures are the source's own claims. This tool is for informational purposes only and does not constitute financial advice.</p>
+</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var incomeSlider = document.getElementById('incomeSlider');
+    var taxRateSlider = document.getElementById('taxRateSlider');
+    var incomeValue = document.getElementById('incomeValue');
+    var taxRateValue = document.getElementById('taxRateValue');
+    var calculateBtn = document.getElementById('calculateBtn');
+    var tabs = document.querySelectorAll('.tab');
+    var tabContents = document.querySelectorAll('.tab-content');
+    var resultsSection = document.getElementById('resultsSection');
+    var resultsContent = document.getElementById('resultsContent');
+    var recommendationContent = document.getElementById('recommendationContent');
+    var loadingIndicator = document.getElementById('loadingIndicator');
+    var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    var mobileMenu = document.getElementById('mobileMenu');
+    var previewTaxable = document.getElementById('previewTaxable');
+    var previewTaxBurden = document.getElementById('previewTaxBurden');
+    var otherIncomeBasic = document.getElementById('otherIncomeBasic');
+    var existingDeductionsBasic = document.getElementById('existingDeductionsBasic');
+    var requiredInvestment = document.getElementById('requiredInvestment');
+    var taxSavings = document.getElementById('taxSavings');
+    var downPayment = document.getElementById('downPayment');
+    var totalTaxableIncome = document.getElementById('totalTaxableIncome');
+    var timelineDisplay = document.getElementById('timelineDisplay');
+    var exchange1031Display = document.getElementById('exchange1031Display');
+    var selfDirectedIRADisplay = document.getElementById('selfDirectedIRADisplay');
+    var recommendationText = document.getElementById('recommendationText');
+    var investmentTimeline = document.getElementById('investmentTimeline');
+    var considering1031 = document.getElementById('considering1031');
+    var usingSelfDirectedIRA = document.getElementById('usingSelfDirectedIRA');
+    var strategistBtn = document.getElementById('strategistBtn');
+    var strategistNote = document.getElementById('strategistNote');
+
+    var formatCurrency = function (value) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+    };
+    var formatPercent = function (value) { return value + '%'; };
+
+    function updatePreview() {
+        var income = parseFloat(incomeSlider.value);
+        var taxRate = parseFloat(taxRateSlider.value) / 100;
+        var otherIncome = parseFloat(otherIncomeBasic.value) || 0;
+        var deductions = parseFloat(existingDeductionsBasic.value) || 0;
+        var totalTaxable = Math.max(0, income + otherIncome - deductions);
+        var taxBurden = totalTaxable * taxRate;
+        incomeValue.textContent = formatCurrency(income);
+        taxRateValue.textContent = formatPercent(taxRateSlider.value);
+        previewTaxable.textContent = formatCurrency(totalTaxable);
+        previewTaxBurden.textContent = formatCurrency(taxBurden);
+    }
+
+    function animateValue(element, start, end, duration) {
+        var startTimestamp = null;
+        var step = function (timestamp) {
+            if (!startTimestamp) startTimestamp = timestamp;
+            var progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            var currentValue = Math.floor(progress * (end - start) + start);
+            element.textContent = formatCurrency(currentValue);
+            if (progress < 1) { window.requestAnimationFrame(step); }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    [incomeSlider, taxRateSlider, otherIncomeBasic, existingDeductionsBasic].forEach(function (el) {
+        el.addEventListener('input', updatePreview);
+    });
+
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            tabs.forEach(function (t) { t.classList.remove('active'); });
+            tabContents.forEach(function (c) { c.classList.remove('active'); });
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
+
+    mobileMenuBtn.addEventListener('click', function () {
+        mobileMenu.classList.toggle('open');
+    });
+
+    strategistBtn.addEventListener('click', function () {
+        strategistNote.textContent = 'Static demo: no message is sent and no strategist is contacted from this page. The source doc names no contact channel, so none is shown here.';
+    });
+
+    calculateBtn.addEventListener('click', function () {
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+        loadingIndicator.style.display = 'block';
+        resultsContent.style.display = 'none';
+        recommendationContent.style.display = 'none';
+        setTimeout(function () {
+            var income = parseFloat(incomeSlider.value);
+            var taxRate = parseFloat(taxRateSlider.value) / 100;
+            var otherIncome = parseFloat(otherIncomeBasic.value) || 0;
+            var deductions = parseFloat(existingDeductionsBasic.value) || 0;
+            var COST_SEG_FACTOR = 0.25;
+            var DOWN_PAYMENT_RATE = 0.20;
+            var finalTaxableIncome = Math.max(0, income + otherIncome - deductions);
+            var finalTaxSavings = finalTaxableIncome * taxRate;
+            var finalRequiredInvestment = finalTaxableIncome / COST_SEG_FACTOR;
+            var finalDownPayment = finalRequiredInvestment * DOWN_PAYMENT_RATE;
+            loadingIndicator.style.display = 'none';
+            resultsContent.style.display = 'block';
+            recommendationContent.style.display = 'block';
+            animateValue(requiredInvestment, 0, finalRequiredInvestment, 1000);
+            animateValue(taxSavings, 0, finalTaxSavings, 1000);
+            animateValue(downPayment, 0, finalDownPayment, 1000);
+            totalTaxableIncome.textContent = formatCurrency(finalTaxableIncome);
+            timelineDisplay.textContent = investmentTimeline.value;
+            exchange1031Display.textContent = considering1031.checked ? 'Yes' : 'No';
+            selfDirectedIRADisplay.textContent = usingSelfDirectedIRA.checked ? 'Yes' : 'No';
+            var recText = 'With a taxable income of ' + formatCurrency(finalTaxableIncome) + ', your goal is to generate an equal amount in deductions. ';
+            recText += 'Based on a strategy using bonus depreciation from cost segregation, an investment of approximately ' + formatCurrency(finalRequiredInvestment) + ' is needed. ';
+            recText += 'This would generate roughly ' + formatCurrency(finalTaxableIncome) + ' in paper losses, effectively saving you ' + formatCurrency(finalTaxSavings) + ' in taxes this year.';
+            if (considering1031.checked) {
+                recText += ' As you are considering a 1031 Exchange, this strategy can be seamlessly integrated to defer capital gains while generating new deductions.';
+            }
+            if (finalTaxableIncome <= 100000) {
+                recText += ' Given your income level, even a smaller, strategic investment can have a significant impact on your tax liability.';
+            } else if (finalTaxableIncome > 500000) {
+                recText += ' At your high income level, this strategy is exceptionally powerful for wealth preservation and growth.';
+            }
+            recommendationText.textContent = recText;
+        }, 1500);
+    });
+
+    updatePreview();
+});
+</script>
+</body>
+</html>
