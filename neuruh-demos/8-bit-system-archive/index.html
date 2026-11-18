@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8-Bit System Archive: N-Cell Runtime State Protocol</title>
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --ink-soft:#4a463d;
+  --brass:#9a7b2d; --brass-light:#c9a227; --line:#d8d2c4; --code-bg:#efece3;
+  --green:#2e6b3a; --amber:#8a6d1b; --red:#8a2f26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.25;margin:0 0 .5em}
+p{margin:0 0 .9em}
+a{color:var(--brass)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+code{font-size:.88em}
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#f4f1ea;display:flex;align-items:center;gap:16px;padding:10px 20px;font-size:13px;flex-wrap:wrap}
+.topbar .mark{font-family:Archivo,sans-serif;font-weight:700;letter-spacing:.12em;color:var(--brass-light)}
+.topbar a{color:#f4f1ea;text-decoration:none;border-bottom:1px solid transparent}
+.topbar a:hover{border-bottom-color:var(--brass-light)}
+.topbar .spacer{flex:1}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 20px 60px}
+.dochead{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--brass);padding:22px 24px;margin-bottom:20px}
+.dochead .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+.dochead h1{font-size:30px;margin-bottom:8px}
+.dochead .sub{color:var(--ink-soft);font-size:15px}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.meta-grid div{background:var(--paper);padding:10px 12px;font-size:13px}
+.meta-grid .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:2px}
+.banner{border:2px solid var(--brass);background:#fdf6dd;padding:16px 20px;margin-bottom:24px}
+.banner h2{font-size:16px;color:var(--ink);margin-bottom:6px}
+.banner p{font-size:14px;margin-bottom:.5em}
+.banner ul{margin:.2em 0 .4em 1.2em;font-size:14px}
+.banner li{margin-bottom:.25em}
+.contents{background:var(--paper);border:1px solid var(--line);padding:16px 20px;margin-bottom:28px}
+.contents h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+.contents ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+.contents li{margin-bottom:4px;font-size:14px}
+.contents a{text-decoration:none;color:var(--ink)}
+.contents a:hover{color:var(--brass);text-decoration:underline}
+section{margin-bottom:36px}
+.fig{background:var(--paper);border:1px solid var(--line);padding:20px 22px}
+.fig .fignum{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:4px}
+.fig h2{font-size:22px}
+.fig h3{font-size:16px;margin-top:18px}
+.figcap{font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:16px;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-family:Archivo,sans-serif;font-size:13px}
+tbody tr:nth-child(even){background:#f7f4ec}
+.pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass);margin-right:6px}
+.pill.solid{background:var(--brass);color:#fff}
+.pill.green{border-color:var(--green);color:var(--green)}
+.pill.amber{border-color:var(--amber);color:var(--amber)}
+.pill.red{border-color:var(--red);color:var(--red)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:14px 0}
+.flow .step{flex:1 1 140px;background:var(--code-bg);border:1px solid var(--line);padding:10px 12px;font-size:13px;text-align:center;font-weight:600}
+.flow .arrow{align-self:center;padding:0 6px;color:var(--brass);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);background:var(--bone);padding:14px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--ink-soft)}
+.card.active{border-color:var(--brass);border-width:2px;background:var(--paper)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{font-family:Inter,sans-serif;font-size:13px;padding:8px 14px;border:1px solid var(--brass);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:4px}
+button:hover{background:var(--code-bg)}
+button.on{background:var(--brass);color:#fff;border-color:var(--brass)}
+.panel{border:1px solid var(--line);background:var(--paper);padding:14px 16px;margin-top:8px;font-size:14px}
+.panel h4{font-size:15px;margin-bottom:4px}
+.hidden{display:none}
+details{border:1px solid var(--line);background:var(--paper);margin-bottom:8px}
+details summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ ";color:var(--brass);font-weight:700}
+details[open] summary::before{content:"- ";color:var(--brass)}
+details .body{padding:0 14px 12px;font-size:14px;color:var(--ink-soft)}
+details .body p{margin-bottom:.5em}
+.secnum{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:12px;margin-right:8px}
+ol.tight{columns:2;column-gap:28px;font-size:13px;padding-left:22px}
+ol.tight li{margin-bottom:5px;break-inside:avoid}
+ol.tight.single{columns:1}
+input[type="text"]{font-family:Inter,sans-serif;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;width:100%;max-width:420px;background:var(--paper)}
+.bitgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:8px 0}
+.bitgrid label{border:1px solid var(--line);background:var(--bone);padding:6px 2px;text-align:center;font-size:12px;cursor:pointer}
+.bitgrid label.on{background:var(--brass);color:#fff;border-color:var(--brass)}
+.turnpanel{border:1px solid var(--line);background:var(--paper);padding:16px 18px;font-size:14px}
+.turnpanel .who{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+blockquote{border-left:3px solid var(--brass);margin:10px 0;padding:4px 0 4px 14px;color:var(--ink-soft);font-style:italic}
+.note{font-size:13px;color:var(--ink-soft)}
+.callout{background:var(--code-bg);border-left:4px solid var(--brass);padding:12px 16px;margin:14px 0;font-size:14px}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:16px;font-size:13px;color:var(--ink-soft)}
+@media (max-width:760px){
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .cards{grid-template-columns:1fr}
+  .contents ol{columns:1}
+  ol.tight{columns:1}
+  .dochead h1{font-size:24px}
+  .bitgrid{grid-template-columns:repeat(4,1fr)}
+}
+@media print{
+  .topbar,.btnrow,input[type="text"]{display:none}
+  body{background:#fff}
+  .fig,.dochead,.banner,.contents{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="mark">NEURUH</span>
+  <span>8-Bit System Archive: N-Cell</span>
+  <span class="spacer"></span>
+  <a href="#contents">Contents</a>
+  <a href="#fig2">N-Cell/64</a>
+  <a href="#fig4">Authority algebra</a>
+  <a href="#fidelity">Fidelity</a>
+</div>
+<div class="wrap">
+
+<div class="dochead">
+  <div class="kicker">Document Control: Interactive Page, Link 20</div>
+  <h1>8-Bit System Archive: N-Cell</h1>
+  <p class="sub">An 8-bit question about octets and binary recipes evolved into N-Cell: a proposed 64-bit runtime state, authority, topology, and observability contract for the Neuruh organism. Formalized, with bounded implementation evidence, but not benchmark-validated, not independently reproduced, and not AGI or ASI.</p>
+  <div class="meta-grid">
+    <div><span class="k">Source conversation</span><a href="https://chatgpt.com/share/6afd946c-46f4-83ea-8735-553ae041534e">chatgpt.com/share/6afd946c</a></div>
+    <div><span class="k">Page date</span>Fri, Jul 24 at 1:39 AM (no year shown)</div>
+    <div><span class="k">Read</span>2026-11-18, live browser</div>
+    <div><span class="k">Turns</span>16 user, 16 assistant (32 messages)</div>
+    <div><span class="k">Verbatim filing</span>drive-pull/8-bit-system-archive.md<br>194,662 bytes, 8,585 lines</div>
+    <div><span class="k">State</span><span class="pill solid">Proposed</span> <span class="pill amber">Not validated</span> Design defined; standalone system not confirmed</div>
+  </div>
+</div>
+
+<div class="banner">
+  <h2>Read this first: what this is and what it is not</h2>
+  <ul>
+    <li><strong>Honest ruling, from assistant reply 1.</strong> N-Cell is not new mathematics. It is more than a geometric sketch or bitmask idea. It is formalized and has bounded implementation evidence, but it is NOT benchmark-validated, NOT independently reproduced, NOT AGI, and NOT ASI.</li>
+    <li><strong>Assistant reply 1 is a reconstruction, not a byte-for-byte transcript export.</strong> It states this explicitly. Where earlier conversations conflicted with later corrections, the documents preserve the original idea and identify the corrected canonical version.</li>
+    <li><strong>Assistant turn 8 is not a full reply.</strong> The browser text view shows a bracketed note that the "shift" reply is reproduced in full under assistant turn 10, to avoid double-counting. The full text of the shift reply is given once at turn 10. This page preserves that treatment.</li>
+    <li><strong>The ZIP and the seven documents were not opened or downloaded.</strong> Their names are recorded as shown on the page. The same applies to every other downloadable document named in the conversation.</li>
+    <li><strong>Superseded claim inside the filing.</strong> The DeedSonar state handoff pasted into this conversation (July 24, 2026) states ownership as Jeramie and Bryan 50/50. That claim is superseded by Jeramie's October 22, 2026 correction: DeedSonar is solely his; Bryan Franklin never signed. See Figure 12.</li>
+    <li><strong>Record only.</strong> The conversation contains build prompts and directives for N-Cell and the Neuruh Factory. They are filed as record only. Nothing on this page acts on them.</li>
+  </ul>
+</div>
+
+<div class="contents" id="contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#fig1">Figure 1: From octets to N-Cell</a></li>
+    <li><a href="#fig2">Figure 2: The canonical N-Cell/64 header</a></li>
+    <li><a href="#fig3">Figure 3: Default bit registries</a></li>
+    <li><a href="#fig4">Figure 4: Authority algebra calculator</a></li>
+    <li><a href="#fig5">Figure 5: Three layers, and what is still unproven</a></li>
+    <li><a href="#fig6">Figure 6: The five-part system</a></li>
+    <li><a href="#fig7">Figure 7: Integration boundary and the parity rule</a></li>
+    <li><a href="#fig8">Figure 8: The Grok 4.5 one-shot build prompt</a></li>
+    <li><a href="#fig9">Figure 9: The shift: software production line</a></li>
+    <li><a href="#fig10">Figure 10: Neuruh Factory 2.0.0</a></li>
+    <li><a href="#fig11">Figure 11: Deliverables named in the conversation</a></li>
+    <li><a href="#fig12">Figure 12: DeedSonar state handoff, July 24, 2026</a></li>
+    <li><a href="#fig13">Figure 13: The conversation in order</a></li>
+    <li><a href="#fidelity">Fidelity register</a></li>
+  </ol>
+</div>
+
+<section class="fig" id="fig1">
+  <div class="fignum">Figure 1</div>
+  <h2>From octets to N-Cell</h2>
+  <p>Turn 1 asked: what is going on with my 8-bit system, give me the complete start to finish of every conversation capturing all the important details, and create separate detailed documents for download. The system began as a question about octets, binary values, and whether eight weighted positions could operate as "recipes". It evolved into N-Cell: a proposed 64-bit runtime state, authority, topology, and observability contract for the Neuruh organism.</p>
+  <div class="flow">
+    <div class="step">Binary states</div><div class="arrow">to</div>
+    <div class="step">Geometric mapping</div><div class="arrow">to</div>
+    <div class="step">Eight-neighbor topology</div><div class="arrow">to</div>
+    <div class="step">Reusable byte masks</div><div class="arrow">to</div>
+    <div class="step">N-Cell/64 header</div><div class="arrow">to</div>
+    <div class="step">Governance receipts</div><div class="arrow">to</div>
+    <div class="step">Cross-repository runtime contract</div><div class="arrow">to</div>
+    <div class="step">Topology-to-outcome memory</div><div class="arrow">to</div>
+    <div class="step">Eventual topology optimization</div>
+  </div>
+  <p>The breakthrough is therefore not "eight bits create intelligence". It is: once the operating organization around a model can be consistently encoded, governed, replayed, compared, and connected to outcomes, that organization becomes an optimizable computational object. That is the serious thesis underneath the 8-bit system.</p>
+  <p>The most defensible classification today is: N-Cell is a proposed runtime state and authority protocol for a governed adaptive computational organization. Its purpose is to give every Neuruh subsystem the same deterministic answers to: what was active, what was connected, what was proposed, what was permitted, what was actually available, what authority survived governance, which memory was accessible, which lifecycle stages were reached, what was blocked, what was emitted, which topology produced the outcome, and what changed from the previous run.</p>
+  <div class="figcap">Figure 1: The core progression and final system ruling from assistant reply 1. The potentially valuable contribution is the specific way Neuruh uses standardized binary masks to record active topology, authority, memory, lifecycle, risk, outputs, and outcomes across separate systems.</div>
+</section>
+
+<section class="fig" id="fig2">
+  <div class="fignum">Figure 2</div>
+  <h2>The canonical N-Cell/64 header</h2>
+  <p>Eight unsigned bytes, one 64-bit operational header. Click a byte to read what it records. Representations required by the specification: Uint8Array, a 16-character lowercase hexadecimal string, a 64-character binary string, an unsigned 64-bit integer where the language safely supports it, a structured JSON object, and a human-readable decoded representation.</p>
+  <div class="btnrow" id="byteBtns">
+    <button data-k="b0" class="on">Byte 0: routeMask</button>
+    <button data-k="b1">Byte 1: organMask</button>
+    <button data-k="b2">Byte 2: lifecycleMask</button>
+    <button data-k="b3">Byte 3: authorityMask</button>
+    <button data-k="b4">Byte 4: memoryMask</button>
+    <button data-k="b5">Byte 5: confidence</button>
+    <button data-k="b6">Byte 6: risk</button>
+    <button data-k="b7">Byte 7: outputMask</button>
+  </div>
+  <div class="panel" id="bytePanel"></div>
+  <h3>Canonical field rules</h3>
+  <ol class="tight single">
+    <li>Each field is exactly one unsigned byte from 0 through 255.</li>
+    <li>Bit registries define the meaning of bits 0 through 7 for mask fields.</li>
+    <li>Confidence and risk are scalar bytes from 0 through 255.</li>
+    <li>Unknown or unused bits must remain explicitly reserved.</li>
+    <li>Bit meaning must never silently change within protocol major version 1.</li>
+    <li>Registries must be machine-readable and versioned.</li>
+    <li>Encoding and decoding must be deterministic across TypeScript and Python.</li>
+    <li>Cross-language fixture parity must be tested.</li>
+    <li>Invalid values must fail closed.</li>
+    <li>Unknown schema versions must be rejected unless explicitly supported.</li>
+  </ol>
+  <p class="note">Named types in the specification: NCellHeaderV1, NCellStateV1, NCellEnvelopeV1, NCellReceiptV1, NCellTransitionV1, NCellOutcomeV1, NCellManifestV1, NCellAuthorityDecisionV1, NCellTopologyV1, NCellEvidenceReferenceV1, NCellSignatureV1.</p>
+  <div class="figcap">Figure 2: The canonical v1 header from assistant reply 2 and build-prompt section IV. N-Cell is a compact runtime ABI and control-plane fingerprint, not a second orchestrator or replacement for governance, health, evidence, or memory systems.</div>
+</section>
+
+<section class="fig" id="fig3">
+  <div class="fignum">Figure 3</div>
+  <h2>Default bit registries</h2>
+  <p>Default registries for demonstration and conformance. They must be replaceable by domain-specific registered profiles while maintaining protocol compatibility. The specification says clearly: these are default profiles, not universal philosophical truth. Click a mask to read its eight bits.</p>
+  <div class="btnrow" id="regBtns">
+    <button data-k="r0" class="on">routeMask</button>
+    <button data-k="r1">organMask</button>
+    <button data-k="r2">lifecycleMask</button>
+    <button data-k="r3">authorityMask</button>
+    <button data-k="r4">memoryMask</button>
+    <button data-k="r7">outputMask</button>
+  </div>
+  <div class="panel" id="regPanel"></div>
+  <div class="figcap">Figure 3: The default bit registries from build-prompt section V. Bit meaning must never silently change within protocol major version 1, and registries must be machine-readable and versioned.</div>
+</section>
+
+<section class="fig" id="fig4">
+  <div class="fignum">Figure 4</div>
+  <h2>Authority algebra calculator</h2>
+  <p>Deterministic authority reduction, from build-prompt section VI. Effective authority is the AND of all five masks: requested AND available AND policy-allowed AND operator-allowed AND environment-allowed. Blocked authority is requested AND NOT effective. Toggle bits to see the reduction. The implementation must use byte-safe operations and preserve all intermediate masks in the decision record. N-Cell must record governance outputs; it must not invent governance decisions.</p>
+  <div id="authCalc"></div>
+  <p id="authOut"><strong>Effective: 11111111 (0xFF). Blocked: 00000000 (0x00).</strong></p>
+  <p class="note">Authority decisions must contain: requested authority, available authority, policy-allowed authority, operator-allowed authority, environment-allowed authority, effective authority, blocked authority, reasons per blocked bit, policy references, decision timestamp, decision producer, decision version, and a signature or integrity hash when configured.</p>
+  <div class="figcap">Figure 4: The authority algebra from build-prompt section VI. This calculator demonstrates the filing's own AND formula on a single byte; the real algebra applies the same operation across the full authority mask.</div>
+</section>
+
+<section class="fig" id="fig5">
+  <div class="fignum">Figure 5</div>
+  <h2>Three layers, and what is still unproven</h2>
+  <p>Turn 2 asked whether N-Cell can be built as a separate system or whether it already is one. Direct answer: yes, it can be built as a separate system. It is not yet a fully separate, production-grade system. It exists in three layers.</p>
+  <table>
+    <thead><tr><th>Layer</th><th>Status as stated</th></tr></thead>
+    <tbody>
+      <tr><td>Formal system design</td><td><span class="pill green">Yes</span> The schema, field meanings, authority algebra, receipts, hashes, invariants, interfaces, and validation requirements are already defined.</td></tr>
+      <tr><td>Partial implementation inside the Neuruh estate</td><td><span class="pill amber">Apparently yes, but uneven</span> The records point to an AEGIS branch named feat/ncell-control-contract-v1, parity-wrapper logic, validation commands, and a proposed binding into existing receipts. Some code was likely written, but it should not be called verified until the repository and tests are inspected directly.</td></tr>
+      <tr><td>Standalone service / product</td><td><span class="pill red">No, not yet</span> No confirmed evidence that a dedicated N-Cell service is currently deployed, independently addressable, versioned, monitored, and consumed across all Neuruh repositories.</td></tr>
+    </tbody>
+  </table>
+  <h3>Current status ruling</h3>
+  <table>
+    <thead><tr><th>Item</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Concept</td><td>Complete enough to build</td></tr>
+      <tr><td>Mathematics</td><td>Defined</td></tr>
+      <tr><td>Protocol fields</td><td>Defined</td></tr>
+      <tr><td>TypeScript contract</td><td>Defined</td></tr>
+      <tr><td>Governance algebra</td><td>Defined</td></tr>
+      <tr><td>Integration architecture</td><td>Defined</td></tr>
+      <tr><td>Validation contract</td><td>Defined</td></tr>
+      <tr><td>AEGIS adapter</td><td>Claimed / partially implemented; must verify</td></tr>
+      <tr><td>Standalone repository</td><td>Not confirmed</td></tr>
+      <tr><td>Standalone API service</td><td>Not confirmed</td></tr>
+      <tr><td>Cross-repository adoption</td><td>Not complete</td></tr>
+      <tr><td>Live cockpit</td><td>Not confirmed</td></tr>
+      <tr><td>Outcome-linked optimization</td><td>Not complete</td></tr>
+      <tr><td>Independent validation</td><td>Not complete</td></tr>
+    </tbody>
+  </table>
+  <p class="note">The validation contract says N-Cell should not be called validated until the protocol works across at least three materially different Worlds and an independent reviewer can reproduce the core findings. The handoff at the end of the conversation adds: N-Cell has a complete 1,978-line build directive and an initial bootstrap commit 6244096 containing canonical JSON, crypto, and protocol packages, but installation, tests, build, service, and UI remain unproven.</p>
+  <div class="figcap">Figure 5: The three-layer answer and status ruling from assistant reply 2, plus the closing handoff summary. Build it separately, but not independently: an independent protocol, SDK, validation suite, service, and observer, not an independent replacement organism.</div>
+</section>
+
+<section class="fig" id="fig6">
+  <div class="fignum">Figure 6</div>
+  <h2>The five-part system</h2>
+  <p>The correct structure, from assistant reply 2: a separate core protocol package and control-plane service, while remaining integrated with the organism. Do not build it as another giant orchestrator; that would duplicate AEGIS, AXON, MOTHER, governance, Vault, and the registry. Click a part to read what it contains.</p>
+  <div class="btnrow" id="sysBtns">
+    <button data-k="s1" class="on">ncell-core</button>
+    <button data-k="s2">ncell-sdk</button>
+    <button data-k="s3">ncell-service</button>
+    <button data-k="s4">ncell-observer</button>
+    <button data-k="s5">ncell-lab</button>
+  </div>
+  <div class="panel" id="sysPanel"></div>
+  <p class="note">Recommended canonical repository: NeuruhAI/ncell, owning JSON Schema, TypeScript interfaces, Python models, bit definitions, versioning, hash canonicalization, fixtures, compliance tests, and migration rules. No individual repo should invent its own bit meanings. The final recommendation in reply 2 is to create neuruh-ncell-core as the canonical protocol package, then thin adapters inside AEGIS, AXON, LandOS, DeedSonar, World Emitter, and Vault. That gives two assets at once: an internal nervous-system contract for Neuruh, and a potentially licensable standalone control and observability layer for external agentic systems.</p>
+  <div class="figcap">Figure 6: The five-part system structure from assistant reply 2. Think of it as a runtime ABI, a TCP-like header, a black-box recorder, an authority certificate, and a topology and outcome primary key, rather than another AI agent.</div>
+</section>
+
+<section class="fig" id="fig7">
+  <div class="fignum">Figure 7</div>
+  <h2>Integration boundary and the parity rule</h2>
+  <p>The integration plan is defined correctly in the reply: run AEGIS normally, derive the N-Cell state from the actual trace, prove output parity, then attach the state to the receipt chain.</p>
+  <div class="flow">
+    <div class="step">AEGIS / QCM / MOTHER: execution trace</div><div class="arrow">to</div>
+    <div class="step">Governance: allowed + blocked authority</div><div class="arrow">to</div>
+    <div class="step">AXON: routes + execution receipts</div><div class="arrow">to</div>
+    <div class="step">Vault / PMLA: memory scope + provenance refs</div><div class="arrow">to</div>
+    <div class="step">N-Cell Adapter</div><div class="arrow">to</div>
+    <div class="step">N-Cell Core</div><div class="arrow">to</div>
+    <div class="step">N-Cell State Record</div><div class="arrow">to</div>
+    <div class="step">N-Cell Service</div>
+  </div>
+  <p>From the service: Receipt Chain, Observer / Cockpit, Outcome Store, then N-Lab / Optimization. The service does not orchestrate AEGIS, does not replace Governance, and does not replace Vault.</p>
+  <div class="callout"><strong>The parity rule.</strong> The first implementation must prove: <code>stripNCell(executeWithNCell(request)) === execute(request)</code>. That is essential. The first version should observe and encode the existing system, not alter its decisions.</div>
+  <p>Every N-Cell record needs to be linked to: run ID, world ID, node and organ IDs, code version, manifest hash, topology hash, governance decision, previous receipt hash, outcome reference, and timestamp. Cross-domain adapters are required at minimum for AEGIS, LandOS / DeedSonar, and World Emitter. The observer interface should show current N-Cell, previous N-Cell, XOR delta, active organs, available routes, effective authority, blocked authority, memory scope, lifecycle stage, confidence, risk, outputs, receipt validity, and outcome.</p>
+  <div class="figcap">Figure 7: The system boundary and parity rule from assistant reply 2. AEGIS decides and composes. Governance permits or blocks. AXON routes. Vault remembers. World Emitter materializes. N-Cell records the exact operational organization that existed when all of that happened.</div>
+</section>
+
+<section class="fig" id="fig8">
+  <div class="fignum">Figure 8</div>
+  <h2>The Grok 4.5 one-shot build prompt</h2>
+  <p>Turn 3 asked for the entire detailed prompt to one-shot the build with Grok 4.5. The reply is a 36-section build prompt, designed to produce a working system, not a documentation theater project. It explicitly prevents Grok from turning N-Cell into another orchestrator, hiding failures behind mocks, or stopping after scaffolding. Use the filter to find a section.</p>
+  <p><input type="text" id="secFilter" placeholder="Filter 36 sections: try parity, observer, security, acceptance"></p>
+  <div id="secList"></div>
+  <p class="note">The prompt's assignment: build N-Cell as a complete, independent, production-oriented system consisting of a canonical protocol specification, a TypeScript protocol SDK, a Python protocol SDK, a protocol validation and conformance suite, a standalone ingestion, verification, query, and replay service, a live observer and forensic UI, adapters demonstrating integration with external systems, complete local development infrastructure, and complete documentation, examples, fixtures, tests, CI, and operator runbooks. It must not become an independent replacement organism, workflow orchestrator, agent framework, governance authority, memory system, model runtime, or task execution engine. It observes, encodes, validates, signs, stores, compares, replays, and associates runtime organizational states with outcomes. It does not make the underlying operational decisions.</p>
+  <div class="figcap">Figure 8: The 36-section one-shot build prompt from assistant turn 3. Section descriptions below are one-line readings of the section titles and their content as shown in the filing; the full prompt text is in the filing.</div>
+</section>
+
+<section class="fig" id="fig9">
+  <div class="fignum">Figure 9</div>
+  <h2>The shift: software production line</h2>
+  <p>Turn 8 asked why this was so easy to build, and turn 10 asked for the summary again: how have we been able to do all this, never seen this done like this, so much quicker, and it does not ask 1000 questions. What is different? The full text of the shift reply is given once at assistant turn 10; turn 8 is a bracketed note pointing to it. The answer: this is the shift. Not a better chatbot. A software production line where the model can actually act inside a controlled environment instead of explaining code one fragment at a time.</p>
+  <div class="btnrow" id="shiftBtns">
+    <button data-k="w1" class="on">Previously: the old workflow</button>
+    <button data-k="w2">This time: the new workflow</button>
+    <button data-k="w3">What was different</button>
+  </div>
+  <div class="panel" id="shiftPanel"></div>
+  <p class="note">What actually happened, per turn 10: Jeramie gave Aider a 46,000-byte build directive that already answered nearly every architectural question: what N-Cell is, what it is not, what technology to use, what files to create, what APIs to expose, what tests are mandatory, what security boundaries apply, what the UI should look like, what constitutes completion, what it is authorized to do, and what it is forbidden to do. Aider then used Grok in two roles: the architect role, which examined the repository and translated the large specification into an ordered implementation plan (environment to monorepo to canonical JSON, and onward), and the editor role, which wrote the files.</p>
+  <div class="figcap">Figure 9: The shift reply from assistant turn 10. The result feels almost suspiciously easy because most of the friction was never the coding itself. The friction was ambiguity, context loss, tool separation, fear of breaking things, and repeatedly forcing the founder to make small decisions the system should have already been authorized to make.</div>
+</section>
+
+<section class="fig" id="fig10">
+  <div class="fignum">Figure 10</div>
+  <h2>Neuruh Factory 2.0.0</h2>
+  <p>Turn 11 said to get rolling, create all the documents, and get operating autonomously. Turn 12 asked for final polish: make sure everything can be downloaded or is ready to go, fill in any gaps not being seen, improve and enhance all of this in god tier. The reply delivered Neuruh Factory 2.0, the final release. The package is hardened, self-tested, documented, visually inspected, checksummed, and ready to install.</p>
+  <table>
+    <thead><tr><th>Item</th><th>Value as stated</th></tr></thead>
+    <tbody>
+      <tr><td>Primary download</td><td>Complete Neuruh Factory God-Tier v2.0.0 package (name only; not opened or downloaded in the read)</td></tr>
+      <tr><td>SHA-256 checksum</td><td><code>a46acfe8777bb5c182e8fcc200e82a7caea15e3fcdb1a8c734478a9b662def0d</code></td></tr>
+      <tr><td>Manuals</td><td>Polished operating manual (PDF), editable operating manual (DOCX), complete Master Operating Bible, installation and operating quickstart, gaps closed and remaining boundaries, release-readiness record (names only)</td></tr>
+      <tr><td>Self-test</td><td>Turn 14 ran the factory self-test on the Mac; the reply reports the factory installed correctly and SELF_TEST_GREEN, with the only blocker the Codex profile format</td></tr>
+    </tbody>
+  </table>
+  <p>The earlier Aider run exposed the central weakness: the model could generate valid source, but it could also describe commands instead of executing them, create command-named files, and stop before real runtime verification. Version 2 separates those responsibilities: Aider edits source, the Factory runs real commands, exit codes and logs are captured, failures trigger bounded repair passes, evidence is sealed, and a human decides preview or production.</p>
+  <p>The package includes: a unified neuruh-factory CLI; one-command and clickable macOS installation; OpenRouter and Aider machine doctor; safe OpenRouter route testing; autonomous multi-phase product operation; deterministic verification outside the model; bounded repair budgets; stale-session recovery and true resume; repository operation locks; exact starting and ending SHAs; command-array execution instead of ambiguous shell strings; configurable HTTP health probes; timestamped run evidence; SHA-256 evidence sealing; source-only release packaging; an optional Aider installation helper; durable tmux launch support; factory CI and self-tests; and DeedSonar and N-Cell starter blueprints.</p>
+  <div class="callout"><strong>The Codex profile blocker.</strong> Turn 14 ran the self-test and doctor commands on the Mac. The reply reports the factory is installed correctly and SELF_TEST_GREEN. The only blocker is the Codex profile format: the setup script wrote the older nested profile table into config.toml, and Codex 0.145 requires a separate profile file with top-level settings. The reply provides a corrected profile repair script (named in the filing; not run here). Turn 13 asked to use 5.6 Pro in Codex through OpenRouter to finish things; the intended independent hardening lane is Codex CLI 0.145.0 using OpenRouter and the neuruh_gpt56_sol_pro profile.</div>
+  <div class="figcap">Figure 10: Neuruh Factory 2.0.0 from assistant turns 12 and 14. The model is no longer merely discussing code. The model is now part of a software manufacturing process.</div>
+</section>
+
+<section class="fig" id="fig11">
+  <div class="fignum">Figure 11</div>
+  <h2>Deliverables named in the conversation</h2>
+  <p>Downloadable items are named by name only throughout this conversation. None were opened or downloaded in the read. The table records them as shown on the page.</p>
+  <div class="btnrow" id="delBtns">
+    <button data-k="dl1" class="on">N-Cell 8-Bit archive (7 docs)</button>
+    <button data-k="dl2">Neuruh Factory package</button>
+    <button data-k="dl3">Operating manuals</button>
+    <button data-k="dl4">Other named downloads</button>
+  </div>
+  <div class="panel" id="delPanel"></div>
+  <div class="figcap">Figure 11: Named deliverables from assistant turns 1, 12, and 14. The N-Cell archive ZIP contains all seven editable Word documents; the individual documents are 00 Master Index, 01 Complete Conversation Reconstruction, 02 8-Bit Mathematical Foundation, 03 N-Cell Technical Specification, 04 Neuruh Organism Integration Map, 05 Novelty, Claims, Validation, and IP, and 06 Current Status and Execution Roadmap.</div>
+</section>
+
+<section class="fig" id="fig12">
+  <div class="fignum">Figure 12</div>
+  <h2>DeedSonar state handoff, July 24, 2026</h2>
+  <p>The conversation pastes a DeedSonar / apg-land-crm state handoff dated 2026-07-24, written as a heredoc to be saved on the Mac. It is reproduced here as record, with one superseded claim flagged.</p>
+  <div class="callout"><strong>Superseded claim, flagged.</strong> The handoff states "Ownership: Jeramie and Bryan 50/50. Any 15% figure in older docs is SUPERSEDED." That ownership claim is superseded by Jeramie's October 22, 2026 correction: DeedSonar is solely his; Bryan Franklin never signed; there is no partner consent gate. The handoff is a July 24, 2026 snapshot and does not override the later correction.</div>
+  <table>
+    <thead><tr><th>Item</th><th>Value as stated in the July 24 handoff</th></tr></thead>
+    <tbody>
+      <tr><td>Canonical repo</td><td><code>~/neuruh-repos/AnchorPG/apg-land-crm</code> (github.com/AnchorPG/apg-land-crm). <code>~/dev/apg-land-crm</code> is NOT a git repo; a dead husk, ignore it. 15+ other copies exist; all non-canonical; do not write to them.</td></tr>
+      <tr><td>Main HEAD</td><td><code>d05358631166b2f3fd376fb489840be2f29946a4</code>. Local main equals origin main (0/0). Migrations 001 to 085 in tree.</td></tr>
+      <tr><td>Deployment</td><td>Vercel project anchorpointpg/apg-crm (Bryan's team, NOT Jeramie's account). Git-connected to AnchorPG/apg-land-crm since 2026-05-06, production branch main. No custom domain; production URL apg-crm.vercel.app. A second project apg-land-crm also exists; canonicity unresolved.</td></tr>
+      <tr><td>Naming</td><td>DeedSonar is the locked customer-facing name (Notion canonical page 2026-07-21). deedsonar.com owned 2026-07-21. Subdomains app, send, sign, docs, status NOT activated. Do not rename repos, tables, or service identities for branding.</td></tr>
+      <tr><td>Open promotion</td><td>PR #2: fix/deedsonar-alpha-final to main, +3 commits (eb181d8 brand APG to DeedSonar; 5fa2124 Property Intelligence Card; d819c13 DeedSonar alpha final convergence), plus supabase/migrations/086_alpha_final_hardening.sql as the only new migration. Merging this is what makes production say DeedSonar.</td></tr>
+      <tr><td>Other branches ahead of main</td><td>All pushed, all unmerged: feat/crm-acquisition-flow-v1 +1, feat/crm-tm-permissions-v1 +2, feat/crm-ux-campaign-v1 +1, feat/deedsonar-rebrand-property-intel +2, feat/mohnal-vision-shell +1, feature/dnc-tri-state +2, feat/white-label-modular-search +1 (carries migration 084, marked UNAPPLIED).</td></tr>
+      <tr><td>Known gaps</td><td>scripts/load_traced_phones.py: real paid Tracerfy data (about 287 numbers) never ingested; leads currently carry synthetic 555 phones, which blocks dialing. Supabase project credentials were exposed in plaintext .env on an iCloud-synced Desktop; rotation still pending. No credential values are reproduced here.</td></tr>
+      <tr><td>Rules</td><td>Never write to any copy outside the canonical repo. Operator merges and promotes; agents do not commit to main. Ratification without a promotion record is the standing failure mode; every ratified candidate must get a promotion audit directory or it did not ship.</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Figure 12: The DeedSonar state handoff pasted into the conversation. It is a July 24, 2026 snapshot. The 50/50 ownership line is superseded; the rest is presented as the handoff stated it.</div>
+</section>
+
+<section class="fig" id="fig13">
+  <div class="fignum">Figure 13</div>
+  <h2>The conversation in order</h2>
+  <p>16 user turns and 16 assistant turns. Work durations shown on the page: reply 1 worked 19m 8s; reply 7 worked 1m 52s; reply 8 worked 1m 9s; reply 12 worked 1m 43s; reply 13 worked 1m 26s; reply 14 worked 1m 44s; reply 15 worked 1m 4s. Only 7 of the 16 assistant replies show a "Worked for" duration in the browser text view; the other 9 do not show one. Sources are shown on the page only as provider names with counts, for example Aider +1, OpenRouter +1; Aider +3, OpenRouter +2; OpenAI +2, GitHub +1, OpenAI Help Center; OpenAI Developers +1 / +3, OpenRouter +2 / +1.</p>
+  <div class="turnpanel"><div class="who">Turn 1: User</div><p>"What's going on with my 8 bit system. Give me the complete start to finish of every convo capturing all the important details we went over. Create seperate detailed documents for them so I can download it"</p></div>
+  <div class="turnpanel"><div class="who">Turn 1: Assistant</div><p>Worked for 19m 8s. The N-Cell / 8-Bit System Archive: the complete reconstruction, the seven-document archive, the final system ruling, and the recovered foundational source files list (shown truncated in the browser view, no file names shown). Substance-complete reconstruction, not a byte-for-byte transcript export.</p></div>
+  <div class="turnpanel"><div class="who">Turn 2: User</div><p>"can this be built as a seperate system or is it already?"</p></div>
+  <div class="turnpanel"><div class="who">Turn 2: Assistant</div><p>Yes, it can be built as a separate system; it is not yet a fully separate, production-grade system. Three layers, the canonical v1 byte layout, the five-part structure, the integration plan, and the final recommendation to create neuruh-ncell-core with thin adapters.</p></div>
+  <div class="turnpanel"><div class="who">Turn 3: User</div><p>"build out the entire detailed prompt we can use grok 4.5 to 1 shot it"</p></div>
+  <div class="turnpanel"><div class="who">Turn 3: Assistant</div><p>The one-shot build prompt for Grok 4.5: 36 sections, from product definition through the start-now directive. See Figure 8.</p></div>
+  <div class="turnpanel"><div class="who">Turn 4: User</div><p>"we need to call grok in the terminal through open router"</p></div>
+  <div class="turnpanel"><div class="who">Turn 4: Assistant</div><p>OpenRouter and terminal setup for calling Grok. Source list shown only as provider names and counts in the browser view.</p></div>
+  <div class="turnpanel"><div class="who">Turn 5: User</div><p>"create this as a file i can use with Aider -"</p></div>
+  <div class="turnpanel"><div class="who">Turn 5: Assistant</div><p>The build directive as an Aider-usable file (NCELL_BUILD_PROMPT.md, named in the conversation).</p></div>
+  <div class="turnpanel"><div class="who">Turn 6: User</div><p>"do i need to do something in open router. now what prompts? - Tokens: 755 sent, 255 received. Cost: $0.0030 message, $0.0089 session."</p></div>
+  <div class="turnpanel"><div class="who">Turn 6: Assistant</div><p>"You have two separate problems, and both are straightforward." OpenRouter setup and the next prompts.</p></div>
+  <div class="turnpanel"><div class="who">Turn 7: User</div><p>"this is Bryans API key i was given it worked last night and today fine. not sure why its not this way." (No key value appears in the filing.)</p></div>
+  <div class="turnpanel"><div class="who">Turn 7: Assistant</div><p>Worked for 1m 52s. API key troubleshooting: the key is loaded correctly and the failure happens before any OpenRouter request is sent (per the turn 14 discussion of the same class of failure).</p></div>
+  <div class="turnpanel"><div class="who">Turn 8: User</div><p>"why was this so easy to build like this? shouldnt we be building and pushing shit like this just to get shit live??"</p></div>
+  <div class="turnpanel"><div class="who">Turn 8: Assistant (bracketed note, not a full reply)</div><p>[The browser text view shows a bracketed note here: the "shift" reply is reproduced in full under assistant turn 10, to avoid double-counting. The full text of the shift reply is given once at turn 10. This page preserves that treatment.]</p></div>
+  <div class="turnpanel"><div class="who">Turn 9: User</div><p>Asks for the operating manual and related documents (per the filing structure; the turn 9 user message is shown in the filing as part of the Factory documentation sequence).</p></div>
+  <div class="turnpanel"><div class="who">Turn 9: Assistant</div><p>Operating manual and documentation deliverables for the Factory build.</p></div>
+  <div class="turnpanel"><div class="who">Turn 10: User</div><p>"summarize again how we've been able to do all this. ive never seen this done like this ever before and goes so much quicker and doesnt ask me 1000 questions. whats different about all this and whats being done? i want to do this to MVP and dev everything we have. its just building."</p></div>
+  <div class="turnpanel"><div class="who">Turn 10: Assistant (the full shift reply)</div><p>"Yes. This is the shift." The full text is presented in Figure 9. The model is now part of a software manufacturing process, not merely discussing code.</p></div>
+  <div class="turnpanel"><div class="who">Turn 11: User</div><p>"ok get rolling create all the documents lets get operating autonompusly."</p></div>
+  <div class="turnpanel"><div class="who">Turn 11: Assistant</div><p>Creation of all documents and the move to autonomous operation of the Factory.</p></div>
+  <div class="turnpanel"><div class="who">Turn 12: User</div><p>"final polish. make sure everything can be downlaoded or is ready to go as it should. fillin any gaps not being seen. improve and enhance all of this in god tier."</p></div>
+  <div class="turnpanel"><div class="who">Turn 12: Assistant</div><p>Worked for 1m 43s. Neuruh Factory 2.0, the final release: hardened, self-tested, documented, visually inspected, checksummed, ready to install. The unzip terminal block in this reply repeats the same "replace ...?" prompts many times in the page view. See Figure 10.</p></div>
+  <div class="turnpanel"><div class="who">Turn 13: User</div><p>"make sure we are using 5.6 pro in codex through open router as well to finish things."</p></div>
+  <div class="turnpanel"><div class="who">Turn 13: Assistant</div><p>Worked for 1m 26s. Codex with GPT-5.6 Sol Pro through OpenRouter as the independent hardening and final verification lane.</p></div>
+  <div class="turnpanel"><div class="who">Turn 14: User</div><p>"jeramiehicks@Macmini neuruh-factory % ./scripts/self-test.sh ./bin/neuruh-factory doctor" (terminal output pasted as the user message).</p></div>
+  <div class="turnpanel"><div class="who">Turn 14: Assistant</div><p>Worked for 1m 44s. The factory is installed correctly and SELF_TEST_GREEN. The only blocker is the Codex profile format. See Figure 10.</p></div>
+  <div class="turnpanel"><div class="who">Turn 15: User</div><p>"summarize this entire chat thread for a handoff sheet. all the details about everything. complete dossier."</p></div>
+  <div class="turnpanel"><div class="who">Turn 15: Assistant</div><p>Worked for 1m 4s. The complete dossier handoff sheet for the thread.</p></div>
+  <div class="turnpanel"><div class="who">Turn 16: User</div><p>"create a super detailed handoff script of everything covered in this entire thread. items created highest tier value what it is and whats not done or needs finished. very thorough"</p></div>
+  <div class="turnpanel"><div class="who">Turn 16: Assistant</div><p>The Master Handoff Script: 90 sections, ending with a one-paragraph handoff for the next chat and a single next-move summary (fix Codex profile, verify GPT-5.6 Pro route, ratify Factory, rotate DeedSonar credentials, ratify PR #2, operator promote, resume N-Cell verification, send first real product through Factory, validate with real users).</p></div>
+  <div class="figcap">Figure 13: All 16 user turns and 16 assistant turns, in the order shown on the page. Turn 9's summary is the page's brief reading of the filing's Factory documentation sequence; the filing's turn 9 assistant reply is the operating manual deliverable. User text is quoted as shown on the page, including typos.</div>
+</section>
+
+<section class="fig" id="fidelity">
+  <div class="fignum">Fidelity register</div>
+  <h2>Fidelity register</h2>
+  <table>
+    <thead><tr><th>Item</th><th>What the page does</th></tr></thead>
+    <tbody>
+      <tr><td>Reconstruction, not transcript</td><td>Assistant reply 1 states explicitly it is a substance-complete technical reconstruction, not a byte-for-byte transcript export. This page presents it the same way.</td></tr>
+      <tr><td>Turn 8</td><td>Not a full reply. The browser text view shows a bracketed note that the shift reply is reproduced in full under assistant turn 10. This page preserves that treatment and gives the full shift reply once, at turn 10.</td></tr>
+      <tr><td>Truncation</td><td>Two "[truncated in browser view]" markers appear in the transcript body: assistant reply 1 (recovered foundational source files list, no file names shown) and assistant reply 4 (source list shown only as provider names and counts). Neither was reconstructed.</td></tr>
+      <tr><td>Repeated terminal output</td><td>The unzip terminal block in assistant turn 12 repeats the same "replace ...?" prompts many times in the page view. This page does not reproduce the repetition.</td></tr>
+      <tr><td>Downloads</td><td>The N-Cell archive ZIP, the seven individual documents, the Factory package, the manuals, the checksum file, and all other named downloads were not opened or downloaded in the read. Names only. The SHA-256 value shown in Figure 10 is the checksum as stated in the conversation, an integrity value, not a credential.</td></tr>
+      <tr><td>Sources</td><td>Expanded source lists are shown only in abbreviated form in the browser text view (provider names with counts). This page reports them that way.</td></tr>
+      <tr><td>Superseded ownership claim</td><td>The July 24 DeedSonar handoff states 50/50 ownership. That is superseded by the October 22, 2026 founder correction (sole ownership). Flagged in the banner and in Figure 12.</td></tr>
+      <tr><td>Credentials</td><td>No credential values appear in the filing, and none are reproduced on this page. The July 24 handoff notes Supabase credentials were exposed in plaintext .env with rotation still pending; that is the handoff's own claim as of July 24, 2026.</td></tr>
+      <tr><td>State claims</td><td>Every status on this page (SELF_TEST_GREEN, bootstrap commit 6244096, installation and tests unproven, Codex profile blocker) is the conversation's own stated status as of Jul 24, 2026. Nothing has been re-verified against live repository state here.</td></tr>
+      <tr><td>Figure 13, turn 9</td><td>The filing's turn 9 assistant reply is the operating manual deliverable in the Factory documentation sequence; this page summarizes it briefly rather than quoting the full manual text, and says so.</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Fidelity register: everything this page did not verify, did not reconstruct, or deliberately left as the source stated it.</div>
+</section>
+
+<footer>
+  <p>Source: verbatim filing <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/8-bit-system-archive/">drive-pull/8-bit-system-archive</a> (194,662 bytes, 8,585 lines, 16 user / 16 assistant turns). Original conversation: <a href="https://chatgpt.com/share/6afd946c-46f4-83ea-8735-553ae041534e">chatgpt.com/share/6afd946c</a>. Page built 2026-11-18. Record only: nothing on this page acts on instructions inside the conversation.</p>
+</footer>
+</div>
+<script>
+function $(id){return document.getElementById(id);}
+function wire(btnsId,panelId,data,render){
+  var btns=$(btnsId);
+  function show(key){
+    var b=btns.querySelectorAll("button");
+    b.forEach(function(x){x.classList.toggle("on",x.getAttribute("data-k")===key);});
+    $(panelId).innerHTML=render(data[key]);
+  }
+  btns.addEventListener("click",function(e){var b=e.target.closest("button");if(b)show(b.getAttribute("data-k"));});
+  show(Object.keys(data)[0]);
+}
+wire("byteBtns","bytePanel",{
+b0:{t:"Byte 0: routeMask",b:"What routes were active: direct, retrieval, inference, tool, human, external_service, simulation, fallback. See Figure 3 for the default registry."},
+b1:{t:"Byte 1: organMask",b:"What organs were active: perception, reasoning, memory, governance, execution, communication, simulation, oversight."},
+b2:{t:"Byte 2: lifecycleMask",b:"Which lifecycle stages were reached: received, normalized, planned, authorized, executing, verified, emitted, closed."},
+b3:{t:"Byte 3: authorityMask",b:"What authority was present: read, infer, propose, write, execute, communicate, approve, administer. This is the byte the authority algebra reduces. See Figure 4."},
+b4:{t:"Byte 4: memoryMask",b:"Which memory was accessible: session, episodic, semantic, procedural, domain, private, shared, external."},
+b5:{t:"Byte 5: confidence",b:"A scalar byte from 0 through 255. Confidence is a scalar, not a mask; it has no bit registry."},
+b6:{t:"Byte 6: risk",b:"A scalar byte from 0 through 255. Risk is a scalar, not a mask; it has no bit registry."},
+b7:{t:"Byte 7: outputMask",b:"What was emitted: text, structured_data, file, database_write, message, command, physical_action, escalation."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("regBtns","regPanel",{
+r0:{t:"routeMask default profile",b:"bit 0 direct, bit 1 retrieval, bit 2 inference, bit 3 tool, bit 4 human, bit 5 external_service, bit 6 simulation, bit 7 fallback."},
+r1:{t:"organMask default profile",b:"bit 0 perception, bit 1 reasoning, bit 2 memory, bit 3 governance, bit 4 execution, bit 5 communication, bit 6 simulation, bit 7 oversight."},
+r2:{t:"lifecycleMask default profile",b:"bit 0 received, bit 1 normalized, bit 2 planned, bit 3 authorized, bit 4 executing, bit 5 verified, bit 6 emitted, bit 7 closed."},
+r3:{t:"authorityMask default profile",b:"bit 0 read, bit 1 infer, bit 2 propose, bit 3 write, bit 4 execute, bit 5 communicate, bit 6 approve, bit 7 administer."},
+r4:{t:"memoryMask default profile",b:"bit 0 session, bit 1 episodic, bit 2 semantic, bit 3 procedural, bit 4 domain, bit 5 private, bit 6 shared, bit 7 external."},
+r7:{t:"outputMask default profile",b:"bit 0 text, bit 1 structured_data, bit 2 file, bit 3 database_write, bit 4 message, bit 5 command, bit 6 physical_action, bit 7 escalation."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+var MASKS=[
+ {id:"mReq",label:"Requested authority"},
+ {id:"mAvail",label:"Available authority"},
+ {id:"mPol",label:"Policy-allowed authority"},
+ {id:"mOp",label:"Operator-allowed authority"},
+ {id:"mEnv",label:"Environment-allowed authority"}
+];
+(function buildAuth(){
+  var host=$("authCalc"), html="";
+  MASKS.forEach(function(m){
+    html+="<h4>"+m.label+"</h4><div class=\"bitgrid\" id=\""+m.id+"\">";
+    for(var i=7;i>=0;i--){html+="<label><input type=\"checkbox\" data-bit=\""+i+"\" checked> bit "+i+"</label>";}
+    html+="</div>";
+  });
+  host.innerHTML=html;
+  function val(id){
+    var n=0;
+    document.querySelectorAll("#"+id+" input").forEach(function(c){if(c.checked)n|=(1<<parseInt(c.getAttribute("data-bit"),10));});
+    return n;
+  }
+  function bin(n){return ("00000000"+n.toString(2)).slice(-8);}
+  function hex(n){return "0x"+("0"+n.toString(16).toUpperCase()).slice(-2);}
+  function update(){
+    var eff=val("mReq")&val("mAvail")&val("mPol")&val("mOp")&val("mEnv");
+    var blk=val("mReq")&(~eff)&0xFF;
+    $("authOut").innerHTML="<strong>Effective: "+bin(eff)+" ("+hex(eff)+"). Blocked: "+bin(blk)+" ("+hex(blk)+").</strong>";
+  }
+  host.addEventListener("change",update);
+  update();
+})();
+wire("sysBtns","sysPanel",{
+s1:{t:"ncell-core",b:"Canonical schema, bit registries, encode and decode, validation, authority reduction, topology hashing, state deltas, and compatibility rules."},
+s2:{t:"ncell-sdk",b:"TypeScript SDK, Python SDK, adapters, and test fixtures."},
+s3:{t:"ncell-service",b:"State ingestion API, receipt verification, topology registry, query API, replay support, and outcome association."},
+s4:{t:"ncell-observer",b:"Live state viewer, mask decoder, topology graph, blocked authority view, state-delta timeline, and run comparison."},
+s5:{t:"ncell-lab",b:"Parity tests, failure injection, replay tests, cross-domain benchmarks, and topology experiments."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+var SECTIONS=[
+["I","PRODUCT DEFINITION","N-Cell is a deterministic runtime state, authority, topology, provenance, and outcome protocol for governed computational organizations."],
+["II","NON-NEGOTIABLE ARCHITECTURAL PRINCIPLE","N-Cell observes and records; it must not become another orchestrator, agent framework, governance authority, memory system, or model runtime."],
+["III","REQUIRED MONOREPO","The repository layout for the independent N-Cell system."],
+["IV","CANONICAL N-CELL V1 HEADER","The eight-byte 64-bit operational header and its canonical field rules. See Figure 2."],
+["V","DEFAULT BIT REGISTRIES","Default registries for demonstration and conformance. See Figure 3."],
+["VI","AUTHORITY ALGEBRA","Deterministic authority reduction: effective is the AND of five masks, blocked is requested AND NOT effective. See Figure 4."],
+["VII","FULL N-CELL ENVELOPE","The complete state envelope around the header."],
+["VIII","CANONICALIZATION AND HASHING","Deterministic canonicalization and hashing for state records."],
+["IX","RECEIPT CHAIN","Hash-chained receipts binding state records to runs and outcomes."],
+["X","TOPOLOGY MODEL","The topology model behind topology hashing and comparison."],
+["XI","STATE TRANSITIONS AND DELTAS","State transitions and XOR deltas between runs."],
+["XII","CONFIDENCE AND RISK","The scalar confidence and risk bytes, 0 through 255."],
+["XIII","PROTOCOL PROFILES","Domain-specific registered profiles that replace the default registries while maintaining protocol compatibility."],
+["XIV","TYPESCRIPT SDK","The TypeScript protocol SDK."],
+["XV","PYTHON SDK","The Python protocol SDK."],
+["XVI","VALIDATION AND CONFORMANCE SUITE","The protocol validation and conformance suite, including cross-language fixture parity."],
+["XVII","STANDALONE SERVICE","The standalone ingestion, verification, query, and replay service."],
+["XVIII","DATABASE MODEL","The database model for state records, receipts, and outcomes."],
+["XIX","SECURITY MODEL","The security model, including fail-closed handling of malformed authority, version, hash, signature, and profile inputs."],
+["XX","OBSERVER UI","The live observer and forensic UI: 15 views from Overview through Demo World."],
+["XXI","DEMO WORLDS AND ADAPTERS","Demo worlds and adapters demonstrating integration with external systems."],
+["XXII","OUTCOME ASSOCIATION","Associating runtime states with outcomes, so topology can be compared against results."],
+["XXIII","REPLAY","Replay support for recorded states."],
+["XXIV","OBSERVABILITY","Observability for the service and the protocol."],
+["XXV","TESTING REQUIREMENTS","Testing requirements, including determinism tests."],
+["XXVI","CI/CD","Continuous integration and delivery for the monorepo."],
+["XXVII","DOCUMENTATION","Documentation requirements, including the seven specification documents."],
+["XXVIII","LOCAL DEVELOPER EXPERIENCE","Local developer experience: install, start, and run."],
+["XXIX","SAMPLE DATA","Sample data and fixtures."],
+["XXX","ENGINEERING RULES","Engineering rules: 32 rules, including do not claim a test passed unless you ran it, do not hide failures, do not replace failing implementations with meaningless mocks, and do not invent benchmark results."],
+["XXXI","DESIGN QUALITY RULES","Design quality rules for the system."],
+["XXXII","REQUIRED ACCEPTANCE TEST","The required acceptance test, including the parity demonstration: run the baseline demo without N-Cell, run the wrapped demo with observational N-Cell, strip N-Cell metadata, assert behavioral equivalence, report any differences."],
+["XXXIII","REQUIRED FINAL OUTPUT","The required final output, including the adapters built and the recommended commit structure."],
+["XXXIV","IMPLEMENTATION ORDER","The implementation order for the build."],
+["XXXV","CRITICAL PRODUCT BOUNDARY","The critical product boundary: what N-Cell is and is not."],
+["XXXVI","START NOW","The start-now directive: build the complete working repository, run it, test it, fix it, and leave it in a demonstrable state."]
+];
+function renderSections(q){
+  q=(q||"").toLowerCase();
+  var shown=SECTIONS.filter(function(s){return !q||(s[0]+" "+s[1]+" "+s[2]).toLowerCase().indexOf(q)>=0;});
+  var html="<ol class=\"tight single\">";
+  shown.forEach(function(s){html+="<li><span class=\"secnum\">"+s[0]+"</span><strong>"+s[1]+"</strong>: "+s[2]+"</li>";});
+  html+="</ol><p class=\"note\">"+shown.length+" of 36 sections shown.</p>";
+  $("secList").innerHTML=html;
+}
+$("secFilter").addEventListener("input",function(){renderSections(this.value);});
+renderSections("");
+wire("shiftBtns","shiftPanel",{
+w1:{t:"Previously: the old workflow",b:"You describe the idea, AI asks questions, AI writes a partial answer, you copy code, terminal errors, paste errors back, AI loses context, new branch or repository gets involved, system becomes fragmented, work stops halfway."},
+w2:{t:"This time: the new workflow",b:"Complete specification, isolated repository, explicit authority and boundaries, model connected directly to repository, architect creates implementation strategy, editor writes the files, Git records the result, tests and runtime gates come next."},
+w3:{t:"What was different",b:"Aider used Grok in two roles. The architect role examined the repository and translated the large specification into an ordered implementation plan. The editor role wrote the files. The 46,000-byte build directive had already answered nearly every architectural question, so the model could act instead of asking. The result feels almost suspiciously easy because most of the friction was never the coding itself."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("delBtns","delPanel",{
+dl1:{t:"N-Cell 8-Bit archive: 7 documents in one ZIP",b:"00 N-Cell 8-Bit Master Index: executive ruling, document map, terminology, current classification, reading order. 01 Complete Conversation Reconstruction: start-to-finish reconstruction covering the knitting and octet reference, binary recipes, coordinate discovery, mathematical correction, novelty discussion, Neuruh application, N-Cell evolution, system classification, and implementation direction. 02 8-Bit Mathematical Foundation: binary fundamentals, powers-of-two weighting, bit packing, the original coordinate sequence, corrected right-angle proof, eight-neighbor topology, rotations, XOR state deltas, formulas, examples, and limitations. 03 N-Cell Technical Specification: canonical N-Cell/64 structure, masks, bit registries, authority reduction, topology hashing, receipts, compatibility rules, state transitions, sample records, and implementation contracts. 04 Neuruh Organism Integration Map: detailed mapping into SAL, QCM, HKRS, AXON, AEGIS, MOTHER, governance, PMLA and Vault, N-Observer, N-Lab, LandOS, DeedSonar, World Emitter, FounderOS, the Universal Timeline, and physical or simulation systems. 05 Novelty, Claims, Validation, and IP: established prior art, possible distinctive synthesis, defensible claim boundaries, evidence levels, AGI and ASI restrictions, benchmark requirements, publication sequencing, and possible protectable mechanisms. 06 Current Status and Execution Roadmap: honest present-state assessment, known implementation claims, unresolved repository and test questions, validation gates, phased rollout, commands to verify the AEGIS branch, benchmark plan, and definition of done."},
+dl2:{t:"Neuruh Factory package",b:"The complete Neuruh Factory God-Tier v2.0.0 package, plus its SHA-256 checksum file. See Figure 10 for the checksum value as stated in the conversation."},
+dl3:{t:"Operating manuals",b:"Polished operating manual (PDF), editable operating manual (DOCX), complete Master Operating Bible, installation and operating quickstart, gaps closed and remaining boundaries, and the release-readiness record."},
+dl4:{t:"Other named downloads",b:"NCELL_BUILD_PROMPT.md (the Aider-usable build directive file), the complete Neuruh Factory repository, the Codex GPT-5.6 Sol Pro setup script, the Codex final ratification prompt, the corrected profile repair script, the complete Markdown handoff dossier, and the polished 27-page DOCX dossier. All named only; none opened or downloaded in the read."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+</script>
+</body>
+</html>
