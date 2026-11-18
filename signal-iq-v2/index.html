@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal IQ v2.1.0 - Interactive Spec Demo</title>
+<style>
+  :root { --paper:#f7f3ea; --ink:#1c1a16; --muted:#6b655a; --brass:#9a7b2d; --line:#d8d0bd; --card:#fffdf6; --good:#2e6b34; --warn:#9a5b12; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, "Times New Roman", serif; }
+  header { border-bottom:2px solid var(--ink); padding:18px 22px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  header h1 { margin:0; font-size:26px; letter-spacing:.5px; }
+  header p { margin:2px 0 0; color:var(--muted); font-family:Arial, sans-serif; font-size:13px; }
+  .badge { font-family:Arial, sans-serif; font-size:12px; border:1px solid var(--brass); color:var(--brass); padding:4px 8px; height:fit-content; }
+  main { max-width:980px; margin:0 auto; padding:22px; }
+  .note { font-family:Arial, sans-serif; font-size:13px; background:#fdf6e0; border:1px solid var(--brass); padding:10px 12px; margin:0 0 18px; }
+  h2 { font-size:20px; border-bottom:1px solid var(--line); padding-bottom:6px; margin-top:30px; }
+  .tabs { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .tabs button { font-family:Arial, sans-serif; padding:9px 16px; border:1px solid var(--ink); background:transparent; cursor:pointer; font-size:14px; }
+  .tabs button.active { background:var(--ink); color:var(--paper); }
+  .card { background:var(--card); border:1px solid var(--line); padding:18px; margin-bottom:14px; }
+  .steps { display:flex; gap:4px; flex-wrap:wrap; margin-bottom:14px; }
+  .steps span { font-family:Arial, sans-serif; font-size:11px; padding:5px 8px; border:1px solid var(--line); color:var(--muted); }
+  .steps span.on { background:var(--brass); color:#fff; border-color:var(--brass); }
+  .steps span.done { background:#e8e0c8; color:var(--ink); }
+  label { display:block; font-family:Arial, sans-serif; font-size:13px; margin:10px 0 4px; }
+  input[type=text], select, textarea { width:100%; padding:9px; border:1px solid var(--line); font-size:14px; background:#fff; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; }
+  .row > div { flex:1; min-width:180px; }
+  .btn { font-family:Arial, sans-serif; padding:10px 18px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); cursor:pointer; font-size:14px; margin-top:14px; }
+  .btn.ghost { background:transparent; color:var(--ink); }
+  .btn.brass { background:var(--brass); border-color:var(--brass); color:#fff; }
+  .lead { display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid var(--line); padding:10px 0; font-family:Arial, sans-serif; font-size:14px; }
+  .lead:last-child { border-bottom:0; }
+  .score { font-weight:bold; }
+  .score.hi { color:var(--good); } .score.mid { color:var(--warn); }
+  .pill { font-size:11px; border:1px solid var(--line); padding:2px 7px; color:var(--muted); }
+  .draft { background:#f2ecdc; padding:10px; font-size:14px; margin:8px 0; }
+  .sig { font-family:Arial, sans-serif; font-size:13px; padding:8px 0; border-bottom:1px solid var(--line); }
+  .sig b { color:var(--good); }
+  .hidden { display:none; }
+  .summary { font-family:Arial, sans-serif; font-size:14px; line-height:1.7; }
+  .summary dt { font-weight:bold; } .summary dd { margin:0 0 8px; }
+  footer { border-top:1px solid var(--line); padding:14px 22px; font-family:Arial, sans-serif; font-size:12px; color:var(--muted); }
+  input[type=range] { width:100%; }
+  .chk { font-family:Arial, sans-serif; font-size:14px; margin:6px 0; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Signal IQ v2.1.0</h1>
+    <p>Lead signal detection and AI-drafted outreach. Spec demo from the Drive source doc SIGNAL IQ v2 (2026-01-31).</p>
+  </div>
+  <span class="badge">BROWSER SIMULATION, NOT PRODUCTION</span>
+</header>
+<main>
+  <p class="note">This page is a static simulation of the spec in the source document: an 8-step onboarding wizard and a Mission Control dashboard. No data leaves the browser. Nothing here is connected to a backend, a real signal feed, or a real client. The source claims MVP complete and localhost verified; that claim is UNVERIFIED from the workspace.</p>
+
+  <div class="tabs">
+    <button id="tabW" class="active" onclick="show('wizard')">Onboarding Wizard</button>
+    <button id="tabD" onclick="show('dash')">Mission Control</button>
+  </div>
+
+  <section id="wizard">
+    <div class="steps" id="stepBar"></div>
+    <div class="card" id="stepCard"></div>
+    <button class="btn ghost" id="prevBtn" onclick="move(-1)">Back</button>
+    <button class="btn" id="nextBtn" onclick="move(1)">Next</button>
+    <button class="btn brass hidden" id="actBtn" onclick="activate()">Activate Signal IQ</button>
+  </section>
+
+  <section id="dash" class="hidden">
+    <h2>Mission Control</h2>
+    <div class="card">
+      <h3 style="margin-top:0">Signal detection status</h3>
+      <div class="sig"><b>LIVE</b> &nbsp; Reddit monitoring: 4 sources, 12 new signals in the last hour</div>
+      <div class="sig"><b>LIVE</b> &nbsp; Facebook monitoring: 6 sources, 7 new signals in the last hour</div>
+      <div class="sig"><b>PAUSED</b> &nbsp; Public records pull: next scheduled pull 06:00</div>
+      <div class="sig">Engagement this week: 18 drafts sent, 6 replies, 2 calls booked (sample data)</div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Lead inbox, sorted by score</h3>
+      <div id="leads"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">AI-drafted response</h3>
+      <p style="font-family:Arial,sans-serif;font-size:13px;color:var(--muted)">Draft for the selected lead. Copy-paste ready, per the spec. Edit before sending; nothing sends from this page.</p>
+      <div class="draft" id="draftText"></div>
+      <button class="btn" onclick="copyDraft()">Copy draft</button>
+      <span id="copied" style="font-family:Arial,sans-serif;font-size:13px;color:var(--good)"></span>
+    </div>
+  </section>
+</main>
+<footer>Source: Drive doc SIGNAL IQ v2, modified 2026-01-31. Demo built 2026-11-18 as part of slice-10-root-b. Simulation only.</footer>
+
+<script>
+const steps = [
+  {t:"1. Identity", h:'<label>Business name</label><input type="text" id="f-name" value="Anita Home Services"><label>Industry</label><select id="f-ind"><option>Home services</option><option>Real estate</option><option>Roofing</option><option>HVAC</option></select><label>Contact email</label><input type="text" id="f-email" value="anita@example.com">'},
+  {t:"2. Territory", h:'<label>Service area ZIPs (comma separated)</label><input type="text" id="f-zips" value="49022, 49120, 49127"><label>Radius (miles)</label><input type="text" id="f-radius" value="25">'},
+  {t:"3. Persona", h:'<label>Ideal customer profile</label><textarea id="f-persona" rows="3">Homeowners in Berrien County planning a roof or HVAC replacement in the next 90 days.</textarea>'},
+  {t:"4. Sources", h:'<div class="chk"><input type="checkbox" checked> Reddit</div><div class="chk"><input type="checkbox" checked> Facebook</div><div class="chk"><input type="checkbox" checked> Public records</div><div class="chk"><input type="checkbox"> Nextdoor</div>'},
+  {t:"5. Scoring", h:'<label>Urgency weight: <span id="w1v">40</span>%</label><input type="range" min="0" max="100" value="40" oninput="document.getElementById(\'w1v\').textContent=this.value"><label>Intent weight: <span id="w2v">35</span>%</label><input type="range" min="0" max="100" value="35" oninput="document.getElementById(\'w2v\').textContent=this.value"><label>Quality weight: <span id="w3v">25</span>%</label><input type="range" min="0" max="100" value="25" oninput="document.getElementById(\'w3v\').textContent=this.value">'},
+  {t:"6. Assistant", h:'<label>AI tone</label><select id="f-tone"><option>Professional</option><option>Casual</option><option>Empathetic</option></select><label>Sign-off name</label><input type="text" id="f-sign" value="Anita">'},
+  {t:"7. Routing", h:'<div class="chk"><input type="checkbox" checked> Email delivery</div><div class="chk"><input type="checkbox" checked> SMS delivery</div><div class="chk"><input type="checkbox"> Slack delivery</div>'},
+  {t:"8. Activate", h:'<p class="summary">Review your setup, then activate. This simulation stores nothing and sends nothing.</p><dl class="summary"><dt>Business</dt><dd id="sum-name"></dd><dt>Territory</dt><dd id="sum-terr"></dd><dt>Persona</dt><dd id="sum-per"></dd></dl>'}
+];
+let cur = 0;
+const leads = [
+  {n:"Homeowner, Berrien County", s:"Roof leak after storm, asking for roofer referrals", sc:92, src:"Facebook"},
+  {n:"Homeowner, Niles", s:"HVAC died, wants quotes this week", sc:88, src:"Reddit"},
+  {n:"Homeowner, Stevensville", s:"Comparing roofers, budget questions", sc:74, src:"Facebook"},
+  {n:"Homeowner, Benton Harbor", s:"General question about furnace age", sc:51, src:"Reddit"},
+  {n:"Homeowner, St. Joseph", s:"Looking for a handyman, no urgency stated", sc:38, src:"Public records"}
+];
+let sel = 0;
+function render(){
+  document.getElementById('stepBar').innerHTML = steps.map((s,i)=>'<span class="'+(i===cur?'on':i<cur?'done':'')+'">'+s.t+'</span>').join('');
+  document.getElementById('stepCard').innerHTML = '<h3 style="margin-top:0">'+steps[cur].t+'</h3>'+steps[cur].h;
+  document.getElementById('prevBtn').style.visibility = cur===0?'hidden':'visible';
+  document.getElementById('nextBtn').classList.toggle('hidden', cur===7);
+  document.getElementById('actBtn').classList.toggle('hidden', cur!==7);
+  if(cur===7){
+    document.getElementById('sum-name').textContent = (document.getElementById('f-name')||{}).value || '';
+    document.getElementById('sum-terr').textContent = (document.getElementById('f-zips')||{}).value || '';
+    document.getElementById('sum-per').textContent = (document.getElementById('f-persona')||{}).value || '';
+  }
+}
+function move(d){ cur = Math.max(0, Math.min(7, cur+d)); render(); }
+function activate(){ alert('Signal IQ activated in this simulation. No backend call was made. Switch to Mission Control to see the sample lead inbox.'); show('dash'); }
+function show(which){
+  document.getElementById('wizard').classList.toggle('hidden', which!=='wizard');
+  document.getElementById('dash').classList.toggle('hidden', which!=='dash');
+  document.getElementById('tabW').classList.toggle('active', which==='wizard');
+  document.getElementById('tabD').classList.toggle('active', which==='dash');
+  if(which==='dash') renderLeads();
+}
+function renderLeads(){
+  document.getElementById('leads').innerHTML = leads.map((l,i)=>{
+    const cls = l.sc>=80?'hi':l.sc>=60?'mid':'';
+    return '<div class="lead"><div><b>'+l.n+'</b><br><span style="color:var(--muted)">'+l.s+'</span> <span class="pill">'+l.src+'</span></div><div style="text-align:right"><span class="score '+cls+'">'+l.sc+'</span><br><button class="btn ghost" style="margin-top:6px;padding:5px 10px" onclick="pick('+i+')">Draft reply</button></div></div>';
+  }).join('');
+  pick(sel);
+}
+function pick(i){
+  sel = i; const l = leads[i];
+  document.getElementById('draftText').textContent = 'Hi, I saw your post about '+l.s.charAt(0).toLowerCase()+l.s.slice(1)+' Happy to help with a free, no-pressure quote and a quick look at your options. We serve Berrien County and usually book within 48 hours. Want me to send over a few times that work? Thanks, Anita';
+  document.getElementById('copied').textContent = '';
+}
+function copyDraft(){
+  const t = document.getElementById('draftText').textContent;
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(()=>{ document.getElementById('copied').textContent = 'Copied.'; });
+  else document.getElementById('copied').textContent = 'Copy manually: select the draft text above.';
+}
+render();
+</script>
+</body>
+</html>
