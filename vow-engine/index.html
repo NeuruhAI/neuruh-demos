@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Founder's Codex Vow Engine - Browser Demo</title>
+<style>
+  :root { --ink:#1a1712; --paper:#f4efe6; --bone:#e9e2d3; --brass:#9a7b2d; --red:#a33b2e; --green:#3d6b4f; --mut:#6d675c; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Georgia, 'Times New Roman', serif; background:var(--paper); color:var(--ink); line-height:1.5; }
+  header { background:var(--ink); color:var(--paper); padding:28px 20px 22px; }
+  header .kicker { font-family:ui-monospace, Menlo, monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#c9a94f; }
+  header h1 { margin:8px 0 4px; font-size:30px; line-height:1.15; }
+  header p { margin:0; color:#cfc8b8; max-width:760px; }
+  .sim { display:inline-block; margin-top:10px; font-family:ui-monospace, Menlo, monospace; font-size:11px; background:var(--brass); color:#fff; padding:3px 8px; border-radius:3px; }
+  main { max-width:1060px; margin:0 auto; padding:24px 20px 60px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:820px){ .grid{grid-template-columns:1fr;} }
+  .card { background:#fffdf7; border:1px solid #d8d0bd; border-radius:6px; padding:18px 20px; }
+  .card h2 { margin:0 0 4px; font-size:19px; }
+  .card h2 .n { color:var(--brass); font-family:ui-monospace, Menlo, monospace; font-size:13px; margin-right:6px; }
+  .card p.sub { margin:0 0 14px; color:var(--mut); font-size:14px; }
+  label { display:block; font-family:ui-monospace, Menlo, monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; margin:12px 0 4px; color:var(--mut); }
+  input[type=text] { width:100%; padding:10px; font-size:15px; border:1px solid #b9b09a; border-radius:4px; background:#fff; font-family:inherit; }
+  button { cursor:pointer; font-family:ui-monospace, Menlo, monospace; font-size:13px; padding:10px 16px; border-radius:4px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); margin-top:12px; }
+  button.ghost { background:transparent; color:var(--ink); }
+  button:disabled { opacity:.45; cursor:default; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid #e0d9c6; vertical-align:top; }
+  th { font-family:ui-monospace, Menlo, monospace; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--mut); }
+  .pill { display:inline-block; font-family:ui-monospace, Menlo, monospace; font-size:11px; padding:2px 7px; border-radius:20px; }
+  .pill.growth { background:#d8e6dc; } .pill.drift { background:#f3d9d4; }
+  .seedrow { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .seedrow button { margin-top:0; padding:6px 10px; font-size:11px; }
+  pre { background:var(--ink); color:#e8e2d2; padding:14px; border-radius:5px; overflow:auto; font-size:12.5px; line-height:1.45; white-space:pre-wrap; word-break:break-word; }
+  .note { font-size:13px; color:var(--mut); border-top:1px solid #d8d0bd; margin-top:26px; padding-top:14px; }
+  .note b { color:var(--ink); }
+  .stat { font-size:34px; font-weight:bold; line-height:1.1; }
+  .stat small { font-size:13px; color:var(--mut); font-weight:normal; }
+  .empty { color:var(--mut); font-size:14px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="kicker">Neuruh / Founder's Codex Vow Engine</div>
+  <h1>Log a vow. Watch beliefs grow or drift.</h1>
+  <p>From the complete build spec: vows are embedded, consecutive vows are compared by cosine distance, and the engine tags each step growth or drift against a threshold of 0.15, then exports the top recurring beliefs.</p>
+  <span class="sim">BROWSER DEMO - local stand-in embeddings, no OpenAI key, nothing leaves this page</span>
+</header>
+<main>
+  <div class="grid">
+    <section class="card">
+      <h2><span class="n">01</span>Ingest a vow</h2>
+      <p class="sub">One decisive sentence per vow, per the spec's hard truth: garbage in means garbage embeddings.</p>
+      <label for="vowInput">Vow sentence</label>
+      <input type="text" id="vowInput" placeholder="I refuse to monetize at the cost of sovereignty." maxlength="280">
+      <button id="addBtn">Log vow</button>
+      <button class="ghost" id="clearBtn">Clear all vows</button>
+      <div class="seedrow">
+        <span style="font-size:13px; color:var(--mut); align-self:center;">Seed examples:</span>
+        <button class="ghost seed">I refuse to monetize at the cost of sovereignty.</button>
+        <button class="ghost seed">I refuse to trade sovereignty for speed.</button>
+        <button class="ghost seed">Revenue follows receipts, never the other way around.</button>
+      </div>
+      <div style="margin-top:18px;">
+        <span class="stat" id="vowCount">0</span> <small>vows logged</small> &nbsp;·&nbsp;
+        <span class="stat" id="growthCount">0</span> <small>growth</small> &nbsp;·&nbsp;
+        <span class="stat" id="driftCount">0</span> <small>drift</small>
+      </div>
+      <p class="sub" style="margin-top:10px;">Config from the spec: model text-embedding-3-small, growth_threshold 0.15, top_n_export 12. This page substitutes a deterministic local pseudo-embedding (see the note at the bottom) because a browser page has no OpenAI key.</p>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">02</span>Growth vs drift detector</h2>
+      <p class="sub">Cosine distance between consecutive vows. Distance at or below 0.15 is growth; above it is drift. Drift is not bad: review every drift row, sometimes it is strategic evolution.</p>
+      <table>
+        <thead><tr><th>#</th><th>Vow</th><th>Delta</th><th>Tag</th></tr></thead>
+        <tbody id="evoBody"><tr><td colspan="4" class="empty">No vows yet. Log two vows to see the first comparison.</td></tr></tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="grid" style="margin-top:18px;">
+    <section class="card">
+      <h2><span class="n">03</span>Top recurring beliefs</h2>
+      <p class="sub">Frequency-ranked vows, top 12, ready to paste into investor decks, a bio, or a Mirror-Agent prompt.</p>
+      <div id="beliefs"><p class="empty">No beliefs yet.</p></div>
+      <button id="csvBtn" disabled>Download top_beliefs.csv</button>
+      <button class="ghost" id="mdBtn" disabled>Download top_beliefs.md</button>
+    </section>
+
+    <section class="card">
+      <h2><span class="n">04</span>Spec reference</h2>
+      <p class="sub">The storage layer and pipeline this demo mirrors, from the source spec.</p>
+      <pre>SQLite schema (spec):
+vows(id PK, timestamp ISO8601, raw_text, embedding BLOB)
+meta(key PK, val)
+
+Pipeline (run_vow_engine.sh):
+1. src/analysis/evolution.py  - growth vs drift
+2. src/export/top_beliefs.py  - CSV + Markdown export
+
+Weekly cron (spec):
+0 7 * * MON  cd ~/Projects/vow_engine \
+  && ./run_vow_engine.sh >> cron.log 2>&1
+
+Maintenance (spec):
+- Quarterly: sqlite3 db/vows.db 'VACUUM;'
+- Model update: re-embed all rows
+- Drift review: every drift row, by hand</pre>
+    </section>
+  </div>
+
+  <p class="note"><b>Source:</b> "FOUNDER'S CODEX VOW ENGINE - COMPLETE BUILD SPEC" (Google Doc, 2025-07-13), built as item s06-founder-s-codex-vow-engine-complete-build-spec in the Drive build-out. <b>Honest state:</b> this page is a browser simulation of the spec's logic. The real spec stores embeddings from OpenAI text-embedding-3-small in SQLite and needs an API key; this page computes a deterministic local pseudo-embedding instead: each word is hashed into a 64-dimension vector, so identical and near-identical sentences score close together and unrelated sentences score far apart, which is enough to demonstrate the growth/drift detector but is not a semantic embedding. Vows are kept in this browser's local storage only; Clear all vows wipes them. The spec's integration targets (investor decks, LinkedIn bio, Mirror-Agent GPT, Notion OS) are listed in the spec, not wired here. Threshold 0.15 and top_n 12 are the spec's defaults, not tuned values.</p>
+</main>
+<script>
+(function () {
+  var DIM = 64;
+  var THRESHOLD = 0.15;
+  var TOP_N = 12;
+  var KEY = 'vow-engine-demo-v1';
+  var vows = [];
+  try { vows = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { vows = []; }
+
+  function $(id) { return document.getElementById(id); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(vows)); } catch (e) {} }
+
+  // Deterministic local pseudo-embedding: hash each word into DIM buckets.
+  // Stand-in only. The real spec uses OpenAI text-embedding-3-small.
+  function embed(text) {
+    var vec = new Array(DIM).fill(0);
+    var words = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+    words.forEach(function (w) {
+      var h1 = 0, h2 = 0;
+      for (var i = 0; i < w.length; i++) { h1 = (h1 * 31 + w.charCodeAt(i)) >>> 0; h2 = (h2 * 17 + w.charCodeAt(i) * 7) >>> 0; }
+      vec[h1 % DIM] += 1;
+      vec[h2 % DIM] += 0.5;
+    });
+    var norm = Math.sqrt(vec.reduce(function (s, v) { return s + v * v; }, 0)) || 1;
+    return vec.map(function (v) { return v / norm; });
+  }
+  function cosine(a, b) {
+    var num = 0, da = 0, db = 0;
+    for (var i = 0; i < a.length; i++) { num += a[i] * b[i]; da += a[i] * a[i]; db += b[i] * b[i]; }
+    var den = Math.sqrt(da) * Math.sqrt(db);
+    return den === 0 ? 0 : num / den;
+  }
+
+  function render() {
+    var events = [];
+    for (var i = 1; i < vows.length; i++) {
+      var delta = 1 - cosine(vows[i - 1].vec, vows[i].vec);
+      events.push({ id: vows[i].id, text: vows[i].text, delta: delta, tag: delta <= THRESHOLD ? 'growth' : 'drift' });
+    }
+    var growth = events.filter(function (e) { return e.tag === 'growth'; }).length;
+    var drift = events.length - growth;
+    $('vowCount').textContent = vows.length;
+    $('growthCount').textContent = growth;
+    $('driftCount').textContent = drift;
+
+    var body = $('evoBody');
+    body.innerHTML = '';
+    if (!events.length) {
+      body.innerHTML = '<tr><td colspan="4" class="empty">No vows yet. Log two vows to see the first comparison.</td></tr>';
+    } else {
+      events.forEach(function (e) {
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + e.id + '</td><td>' + escapeHtml(e.text) + '</td><td>' + e.delta.toFixed(3) + '</td>' +
+          '<td><span class="pill ' + e.tag + '">' + e.tag + '</span></td>';
+        body.appendChild(tr);
+      });
+    }
+
+    var counts = {};
+    vows.forEach(function (v) { counts[v.text] = (counts[v.text] || 0) + 1; });
+    var top = Object.keys(counts).map(function (k) { return { vow: k, freq: counts[k] }; })
+      .sort(function (a, b) { return b.freq - a.freq; }).slice(0, TOP_N);
+    var bel = $('beliefs');
+    if (!top.length) {
+      bel.innerHTML = '<p class="empty">No beliefs yet.</p>';
+    } else {
+      bel.innerHTML = '<ol style="margin:0; padding-left:20px;">' + top.map(function (t) {
+        return '<li><b>' + escapeHtml(t.vow) + '</b> x' + t.freq + '</li>';
+      }).join('') + '</ol>';
+    }
+    $('csvBtn').disabled = !$('mdBtn').disabled = !top.length;
+    return top;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function addVow(text) {
+    text = (text || '').trim();
+    if (!text) return;
+    vows.push({ id: vows.length + 1, timestamp: new Date().toISOString(), text: text, vec: embed(text) });
+    save();
+    render();
+  }
+
+  $('addBtn').addEventListener('click', function () {
+    addVow($('vowInput').value);
+    $('vowInput').value = '';
+    $('vowInput').focus();
+  });
+  $('vowInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { addVow($('vowInput').value); $('vowInput').value = ''; }
+  });
+  $('clearBtn').addEventListener('click', function () {
+    vows = [];
+    save();
+    render();
+  });
+  document.querySelectorAll('.seed').forEach(function (b) {
+    b.addEventListener('click', function () { addVow(b.textContent); });
+  });
+  function download(name, content, type) {
+    var blob = new Blob([content], { type: type });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  $('csvBtn').addEventListener('click', function () {
+    var top = render();
+    var csv = 'vow,freq\n' + top.map(function (t) { return '"' + t.vow.replace(/"/g, '""') + '",' + t.freq; }).join('\n');
+    download('top_beliefs.csv', csv, 'text/csv');
+  });
+  $('mdBtn').addEventListener('click', function () {
+    var top = render();
+    var md = '# Top Recurring Belief Systems\n\n' + top.map(function (t) { return '- **' + t.vow + '** x' + t.freq; }).join('\n') + '\n';
+    download('top_beliefs.md', md, 'text/markdown');
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
