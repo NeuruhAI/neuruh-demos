@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rehab Cost Engine + Exit Strategy Ranker</title>
+<style>
+:root{--paper:#f7f3ea;--ink:#1c1a16;--brass:#9a7b2d;--line:#d8cfba;--muted:#6b6455;--card:#fffdf7}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,serif;line-height:1.5}
+header{border-bottom:3px double var(--brass);padding:22px 20px 14px;max-width:960px;margin:0 auto}
+header .kicker{font-family:monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass)}
+h1{font-size:28px;margin:6px 0 4px}h2{font-size:19px;border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:28px}
+main{max-width:960px;margin:0 auto;padding:0 20px 40px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);padding:14px 16px}
+label{display:block;font-size:13px;margin:10px 0 3px;font-family:monospace}
+input,select{width:100%;padding:8px;border:1px solid var(--line);background:#fff;font-size:15px}
+button{background:var(--ink);color:var(--paper);border:0;padding:12px 22px;font-size:16px;cursor:pointer;margin-top:16px}
+button:hover{background:var(--brass)}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
+td:last-child,th:last-child{text-align:right}
+.rec{border:2px solid var(--brass);background:#fbf6e6;padding:14px 16px;margin-top:16px}
+.rec b{font-size:20px}
+.risk{color:#8a2f1d;font-weight:bold}
+pre{background:#211f1a;color:#f0ead8;padding:14px;overflow:auto;font-size:12.5px}
+.note{font-size:13px;color:var(--muted)}
+.badge{display:inline-block;font-family:monospace;font-size:11px;border:1px solid var(--brass);color:var(--brass);padding:2px 8px;letter-spacing:.12em;text-transform:uppercase}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">Neuruh Drive Build &middot; Slice 04 &middot; Browser simulation, not a live system</div>
+<h1>Rehab Cost Engine + Exit Strategy Ranker</h1>
+<p>From the Drive spec &ldquo;Rehab Cost Engine + Exit Strategy Ranker - Example&rdquo; (2025-08-02). Estimates repair cost from component signals, flags hidden risks, simulates every exit path, and picks the best strategy with the spec&rsquo;s own rule. No live data, no sends, no accounts. All math runs in your browser.</p>
+<p><span class="badge">Simulation</span> <span class="badge">Spec formulas</span></p>
+</header>
+<main>
+<h2>1. Property inputs</h2>
+<div class="grid">
+<div class="card">
+<label>Purchase price ($)</label><input id="purchase" type="number" value="85000">
+<label>After repair value, ARV ($)</label><input id="arv" type="number" value="165000">
+<label>Interior sqft</label><input id="sqft" type="number" value="1400">
+<label>Roof sqft</label><input id="roofsqft" type="number" value="1200">
+<label>Interior finish level ($ per sqft, spec range 20 to 50)</label><input id="intrate" type="number" value="32">
+<label>Local labor and material multiplier (1.0 = spec baseline)</label><input id="mult" type="number" step="0.05" value="1.0">
+</div>
+<div class="card">
+<label>Roof condition</label><select id="roof"><option value="ok">Sound, under 20 years</option><option value="bad">Missing, 20+ years, or storm damage</option></select>
+<label>HVAC age</label><select id="hvac"><option value="ok">Under 15 years</option><option value="bad">15+ years or missing</option></select>
+<label>Electrical (code date)</label><select id="elec"><option value="ok">1990 or later</option><option value="bad">Before 1990</option></select>
+<label>Plumbing</label><select id="plumb"><option value="ok">Modern</option><option value="bad">Galvanized pipes or old permit</option></select>
+<label>Foundation</label><select id="found"><option value="ok">No visible issues</option><option value="bad">Visible cracks or old slab</option></select>
+<label>Monthly rent if rented ($)</label><input id="rent" type="number" value="1450">
+</div>
+</div>
+<h2>2. Market inputs (exit ranker)</h2>
+<div class="grid">
+<div class="card">
+<label>Average days on market</label><input id="dom" type="number" value="24">
+<label>Rehab difficulty 0 to 1 (spec: under 0.6 favors flip)</label><input id="diff" type="number" step="0.05" value="0.4">
+<label>Monthly taxes + insurance + property mgmt + vacancy ($)</label><input id="opex" type="number" value="520">
+<label>Monthly debt service if refinanced ($)</label><input id="debt" type="number" value="780">
+<label>Cash invested for BRRRR ($)</label><input id="cash" type="number" value="30000">
+</div>
+<div class="card">
+<p class="note">Hidden risk flags (spec Part B). Check any that apply; each adds cost or cuts confidence.</p>
+<label><input type="checkbox" id="r_title"> Clouded title (adds $2,000 to $5,000 legal buffer, uses $3,500)</label>
+<label><input type="checkbox" id="r_flood"> Flood zone (adds $2,500 insurance and mold buffer)</label>
+<label><input type="checkbox" id="r_hist"> Historic district (rehab cost +25%)</label>
+<label><input type="checkbox" id="r_probate"> Probate or divorce (delay risk, no cost add)</label>
+<label><input type="checkbox" id="r_crime"> Crime hotspot (suppresses rental desirability)</label>
+<label><input type="checkbox" id="r_permit"> Non-permitted additions (cuts ARV confidence)</label>
+</div>
+</div>
+<button onclick="run()">Run engine</button>
+<h2>3. Results</h2>
+<div id="out"><p class="note">Press Run engine. The breakdown, risk flags, exit table, and recommendation appear here with a receipt hash.</p></div>
+<h2>About this demo</h2>
+<p class="note">Formulas are the spec&rsquo;s own: TotalRehabCost = sum of component cost x risk factor x local unit cost. Roof $7.50 x roof sqft; HVAC $4,500 to $7,000 (uses $5,750 midpoint); electrical $3,000 to $8,000 (uses $5,500); plumbing $2,500 to $6,000 (uses $4,250); foundation $8,000+; interior $20 to $50 per sqft; cleanup and unknowns 10 to 15% buffer (uses 12%). Exit rules are the spec&rsquo;s rule-based selector, quoted in the item doc. This page proves the logic runs; it does not pull live parcel, permit, FEMA, or market data. That connection is a founder decision, not a demo feature.</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const money=n=>"$"+Math.round(n).toLocaleString("en-US");
+async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+async function run(){
+ const p=+ $("purchase").value||0, arv=+ $("arv").value||0, sqft=+ $("sqft").value||0;
+ const roofSq=+ $("roofsqft").value||0, intRate=+ $("intrate").value||0, mult=+ $("mult").value||1;
+ const rent=+ $("rent").value||0, dom=+ $("dom").value||0, diff=+ $("diff").value||0;
+ const opex=+ $("opex").value||0, debt=+ $("debt").value||0, cash=+ $("cash").value||1;
+ let parts={}, risks=[];
+ if($("roof").value==="bad"){parts.roof=7.50*roofSq;risks.push("Roof: missing / 20+ years / storm damage")}
+ if($("hvac").value==="bad"){parts.hvac=5750;risks.push("HVAC: 15+ years or missing")}
+ if($("elec").value==="bad"){parts.electrical=5500;risks.push("Electrical: code date before 1990")}
+ if($("plumb").value==="bad"){parts.plumbing=4250;risks.push("Plumbing: galvanized pipes or old permit")}
+ if($("found").value==="bad"){parts.foundation=8000;risks.push("Foundation: visible cracks or old slab")}
+ parts.interior=intRate*sqft;
+ let sub=Object.values(parts).reduce((a,b)=>a+b,0);
+ if($("r_hist").checked){sub*=1.25;risks.push("Historic district: rehab cost +25%")}
+ let buffer=sub*0.12; parts.cleanup=buffer;
+ let total=sub+buffer;
+ if($("r_title").checked){total+=3500;risks.push("Clouded title: $3,500 legal buffer")}
+ if($("r_flood").checked){total+=2500;risks.push("Flood zone: $2,500 insurance and mold buffer")}
+ if($("r_probate").checked)risks.push("Probate / divorce: delay risk");
+ if($("r_crime").checked)risks.push("Crime hotspot: rental desirability suppressed");
+ if($("r_permit").checked)risks.push("Non-permitted additions: ARV confidence reduced");
+ const sellFees=arv*0.08, carry=total*0.06;
+ const flipProfit=arv-p-total-carry-sellFees, flipMargin=flipProfit/(p+total);
+ const monthlyCF=rent-opex-debt, dscr=(rent-opex)/Math.max(debt,1);
+ const annualCF=monthlyCF*12, brrrr=annualCF/Math.max(cash,1);
+ const rentYield=(rent*12-opex*12)/Math.max(arv,1);
+ const spread=arv*0.7-total-p;
+ let rec, why;
+ if(flipMargin>0.15&&diff<0.6&&dom<30){rec="Fix & Flip";why="Flip margin over 15%, rehab difficulty under 0.6, average DOM under 30."}
+ else if(monthlyCF>200&&dscr>1.25){rec="BRRRR";why="Monthly cashflow over $200 and DSCR over 1.25."}
+ else if(rentYield>0.06){rec="Long-Term Rent";why="Rental yield over 6%."}
+ else if(spread>10000){rec="Wholesale";why="Wholesale spread over $10,000."}
+ else{rec="Hold (speculative)";why="No exit clears its bar; hold on appreciation."}
+ let conf=90-risks.length*4-(diff*10); conf=Math.max(20,Math.min(98,Math.round(conf)));
+ const rows=Object.entries(parts).map(([k,v])=>`<tr><td>${k}</td><td>${money(v)}</td></tr>`).join("");
+ const exits=[
+  ["Fix & Flip","Net profit "+money(flipProfit)+" | ROI "+(flipMargin*100).toFixed(1)+"%","4 to 6 months"],
+  ["BRRRR","Monthly cashflow "+money(monthlyCF)+" | Cash return "+(brrrr*100).toFixed(1)+"% | DSCR "+dscr.toFixed(2),"Refi after rehab"],
+  ["Long-Term Rent","Monthly cashflow "+money(rent-opex)+" | Yield "+(rentYield*100).toFixed(1)+"%","Ongoing"],
+  ["Wholesale","Spread "+money(spread),"Immediate"],
+  ["Hold (speculative)","Appreciation x equity over 3 to 5 years","3 to 5 years"]
+ ].map(e=>`<tr><td>${e[0]}</td><td>${e[1]}</td><td>${e[2]}</td></tr>`).join("");
+ const receipt=await sha(JSON.stringify({p,arv,total,rec,conf,ts:new Date().toISOString()}));
+ $("out").innerHTML=`
+ <div class="card"><h3 style="margin-top:0">Repair breakdown</h3><table>${rows}<tr><td><b>Total rehab cost</b></td><td><b>${money(total)}</b></td></tr></table>
+ <p>Risk flags (${risks.length}): ${risks.length?risks.map(r=>`<span class="risk">${r}</span>`).join("; "):"None flagged."}</p></div>
+ <h3>Exit options</h3><table><tr><th>Strategy</th><th>Numbers</th><th>Timeline</th></tr>${exits}</table>
+ <div class="rec"><div>RECOMMENDATION</div><b>${rec}</b><p>${why}</p><p>Confidence score: ${conf} / 100 (starts 90, minus 4 per risk flag, minus rehab difficulty x 10).</p></div>
+ <h3>Output record (spec template)</h3><pre>${JSON.stringify({recommendation:rec,rehab_cost:money(total),repair_breakdown:Object.fromEntries(Object.entries(parts).map(([k,v])=>[k,money(v)])) ,hidden_risks:risks,exit_options:{flip:{net_profit:money(flipProfit),roi:+(flipMargin*100).toFixed(1)},rent:{monthly_cashflow:money(rent-opex)},brrrr:{cash_return:+(brrrr*100).toFixed(1)}},confidence_score:conf,receipt_sha256:receipt},null,2)}</pre>
+ <p class="note">Receipt SHA-256: ${receipt}</p>`;
+}
+</script>
+</body>
+</html>
