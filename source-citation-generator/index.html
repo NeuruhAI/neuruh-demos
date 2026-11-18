@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Source Citation Generator - Neuruh Drive Build</title>
+<style>
+  :root { --bone:#f7f4ec; --paper:#fffdf6; --ink:#1a1714; --muted:#6b645a; --brass:#a67c2e; --line:#ddd3bd; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bone); color:var(--ink); font-family:Georgia, 'Times New Roman', serif; line-height:1.55; }
+  .wrap { max-width:860px; margin:0 auto; padding:28px 20px 60px; }
+  .kicker { font-family:'Courier New',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--brass); }
+  h1 { font-size:34px; line-height:1.15; margin:8px 0 4px; }
+  .sub { color:var(--muted); margin:0 0 20px; }
+  .card { background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:20px; margin:16px 0; }
+  .tabs { display:flex; gap:8px; margin:8px 0 0; }
+  .tabs button { font-family:'Courier New',monospace; font-size:13px; padding:9px 16px; border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:6px 6px 0 0; cursor:pointer; }
+  .tabs button[aria-selected="true"] { background:var(--ink); color:var(--bone); border-color:var(--ink); }
+  label { display:block; font-family:'Courier New',monospace; font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:12px 0 4px; }
+  input { width:100%; padding:9px 10px; font-size:15px; font-family:Georgia,serif; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--ink); }
+  input:focus { outline:2px solid var(--brass); outline-offset:1px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+  @media (max-width:600px){ .row{grid-template-columns:1fr;} }
+  output, .out { display:block; background:#f1ebdb; border:1px solid var(--line); border-left:4px solid var(--brass); border-radius:4px; padding:14px; font-size:15px; white-space:pre-wrap; }
+  .btns { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  button.action { background:var(--brass); color:#fff; border:none; padding:10px 18px; font-size:14px; border-radius:4px; cursor:pointer; font-family:Georgia,serif; }
+  button.ghost { background:transparent; border:1px solid var(--ink); color:var(--ink); padding:10px 18px; font-size:14px; border-radius:4px; cursor:pointer; font-family:Georgia,serif; }
+  .note { font-size:13px; color:var(--muted); }
+  .example { font-size:14px; }
+  .example b { color:var(--brass); }
+  footer { margin-top:28px; border-top:1px solid var(--line); padding-top:14px; font-size:13px; color:var(--muted); }
+  .copied { color:var(--brass); font-family:'Courier New',monospace; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Neuruh Drive Build - Slice 07</div>
+  <h1>Source Citation Generator</h1>
+  <p class="sub">Fill in the fields and the citation builds itself, using the exact templates from the Drive source "Source Citation Generator". No data leaves your browser.</p>
+
+  <div class="tabs" role="tablist">
+    <button id="tab-census" role="tab" aria-selected="true" onclick="show('census')">Census Records</button>
+    <button id="tab-vital" role="tab" aria-selected="false" onclick="show('vital')">Vital Records</button>
+  </div>
+
+  <div class="card" id="panel-census">
+    <p class="note">Template: [Author if known]. "[Title of Census]," [Year], [Enumeration District], [Sheet/Page Number], [Household/Family Number], [Line Number], [Person of Interest]; digital image, [Website Name] ([URL] : accessed [Access Date]).</p>
+    <div class="row">
+      <div><label for="c-author">Author (if known)</label><input id="c-author" value="" placeholder="Leave blank if unknown"></div>
+      <div><label for="c-title">Title of census</label><input id="c-title" value="1910 U.S. census"></div>
+    </div>
+    <div class="row">
+      <div><label for="c-county">County / place detail</label><input id="c-county" value="Suffolk County, Massachusetts, population schedule, Boston Ward 12"></div>
+      <div><label for="c-year">Year</label><input id="c-year" value="1910"></div>
+    </div>
+    <div class="row">
+      <div><label for="c-ed">Enumeration district</label><input id="c-ed" value="ED 1503"></div>
+      <div><label for="c-sheet">Sheet / page</label><input id="c-sheet" value="sheet 14A"></div>
+    </div>
+    <div class="row">
+      <div><label for="c-house">Dwelling / family numbers</label><input id="c-house" value="dwelling 125, family 216"></div>
+      <div><label for="c-line">Line number</label><input id="c-line" value=""></div>
+    </div>
+    <div class="row">
+      <div><label for="c-person">Person of interest</label><input id="c-person" value="John Smith"></div>
+      <div><label for="c-site">Website name</label><input id="c-site" value="Ancestry.com"></div>
+    </div>
+    <div class="row">
+      <div><label for="c-url">URL</label><input id="c-url" value="https://www.ancestry.com"></div>
+      <div><label for="c-date">Access date</label><input id="c-date" value="15 March 2025"></div>
+    </div>
+    <div class="btns">
+      <button class="action" onclick="buildCensus()">Build citation</button>
+      <button class="ghost" onclick="copyOut('out-census')">Copy citation</button>
+      <span class="copied" id="copied-census"></span>
+    </div>
+    <p style="margin-top:16px"><output class="out" id="out-census"></output></p>
+    <p class="example"><b>Source example:</b> 1910 U.S. census, Suffolk County, Massachusetts, population schedule, Boston Ward 12, enumeration district (ED) 1503, sheet 14A, dwelling 125, family 216, John Smith; digital image, Ancestry.com (https://www.ancestry.com : accessed 15 March 2025).</p>
+  </div>
+
+  <div class="card" id="panel-vital" hidden>
+    <p class="note">Template: [Location] [Record Type Office], [Certificate/Volume Number], [Person of Interest], [Event Date]; [Repository or Website], [URL or Physical Location], [Access Date].</p>
+    <div class="row">
+      <div><label for="v-office">Record office</label><input id="v-office" value="Massachusetts Department of Public Health, Registry of Vital Records and Statistics"></div>
+      <div><label for="v-type">Record type</label><input id="v-type" value="death certificate"></div>
+    </div>
+    <div class="row">
+      <div><label for="v-cert">Certificate / volume number</label><input id="v-cert" value="no. 12345"></div>
+      <div><label for="v-person">Person of interest</label><input id="v-person" value="John Smith"></div>
+    </div>
+    <div class="row">
+      <div><label for="v-date">Event date</label><input id="v-date" value="1915"></div>
+      <div><label for="v-repo">Repository / website</label><input id="v-repo" value="FamilySearch"></div>
+    </div>
+    <div class="row">
+      <div><label for="v-url">URL or physical location</label><input id="v-url" value="https://www.familysearch.org"></div>
+      <div><label for="v-access">Access date</label><input id="v-access" value="15 March 2025"></div>
+    </div>
+    <div class="btns">
+      <button class="action" onclick="buildVital()">Build citation</button>
+      <button class="ghost" onclick="copyOut('out-vital')">Copy citation</button>
+      <span class="copied" id="copied-vital"></span>
+    </div>
+    <p style="margin-top:16px"><output class="out" id="out-vital"></output></p>
+    <p class="example"><b>Source example:</b> Massachusetts Department of Public Health, Registry of Vital Records and Statistics, death certificate no. 12345 (1915), John Smith; digital image, FamilySearch (https://www.familysearch.org : accessed 15 March 2025).</p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">What this is</h2>
+    <p>Built from the Drive document "Source Citation Generator" (Neuruh Content, modified 2025-04-01). The source gives two templates, census records and vital records, each with one worked example. This page turns both templates into working forms. The examples use John Smith as the sample person of interest, exactly as in the source.</p>
+    <p class="note">Honest labeling: this is a formatting tool. It does not verify that a record exists, that a URL is correct, or that a citation is complete for any particular publisher. Check the record yourself before relying on the output.</p>
+  </div>
+
+  <footer>Neuruh Drive Build, slice 07, item s07-source-citation-generator. Source: Google Drive, "Source Citation Generator". No sends, no storage, no tracking.</footer>
+</div>
+<script>
+function show(which){
+  document.getElementById('panel-census').hidden = which !== 'census';
+  document.getElementById('panel-vital').hidden = which !== 'vital';
+  document.getElementById('tab-census').setAttribute('aria-selected', which === 'census');
+  document.getElementById('tab-vital').setAttribute('aria-selected', which === 'vital');
+}
+function v(id){ return document.getElementById(id).value.trim(); }
+function buildCensus(){
+  var parts = [];
+  if (v('c-author')) parts.push(v('c-author') + '.');
+  var title = '"' + v('c-title') + ',"';
+  var bits = [title, v('c-year'), v('c-county'), v('c-ed') ? 'enumeration district (' + v('c-ed') + ')' : '', v('c-sheet'), v('c-house'), v('c-line') ? 'line ' + v('c-line') : '', v('c-person')].filter(Boolean);
+  var s = parts.concat([bits.join(', ')]).join(' ');
+  s += '; digital image, ' + v('c-site') + ' (' + v('c-url') + ' : accessed ' + v('c-date') + ').';
+  document.getElementById('out-census').textContent = s;
+}
+function buildVital(){
+  var s = v('v-office') + ', ' + v('v-type') + ' ' + v('v-cert') + ' (' + v('v-date') + '), ' + v('v-person') + '; digital image, ' + v('v-repo') + ' (' + v('v-url') + ' : accessed ' + v('v-access') + ').';
+  document.getElementById('out-vital').textContent = s;
+}
+function copyOut(id){
+  var t = document.getElementById(id).textContent;
+  if (!t) return;
+  var done = function(msg, el){ document.getElementById(el).textContent = msg; setTimeout(function(){ document.getElementById(el).textContent=''; }, 2000); };
+  var target = id === 'out-census' ? 'copied-census' : 'copied-vital';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(function(){ done('Copied.', target); });
+  } else {
+    var ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done('Copied.', target); } catch(e){ done('Copy failed, select the text manually.', target); }
+    document.body.removeChild(ta);
+  }
+}
+document.querySelectorAll('#panel-census input').forEach(function(el){ el.addEventListener('input', buildCensus); });
+document.querySelectorAll('#panel-vital input').forEach(function(el){ el.addEventListener('input', buildVital); });
+buildCensus(); buildVital();
+</script>
+</body>
+</html>
