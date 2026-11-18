@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuruh Command Center: Your Sovereign Bloomberg Terminal</title>
+<style>
+  :root{ --paper:#f7f3ea; --bone:#efe9db; --ink:#1c1a16; --muted:#6b6455; --brass:#9a7b2d; --line:#d8d0bd; --card:#fffdf7; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, "Times New Roman", serif; line-height:1.55; }
+  .wrap{ max-width:960px; margin:0 auto; padding:0 20px 60px; }
+  header{ border-bottom:3px double var(--ink); padding:28px 0 14px; }
+  .kicker{ font-family:"Courier New", monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--brass); }
+  h1{ font-size:36px; line-height:1.1; margin:8px 0 4px; }
+  h2{ font-size:22px; border-bottom:1px solid var(--line); padding-bottom:6px; margin:36px 0 12px; }
+  h3{ font-size:17px; margin:20px 0 6px; }
+  p, li{ font-size:16px; }
+  .sub{ color:var(--muted); font-style:italic; }
+  .banner{ background:var(--bone); border:1px solid var(--brass); border-left:6px solid var(--brass); padding:14px 18px; margin:20px 0; }
+  .banner b{ color:var(--brass); }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:14px 0; }
+  .card{ background:var(--card); border:1px solid var(--line); padding:14px 16px; }
+  .card h3{ margin-top:0; }
+  .tab{ padding:8px 16px; border:1px solid var(--line); background:var(--bone); cursor:pointer; font-family:"Courier New", monospace; font-size:14px; margin:0 4px 0 0; }
+  .tab.active{ background:var(--card); color:var(--brass); font-weight:bold; }
+  .view{ display:none; }
+  .view.active{ display:block; }
+  button{ background:var(--ink); color:var(--paper); border:none; cursor:pointer; margin:6px 6px 0 0; font-family:"Courier New", monospace; font-size:14px; padding:10px 16px; }
+  button.ghost{ background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  button.brass{ background:var(--brass); color:#fff; }
+  input[type=text]{ font-family:"Courier New", monospace; font-size:14px; padding:10px 12px; width:100%; border:1px solid var(--line); background:#fff; color:var(--ink); }
+  .mono{ font-family:"Courier New", monospace; font-size:14px; }
+  .big{ font-family:"Courier New", monospace; font-size:26px; font-weight:bold; color:var(--brass); }
+  .tag{ display:inline-block; font-family:"Courier New", monospace; font-size:12px; border:1px solid var(--brass); color:var(--brass); padding:2px 8px; margin:2px 4px 2px 0; cursor:pointer; background:transparent; }
+  .tag.active{ background:var(--brass); color:#fff; }
+  .result-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:15px; }
+  .note{ color:var(--muted); font-size:14px; font-style:italic; }
+  .entity{ border:1px solid var(--line); background:var(--card); padding:12px 14px; margin:10px 0; }
+  .entity h3{ margin:0 0 4px; }
+  .etype{ font-family:"Courier New", monospace; font-size:12px; text-transform:uppercase; color:var(--muted); }
+  .status-pill{ font-family:"Courier New", monospace; font-size:12px; border:1px solid var(--brass); color:var(--brass); padding:2px 8px; }
+  .log{ background:var(--ink); color:#cfe3c0; font-family:"Courier New", monospace; font-size:13px; padding:14px 16px; min-height:90px; white-space:pre-wrap; }
+  footer{ border-top:1px solid var(--line); margin-top:40px; padding-top:14px; color:var(--muted); font-size:14px; }
+  @media (max-width:640px){ h1{ font-size:28px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Neuruh &middot; Drive Build Slice 10 &middot; Root, unfiled</div>
+  <h1>Neuruh Command Center</h1>
+  <p class="sub">Your sovereign Bloomberg terminal. The spec's Phase 1 architecture: Supabase plus a custom Next.js terminal, a unified entities table, global search, dashboard panels, an entity explorer, an agent console, and a graph view. This page is the static demo of that terminal, seeded with the spec's own seed data.</p>
+</header>
+
+<div class="banner">
+  <b>Status: SIMULATION of the spec's Phase 1 terminal.</b> No Supabase project is connected and no data is live. The entities below are the spec's own seed rows, copied from its SQL. Every revenue and count figure is a <b>source claim</b> from the January 2026 spec, not a verified fact: revenue $10,000 year to date, 5 active projects, 2 clients, 4 frameworks, and the 865-asset master inventory count. The spec's own price note was $25 per month for Supabase Pro, later revised in the same document to the free tier for the 48-hour MVP. Source: Google Doc "Neuruh Command Center - Your Sovereign Bloomberg Terminal", Drive root, modified 2026-01-24.
+</div>
+
+<h2>Figure 1. Global Search</h2>
+<p>Search across every seeded entity by title, description, or tag. Try "defense", "roof", or "real estate".</p>
+<input type="text" id="searchBox" placeholder="SEARCH ENTIRE EMPIRE...">
+<p class="note" id="searchCount"></p>
+
+<div style="margin-top:16px;">
+  <button class="tab active" data-view="dashboard" type="button">Dashboard</button>
+  <button class="tab" data-view="projects" type="button">Projects</button>
+  <button class="tab" data-view="clients" type="button">Clients</button>
+  <button class="tab" data-view="frameworks" type="button">Frameworks</button>
+  <button class="tab" data-view="all" type="button">All</button>
+</div>
+
+<section id="view-dashboard" class="view active">
+  <h2>Figure 2. Dashboard</h2>
+  <div class="grid">
+    <div class="card"><h3>Revenue YTD</h3><div class="big">$10,000</div><p class="note">Source claim, 2025 one-time sales, ROOF-OPS event</p></div>
+    <div class="card"><h3>Active Projects</h3><div class="big" id="metricProjects">5</div><p class="note">In production, per seed data</p></div>
+    <div class="card"><h3>Active Clients</h3><div class="big" id="metricClients">2</div><p class="note">Deployed systems</p></div>
+    <div class="card"><h3>IP Frameworks</h3><div class="big" id="metricFrameworks">4</div><p class="note">Core architecture</p></div>
+  </div>
+  <h3>Critical Priorities (priority 5 projects)</h3>
+  <div id="priorityList"></div>
+  <h3>Revenue Stream</h3>
+  <div class="result-row"><span>ROOF-OPS, one-time sales, 2025 YTD</span><span class="mono">$10,000 (source claim)</span></div>
+  <h3>Master Inventory (spec update)</h3>
+  <div class="result-row"><span>Total assets catalogued</span><span class="mono">865 (source claim)</span></div>
+  <div class="result-row"><span>Google Drive documents</span><span class="mono">128, of which 11 high-value IP</span></div>
+  <div class="result-row"><span>Downloads files catalogued</span><span class="mono">737</span></div>
+  <div class="result-row"><span>Downloads files unsorted</span><span class="mono">4,014 (source claim)</span></div>
+</section>
+
+<section id="view-projects" class="view">
+  <h2>Figure 3. Projects</h2>
+  <div class="entity-list" data-type="project"></div>
+</section>
+
+<section id="view-clients" class="view">
+  <h2>Figure 4. Clients</h2>
+  <div class="entity-list" data-type="client"></div>
+</section>
+
+<section id="view-frameworks" class="view">
+  <h2>Figure 5. Frameworks</h2>
+  <div class="entity-list" data-type="framework"></div>
+</section>
+
+<section id="view-all" class="view">
+  <h2>Figure 6. All Entities</h2>
+  <p class="note">Filter by tag: click a tag to filter, click again to clear.</p>
+  <div id="tagRow"></div>
+  <div class="entity-list" data-type="all"></div>
+</section>
+
+<h2>Figure 7. Agent Console (simulated)</h2>
+<p>The spec's MCP-native console: agents query and write through Supabase APIs. Here the console is simulated against the seed data only.</p>
+<div class="log" id="agentLog">Agent console ready. Seed data loaded locally. No network calls are made.</div>
+<button class="brass" id="queryBtn" type="button">Run Query: list defense entities</button>
+<button class="ghost" id="countBtn" type="button">Count entities by type</button>
+<button class="ghost" id="clearLogBtn" type="button">Clear Log</button>
+
+<footer>
+  <p>Source: Google Doc "Neuruh Command Center - Your Sovereign Bloomberg Terminal", Drive id 1z4dQsCD74zFex3Y111AIxQJXNpEU3BJZXkvP6b1QLxo, modified 2026-01-24. Item doc: s10-neuruh-command-center-your-sovereign-bloomberg-terminal.md. The spec is a design and build conversation, not a running system: the terminal interface code in the source was never confirmed built or deployed, and the 865-asset import was a proposed script. Nothing here is live data.</p>
+</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var ENTITIES = [
+        { type: 'project', title: 'ROOF-OPS', desc: 'Roofing contractor CRM/automation system for Indy Roof and Restoration', tags: ['defense', 'real-estate', 'active-client'], status: 'active', priority: 5, meta: 'client: Indy Roof and Restoration; revenue: 5000 (source claim); stage: deployment' },
+        { type: 'project', title: 'DC Lead Scraper', desc: 'Defense contractor lead generation, $10K MRR tool (source claim)', tags: ['defense', 'revenue-generator'], status: 'active', priority: 5, meta: 'mrr: 10000 (source claim); tech_stack: python' },
+        { type: 'project', title: 'Neuruh Visual Cortex', desc: 'Meta-orchestration architecture presentation for investors', tags: ['fundraising', 'ip'], status: 'active', priority: 5, meta: 'target_audience: Series A VCs' },
+        { type: 'project', title: 'TaxShield AI', desc: 'Tax optimization system', tags: ['fintech', 'automation'], status: 'active', priority: 3, meta: '' },
+        { type: 'project', title: 'Deal Architect', desc: 'Real estate acquisition intelligence', tags: ['real-estate', 'automation'], status: 'active', priority: 4, meta: '' },
+        { type: 'client', title: 'Brandon Brittingham, eXp Realty', desc: 'Real estate team automation systems', tags: ['real-estate', 'active-client'], status: 'active', priority: 3, meta: 'relationship: ongoing; vertical: real-estate' },
+        { type: 'client', title: 'Indy Roof and Restoration', desc: 'ROOF-OPS deployment client', tags: ['active-client', 'saas'], status: 'active', priority: 3, meta: 'system: ROOF-OPS; contract_value: 5000 (source claim)' },
+        { type: 'framework', title: 'PMLA: Prompt-as-Memory Loop Architecture', desc: 'Recursive context management for AI agents', tags: ['ip', 'core-framework'], status: 'active', priority: 5, meta: '' },
+        { type: 'framework', title: 'SAL: Stacked Agent Logic', desc: 'Multi-layer agent orchestration methodology', tags: ['ip', 'core-framework'], status: 'active', priority: 5, meta: '' },
+        { type: 'framework', title: 'MCP: Master Command Protocol', desc: 'Central routing for multi-agent systems', tags: ['ip', 'core-framework'], status: 'active', priority: 5, meta: '' },
+        { type: 'framework', title: 'Token-Swap Prompting', desc: 'SHOT_LABEL commercial image generation system', tags: ['ip', 'media-generation'], status: 'active', priority: 4, meta: '' },
+        { type: 'product', title: 'SONA-X', desc: 'Acoustic security and counter-drone technology', tags: ['defense', 'hardware'], status: 'development', priority: 3, meta: '' },
+        { type: 'product', title: 'SCADS', desc: 'Defense system (details TBD in the source)', tags: ['defense'], status: 'development', priority: 3, meta: '' },
+        { type: 'product', title: 'X-FORCE AQUA', desc: 'Defense system (details TBD in the source)', tags: ['defense'], status: 'development', priority: 3, meta: '' },
+        { type: 'opportunity', title: 'Replit Partnership', desc: 'Platform credits plus collaboration outreach', tags: ['fundraising', 'partnership'], status: 'active', priority: 4, meta: 'contact: drafted; ask: credits' },
+        { type: 'opportunity', title: 'Bolt.new Partnership', desc: 'Build platform integration', tags: ['fundraising', 'partnership'], status: 'active', priority: 4, meta: 'status: drafted' },
+        { type: 'opportunity', title: 'Anything.com, Dhruv Amin', desc: 'Platform founder outreach', tags: ['fundraising', 'partnership'], status: 'active', priority: 4, meta: 'status: contacted' }
+    ];
+
+    var searchQuery = '';
+    var activeTag = '';
+
+    function matches(e) {
+        var q = searchQuery.toLowerCase();
+        var inQuery = !q || e.title.toLowerCase().indexOf(q) !== -1 || e.desc.toLowerCase().indexOf(q) !== -1 || e.tags.join(' ').toLowerCase().indexOf(q) !== -1;
+        var inTag = !activeTag || e.tags.indexOf(activeTag) !== -1;
+        return inQuery && inTag;
+    }
+
+    function entityHtml(e) {
+        var tags = e.tags.map(function (t) { return '<button class="tag" type="button" data-tag="' + t + '">#' + t + '</button>'; }).join('');
+        var meta = e.meta ? '<p class="note mono">' + e.meta + '</p>' : '';
+        return '<div class="entity"><span class="etype">' + e.type + '</span> <span class="status-pill">' + e.status + '</span><h3>' + e.title + '</h3><p>' + e.desc + '</p><div>' + tags + '</div>' + meta + '</div>';
+    }
+
+    function renderLists() {
+        document.querySelectorAll('.entity-list').forEach(function (list) {
+            var type = list.dataset.type;
+            var items = ENTITIES.filter(function (e) { return (type === 'all' || e.type === type) && matches(e); });
+            list.innerHTML = items.length ? items.map(entityHtml).join('') : '<p class="note">No entities match the current search or tag filter.</p>';
+        });
+        var total = ENTITIES.filter(matches).length;
+        document.getElementById('searchCount').textContent = total + ' of ' + ENTITIES.length + ' seeded entities match.';
+        var prio = ENTITIES.filter(function (e) { return e.type === 'project' && e.priority === 5; });
+        document.getElementById('priorityList').innerHTML = prio.map(function (e) {
+            return '<div class="result-row"><span><b>' + e.title + '</b> ' + e.desc + '</span><span class="mono">P5</span></div>';
+        }).join('');
+        document.querySelectorAll('.tag').forEach(function (t) {
+            t.addEventListener('click', function () {
+                activeTag = (activeTag === t.dataset.tag) ? '' : t.dataset.tag;
+                document.querySelectorAll('.tag').forEach(function (x) { x.classList.toggle('active', x.dataset.tag === activeTag); });
+                renderLists();
+            });
+        });
+    }
+
+    var allTags = [];
+    ENTITIES.forEach(function (e) { e.tags.forEach(function (t) { if (allTags.indexOf(t) === -1) allTags.push(t); }); });
+    document.getElementById('tagRow').innerHTML = allTags.map(function (t) { return '<button class="tag" type="button" data-tag="' + t + '">#' + t + '</button>'; }).join('');
+
+    document.getElementById('searchBox').addEventListener('input', function (ev) {
+        searchQuery = ev.target.value;
+        renderLists();
+    });
+
+    document.querySelectorAll('.tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            document.querySelectorAll('.tab').forEach(function (t) { t.classList.remove('active'); });
+            document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+            tab.classList.add('active');
+            document.getElementById('view-' + tab.dataset.view).classList.add('active');
+        });
+    });
+
+    var agentLog = document.getElementById('agentLog');
+    function logLine(line) { agentLog.textContent += '\n' + line; }
+
+    document.getElementById('queryBtn').addEventListener('click', function () {
+        var def = ENTITIES.filter(function (e) { return e.tags.indexOf('defense') !== -1; });
+        logLine('> query: tags contains defense');
+        def.forEach(function (e) { logLine('  - ' + e.title + ' (' + e.type + ', ' + e.status + ')'); });
+        logLine('  ' + def.length + ' rows returned from local seed data. No network call made.');
+    });
+
+    document.getElementById('countBtn').addEventListener('click', function () {
+        logLine('> count entities by type');
+        var counts = {};
+        ENTITIES.forEach(function (e) { counts[e.type] = (counts[e.type] || 0) + 1; });
+        Object.keys(counts).forEach(function (k) { logLine('  ' + k + ': ' + counts[k]); });
+        logLine('  total: ' + ENTITIES.length + ' seeded entities');
+    });
+
+    document.getElementById('clearLogBtn').addEventListener('click', function () {
+        agentLog.textContent = 'Agent console ready. Seed data loaded locally. No network calls are made.';
+    });
+
+    renderLists();
+});
+</script>
+</body>
+</html>
