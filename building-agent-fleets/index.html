@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building Agent Fleets: Superintelligence as Orchestration</title>
+<meta name="description" content="Superintelligence may be the orchestration of general intelligence. A fleet is a coordinated execution architecture, not a pile of chatbots.">
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --muted:#5c564a;
+  --brass:#9a7b2d; --brass-light:#c8a94e; --line:#d8d2c2; --card:#fffefb;
+  --good:#2e6b34; --warn:#8a5a00; --bad:#8c2f2f;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bone);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px;line-height:1.65}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.2;margin:0 0 .5em}
+h1{font-size:clamp(1.9rem,4.5vw,3.1rem);letter-spacing:-.01em}
+h2{font-size:clamp(1.4rem,3vw,1.9rem);border-bottom:2px solid var(--brass);padding-bottom:.35em}
+h3{font-size:1.15rem}
+p{margin:.5em 0 .9em}
+a{color:var(--brass)}
+code, .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.92em}
+.wrap{max-width:1020px;margin:0 auto;padding:0 20px}
+.docbar{background:var(--ink);color:#f4f1ea;font-size:.78rem;letter-spacing:.04em}
+.docbar .wrap{display:flex;flex-wrap:wrap;gap:.4em 1.6em;justify-content:space-between;padding-top:8px;padding-bottom:8px}
+.docbar b{color:var(--brass-light);font-weight:700}
+.sticky{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line);box-shadow:0 2px 8px rgba(28,26,22,.06)}
+.sticky nav{display:flex;flex-wrap:wrap;gap:2px;padding:8px 0}
+.sticky a{font-size:.82rem;color:var(--ink);text-decoration:none;padding:6px 9px;border-radius:4px;border:1px solid transparent}
+.sticky a:hover,.sticky a:focus{border-color:var(--brass);color:var(--brass);outline:none}
+header.hero{background:var(--paper);border-bottom:3px solid var(--brass);padding:34px 0 30px}
+.kicker{font-family:"JetBrains Mono",monospace;font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin-bottom:12px}
+.thesis{font-size:clamp(1.25rem,3vw,1.6rem);line-height:1.45;font-weight:600;margin:18px 0 10px}
+.thesis strong{color:var(--brass)}
+.hero p.lede{color:var(--muted);font-size:1.05rem;max-width:760px}
+section.block{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:26px 26px 22px;margin:28px 0}
+.secnum{font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--brass);letter-spacing:.12em;text-transform:uppercase}
+.fig{border:1px solid var(--line);border-radius:6px;background:var(--card);padding:16px 18px;margin:18px 0}
+.figcap{font-size:.85rem;color:var(--muted);margin-top:10px}
+.figcap b{color:var(--ink)}
+.callout{border-left:4px solid var(--brass);background:#f7f2e3;padding:14px 18px;margin:16px 0;border-radius:0 6px 6px 0}
+.callout p:last-child{margin-bottom:0}
+table{width:100%;border-collapse:collapse;font-size:.95rem}
+th{ text-align:left;font-family:"JetBrains Mono",monospace;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--brass);padding:8px}
+td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.map-row{cursor:pointer}
+tr.map-row:hover td{background:#f7f2e3}
+tr.map-row.open td{background:#f3ecd4}
+tr.map-row td:first-child{font-weight:600}
+tr.note-row td{background:#f7f2e3;font-size:.93rem;color:#3d382c}
+tr.note-row{display:none}
+tr.note-row.show{display:table-row}
+.hint{font-size:.85rem;color:var(--muted)}
+.pill{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.72rem;border:1px solid var(--brass);color:var(--brass);border-radius:999px;padding:2px 9px;margin-right:6px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{border:1px solid var(--line);border-radius:6px;background:var(--card);padding:14px 16px}
+.card h4{margin-bottom:4px}
+.card p{margin:.3em 0;font-size:.95rem}
+ol.tight li,ul.tight li{margin-bottom:.45em}
+button{font-family:inherit;cursor:pointer}
+.btn{border:1px solid var(--brass);background:var(--paper);color:var(--ink);border-radius:5px;padding:9px 16px;font-size:.95rem;font-weight:600}
+.btn:hover,.btn:focus{background:var(--brass);color:#fff;outline:none}
+.btn.active{background:var(--brass);color:#fff}
+.tabbtn{border:1px solid var(--line);background:var(--card);border-radius:6px 6px 0 0;padding:11px 22px;font-size:1rem;font-weight:700;border-bottom:none}
+.tabbtn.active{background:var(--brass);color:#fff;border-color:var(--brass)}
+.tabs{border-bottom:2px solid var(--brass);margin-top:8px}
+.tabpanel{display:none;border:1px solid var(--line);border-top:none;border-radius:0 0 6px 6px;background:var(--card);padding:20px 22px}
+.tabpanel.show{display:block}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.step{border:1px solid var(--brass);background:var(--card);border-radius:5px;padding:8px 12px;font-weight:600;font-size:.92rem;cursor:pointer;text-align:center}
+.step:hover,.step:focus{background:#f7f2e3;outline:none}
+.step.active{background:var(--brass);color:#fff}
+.arrow{color:var(--brass);font-weight:700}
+.flow-detail{border:1px solid var(--line);border-radius:6px;background:#f7f2e3;padding:14px 18px;min-height:64px}
+.flow-detail b{color:var(--brass)}
+.checklist{list-style:none;padding:0;margin:0}
+.checklist li{padding:9px 4px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start}
+.checklist input{width:20px;height:20px;margin-top:2px;accent-color:var(--brass);flex:none}
+.checklist label{cursor:pointer}
+.progress{height:12px;background:#e8e2d2;border-radius:999px;overflow:hidden;margin:12px 0 4px}
+.progress>div{height:100%;background:var(--brass);width:0%;transition:width .3s}
+.calc{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.slider-row{margin-bottom:14px}
+.slider-row label{display:flex;justify-content:space-between;font-weight:600;font-size:.95rem}
+.slider-row input[type=range]{width:100%;accent-color:var(--brass)}
+.result{border:2px solid var(--brass);border-radius:6px;background:var(--card);padding:18px;text-align:center}
+.result .big{font-family:"JetBrains Mono",monospace;font-size:2.2rem;font-weight:700;color:var(--brass)}
+.result .sub{font-size:.9rem;color:var(--muted)}
+.bar{height:14px;background:#e8e2d2;border-radius:999px;overflow:hidden;margin:10px 0}
+.bar>div{height:100%;background:var(--brass);width:0%}
+.zero-warn{display:none;background:#fbecec;border:1px solid var(--bad);color:var(--bad);border-radius:6px;padding:12px 16px;margin-top:12px;font-weight:600}
+.zero-warn.show{display:block}
+.scale-panel{display:none;border:1px solid var(--line);border-radius:6px;background:var(--card);padding:18px 20px;margin-top:14px}
+.scale-panel.show{display:block}
+footer{border-top:3px solid var(--brass);background:var(--paper);padding:26px 0 40px;margin-top:40px}
+footer p{font-size:.88rem;color:var(--muted)}
+.status{font-size:.9rem;color:var(--muted);margin-top:8px}
+@media (max-width:720px){
+  .grid2,.grid3,.calc{grid-template-columns:1fr}
+  section.block{padding:20px 16px}
+  body{font-size:16px}
+  .sticky nav{overflow-x:auto;flex-wrap:nowrap}
+  .sticky a{white-space:nowrap}
+  table{font-size:.88rem}
+}
+@media print{
+  .sticky,.btn,.tabbtn{display:none !important}
+  body{background:#fff;font-size:12pt}
+  section.block{break-inside:avoid;border:1px solid #999}
+  .tabpanel{display:block !important;border:none}
+  .scale-panel{display:block !important}
+  .note-row{display:table-row !important}
+}
+</style>
+</head>
+<body>
+<div class="docbar"><div class="wrap">
+<span><b>DOC</b> NEURUH / BUILDING AGENT FLEETS</span>
+<span><b>STATUS</b> v1.0, 2026-11-18</span>
+<span><b>SOURCE</b> ChatGPT shared conversation, "Building agent fleets", Oct 5, 2026</span>
+<span><b>MODEL</b> Conceptual, not measured</span>
+</div></div>
+
+<div class="sticky"><div class="wrap"><nav aria-label="Section navigation">
+<a href="#thesis">Thesis</a><a href="#kitchen">Kitchen Table</a><a href="#recipe">Recipe Is Not Enough</a>
+<a href="#resources">Resources</a><a href="#environment">Environment</a><a href="#mise">Mise en Place</a>
+<a href="#house">House</a><a href="#scale">Scale</a><a href="#architecture">Architecture</a>
+<a href="#capability">Capability Stack</a><a href="#calculator">Calculator</a><a href="#articles">Two Articles</a>
+</nav></div></div>
+
+<header class="hero" id="thesis"><div class="wrap">
+<div class="kicker">Building Agent Fleets</div>
+<h1>Superintelligence as Orchestration</h1>
+<p class="thesis">Superintelligence may be the <strong>orchestration of general intelligence</strong>. You do not start with the bots. You start with the outcome. A fleet is a <strong>coordinated execution architecture</strong>, not a pile of chatbots.</p>
+<p class="lede">This page is built from a single conversation about cooking, houses, and agent fleets. The kitchen and the house are not decoration. They are the working model: the outcome comes first, the environment is built before the work starts, and the orchestration layer is what turns capable parts into a system that can pursue goals at a scale no individual could pursue alone.</p>
+<p class="hint">How to use this page: click any row in the kitchen table, any step in the flows, the scale buttons, the tabs, and the calculator sliders. Every control does something visible.</p>
+</div></header>
+
+<main class="wrap">
+
+<section class="block" id="kitchen">
+<div class="secnum">Section 1</div>
+<h2>The Kitchen Translation Table</h2>
+<p>Every kitchen role has a fleet equivalent. Click any row to see what the mapping means for building a fleet.</p>
+<div class="fig">
+<table id="kitchen-table">
+<thead><tr><th>Kitchen</th><th>AI System</th><th></th></tr></thead>
+<tbody id="kitchen-body"></tbody>
+</table>
+<div class="figcap"><b>Figure 1.</b> The kitchen to AI system translation table, 30 rows. Click a row to expand its note. The mapping is the argument: a kitchen already is an orchestration system, and a fleet should be built like one.</div>
+</div>
+<p class="hint" id="kitchen-count"></p>
+</section>
+
+<section class="block" id="recipe">
+<div class="secnum">Section 2</div>
+<h2>The Recipe Is Not Enough</h2>
+<p>A recipe is a workflow. It is one component. A cook who only has the recipe still fails, because cooking requires eighteen kinds of knowledge that no recipe contains. The same is true of an agent that only has a prompt. Click any item to see its agent-architecture mapping.</p>
+<div class="fig">
+<table>
+<thead><tr><th>#</th><th>What a cook needs to know</th><th>Agent architecture equivalent</th></tr></thead>
+<tbody id="recipe-body"></tbody>
+</table>
+<div class="figcap"><b>Figure 2.</b> The eighteen things a cook needs to know, mapped to agent architecture. The prompt is only one component.</div>
+</div>
+<div class="callout"><p><strong>The point:</strong> a prompt is the recipe. The fleet is everything the recipe assumes: sourcing, freshness, substitution, timing, order, failure handling, delegation, and the acceptance check. Build those, or the recipe cannot execute.</p></div>
+</section>
+
+<section class="block" id="resources">
+<div class="secnum">Section 3</div>
+<h2>Resource Discovery</h2>
+<p>An agent that cannot find what it needs cannot do the work. Resource discovery is a pipeline, not a single lookup.</p>
+<div class="fig">
+<div class="flow" id="resource-flow" aria-label="Resource discovery flow"></div>
+<div class="flow-detail" id="resource-detail"><b>Search.</b> Click any stage of the flow to see what it does and what can go wrong there.</div>
+<div class="figcap"><b>Figure 3.</b> The resource discovery flow: Search to Retrieve to Validate to Classify to Enrich to Store to Make Available to the Worker.</div>
+</div>
+<h3>The resource-acquisition question list</h3>
+<p>Before execution, the fleet must be able to answer whether it can acquire each of these:</p>
+<div class="grid3" id="resource-questions"></div>
+<h3 style="margin-top:20px">How to know a resource is good enough</h3>
+<ul class="tight">
+<li><strong>Provenance:</strong> where did it come from, and can that source be checked again?</li>
+<li><strong>Freshness:</strong> is it current enough for this decision, or stale enough to mislead?</li>
+<li><strong>Fit:</strong> does it match the schema, format, and granularity the worker expects?</li>
+<li><strong>Completeness:</strong> are the required fields present, or will the worker have to guess?</li>
+<li><strong>Authority:</strong> is the source permitted and trusted for this use?</li>
+<li><strong>Cost:</strong> is the acquisition cost (time, compute, money, attention) worth the result?</li>
+<li><strong>Fallback:</strong> if this resource fails validation, is there a substitute or a stop rule?</li>
+</ul>
+<p>A resource that fails any of these is not ready. The fleet either repairs it, substitutes it, or stops and escalates. It does not proceed on hope.</p>
+</section>
+
+<section class="block" id="environment">
+<div class="secnum">Section 4</div>
+<h2>Environment as a Variable</h2>
+<p>The same recipe behaves differently in a different environment. The environment changes execution. A fleet that ignores the environment is a recipe that assumes every kitchen is identical.</p>
+<div class="callout"><p><strong>The rule:</strong> do not ask only "does the agent know the recipe?" Ask "what does this environment do to the recipe?" The answer changes the plan, the tooling, and the expected failure modes.</p></div>
+<h3>Environment inventory</h3>
+<p>Every deployment environment is a set of variables. Inventory them before execution:</p>
+<div class="grid3" id="env-inventory"></div>
+<p style="margin-top:14px">Change one variable and the same workflow produces a different result. Change several and it may not run at all. The environment is not background. It is an input.</p>
+</section>
+
+<section class="block" id="mise">
+<div class="secnum">Section 5</div>
+<h2>Mise en Place as Context Engineering</h2>
+<p>In a kitchen, mise en place means everything in its place before cooking starts. In a fleet, that is context engineering: the pre-execution checklist that makes the worker ready. Check each item off. The progress bar tracks readiness.</p>
+<div class="progress" role="progressbar" aria-label="Mise en place readiness"><div id="mise-bar"></div></div>
+<p class="status" id="mise-status">0 of 13 ready. The worker is not ready to execute.</p>
+<ul class="checklist" id="mise-list"></ul>
+<p class="hint">Uncheck an item and readiness drops. A worker that starts with missing context is a cook who starts with a missing ingredient: the failure is scheduled, not surprising.</p>
+</section>
+
+<section class="block" id="house">
+<div class="secnum">Section 6</div>
+<h2>The House</h2>
+<p>A house is a system of systems. So is a fleet.</p>
+<div class="grid2">
+<div class="card"><h4>Site selection is the first intelligence layer</h4><p>Before a foundation is poured, the site decides what is possible. Location, ground, access, and constraints shape everything downstream. In a fleet, choosing the environment, the data sources, and the constraints is the same decision, and it happens first.</p></div>
+<div class="card"><h4>The smartest action can be "Stop. The premise is wrong."</h4><p>A good builder refuses a bad site. A good orchestrator refuses a bad mission. Stopping is not failure. It is the intelligence layer doing its job before resources are spent on a premise that cannot hold.</p></div>
+<div class="card"><h4>A house is a system of systems</h4><p>Foundation, structure, plumbing, electrical, envelope, and finish are separate systems that must integrate. A fleet is the same: ingestion, reasoning, tools, memory, governance, and delivery are separate systems, and the integration is the product.</p></div>
+<div class="card"><h4>Scale changes implementation, not first principles</h4><p>The $30,000 house and the $3 million house share architecture: site, foundation, structure, systems, envelope. What changes is materials, capacity, and finish. A fleet scales the same way. The architecture holds; the implementation grows.</p></div>
+</div>
+<div class="callout"><p><strong>The house rule:</strong> build the foundation before the finish. A fleet that starts with polish and skips foundations is a house with paint on a cracked slab.</p></div>
+</section>
+
+<section class="block" id="scale">
+<div class="secnum">Section 7</div>
+<h2>Scale Explorer: Dinner for 2, 20, or 2,000</h2>
+<p>The meal stays a meal. The orchestration problem grows. Pick a scale and see what changes.</p>
+<div>
+<button class="btn scale-btn active" data-scale="2">Dinner for 2</button>
+<button class="btn scale-btn" data-scale="20">Dinner for 20</button>
+<button class="btn scale-btn" data-scale="2000">Dinner for 2,000</button>
+</div>
+<div class="scale-panel show" id="scale-2">
+<h3>Dinner for 2</h3>
+<p><strong>Orchestration:</strong> one cook, one plan, direct observation. The cook sees everything, adjusts in real time, and serves when ready.</p>
+<p><strong>What breaks at this scale:</strong> almost nothing. The bottleneck is skill, not coordination.</p>
+<p><strong>Fleet equivalent:</strong> a single agent with a clear task. Orchestration is trivial because the whole system fits in one head.</p>
+</div>
+<div class="scale-panel" id="scale-20">
+<h3>Dinner for 20</h3>
+<p><strong>Orchestration:</strong> a small team. One person owns the plan, others own stations. Timing matters: dishes must land together. Communication becomes a real job.</p>
+<p><strong>What breaks at this scale:</strong> informal coordination. You need a plan, a timeline, assigned stations, and a shared signal for "ready". Without them, some dishes are cold and some are late.</p>
+<p><strong>Fleet equivalent:</strong> a small agent team with a sub-orchestrator, shared context, and explicit handoffs. This is where specialization and delegation start to pay.</p>
+</div>
+<div class="scale-panel" id="scale-2000">
+<h3>Dinner for 2,000</h3>
+<p><strong>Orchestration:</strong> a catering operation. Procurement, logistics, multiple kitchens, transport, service staff, safety inspection, and a command layer. No single person sees the whole operation. The system must run on protocols, not on one person's attention.</p>
+<p><strong>What breaks at this scale:</strong> everything that relied on one person knowing everything. You need redundancy, validation at every handoff, failure recovery, and governance that works without the founder in the room.</p>
+<p><strong>Fleet equivalent:</strong> a full agent fleet. Orchestration is the product. The meal is still a meal, but the system that produces it is an entirely different machine.</p>
+</div>
+<div class="fig"><div class="figcap"><b>Figure 4.</b> Scale explorer. The outcome (a served meal) does not change. The orchestration required to deliver it changes by orders of magnitude.</div></div>
+</section>
+
+<section class="block" id="architecture">
+<div class="secnum">Section 8</div>
+<h2>The Universal Architecture</h2>
+<p>One pipeline, from outcome to next outcome. Click any stage to see what it does.</p>
+<div class="fig">
+<div class="flow" id="arch-flow" aria-label="Universal architecture flow"></div>
+<div class="flow-detail" id="arch-detail"><b>Outcome.</b> Click any stage of the flow to see what it does.</div>
+<div class="figcap"><b>Figure 5.</b> The universal architecture: Outcome to Context to Requirements to Resources to Dependencies to Capabilities to Decomposition to Specialization to Orchestration to Execution to Observation to Validation to Adaptation to Delivery to Next Outcome.</div>
+</div>
+<h3>The mission stack</h3>
+<p>The same pipeline, stated as a mission:</p>
+<div class="fig">
+<div class="flow" id="mission-flow" aria-label="Mission stack flow"></div>
+<div class="flow-detail" id="mission-detail"><b>Intended Outcome.</b> Click any stage of the mission stack to see what it does.</div>
+<div class="figcap"><b>Figure 6.</b> The mission stack: Intended Outcome to Define the Mission to Understand Context to Discover Resources to Identify Dependencies to Decompose the Work to Research / Analysis / Acquisition specialists to Execution to Validation to Success / Failure (Deliver / Recover) to Feedback to Learn to Next Mission.</div>
+</div>
+</section>
+
+<section class="block" id="capability">
+<div class="secnum">Section 9</div>
+<h2>The Capability Stack</h2>
+<p>Capability is a pipeline. Each stage depends on the one before it. Click any stage to see its question.</p>
+<div class="fig">
+<div class="flow" id="cap-flow" aria-label="Capability stack flow"></div>
+<div class="flow-detail" id="cap-detail"><b>Intelligence.</b> Click any stage of the capability stack to see its question.</div>
+<div class="figcap"><b>Figure 7.</b> The capability stack pipeline: Intelligence to Knowledge to Context to Tools to Resources to Permissions to Workflow to Feedback to Adaptation / Learning to Orchestrated Action.</div>
+</div>
+<p>A fleet that is strong at reasoning and weak at permissions is not a strong fleet. A fleet with great tools and no feedback loop repeats its mistakes at machine speed. The stack is only as strong as its weakest stage, and the calculator in the next section makes that concrete.</p>
+</section>
+
+<section class="block" id="calculator">
+<div class="secnum">Section 10</div>
+<h2>Interactive Capability Equation Calculator</h2>
+<p><strong>Capability = Intelligence x Context x Tools x Resources x Orchestration x Feedback</strong></p>
+<p>This is the conversation's <strong>conceptual model, not a measured formula</strong>. It is a way to think, not a number to quote. Each factor is scored 0 to 10. The multiplication is the point: capability is not an average. A zero anywhere collapses the total.</p>
+<div class="calc">
+<div id="sliders"></div>
+<div>
+<div class="result">
+<div class="sub">Computed capability (product of six factors, max 1,000,000)</div>
+<div class="big" id="calc-result">0</div>
+<div class="sub" id="calc-pct">0% of maximum</div>
+<div class="bar"><div id="calc-bar"></div></div>
+<div class="sub" id="calc-readout">Move a slider to compute.</div>
+</div>
+<div class="zero-warn" id="zero-warn">A factor is at zero. The total collapses to zero. That is the multiplicative effect: no amount of intelligence compensates for zero context, zero tools, zero resources, zero orchestration, or zero feedback.</div>
+<div style="margin-top:14px"><button class="btn" id="calc-reset">Reset all to 5</button>
+<button class="btn" id="calc-max">Set all to 10</button>
+<button class="btn" id="calc-zero">Set Feedback to 0</button></div>
+</div>
+</div>
+<div class="fig"><div class="figcap"><b>Figure 8.</b> The capability equation. Worked example: all six factors at 5 gives 5 x 5 x 5 x 5 x 5 x 5 = 15,625, which is 1.56% of the 1,000,000 maximum. Raise one factor to 10 and the total doubles to 31,250. Set any single factor to 0 and the total is 0.</div></div>
+</section>
+
+<section class="block" id="articles">
+<div class="secnum">Section 11</div>
+<h2>Two Articles, One Principle</h2>
+<p>Article 1 is the kitchen. Article 2 is the house. They converge on the same principle: <strong>build the environment, architecture, dependencies, and orchestration first.</strong></p>
+<div class="tabs" role="tablist">
+<button class="tabbtn active" data-tab="article1" role="tab">Article 1: The Kitchen</button>
+<button class="tabbtn" data-tab="article2" role="tab">Article 2: The House</button>
+</div>
+<div class="tabpanel show" id="article1">
+<h3>Article 1: The Kitchen</h3>
+<p>The kitchen is the original agent fleet. It runs on resources, knowledge, tools, specialization, preparation, execution, timing, delegation, quality control, scaling, environmental constraints, and dynamic adaptation.</p>
+<ul class="tight">
+<li><strong>Resources:</strong> ingredients are data. A cook who cannot source cannot cook.</li>
+<li><strong>Knowledge:</strong> the cookbook is the knowledge base, and the chef's experience is learned domain intelligence.</li>
+<li><strong>Tools:</strong> the knife transforms, the oven executes. The wrong tool is the wrong pan: the work fails at the tool, not at the idea.</li>
+<li><strong>Specialization:</strong> the sous-chef and the specialist cook divide the work by capability, not by convenience.</li>
+<li><strong>Preparation:</strong> mise en place is context engineering. Readiness is built before execution starts.</li>
+<li><strong>Execution:</strong> cooking is processing. Timing and order decide whether parallel work helps or collides.</li>
+<li><strong>Timing:</strong> some steps are sequential, some are parallel. Getting that wrong is a workflow error.</li>
+<li><strong>Delegation:</strong> the chef delegates what others can do better and keeps what only the chef can decide.</li>
+<li><strong>Quality control:</strong> food safety is governance. The taste test is evaluation. Plating is output formatting.</li>
+<li><strong>Scaling:</strong> dinner for 2 and dinner for 2,000 are the same meal and a different operation.</li>
+<li><strong>Environmental constraints:</strong> the kitchen is the operating environment. Change it and the recipe behaves differently.</li>
+<li><strong>Dynamic adaptation:</strong> a missing ingredient is a missing dependency. Substitute, recover, or stop. Do not improvise blindly.</li>
+</ul>
+</div>
+<div class="tabpanel" id="article2">
+<h3>Article 2: The House</h3>
+<p>The house is the fleet as architecture. It runs on requirements, site selection, context, foundations, dependencies, infrastructure, modularity, architecture, specialization, scale, optimization, and structural integrity.</p>
+<ul class="tight">
+<li><strong>Requirements:</strong> what must the house do? Requirements come before design, and design comes before building.</li>
+<li><strong>Site selection:</strong> the first intelligence layer. The site constrains everything that follows.</li>
+<li><strong>Context:</strong> the ground, the climate, the access, the neighbors. Context is not decoration. It is a design input.</li>
+<li><strong>Foundations:</strong> the part nobody sees and everything depends on. Skipping foundations is not speed. It is debt.</li>
+<li><strong>Dependencies:</strong> water, power, materials, permits, labor. A missing dependency stops the build, whatever the plan says.</li>
+<li><strong>Infrastructure:</strong> plumbing and wiring are the data and API layers. They must be installed before the walls close.</li>
+<li><strong>Modularity:</strong> rooms are modules. They can be built, inspected, and repaired independently, and they integrate at defined interfaces.</li>
+<li><strong>Architecture:</strong> the plan that makes the systems into a house instead of a pile of materials.</li>
+<li><strong>Specialization:</strong> framers, electricians, plumbers. Each trade owns its system, and the general contractor orchestrates.</li>
+<li><strong>Scale:</strong> the $30,000 house and the $3 million house share architecture. Scale changes implementation, not first principles.</li>
+<li><strong>Optimization:</strong> insulation, layout, and flow are optimized after the structure is sound, not before.</li>
+<li><strong>Structural integrity:</strong> validation. The house must hold under load, weather, and time. So must the fleet.</li>
+</ul>
+</div>
+<div class="callout"><p><strong>Convergence:</strong> the kitchen and the house end in the same place. Build the environment, the architecture, the dependencies, and the orchestration first. The agents come last, and they work because everything underneath them already works.</p></div>
+</section>
+
+<section class="block" id="closing">
+<div class="secnum">Closing Figure</div>
+<h2>The One-Line Version</h2>
+<div class="fig" style="text-align:center;padding:28px 22px">
+<p style="font-size:clamp(1.2rem,3vw,1.55rem);line-height:1.5;font-weight:600;margin:0">General intelligence gives you capable minds.<br>Orchestration turns capable minds into a system.<br><span style="color:var(--brass)">Superintelligence may be what happens when that system becomes capable of pursuing goals at a scale no individual could pursue alone.</span></p>
+<div class="figcap"><b>Figure 9.</b> The closing figure. Start with the outcome. Build the environment, architecture, dependencies, and orchestration first. The fleet follows.</div>
+</div>
+<p class="hint">Source note: this page was built from the content spec. The verbatim source file <span class="mono">~/workspace/drive-pull/building-agent-fleets.md</span> (ChatGPT shared conversation "Building agent fleets", Oct 5) did not exist at build time, so the transcript could not be cross-checked. Content was not invented beyond the spec; where the spec left a gap, the page says so or stays with the spec's own wording.</p>
+</section>
+
+</main>
+
+<footer><div class="wrap">
+<p>Building Agent Fleets: Superintelligence as Orchestration. v1.0, 2026-11-18. Built for Jeramie Hicks, Neuruh. The capability equation is a conceptual model from the source conversation, not a measured formula. No em dashes were used in this page.</p>
+<p>Document control: source transcript not available at build time; spec-driven build. Figures 1 through 9.</p>
+</div></footer>
+
+<script>
+"use strict";
+var KITCHEN = [
+["Meal","Desired outcome","The meal is the goal, not the activity. A fleet that starts with tools instead of the outcome is a kitchen that starts cooking before anyone decided what dinner is."],
+["Chef","Human orchestrator / system architect","The chef owns the outcome and the plan. In a fleet, the human orchestrator or system architect holds the same role: define the outcome, design the workflow, and stay accountable for the result."],
+["Recipe","Workflow / execution protocol","A recipe is a repeatable protocol. It says what happens, in what order, under what conditions. A fleet workflow is the same thing, written for agents instead of cooks."],
+["Ingredients","Data, information, resources","Nothing cooks without ingredients. Nothing executes without data and resources. Sourcing is a first-class job, not an afterthought."],
+["Pantry","Available knowledge / data / resource pool","The pantry is what is on hand right now. A fleet needs an honest inventory of its available pool before it promises an outcome."],
+["Cookbook","Knowledge base","The cookbook stores what worked before. The knowledge base does the same for a fleet: proven procedures, retrievable on demand."],
+["Knife","Transformation tool","A knife transforms raw material into usable form. Transformation tools do the same for data: parse, clean, reshape, and prepare."],
+["Oven","Compute / execution environment","The oven is where transformation happens under controlled conditions. Compute is the execution environment where agent work actually runs."],
+["Kitchen","Agent operating environment","The kitchen is the whole operating environment: space, tools, heat, light, and access. The agent operating environment is the same, and it decides what is possible."],
+["Sous-chef","Sub-orchestrator","The sous-chef runs a section of the kitchen so the chef can run the whole. A sub-orchestrator runs a sub-fleet so the top orchestrator can hold the mission."],
+["Specialist cook","Specialized agent","The pastry chef does pastry. The specialist agent does one thing well. Specialization is how a fleet gets quality it could never get from generalists alone."],
+["Prep station","Agent workspace","Each cook has a station with its tools and ingredients. Each agent needs a workspace with its context, tools, and data, ready before work starts."],
+["Mise en place","Context / tool / data readiness","Everything in its place before cooking. In a fleet this is context engineering: readiness is a checklist, not a hope."],
+["Cooking","Processing / execution","Cooking is the execution phase. Processing is the same. The plan is worthless if execution cannot run."],
+["Recipe variation","Workflow branching","A recipe branches: if the sauce is too thin, reduce it. Workflows branch the same way: conditions select the next step."],
+["Food safety","Validation / governance","Food safety is the rule that protects people from a bad outcome. Validation and governance protect the mission from a bad execution."],
+["Taste test","Evaluation","The taste test checks the result before it is served. Evaluation checks agent output before it is delivered."],
+["Plating","Output formatting","Plating is how the result is presented. Output formatting is the same: the same result, formatted for the consumer who receives it."],
+["Serving","Deployment / delivery","Serving gets the meal to the customer. Deployment and delivery get the result to the end user or downstream system."],
+["Cleanup","State management / post-execution","Cleanup resets the kitchen for the next meal. State management resets the fleet: logs, receipts, and clean state for the next run."],
+["Restaurant","Production environment","The restaurant is production: real customers, real stakes, real time. The production environment is where the fleet proves itself."],
+["Customers","End users / downstream systems","Customers are the reason the kitchen exists. End users and downstream systems are the reason the fleet exists. Serve them, not the architecture."],
+["Catering 20 people","Scaling","Catering scales the same meal to more people. Scaling a fleet means more agents, more coordination, and more failure surface, for the same outcome."],
+["Burned meal","Failed execution","A burned meal is a failed execution. The question is not whether failures happen. It is whether the fleet detects them, recovers, or stops."],
+["Missing ingredient","Missing dependency","A missing ingredient stops the recipe. A missing dependency stops the workflow. Detect it early, substitute, or stop."],
+["Wrong pan","Incompatible tool","The wrong pan ruins the dish. The wrong tool ruins the task. Tool selection is an architecture decision, not a detail."],
+["Recipe mistake","Logic / workflow error","A mistake in the recipe is a logic error in the workflow. Fix the protocol, not just the output."],
+["Chef's experience","Learned domain intelligence","Experience is what the chef learned from every meal before this one. Learned domain intelligence is what the fleet carries forward from every run."],
+["Kitchen staff","Agent fleet","The staff is the fleet. The point of the table is that a kitchen staff already is a coordinated execution architecture."],
+["Restaurant manager","Operations / orchestration layer","The manager runs the operation so the chef can cook. The operations and orchestration layer runs the fleet so the agents can execute."]
+];
+var RECIPE18 = [
+["Where to obtain ingredients","Resource discovery: search, retrieve, validate. The agent must know where resources live and how to get them."],
+["Availability","Is the resource actually available right now? Availability is a live fact, not a catalog entry."],
+["Freshness","Is it current enough? Stale data is a stale ingredient: it looks fine and ruins the result."],
+["Substitutions","What can replace a missing ingredient, and what cannot be replaced at all? Substitution rules are architecture."],
+["Quantities","How much is needed? Too little starves the task, too much wastes resources and drowns the context."],
+["Equipment","What tools and environment does this step need? A step without its equipment cannot run."],
+["Whether it works","Has this been proven to work, or is it an untested assumption? Unproven steps are risks, not plans."],
+["Time","How long does each step take, and how long does the whole meal take? Timing is a scheduling input."],
+["Order","What must happen before what? Order is dependency. Get it wrong and the work collides."],
+["Parallel vs sequential","Which steps can run together and which must wait? Parallelism is a design decision, not an accident."],
+["Failure modes","How does this step fail? A cook who knows the failure modes can see them coming. So can a fleet."],
+["Detection","How do you know it failed? Detection is observation. Without it, failures ship silently."],
+["Recovery","What do you do when it fails? Retry, substitute, escalate, or stop. Recovery is a protocol, not improvisation."],
+["When to ask for assistance","When does the worker escalate to a human or a stronger agent? The escalation rule is part of the workflow."],
+["When to delegate","Which parts go to specialists, and which stay with the orchestrator? Delegation is a capability decision."],
+["When to stop","What is the stop condition? The smartest action can be stopping when the premise is wrong."],
+["Whether the result is acceptable","The acceptance check: does the result meet the success criteria? This is the 18th item, and it closes the loop."],
+["The acceptance check, stated as a gate","Acceptance is not a feeling. It is a gate with criteria, measured before delivery. If it fails, the work goes back, not out."]
+];
+var RESOURCE_FLOW = [
+["Search","Find candidate resources across internal and external sources. A search that only checks one source is a pantry check that only opens one shelf."],
+["Retrieve","Pull the resource into the working environment. Retrieval must preserve provenance so the result can be traced."],
+["Validate","Check freshness, fit, completeness, and authority. An unvalidated resource is an untrusted ingredient."],
+["Classify","Tag the resource by type, domain, and reliability so the right worker gets the right material."],
+["Enrich","Add context, links, and metadata. Enrichment turns a raw find into a usable input."],
+["Store","Persist the resource with its receipt so it can be reused, audited, and recalled."],
+["Make available to the worker","Deliver the resource into the worker's context at the moment it is needed. Availability is the last mile of discovery."]
+];
+var ARCH_FLOW = [
+["Outcome","Start here. The desired outcome defines everything downstream. No outcome, no mission."],
+["Context","What is true about the situation right now? Context constrains the plan."],
+["Requirements","What must be true for the outcome to count? Requirements are the contract."],
+["Resources","What data, tools, and materials are available? Resources bound what is possible."],
+["Dependencies","What must exist before each step can run? Dependencies are the order of work."],
+["Capabilities","What can this fleet actually do? Capability is the honest inventory of the stack."],
+["Decomposition","Break the mission into parts small enough to execute and verify."],
+["Specialization","Assign each part to the agent or tool best suited to it."],
+["Orchestration","Coordinate the parts: timing, handoffs, and shared state. This is the layer that makes a fleet a fleet."],
+["Execution","Run the work. Execution is where plans meet reality."],
+["Observation","Watch what actually happens, not what was supposed to happen."],
+["Validation","Check the result against the requirements before delivery."],
+["Adaptation","Adjust the plan, the resources, or the approach based on what observation and validation showed."],
+["Delivery","Deliver the result to the end user or downstream system, formatted for its consumer."],
+["Next Outcome","Every delivery ends in a new outcome. The loop closes and the next mission begins."]
+];
+var MISSION_FLOW = [
+["Intended Outcome","The mission begins with the outcome it intends to produce."],
+["Define the Mission","State the mission in terms that can be verified when it is done."],
+["Understand Context","Gather the context that constrains and informs the mission."],
+["Discover Resources","Find the resources the mission will need, before execution starts."],
+["Identify Dependencies","Map what must exist before each part can run."],
+["Decompose the Work","Split the mission into executable, verifiable parts."],
+["Research / Analysis / Acquisition specialists","Specialist agents handle research, analysis, and acquisition. Each does what it is best at."],
+["Execution","Run the decomposed work under orchestration."],
+["Validation","Check the work against the mission's success criteria."],
+["Success / Failure (Deliver / Recover)","On success, deliver. On failure, recover: retry, substitute, or escalate."],
+["Feedback","Record what happened, what worked, and what did not."],
+["Learn","Turn feedback into learned domain intelligence for the next mission."],
+["Next Mission","The fleet moves to the next outcome, carrying what it learned."]
+];
+var CAP_FLOW = [
+["Intelligence","What can I reason about? The reasoning capability of the fleet."],
+["Knowledge","What do I know? The stored knowledge the fleet can draw on."],
+["Context","What matters right now? The relevant slice of knowledge and state for this task."],
+["Tools","What can I do? The actions available to the fleet."],
+["Resources","What can I access? The data, APIs, and materials within reach."],
+["Permissions","What am I allowed to do? The authority boundary. Capability without permission is not capability."],
+["Workflow","What should happen next? The protocol that orders the work."],
+["Feedback","Did it actually work? The observation that closes the loop."],
+["Adaptation / Learning","What changes next time? Learning turns one run into a better fleet."],
+["Orchestrated Action","The result: coordinated action that no single agent could produce alone."]
+];
+var RESOURCE_QS = [
+["Data","What datasets does the task need, and where do they live?"],
+["Documents","Which documents hold the required knowledge, and are they current?"],
+["APIs","Which APIs are available, and are the keys and permissions in place?"],
+["Images","What visual material is needed, and is it licensed and retrievable?"],
+["Market information","What current market facts matter, and how fresh must they be?"],
+["Databases","Which databases hold the records, and can the fleet query them?"],
+["Historical records","What past records inform this decision, and are they complete?"],
+["Current information","What has changed since the last run, and does the fleet know?"],
+["Internal knowledge","What does the organization already know, and where is it stored?"],
+["External knowledge","What must come from outside, and is the source trusted?"],
+["Tools","Which tools are required, and are they installed and compatible?"],
+["Credentials","Which credentials are needed, and are they valid and in scope?"],
+["Compute","Is there enough compute, and what does it cost in time and money?"],
+["Human approval","Which steps need a human decision, and who gives it?"]
+];
+var ENV_ITEMS = [
+["Tools","Which tools exist in this environment, and which are missing?"],
+["Data","What data is reachable here, and what is not?"],
+["Permissions","What is this environment allowed to do?"],
+["Compute","How much compute, and how fast?"],
+["Latency","How long does each call take here?"],
+["APIs","Which APIs respond in this environment?"],
+["Databases","Which databases are reachable, and at what speed?"],
+["Filesystem","What can be read and written, and where?"],
+["Network","What is reachable, and what is blocked?"],
+["Other agents","Which agents share this environment, and how do they coordinate?"],
+["Human operators","Who is present, and what can they decide?"],
+["Governance constraints","What rules bind this environment?"],
+["Budgets","What are the cost limits for this run?"],
+["Time limits","What is the deadline, and what gets cut if it slips?"],
+["Failure conditions","What counts as failure here, and what happens then?"],
+["External state","What outside the environment can change the result?"]
+];
+var MISE_ITEMS = [
+"Relevant context gathered",
+"Required data in hand",
+"Tools installed and compatible",
+"Credentials valid and in scope",
+"Permissions confirmed",
+"Memory loaded for this task",
+"Instructions clear and complete",
+"Schemas defined for inputs and outputs",
+"APIs reachable and responding",
+"Environmental state checked",
+"Constraints stated",
+"Success criteria defined",
+"Escalation rules set"
+];
+function el(tag, cls, text){ var e=document.createElement(tag); if(cls) e.className=cls; if(text!==undefined) e.textContent=text; return e; }
+function buildFlow(containerId, detailId, items){
+  var c=document.getElementById(containerId), d=document.getElementById(detailId);
+  items.forEach(function(it, i){
+    if(i>0) c.appendChild(el("span","arrow","\u2192"));
+    var s=el("button","step", it[0]);
+    s.type="button";
+    s.addEventListener("click", function(){
+      var all=c.querySelectorAll(".step"); all.forEach(function(x){x.classList.remove("active");});
+      s.classList.add("active");
+      d.innerHTML="";
+      var b=el("b", null, it[0]+". "); d.appendChild(b);
+      d.appendChild(document.createTextNode(it[1]));
+    });
+    c.appendChild(s);
+  });
+}
+/* Kitchen table */
+(function(){
+  var body=document.getElementById("kitchen-body");
+  KITCHEN.forEach(function(row, i){
+    var tr=el("tr","map-row");
+    tr.tabIndex=0;
+    tr.setAttribute("role","button");
+    tr.setAttribute("aria-expanded","false");
+    tr.appendChild(el("td",null,row[0]));
+    tr.appendChild(el("td",null,row[1]));
+    tr.appendChild(el("td","hint","+ note"));
+    var note=el("tr","note-row");
+    var ntd=document.createElement("td"); ntd.colSpan=3; ntd.textContent=row[2];
+    note.appendChild(ntd);
+    function toggle(){
+      var open=tr.classList.toggle("open");
+      note.classList.toggle("show", open);
+      tr.setAttribute("aria-expanded", open?"true":"false");
+      tr.querySelectorAll("td")[2].textContent = open ? "- note" : "+ note";
+    }
+    tr.addEventListener("click", toggle);
+    tr.addEventListener("keydown", function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(); }});
+    body.appendChild(tr); body.appendChild(note);
+  });
+  document.getElementById("kitchen-count").textContent = "30 rows. Click any row to expand its note.";
+})();
+/* Recipe 18 */
+(function(){
+  var body=document.getElementById("recipe-body");
+  RECIPE18.forEach(function(row, i){
+    var tr=el("tr");
+    tr.appendChild(el("td","mono", String(i+1)));
+    tr.appendChild(el("td",null,row[0]));
+    tr.appendChild(el("td",null,row[1]));
+    body.appendChild(tr);
+  });
+})();
+/* Resource questions + env inventory */
+(function(){
+  var rq=document.getElementById("resource-questions");
+  RESOURCE_QS.forEach(function(q){
+    var c=el("div","card"); c.appendChild(el("h4",null,q[0])); c.appendChild(el("p",null,q[1])); rq.appendChild(c);
+  });
+  var env=document.getElementById("env-inventory");
+  ENV_ITEMS.forEach(function(q){
+    var c=el("div","card"); c.appendChild(el("h4",null,q[0])); c.appendChild(el("p",null,q[1])); env.appendChild(c);
+  });
+})();
+/* Mise en place */
+(function(){
+  var list=document.getElementById("mise-list");
+  MISE_ITEMS.forEach(function(item, i){
+    var li=el("li");
+    var cb=document.createElement("input"); cb.type="checkbox"; cb.id="mise-"+i;
+    var lab=document.createElement("label"); lab.htmlFor=cb.id; lab.textContent=item;
+    li.appendChild(cb); li.appendChild(lab); list.appendChild(li);
+    cb.addEventListener("change", update);
+  });
+  function update(){
+    var boxes=list.querySelectorAll("input[type=checkbox]");
+    var done=0; boxes.forEach(function(b){ if(b.checked) done++; });
+    var pct=Math.round(done/boxes.length*100);
+    document.getElementById("mise-bar").style.width=pct+"%";
+    var st=document.getElementById("mise-status");
+    st.textContent = done+" of "+boxes.length+" ready ("+pct+"%). " + (done===boxes.length ? "The worker is ready to execute." : "The worker is not ready to execute.");
+  }
+})();
+/* Scale explorer */
+document.querySelectorAll(".scale-btn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".scale-btn").forEach(function(b){b.classList.remove("active");});
+    btn.classList.add("active");
+    document.querySelectorAll(".scale-panel").forEach(function(p){p.classList.remove("show");});
+    document.getElementById("scale-"+btn.dataset.scale).classList.add("show");
+  });
+});
+/* Flows */
+buildFlow("resource-flow","resource-detail",RESOURCE_FLOW);
+buildFlow("arch-flow","arch-detail",ARCH_FLOW);
+buildFlow("mission-flow","mission-detail",MISSION_FLOW);
+buildFlow("cap-flow","cap-detail",CAP_FLOW);
+/* Tabs */
+document.querySelectorAll(".tabbtn").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".tabbtn").forEach(function(b){b.classList.remove("active");});
+    btn.classList.add("active");
+    document.querySelectorAll(".tabpanel").forEach(function(p){p.classList.remove("show");});
+    document.getElementById(btn.dataset.tab).classList.add("show");
+  });
+});
+/* Calculator */
+var FACTORS=["Intelligence","Context","Tools","Resources","Orchestration","Feedback"];
+var vals={};
+(function(){
+  var host=document.getElementById("sliders");
+  FACTORS.forEach(function(f){
+    vals[f]=5;
+    var row=el("div","slider-row");
+    var lab=document.createElement("label");
+    var name=document.createElement("span"); name.textContent=f;
+    var val=document.createElement("span"); val.id="val-"+f; val.className="mono"; val.textContent="5";
+    lab.appendChild(name); lab.appendChild(val);
+    var s=document.createElement("input"); s.type="range"; s.min="0"; s.max="10"; s.step="1"; s.value="5";
+    s.setAttribute("aria-label", f+" factor, 0 to 10");
+    s.addEventListener("input", function(){ vals[f]=parseInt(s.value,10); val.textContent=s.value; compute(); });
+    row.appendChild(lab); row.appendChild(s); host.appendChild(row);
+  });
+  function compute(){
+    var product=1, zero=false;
+    FACTORS.forEach(function(f){ product*=vals[f]; if(vals[f]===0) zero=true; });
+    document.getElementById("calc-result").textContent=product.toLocaleString("en-US");
+    var pct=(product/1000000*100);
+    document.getElementById("calc-pct").textContent=(pct<0.01 && product>0 ? "<0.01" : pct.toFixed(2))+"% of maximum";
+    document.getElementById("calc-bar").style.width=Math.max(pct, product>0?0.2:0)+"%";
+    document.getElementById("calc-readout").textContent=
+      FACTORS.map(function(f){return vals[f];}).join(" x ")+" = "+product.toLocaleString("en-US")+
+      (zero ? " Zero factor: the total collapses." : " No zero factor. The weakest factor caps the whole.");
+    document.getElementById("zero-warn").classList.toggle("show", zero);
+  }
+  window.__compute=compute;
+  compute();
+  document.getElementById("calc-reset").addEventListener("click", function(){
+    FACTORS.forEach(function(f){ vals[f]=5; });
+    syncSliders(); compute();
+  });
+  document.getElementById("calc-max").addEventListener("click", function(){
+    FACTORS.forEach(function(f){ vals[f]=10; });
+    syncSliders(); compute();
+  });
+  document.getElementById("calc-zero").addEventListener("click", function(){
+    vals["Feedback"]=0;
+    syncSliders(); compute();
+  });
+  function syncSliders(){
+    var sliders=host.querySelectorAll("input[type=range]");
+    FACTORS.forEach(function(f, i){ sliders[i].value=String(vals[f]); document.getElementById("val-"+f).textContent=String(vals[f]); });
+  }
+})();
+</script>
+</body>
+</html>
