@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit Leverage Product: The Decision Dossier Compiler and the Liquidity Engine</title>
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --ink-soft:#4a463d;
+  --brass:#9a7b2d; --brass-light:#c9a227; --line:#d8d2c4; --code-bg:#efece3;
+  --green:#2e6b3a; --amber:#8a6d1b; --red:#8a2f26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.25;margin:0 0 .5em}
+p{margin:0 0 .9em}
+a{color:var(--brass)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+code{font-size:.88em}
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#f4f1ea;display:flex;align-items:center;gap:16px;padding:10px 20px;font-size:13px;flex-wrap:wrap}
+.topbar .mark{font-family:Archivo,sans-serif;font-weight:700;letter-spacing:.12em;color:var(--brass-light)}
+.topbar a{color:#f4f1ea;text-decoration:none;border-bottom:1px solid transparent}
+.topbar a:hover{border-bottom-color:var(--brass-light)}
+.topbar .spacer{flex:1}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 20px 60px}
+.dochead{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--brass);padding:22px 24px;margin-bottom:20px}
+.dochead .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+.dochead h1{font-size:30px;margin-bottom:8px}
+.dochead .sub{color:var(--ink-soft);font-size:15px}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.meta-grid div{background:var(--paper);padding:10px 12px;font-size:13px}
+.meta-grid .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:2px}
+.banner{border:2px solid var(--brass);background:#fdf6dd;padding:16px 20px;margin-bottom:24px}
+.banner h2{font-size:16px;color:var(--ink);margin-bottom:6px}
+.banner p{font-size:14px;margin-bottom:.5em}
+.banner ul{margin:.2em 0 .4em 1.2em;font-size:14px}
+.banner li{margin-bottom:.25em}
+.contents{background:var(--paper);border:1px solid var(--line);padding:16px 20px;margin-bottom:28px}
+.contents h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+.contents ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+.contents li{margin-bottom:4px;font-size:14px}
+.contents a{text-decoration:none;color:var(--ink)}
+.contents a:hover{color:var(--brass);text-decoration:underline}
+section{margin-bottom:36px}
+.fig{background:var(--paper);border:1px solid var(--line);padding:20px 22px}
+.fig .fignum{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:4px}
+.fig h2{font-size:22px}
+.fig h3{font-size:16px;margin-top:18px}
+.figcap{font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:16px;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-family:Archivo,sans-serif;font-size:13px}
+tbody tr:nth-child(even){background:#f7f4ec}
+.pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass);margin-right:6px}
+.pill.solid{background:var(--brass);color:#fff}
+.pill.green{border-color:var(--green);color:var(--green)}
+.pill.amber{border-color:var(--amber);color:var(--amber)}
+.pill.red{border-color:var(--red);color:var(--red)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:14px 0}
+.flow .step{flex:1 1 120px;background:var(--code-bg);border:1px solid var(--line);padding:10px 12px;font-size:13px;text-align:center;font-weight:600}
+.flow .arrow{align-self:center;padding:0 6px;color:var(--brass);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);background:var(--bone);padding:14px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--ink-soft)}
+.card.active{border-color:var(--brass);border-width:2px;background:var(--paper)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{font-family:Inter,sans-serif;font-size:13px;padding:8px 14px;border:1px solid var(--brass);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:4px}
+button:hover{background:var(--code-bg)}
+button.on{background:var(--brass);color:#fff;border-color:var(--brass)}
+.panel{border:1px solid var(--line);background:var(--paper);padding:14px 16px;margin-top:8px;font-size:14px}
+.panel h4{font-size:15px;margin-bottom:4px}
+.hidden{display:none}
+details{border:1px solid var(--line);background:var(--paper);margin-bottom:8px}
+details summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ ";color:var(--brass);font-weight:700}
+details[open] summary::before{content:"- ";color:var(--brass)}
+details .body{padding:0 14px 12px;font-size:14px;color:var(--ink-soft)}
+details .body p{margin-bottom:.5em}
+.secnum{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:12px;margin-right:8px}
+ol.tight{columns:2;column-gap:28px;font-size:13px;padding-left:22px}
+ol.tight li{margin-bottom:5px;break-inside:avoid}
+ol.tight.single{columns:1}
+input[type="text"]{font-family:Inter,sans-serif;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;width:100%;max-width:420px;background:var(--paper)}
+blockquote{border-left:3px solid var(--brass);margin:10px 0;padding:4px 0 4px 14px;color:var(--ink-soft);font-style:italic}
+.note{font-size:13px;color:var(--ink-soft)}
+.callout{background:var(--code-bg);border-left:4px solid var(--brass);padding:12px 16px;margin:14px 0;font-size:14px}
+.figlabel{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--amber)}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:16px;font-size:13px;color:var(--ink-soft)}
+@media (max-width:760px){
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .cards{grid-template-columns:1fr}
+  .contents ol{columns:1}
+  ol.tight{columns:1}
+  .dochead h1{font-size:24px}
+}
+@media print{
+  .topbar,.btnrow,input[type="text"]{display:none}
+  body{background:#fff}
+  .fig,.dochead,.banner,.contents{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="topbar"><span class="mark">NEURUH</span><span>Drive Pull: ChatGPT Share Links</span><span class="spacer"></span><a href="https://neuruh-hub.pages.dev/">Hub</a><a href="https://neuruhai.github.io/neuruh-demos/drive-pull/">Drive Pull Index</a><a href="https://neuruhai.github.io/neuruh-demos/drive-pull/audit-leverage-product/">Verbatim Filing</a></div>
+<div class="wrap">
+<div class="dochead">
+<div class="kicker">Interactive Page: Link 19</div>
+<h1>Audit Leverage Product: The Decision Dossier Compiler and the Liquidity Engine</h1>
+<p class="sub">Two turns from August 23, 2026. Turn 1 is a full portfolio audit that lands on one answer: build the Decision Dossier Compiler, the linear high-leverage product hiding inside what is already built. Turn 2 is the handoff prompt the founder actually asked for instead: build the Liquidity Engine and Signal Market. Built only from the verbatim filing.</p>
+<div class="meta-grid">
+<div><span class="k">Source filing</span><a href="https://neuruhai.github.io/neuruh-demos/drive-pull/audit-leverage-product/">drive-pull/audit-leverage-product</a><br>65,154 bytes, 3,365 lines</div>
+<div><span class="k">Conversation</span>2 user turns, 2 assistant turns<br>Page date: Sun, Aug 23 at 12:21 PM (no year shown)</div>
+<div><span class="k">Source link</span><a href="https://chatgpt.com/share/6afd9437-5878-83ea-ae51-58a553981bbb">chatgpt.com/share/6afd9437</a><br>Read: 2026-11-18 via live browser</div>
+<div><span class="k">Work durations</span>Reply 1: worked for 1m 43s. Reply 2: worked for 45s.</div>
+<div><span class="k">Sources shown</span>Reply 1 section 14: Claude, Amazon Web Services, LSEG, DeedRead. Reply 2: Find_Sell_Profit_Master_Codex(3), 02_FSP_Business_Model_Two_Sided (names shown truncated).</div>
+<div><span class="k">Page</span>Interactive build, editorial standard. jsdom verdict is STATIC-WORKING only; live-browser click test still owed.</div>
+</div>
+</div>
+
+<div class="banner">
+<h2>Read this first: figures on this page are the conversation's own</h2>
+<ul>
+<li><b>Every dollar figure on this page is the conversation's own illustrative figure or starting hypothesis.</b> None of it is a verified amount, a verified price, or an offer. The four-tier ladder in Figure 9 is explicitly labeled in the filing as starting hypotheses, not established market-clearing prices.</li>
+<li><b>The Willow pricing figures are the conversation's own figures</b> from the Willow pricing analysis as reported in the filing. They are a defensible economic argument inside the conversation, not an invoice or a market fact.</li>
+<li><b>The route comparison, DecisionPacket example, and farm example figures are worked examples inside the handoff</b>, labeled as such wherever they appear.</li>
+<li><b>File names shown truncated with an ellipsis on the page are preserved as shown</b> (for example Neuruh_Strategic_Vision_and_Com, NEURUH_LEAD_RECIPES_MASTER_CODE, 120_Willow_Service_Value_Pricin). No file was opened or downloaded; only names as shown are reported.</li>
+<li><b>No part of the transcript appeared cut off mid-line</b> in the browser text view, so no truncation marker was needed in the filing.</li>
+</ul>
+</div>
+
+<div class="contents">
+<h2>Contents</h2>
+<ol>
+<li><a href="#fig1">Figure 1: The 15-step chain, target to outcome</a></li>
+<li><a href="#fig2">Figure 2: Eight systems, one machine</a></li>
+<li><a href="#fig3">Figure 3: Willow accidentally proved the product</a></li>
+<li><a href="#fig4">Figure 4: The wedge, property in to decision out</a></li>
+<li><a href="#fig5">Figure 5: Same primitive, eight dossiers</a></li>
+<li><a href="#fig6">Figure 6: Public Record Composer and Outcome Intelligence</a></li>
+<li><a href="#fig7">Figure 7: Portfolio leverage ranking</a></li>
+<li><a href="#fig8">Figure 8: V1 Case Runner and the DecisionPacket</a></li>
+<li><a href="#fig9">Figure 9: The four-tier ladder, starting hypotheses</a></li>
+<li><a href="#fig10">Figure 10: Five cases, and the deeper thesis</a></li>
+<li><a href="#fig11">Figure 11: The Liquidity Engine canonical loop</a></li>
+<li><a href="#fig12">Figure 12: Signal to opportunity, and what this is not</a></li>
+<li><a href="#fig13">Figure 13: Liquidity routes and route comparison</a></li>
+<li><a href="#fig14">Figure 14: Capital, demand, and market mechanics</a></li>
+<li><a href="#fig15">Figure 15: Owner protection, compliance, and privacy</a></li>
+<li><a href="#fig16">Figure 16: Build posture, phases, fixtures, and done</a></li>
+<li><a href="#fidelity">Fidelity register</a></li>
+</ol>
+</div>
+
+<section class="fig" id="fig1">
+<div class="fignum">Figure 1</div>
+<h2>The 15-step chain, target to outcome</h2>
+<p>Give it a target and a question. It returns the evidence, contradictions, economics, scenarios, recommendation, next actions, and a defensible decision packet. Click a step to see what it means in the filing.</p>
+<div class="btnrow" id="chainBtns">
+<button data-k="c1" class="on">1. Target</button>
+<button data-k="c2">2. Question</button>
+<button data-k="c3">3. Source discovery</button>
+<button data-k="c4">4. Evidence</button>
+<button data-k="c5">5. Identity</button>
+<button data-k="c6">6. Classes</button>
+<button data-k="c7">7. Conflict</button>
+<button data-k="c8">8. Recipe</button>
+<button data-k="c9">9. Underwriting</button>
+<button data-k="c10">10. Scenarios</button>
+<button data-k="c11">11. Recommendation</button>
+<button data-k="c12">12. Receipt</button>
+<button data-k="c13">13. Card + dossier</button>
+<button data-k="c14">14. Next actions</button>
+<button data-k="c15">15. Outcome</button>
+</div>
+<div class="panel" id="chainPanel"><h4>1. Target</h4><p>The input is a target: an address, an asset, a company, a property, or an opportunity under consideration. The wedge is PROPERTY IN to DECISION OUT.</p></div>
+<p class="figcap">Figure 1. The Decision Dossier Compiler chain, turn 1: TARGET to QUESTION / OBJECTIVE to SOURCE DISCOVERY to EVIDENCE COLLECTION to IDENTITY + ENTITY RESOLUTION to FACT / DERIVED / HYPOTHESIS / UNKNOWN to CONFLICT + FRESHNESS CHECK to DOMAIN RECIPE to UNDERWRITING / SCORING to SCENARIOS to RECOMMENDATION to DECISION RECEIPT to 1-PAGE CARD + FULL DOSSIER to NEXT-BEST ACTIONS to OUTCOME CAPTURE.</p>
+</section>
+
+<section class="fig" id="fig2">
+<div class="fignum">Figure 2</div>
+<h2>Eight systems, one machine</h2>
+<p>Your systems keep recreating the same underlying pattern. The filing's table shows eight manifestations of one deeper machine. The real value is not the individual applications; it is the shared evidence objects, opportunity contracts, governance, receipts, routing, memory, and reusable recipes. Conceptual sprawl, too many names and unfinished surfaces, is identified as a bigger risk than competition.</p>
+<table>
+<tr><th>System</th><th>Its chain</th></tr>
+<tr><td>DeedSonar</td><td>Signal to Property to Evidence to Underwrite to Decision to Action</td></tr>
+<tr><td>FindSellProfit</td><td>Asset to Evidence to Value to Economics to Buy / Pass to Sell to Outcome</td></tr>
+<tr><td>Bookeit</td><td>Intent to Providers to Offer to Transaction to Fulfillment to Outcome</td></tr>
+<tr><td>CurbClaim</td><td>Object to Value to Alternatives to Route to Fulfillment to Outcome</td></tr>
+<tr><td>ProofOS</td><td>Company to Evidence to Current State to Future State to ROI to Pilot to Offer</td></tr>
+<tr><td>Venture Factory</td><td>Concept to Evidence to Specification to Build to Verification to Package</td></tr>
+<tr><td>Lead Recipes</td><td>Goal to Ingredients to Recipe to Execution to Food to Receipt</td></tr>
+<tr><td>Opportunity Organism</td><td>Signal to Intent to Opportunity to Qualify to Route to Decision to Artifact to Outcome</td></tr>
+</table>
+<p>The Opportunity Organism architecture already has endpoints for almost exactly this workflow: create signals, synthesize opportunities, qualify opportunities, route them, create governed decision packets, compile versioned artifacts, execute workflows, record outcomes, calibrate predictions against actual results. Lead Recipe OS already defines the commercial abstraction: a Food can be a lead queue, dossier, alert, campaign, acquisition packet, booked job, API, data product, or deployed World.</p>
+<p class="figcap">Figure 2. Eight manifestations of one machine, turn 1 sections 1 and 2. The audit's point: the ontology was already designed, not merely imagined.</p>
+</section>
+
+<section class="fig" id="fig3">
+<div class="fignum">Figure 3</div>
+<h2>Willow accidentally proved the product</h2>
+<p>120 + 130 Willow was not merely a cool demonstration of AI research. It produced an 87-page underwriting dossier, a one-page decision card, property identity reconciliation, deed / title analysis, tax / debt investigation, zoning / land-use work, market underwriting, acquisition scenarios, estate / authority analysis, contact-resolution evidence, a relationship graph, outreach materials, source-exhaustion tracking, raw-source custody, an evidence ledger, internal / client segregation, and PDF QA.</p>
+<div class="cards">
+<div class="card"><h3>11</h3><p>Core source artifacts</p></div>
+<div class="card"><h3>21</h3><p>Raw source files</p></div>
+<div class="card"><h3>54</h3><p>Row evidence ledger</p></div>
+<div class="card"><h3>10 nodes / 15 edges</h3><p>Relationship graph, with quarantined identity collisions instead of fabricated merges</p></div>
+<div class="card"><h3>87 pages</h3><p>Underwriting dossier, plus a one-page decision card</p></div>
+<div class="card"><h3>Case Study #001</h3><p>Willow is named as the first case study for the Dossier pipeline in the audit's closing call.</p></div>
+</div>
+<h3>The economics, as the conversation states them <span class="figlabel">Conversation's own figures</span></h3>
+<p>The Willow pricing analysis concluded, in the conversation's own figures: recommended invoice $4,250; estimated replacement value $5,000 to $9,500; suggested full-resolution contract about $5,500. It explicitly stated this was not a $200 skip trace or commodity comp report; it was a multidisciplinary acquisition-intelligence assignment. These are the conversation's figures, not verified prices or offers.</p>
+<p class="figcap">Figure 3. The Willow proof, turn 1 sections 3 and 4. Unlike most ideas in an AI portfolio, the filing argues, willingness to pay does not have to be invented: there is already a defensible economic argument around an actual completed artifact.</p>
+</section>
+
+<section class="fig" id="fig4">
+<div class="fignum">Figure 4</div>
+<h2>The wedge, property in to decision out</h2>
+<p>Do not turn this into "Neuruh Universal Autonomous Decision Intelligence Platform". That puts you right back into the trap. The outside market needs one pain, one workflow, one buyer, one proof packet, and one price. The commercial wedge is brutally simple: PROPERTY IN to DECISION OUT.</p>
+<blockquote>Send us an address or opportunity you are considering. We investigate the property, records, ownership, market, risks, economics and unresolved questions, then return a sourced acquisition decision package showing what we know, what we don't know, what can kill the deal, and what to do next.</blockquote>
+<p>That is understandable to a normal investor in fifteen seconds. You do not have to explain Neuruh, agents, AXON, Recipe Engine, or AI. The customer buys certainty before capital gets committed.</p>
+<div class="callout"><b>Externally, simply: DeedSonar Acquisition Dossier.</b> Initially. No new consumer brand yet. The same primitive later becomes dossiers for FindSellProfit, ProofOS, Venture Factory, Transition Intelligence, CRE, Procurement, and Defense.</div>
+<p class="figcap">Figure 4. The wedge, turn 1 sections 5 and 6. Lead Recipe OS is the factory; the Decision Dossier is the first product off the factory line. Customers do not wake up wanting a recipe runtime; they wake up wondering "Should I buy this?"</p>
+</section>
+
+<section class="fig" id="fig5">
+<div class="fignum">Figure 5</div>
+<h2>Same primitive, eight dossiers</h2>
+<p>One engine, different recipes. Click a vertical to see its dossier form.</p>
+<div class="btnrow" id="dosBtns">
+<button data-k="d1" class="on">DeedSonar</button>
+<button data-k="d2">FindSellProfit</button>
+<button data-k="d3">ProofOS</button>
+<button data-k="d4">Venture Factory</button>
+<button data-k="d5">Transition</button>
+<button data-k="d6">CRE</button>
+<button data-k="d7">Procurement</button>
+<button data-k="d8">Defense</button>
+</div>
+<div class="panel" id="dosPanel"><h4>DeedSonar</h4><p>PROPERTY to Acquisition Dossier. The first vertical, with Willow as Case Study #001.</p></div>
+<p class="figcap">Figure 5. The same primitive across verticals, turn 1 section 6. The canonical architecture underneath is Neuruh to Recipe Engine to Neuruh Lead Recipes to Lead Recipe OS to Vertical Packs to Food / Output, with ingredient, recipe, recipe_run, action_run, food_instance, nutrition_label, outcome_event, and run_receipt already defined.</p>
+</section>
+
+<section class="fig" id="fig6">
+<div class="fignum">Figure 6</div>
+<h2>Public Record Composer and Outcome Intelligence</h2>
+<p>Two dormant pieces sit directly underneath the Dossier Compiler.</p>
+<h3>Public Record Composer: the fuel refinery</h3>
+<div class="flow">
+<div class="step">Source discovery</div><div class="arrow">to</div>
+<div class="step">Source contract</div><div class="arrow">to</div>
+<div class="step">Fetch</div><div class="arrow">to</div>
+<div class="step">Raw record</div><div class="arrow">to</div>
+<div class="step">Normalization</div><div class="arrow">to</div>
+<div class="step">Identity resolution</div><div class="arrow">to</div>
+<div class="step">Entity resolution</div><div class="arrow">to</div>
+<div class="step">Join</div><div class="arrow">to</div>
+<div class="step">Provenance</div><div class="arrow">to</div>
+<div class="step">Conflict resolution</div><div class="arrow">to</div>
+<div class="step">Freshness</div><div class="arrow">to</div>
+<div class="step">Canonical record graph</div>
+</div>
+<p>Not another product. A common substrate for DeedSonar, Transition Intelligence, succession, commercial real estate, tax, land, and infrastructure intelligence. The stack: PUBLIC RECORD COMPOSER to EVIDENCE GRAPH to RECIPE ENGINE to DECISION DOSSIER.</p>
+<h3>Outcome Intelligence: the moat</h3>
+<div class="btnrow" id="moatBtns">
+<button data-k="m1" class="on">Dossier #1</button>
+<button data-k="m100">Dossier #100</button>
+<button data-k="m10000">Dossier #10,000</button>
+</div>
+<div class="panel" id="moatPanel"><h4>Dossier #1</h4><p>AI + rules + evidence. The first dossier has no observed outcomes yet, so it cannot learn from them.</p></div>
+<p class="figcap">Figure 6. The substrate and the moat, turn 1 sections 11 to 13. The compounding loop: customer target to Public Record Composer to evidence graph and provenance to Recipe Engine to Decision Compiler to one-page decision card / full evidence dossier to next-best action to outcome to calibration, which improves future dossiers.</p>
+</section>
+
+<section class="fig" id="fig7">
+<div class="fignum">Figure 7</div>
+<h2>Portfolio leverage ranking</h2>
+<p>The audit ranks the portfolio on current leverage, revenue speed, cross-system reuse, and complexity. The market is also moving toward this category: Hebbia selling rigorous AI-powered diligence into investment banks, PE, credit, law firms, and asset managers; an AWS M and A reference architecture from August 2026 showing multi-agent diligence under guardrails; LSEG selling human-reviewed, AI-assisted decision-ready diligence reports; and narrower property products such as DeedRead selling source-cited client-ready property diligence reports. Buyers are being trained to buy this category.</p>
+<table>
+<tr><th>Asset</th><th>Leverage</th><th>Revenue speed</th><th>Reuse</th><th>Complexity</th><th>Call</th></tr>
+<tr><td><b>Decision Dossier Compiler</b></td><td>10/10</td><td>9/10</td><td>10/10</td><td>5/10</td><td>BUILD THIS SLICE</td></tr>
+<tr><td>Public Record Composer</td><td>9.7</td><td>6</td><td>10</td><td>7</td><td>Build underneath Dossier</td></tr>
+<tr><td>FSP Merchant OS</td><td>9.3</td><td>10</td><td>7</td><td>4</td><td>Finish / live-test in parallel</td></tr>
+<tr><td>Outcome Intelligence</td><td>9.2</td><td>4</td><td>10</td><td>7</td><td>Instrument now, monetize later</td></tr>
+<tr><td>Lead Recipe OS</td><td>9.0</td><td>6</td><td>10</td><td>8</td><td>Architecture behind products</td></tr>
+<tr><td>ProofOS</td><td>8.8</td><td>8</td><td>9</td><td>6</td><td>Commercial multiplier</td></tr>
+<tr><td>Control Plane</td><td>8.6 commercial / 10 internal</td><td>2</td><td>10</td><td>7</td><td>Finish custody / integration</td></tr>
+<tr><td>Venture Factory</td><td>8.4</td><td>4</td><td>9</td><td>8</td><td>Internal leverage</td></tr>
+<tr><td>Bookeit</td><td>8.2</td><td>5</td><td>8</td><td>10</td><td>Bigger second-stage bet</td></tr>
+<tr><td>CurbClaim</td><td>7.6</td><td>6</td><td>7</td><td>9</td><td>Wait for FSP / Bookeit contracts</td></tr>
+<tr><td>New vertical apps</td><td>4 to 7</td><td>varies</td><td>3 to 6</td><td>7 to 10</td><td>Stop adding them for now</td></tr>
+</table>
+<p class="figcap">Figure 7. Portfolio leverage ranking, turn 1 sections 14 and 15. Scores are the conversation's own rankings, not measured results. Bookeit is beaten for now because it introduces suppliers, demand, transactions, payments, scheduling, trust, fulfillment, marketplace density, insurance, disputes, and geographic liquidity. CurbClaim is downstream of FSP and Bookeit.</p>
+</section>
+
+<section class="fig" id="fig8">
+<div class="fignum">Figure 8</div>
+<h2>V1 Case Runner and the DecisionPacket</h2>
+<p>Not autonomous perfection. V1 is a Case Runner. Input: target type, target identifier, jurisdiction, customer question, intended action, known facts, uploaded documents. Example given in the filing: Target 123 Main St; Question: Should we pursue this acquisition under $85,000? Goal: wholesale / hold / redevelopment. The $85,000 figure is the filing's example question, not a price or an offer.</p>
+<div class="btnrow" id="caseBtns">
+<button data-k="k1" class="on">Case object</button>
+<button data-k="k2">Claim classes</button>
+<button data-k="k3">Modules</button>
+<button data-k="k4">DecisionPacket</button>
+</div>
+<div class="panel" id="casePanel"><h4>Case object</h4><p>id, target, objective, jurisdiction. Evidence: claims, sources, conflicts, freshness. Identities, entities, relationships. Recipes, economics, risks, opportunities, scenarios. Decision, confidence, kill conditions, unresolved questions, next actions. Artifacts, receipt, outcome.</p></div>
+<h3>The commercial model starts human-assisted</h3>
+<p>Customer submits target, engine builds case, engine gathers 70 to 90 percent, operator resolves difficult sources, engine reconciles, human reviews decision, system compiles package, customer receives package. Charge for the result. Nobody cares whether an operator touched four steps. The percentages are the conversation's own figures.</p>
+<p class="figcap">Figure 8. V1 Case Runner, turn 1 sections 16 to 19. The key artifact is not the 87-page PDF; it is a structured DecisionPacket (JSON), which then renders as a web UI, a 1-page card, a 20-page report, an 87-page forensic dossier, a CRM record, an API response, or an agent action.</p>
+</section>
+
+<section class="fig" id="fig9">
+<div class="fignum">Figure 9</div>
+<h2>The four-tier ladder, starting hypotheses</h2>
+<p>Avoid cheap SaaS pricing initially. These tiers are stated in the filing as starting hypotheses, not established market-clearing prices. They are shown here only as the conversation stated them.</p>
+<div class="btnrow" id="tierBtns">
+<button data-k="t1" class="on">Tier 1: Decision Card</button>
+<button data-k="t2">Tier 2: Acquisition Intelligence</button>
+<button data-k="t3">Tier 3: Forensic Dossier</button>
+<button data-k="t4">Tier 4: Resolution / Execution</button>
+</div>
+<div class="panel" id="tierPanel"><h4>Tier 1: Decision Card</h4><p>Fast initial investigation. Conversation's starting hypothesis: $250 to $500. Output: identity, headline economics, obvious red flags, major opportunities, missing evidence, pursue / pass / research, next actions.</p></div>
+<p class="figcap">Figure 9. First product ladder, turn 1 section 20. All four tier figures are the conversation's starting hypotheses, not verified prices, and they line up, in the filing's words, much better with the value already documented than $49/month AI-tool economics. The $49 figure is the filing's own comparison point.</p>
+</section>
+
+<section class="fig" id="fig10">
+<div class="fignum">Figure 10</div>
+<h2>Five cases, and the deeper thesis</h2>
+<p>Five cases matter more than five new apps. Do not immediately build 37 jurisdiction connectors. Run 5 real paid or controlled dossiers across different failure modes: normal SFR acquisition, vacant / problem title, multi-parcel land, commercial property, ownership / transition problem. Measure human hours, machine hours, source coverage, claims generated, claims corrected, identity collisions, unresolved questions, decision changed, client action, purchase price, actual result, and economic value. Then automate whatever consumes the most operator time.</p>
+<h3>The deeper thing accidentally built</h3>
+<p>Neuruh is becoming a <b>decision-production infrastructure</b>. It takes messy reality, documents, records, signals, people, assets, constraints, prices, rules, intent, and converts it into evidence to options to decisions to authorized actions to receipts to outcomes to better future decisions. That is the common denominator. The Decision Dossier is simply the smallest thing a customer can buy that exposes the power of that architecture.</p>
+<h3>Idle and underexploited assets, ranked</h3>
+<ol class="tight single">
+<li><b>#1 Decision Dossier / Artifact Compiler:</b> already implicitly designed and manually proven. Extract it. Productize it. Sell it.</li>
+<li><b>#2 Public Record Composer:</b> turns fragmented public information into reusable canonical intelligence. Build it as common substrate, not another app.</li>
+<li><b>#3 Outcome Intelligence:</b> every commercial workflow should begin producing outcome events now. Do not wait.</li>
+<li><b>#4 Decision Receipt:</b> evidence + recipe + assumptions + model / version + authority + decision + outcome. Potentially a signature standard.</li>
+<li><b>#5 ProofOS:</b> not necessarily another giant SaaS company. Use it internally to sell everything else.</li>
+<li><b>#6 Lead Recipes:</b> do not launch the whole OS. Use it to generate repeatable products like the dossier.</li>
+<li><b>#7 Managed-services layer:</b> serious immediate revenue may sit between traditional expensive consultant and fully autonomous software.</li>
+</ol>
+<div class="callout"><b>The constraint is no longer invention.</b> The dangerous question is whether Neuruh can stop inventing long enough to compress the inventions into one repeatable unit of economic output: INPUT to FIXED PROCESS to FIXED OUTPUT to FIXED PRICE to CUSTOMER to OUTCOME to REPEAT. The audit's rule: no new vertical until Neuruh can take five real opportunities through the same Decision Dossier pipeline and produce five defensible outputs using the same schemas, evidence model, compiler, and receipt system. Keep FSP moving. Preserve and finish the Control Plane.</div>
+<p class="figcap">Figure 10. Five cases and the deeper thesis, turn 1 sections 21 to 27. The architecture becomes easier to explain: a system that takes a real-world opportunity, gathers the evidence, resolves conflicting information, runs the relevant analysis, and produces a defensible decision with the next steps attached. Real estate is where it was proven first.</p>
+</section>
+
+<section class="fig" id="fig11">
+<div class="fignum">Figure 11</div>
+<h2>The Liquidity Engine canonical loop</h2>
+<p>Turn 2 is the handoff the founder actually asked for: "give the handoff prompt. i would rather build the liquidity engine and market we came up with yesterday if we arent doing that already." The mission: turn overlooked real-world signals into underwritten, fundable, routable economic opportunities. The thesis: the physical world is full of trapped value because the people who encounter opportunity, the people who own the underlying asset, the people who understand how to monetize it, and the people with capital are disconnected. This is the transition from the gig economy to the signal economy.</p>
+<div class="btnrow" id="loopBtns">
+<button data-k="s1" class="on">Signal</button>
+<button data-k="s2">Verify</button>
+<button data-k="s3">Opportunity</button>
+<button data-k="s4">Underwrite</button>
+<button data-k="s5">Liquidity options</button>
+<button data-k="s6">Match</button>
+<button data-k="s7">Authorize</button>
+<button data-k="s8">Transaction</button>
+<button data-k="s9">Fulfill</button>
+<button data-k="s10">Settle</button>
+<button data-k="s11">Outcome</button>
+<button data-k="s12">Calibrate</button>
+</div>
+<div class="panel" id="loopPanel"><h4>Signal</h4><p>Someone sees something valuable and submits the signal. A local operator may know about an economic opportunity months before it becomes an internet listing.</p></div>
+<p class="figcap">Figure 11. The canonical loop, turn 2 section 0: SIGNAL to VERIFY to OPPORTUNITY to UNDERWRITE to LIQUIDITY OPTIONS to CAPITAL / BUYER / OPERATOR MATCH to AUTHORIZATION to TRANSACTION to FULFILLMENT to SETTLEMENT to OUTCOME to CALIBRATION. First responsibility: determine what already exists across the estate, preserve it, reuse it, and only then build the missing canonical system.</p>
+</section>
+
+<section class="fig" id="fig12">
+<div class="fignum">Figure 12</div>
+<h2>Signal to opportunity, and what this is not</h2>
+<h3>This is NOT</h3>
+<p>Craigslist. Facebook Marketplace. Another generic lead marketplace. A job board. A traditional wholesaling CRM. A crowdfunding platform. An unlicensed securities exchange. An automatic lending company. A payday-loan product. A tokenized asset scheme. A generic referral app. An empty nationwide two-sided marketplace. A replacement for DeedSonar. A replacement for FindSellProfit. A replacement for Bookeit. A duplicate Neuruh organism. It is the liquidity and opportunity-routing layer that can compose those systems.</p>
+<h3>The conversion is the product</h3>
+<div class="flow">
+<div class="step">Raw signal</div><div class="arrow">to</div>
+<div class="step">Verified signal</div><div class="arrow">to</div>
+<div class="step">Normalized opportunity</div><div class="arrow">to</div>
+<div class="step">Evidence</div><div class="arrow">to</div>
+<div class="step">Underwriting</div><div class="arrow">to</div>
+<div class="step">Control / rights / authority</div><div class="arrow">to</div>
+<div class="step">Liquidity routes</div><div class="arrow">to</div>
+<div class="step">Executable transaction</div>
+</div>
+<p>Raw leads are cheap. Decision-ready opportunities are valuable. Executable opportunities are substantially more valuable. Closed outcomes create the moat.</p>
+<h3>Signal object and states</h3>
+<p>A signal must never automatically become a marketable opportunity. States: RECEIVED, TRIAGE, NEEDS_EVIDENCE, VERIFIED, REJECTED, SUPPRESSED, PROMOTED_TO_OPPORTUNITY. Signal quality is scored on inspectable components, never a single opaque AI score: identity confidence, evidence strength, novelty, economic potential, urgency, owner intent confidence, accessibility, transactionability, legal complexity, capital intensity, expected time to liquidity, market depth. Evidence classes stay FACT, DERIVED, HYPOTHESIS, UNKNOWN. Never convert speculation into fact.</p>
+<h3>One signal, many opportunities</h3>
+<p>A verified signal may produce 0, 1, or multiple opportunities. The filing's example: an older farmer wants cash but does not want to lose the farm. Do not reduce that to SELL FARM. Possible routes include selling unused equipment, leasing acreage, leasing storage, timber evaluation, partial parcel disposition, lot split, agricultural tenant, operating partnership, sale-leaseback, seller financing, conservation route, renewable-energy / infrastructure lease where appropriate, specialty crop opportunity, orchard rehabilitation, business succession, full sale, hold, or do nothing. The system's job is to find the best economic route subject to the owner's actual objective and constraints.</p>
+<p class="figcap">Figure 12. Turn 2 sections 1 to 11. Asset classes supported by one canonical lifecycle with domain adapters: real estate, land, farms, businesses, vehicles, heavy equipment, agricultural equipment, collectibles, estate inventory, marine / RV, tools, machinery, business inventory, timber, specialty agriculture, underused commercial assets, local capacity, space, storage, services, and other lawful real-world assets. Twenty five existing systems must be inspected before building; do not recreate proven primitives.</p>
+</section>
+
+<section class="fig" id="fig13">
+<div class="fignum">Figure 13</div>
+<h2>Liquidity routes and route comparison</h2>
+<p>The Liquidity Engine takes a qualified opportunity plus owner objective, asset facts, market evidence, authority, constraints, and time preference, and returns ranked liquidity routes. Each route must include route type, estimated gross value, estimated net value, time to cash, required capital, required control, required documents, major risks, execution complexity, probability estimate, downside, counterparty requirements, legal / compliance requirements, and confidence. Route plugins include direct sale, wholesale, auction, consignment, brokered sale, dealer buy, strategic buyer, partial sale, lease, rent, seller finance, option, joint venture, sale-leaseback, asset separation, equipment liquidation, inventory liquidation, bundle, part-out, development / entitlement, builder route, operator partnership, external marketplace, hold, and reject / no action.</p>
+<h3>Route comparison, worked example <span class="figlabel">Conversation's own illustrative figures</span></h3>
+<div class="btnrow" id="routeBtns">
+<button data-k="rA" class="on">Route A: Direct buyer</button>
+<button data-k="rB">Route B: Clean + market</button>
+<button data-k="rC">Route C: Partner / operator</button>
+<button data-k="rD">Route D: No transaction</button>
+</div>
+<div class="panel" id="routePanel"><h4>Route A: Direct buyer</h4><p>Cash to owner: $72,000. Time: 7 to 14 days. Certainty: high. Complexity: low. Figures are the filing's worked example, not a price or an offer.</p></div>
+<p>The engine compares outcomes. It does not automatically select the highest gross number.</p>
+<p class="figcap">Figure 13. Turn 2 sections 13, 14, and 33. All route figures are the conversation's own worked example. The farm / legacy-asset thesis sits behind the routes: AI can reconstruct forgotten economic value, including heirloom apple varieties, legacy fruit cultivars, regional crop history, historic agricultural brands, specialty genetics, rare trees, old agricultural infrastructure, and forgotten market positioning. Do not claim biological identity or commercial value without evidence.</p>
+</section>
+
+<section class="fig" id="fig14">
+<div class="fignum">Figure 14</div>
+<h2>Capital, demand, and market mechanics</h2>
+<h3>Liquidity on demand, separated from legal classification</h3>
+<p>A core long-term capability: an opportunity with enough verified economic value that qualified capital may be willing to provide liquidity before the final disposition. This is powerful but regulated. Separate the economic engine from the legal product classification. Do not silently implement cash advances. Do not originate a loan. Do not move production money. Do not create securities. Do not promise funding. Instead implement a neutral LiquidityOffer abstraction with economic structure, proposed amount, consideration, term, conditions precedent, required documents, legal classification, jurisdiction, counsel review required, and license requirement.</p>
+<h3>Founder capital thesis <span class="figlabel">Conversation's own contemplated amounts</span></h3>
+<p>The founder contemplated being willing, in appropriate deals, to deploy amounts such as $10, $20, $50, or materially more, and in some opportunities potentially a portion of expected value or roughly half of a conservative economic amount. The software must NOT hardcode those numbers into underwriting. Instead build a CapitalMandate: provider, asset classes, jurisdictions, min and max check, max LTV or equivalent, max loss, required margin, max duration, allowed and prohibited structures, evidence floor, approval requirement. Then route opportunities against mandates.</p>
+<h3>Demand graph and market mechanics</h3>
+<p>Do not wait for opportunities before finding buyers. Build or consume a demand graph from buyer buy boxes: asset classes, geography, min and max value, condition, strategy, required margin, required yield, max complexity, title tolerance, response SLA, funding capacity, preferred routes. Track behavior, not claims: opportunities viewed, requested, offers, offer amount, conditions, response time, acceptance, close rate, funding speed, cancellations, disputes, actual purchases, actual outcomes where shared. The market is QUALIFIED OPPORTUNITY to MATCH ENGINE to RANKED COUNTERPARTIES to CONTROLLED DISTRIBUTION to OFFERS to ROUTE COMPARISON to OWNER / AUTHORIZED ACTOR DECISION. Ranking factors: price, net proceeds, certainty, speed, conditions, funding reliability, historical close probability, operational fit, distance, reputation, risk. No paid placement may secretly alter "best offer." V1 capital routing is PRIVATE, CURATED, PERMISSIONED, OPERATOR-CONTROLLED. Do not create a public investment marketplace in V1.</p>
+<p class="figcap">Figure 14. Turn 2 sections 15 to 19. Compensation is policy driven through CompensationRule outcomes ELIGIBLE, NOT_ELIGIBLE, COUNSEL_REVIEW, LICENSE_REQUIRED, UNKNOWN. Do not assume everyone can legally share transaction proceeds.</p>
+</section>
+
+<section class="fig" id="fig15">
+<div class="fignum">Figure 15</div>
+<h2>Owner protection, compliance, and privacy</h2>
+<p>The system must not become a machine for exploiting distressed owners. Every opportunity requires the owner's objective to remain explicit: needs cash fast, maximize price, keep property, keep farm, reduce workload, sell only unused asset, avoid debt, retire, transfer to family, remove liability, stop carrying cost, preserve legacy, or unknown.</p>
+<div class="callout"><b>The filing's example.</b> Selling a $600,000 farm to solve a $20,000 liquidity problem may be economically irrational. The engine should identify lower-destructiveness routes first when they genuinely exist. Figures are the filing's example, not a case or an offer.</div>
+<h3>Compliance gate outcomes</h3>
+<p>Every transaction structure produces one of: ALLOW, ALLOW_WITH_CONDITIONS, HUMAN_REVIEW, COUNSEL_REVIEW, LICENSE_REQUIRED, BLOCK, UNKNOWN. <b>UNKNOWN must never silently become ALLOW.</b> Issues include real-estate brokerage, wholesaling, referral compensation, consumer lending, commercial lending, factoring, securities, investment solicitation, money transmission, escrow, title, insurance, privacy, telemarketing, DNC, consumer protection, elder exploitation, contract assignment, licensing, tax, agricultural regulations, and environmental restrictions.</p>
+<h3>Privacy</h3>
+<p>Do not build rumor trading, medical-condition targeting, protected-class targeting, stalking workflows, private-life surveillance, emergency-scene exploitation, or unauthorized personally identifying data harvesting. Signals must be purpose-bound and rights-aware. First responders or other public-safety professionals must not be incentivized to misuse confidential or non-public information acquired through official duties. If a partner category creates elevated conflict, ethics, or statutory risk: BLOCK OR REQUIRE FORMAL REVIEW.</p>
+<p class="figcap">Figure 15. Turn 2 sections 21 to 23. The system composition preferred architecture runs signal partners to signal market to opportunity genome to evidence / data and recipe engine to underwriting to liquidity engine to FSP / assets, DeedSonar, and business / land, to demand graph to buyer, capital, and operator, to transaction, to Bookeit / fulfillment where needed, to outcome, to calibration. Do not directly cross-write production databases; use contracts, events, and APIs.</p>
+</section>
+
+<section class="fig" id="fig16">
+<div class="fignum">Figure 16</div>
+<h2>Build posture, phases, fixtures, and done</h2>
+<h3>Build posture</h3>
+<p>Modular monolith first, not microservice theater. Strict internal modules. Suggested tree: neuruh-liquidity-engine with docs, packages for contracts, evidence, signals, opportunities, underwriting, liquidity, matching, market, capital, compliance, compensation, transactions, outcomes, apps for API, operator, partner, and market, adapters for FindSellProfit, DeedSonar, Bookeit, and external, fixtures for property, equipment, and estate, tests, and scripts. Adapt the tree to the existing estate if a canonical repo already exists. Do not create duplicate infrastructure merely to satisfy the suggested tree.</p>
+<div class="btnrow" id="phaseBtns">
+<button data-k="ph0" class="on">Phase 0: Forensic recovery</button>
+<button data-k="ph1">Phase 1: Contract freeze</button>
+<button data-k="ph2">Phase 2: First vertical slice</button>
+<button data-k="fix">Fixtures A to D</button>
+<button data-k="adv">Adversarial tests</button>
+<button data-k="not">What V1 does NOT do</button>
+<button data-k="done">Definition of done</button>
+</div>
+<div class="panel" id="phasePanel"><h4>Phase 0: Forensic recovery</h4><p>Before writing production implementation, produce FORENSIC_RECOVERY.md stating all relevant repositories and local work found, canonical vs duplicate classification, reusable contracts, existing tests, existing APIs, current custody, collision risks, what will be reused, and what must be newly built. Explicitly search for prior Liquidity Engine, Signal Market, Signal Partner, Sorceit, Opportunity Market, Liquidity on Demand, Capital Router, Demand Graph, Buyer Graph, and Capital Graph. Do not assume none exists.</p></div>
+<h3>Stack order, the strategic correction</h3>
+<p>The reply closes by correcting its own prior audit: Liquidity Engine + Signal Market is the new priority build. FSP is the first real asset-liquidity organ and the current closest software proof. DeedSonar is the property underwriting / intelligence organ. The Decision Dossier Compiler becomes a capability inside the Liquidity Engine rather than the primary company. Public Record Composer is the evidence substrate. Bookeit is the physical fulfillment rail. Outcome Intelligence is the compounding moat. FSP already proves the underlying market thesis: recruit concentrated buyers, capture private / off-market supply, send them normalized decision-ready opportunities, measure actual offers and close behavior, and use external channels as liquidity extensions instead of relying on an empty marketplace.</p>
+<p class="figcap">Figure 16. Turn 2 sections 29, 39 to 53. Required handoff artifacts: FORENSIC_RECOVERY.md, PRODUCT_THESIS.md, ARCHITECTURE.md, EXISTING_ASSET_REUSE.md, COMPLIANCE_BOUNDARIES.md, schemas / contracts, MVP_ACCEPTANCE.md, TEST_REPORT.md, CUSTODY_RECEIPT.md, CONTINUATION_CHECKPOINT.json, with a report block stating PRODUCTION_TOUCHED=NO, REAL_MONEY_MOVED=NO, REAL_OUTREACH_SENT=NO. Preferred repo names, in order: NeuruhAI/neuruh-liquidity-engine, then NeuruhAI/liquidity-engine. Do not create both. Do not force push, do not merge without explicit instruction, do not deploy production. The most important strategic rule: prove one economic primitive, a signal can become liquidity. Everything else is subordinate.</p>
+</section>
+
+<section class="fig" id="fidelity">
+<div class="fignum">Fidelity register</div>
+<h2>What was verified, what was not</h2>
+<table>
+<tr><th>Item</th><th>Status</th><th>Note</th></tr>
+<tr><td>Turn count</td><td><span class="pill green">Verified</span></td><td>2 user turns, 2 assistant turns. The full text view exposed the whole conversation in one read.</td></tr>
+<tr><td>Truncation</td><td><span class="pill green">None needed</span></td><td>No part of the transcript appeared cut off mid-line in the browser text view.</td></tr>
+<tr><td>Dollar figures</td><td><span class="pill amber">Conversation's own</span></td><td>Every dollar figure is the conversation's own illustrative figure or starting hypothesis, labeled as such. None is a verified amount, price, or offer.</td></tr>
+<tr><td>File names</td><td><span class="pill amber">As shown</span></td><td>Names shown truncated with an ellipsis on the page are preserved as shown. No file was opened or downloaded.</td></tr>
+<tr><td>Sources shown</td><td><span class="pill amber">As shown, not verified</span></td><td>Reply 1 section 14: Claude, Amazon Web Services, LSEG, DeedRead. Reply 2: Find_Sell_Profit_Master_Codex(3), 02_FSP_Business_Model_Two_Sided (truncated).</td></tr>
+<tr><td>Willow figures</td><td><span class="pill amber">Conversation's own</span></td><td>87-page dossier, 11 artifacts, 21 raw files, 54-row ledger, 10-node / 15-edge graph, and the pricing figures are as reported in the conversation, not independently verified here.</td></tr>
+<tr><td>Leverage ranking</td><td><span class="pill amber">Conversation's own</span></td><td>Scores are the conversation's own rankings, not measured results.</td></tr>
+</table>
+<p class="note">Filing: <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/audit-leverage-product/">drive-pull/audit-leverage-product</a> (65,154 bytes, 3,365 lines). Source: <a href="https://chatgpt.com/share/6afd9437-5878-83ea-ae51-58a553981bbb">chatgpt.com/share/6afd9437</a>.</p>
+</section>
+
+<footer>
+<p>Built only from the verbatim filing at <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/audit-leverage-product/">drive-pull/audit-leverage-product</a>. Record only; the conversation contains a portfolio audit and a build handoff prompt that are filed as record and never acted on here. No em dashes, no en dashes, no alert or prompt calls. jsdom verdict is STATIC-WORKING only; live-browser click test still owed.</p>
+</footer>
+</div>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function wire(btnsId,panelId,data,render){
+  var btns=$(btnsId); if(!btns) return;
+  var panel=$(panelId);
+  function show(key){
+    var bs=btns.querySelectorAll("button");
+    for(var i=0;i<bs.length;i++){bs[i].classList.toggle("on",bs[i].getAttribute("data-k")===String(key));}
+    panel.innerHTML=render(data[key]);
+  }
+  btns.addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return; show(b.getAttribute("data-k"));
+  });
+  return show;
+}
+function simple(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";}
+var chain={
+  c1:{t:"1. Target",b:"The input is a target: an address, an asset, a company, a property, or an opportunity under consideration. The wedge is PROPERTY IN to DECISION OUT."},
+  c2:{t:"2. Question / objective",b:"What is the question? Should we pursue this acquisition? What is actually true? What is it worth? Who owns it? What is the catch? What should we do?"},
+  c3:{t:"3. Source discovery",b:"Find the sources that can answer the question: public records, county data, market data, filings, and prior work. The Public Record Composer is the substrate that does this."},
+  c4:{t:"4. Evidence collection",b:"Gather evidence with provenance. The Willow evidence layer alone included 11 core source artifacts, 21 raw source files, and a 54-row evidence ledger."},
+  c5:{t:"5. Identity + entity resolution",b:"Resolve who and what the target is. Willow quarantined identity collisions instead of fabricating merges."},
+  c6:{t:"6. FACT / DERIVED / HYPOTHESIS / UNKNOWN",b:"Claims keep their established classes. A hypothesis is never presented as a fact. Unknown stays unknown until evidence closes it."},
+  c7:{t:"7. Conflict + freshness check",b:"Contradictions between sources are surfaced, not smoothed over. Freshness is checked: stale evidence is labeled stale."},
+  c8:{t:"8. Domain recipe",b:"The relevant recipe interprets the evidence. Lead Recipe OS is the factory that holds the recipes; the Dossier is the first product off the line."},
+  c9:{t:"9. Underwriting / scoring",b:"Economics are underwritten: value range, risks, scenarios. The Willow dossier ran deed / title analysis, tax / debt investigation, zoning / land-use work, and market underwriting."},
+  c10:{t:"10. Scenarios",b:"Multiple acquisition scenarios are modeled, including what can kill the deal."},
+  c11:{t:"11. Recommendation",b:"A recommendation with a confidence level and kill conditions. The DecisionPacket carries decision, confidence, and kill conditions as structured fields."},
+  c12:{t:"12. Decision receipt",b:"The decision is receipted: evidence + recipe + assumptions + model / version + authority + decision + outcome. A Decision Receipt may become a signature Neuruh standard."},
+  c13:{t:"13. 1-page card + full dossier",b:"The same structured DecisionPacket renders as a one-page decision card or a full dossier, up to the 87-page forensic form Willow produced."},
+  c14:{t:"14. Next-best actions",b:"Concrete next actions are attached to the decision, so the packet is actionable, not just informative."},
+  c15:{t:"15. Outcome capture",b:"The outcome is captured and fed back. Outcome Intelligence calibrates future dossiers against actual results: which sources matter, which recipes convert, which timing works, which price clears."}
+};
+var showChain=wire("chainBtns","chainPanel",chain,simple);
+showChain("c1");
+var dos={
+  d1:{t:"DeedSonar",b:"PROPERTY to Acquisition Dossier. The first vertical, with Willow as Case Study #001."},
+  d2:{t:"FindSellProfit",b:"ASSET to Purchase / Disposition Dossier. FSP is probably still the best immediate standalone cash-producing software product, and the closest software proof of the liquidity thesis."},
+  d3:{t:"ProofOS",b:"COMPANY to Transformation Dossier. Use it internally to sell everything else."},
+  d4:{t:"Venture Factory",b:"VENTURE to Investment / Build Dossier. Internal leverage: system-generation machinery."},
+  d5:{t:"Transition Intelligence",b:"OWNER / BUSINESS to Transition Dossier. Succession and transition intelligence."},
+  d6:{t:"CRE",b:"PROPERTY / BUSINESS to Acquisition Dossier. Commercial real estate as a dossier vertical."},
+  d7:{t:"Procurement",b:"VENDOR to Vendor Decision Dossier. Vendor entity, capabilities, evidence, reputation, financial risk, alternatives, decision."},
+  d8:{t:"Defense",b:"REQUIREMENT / COMPANY / TECHNOLOGY to Evidence Dossier. Defense capture as a dossier vertical."}
+};
+var showDos=wire("dosBtns","dosPanel",dos,simple);
+showDos("d1");
+var moat={
+  m1:{t:"Dossier #1",b:"AI + rules + evidence. The first dossier has no observed outcomes yet, so it cannot learn from them."},
+  m100:{t:"Dossier #100",b:"AI + rules + evidence + observed outcomes. The system begins to answer which sources matter and which recipes convert."},
+  m10000:{t:"Dossier #10,000",b:"AI + rules + evidence + proprietary outcome intelligence. Now the system answers which source matters, which combinations matter, which recipes convert, which timing works, which assets clear, which price clears, and which proof narrative converts. Competitors cannot reproduce this by plugging GPT into county websites."}
+};
+var showMoat=wire("moatBtns","moatPanel",moat,simple);
+showMoat("m1");
+var cases={
+  k1:{t:"Case object",b:"id, target, objective, jurisdiction. Evidence: claims, sources, conflicts, freshness. Identities, entities, relationships. Recipes, economics, risks, opportunities, scenarios. Decision, confidence, kill conditions, unresolved questions, next actions. Artifacts, receipt, outcome."},
+  k2:{t:"Claim classes",b:"Every claim keeps its class: FACT, DERIVED, HYPOTHESIS, UNKNOWN. The distinction is already established in the transition / intelligence work."},
+  k3:{t:"Modules",b:"intake (target and objective schemas); sources (source contract, registry, adapters); evidence (evidence ref, claim, provenance, freshness, contradiction ledger); identity (resolver, quarantine, entity graph); recipes (recipe contract, property acquisition); decision (scenario engine, risk engine, confidence, kill-shots, next-best-action); artifacts (decision card, dossier, evidence ledger, receipt); review (human gate); outcomes (outcome event, calibration). Consume existing Neuruh contracts wherever they already exist; do not duplicate them."},
+  k4:{t:"DecisionPacket",b:"Structured JSON, not a PDF. Example in the filing: decision PURSUE_WITH_CONDITIONS, confidence 0.81, estimated value low 32000, base 44000, high 56000, recommended entry 33000, plus primary opportunity, primary risks, kill conditions, unresolved questions, next actions, evidence refs, recipe version, generated at, receipt id. All figures are the filing's example, not a case or an offer. Then JSON renders to web UI, 1-page card, 20-page report, 87-page forensic dossier, CRM, API, or agent action."}
+};
+var showCase=wire("caseBtns","casePanel",cases,simple);
+showCase("k1");
+var tiers={
+  t1:{t:"Tier 1: Decision Card",b:"Fast initial investigation. Conversation's starting hypothesis: $250 to $500. Output: identity, headline economics, obvious red flags, major opportunities, missing evidence, pursue / pass / research, next actions."},
+  t2:{t:"Tier 2: Acquisition Intelligence",b:"Conversation's starting hypothesis: $1,500 to $2,500. Adds: public records, ownership, tax, zoning, market, deeper underwriting, source ledger, scenario modeling."},
+  t3:{t:"Tier 3: Forensic Acquisition Dossier",b:"Conversation's starting hypothesis: $3,500 to $5,000+. Willow-class work."},
+  t4:{t:"Tier 4: Resolution / Execution",b:"Conversation's starting hypothesis: $5,000+ or retainer / success structure where lawful. Adds approved: owner resolution, advanced record work, operator actions, acquisition preparation, continuous monitoring."}
+};
+var showTier=wire("tierBtns","tierPanel",tiers,simple);
+showTier("t1");
+var loop={
+  s1:{t:"Signal",b:"Someone sees something valuable and submits the signal. A local operator may know about an economic opportunity months before it becomes an internet listing."},
+  s2:{t:"Verify",b:"Neuruh figures out what it actually is. A signal must never automatically become a marketable opportunity; it passes triage and verification first."},
+  s3:{t:"Opportunity",b:"Neuruh determines whether economic value exists. One signal may produce 0, 1, or multiple opportunities."},
+  s4:{t:"Underwrite",b:"Underwriting produces ranked liquidity routes with value, time to cash, capital, control, documents, risks, complexity, probability, downside, counterparties, legal requirements, and confidence."},
+  s5:{t:"Liquidity options",b:"Neuruh identifies the safest and best way to unlock the value: the ranked routes from the Liquidity Engine."},
+  s6:{t:"Capital / buyer / operator match",b:"Qualified capital, buyers, operators, or partners are routed to the opportunity through the demand graph and buy boxes."},
+  s7:{t:"Authorization",b:"Authorization gates the transaction. Compliance outcomes are ALLOW, ALLOW_WITH_CONDITIONS, HUMAN_REVIEW, COUNSEL_REVIEW, LICENSE_REQUIRED, BLOCK, or UNKNOWN, and UNKNOWN never silently becomes ALLOW."},
+  s8:{t:"Transaction",b:"A transaction happens through the transaction state machine: DRAFT to QUALIFYING to QUALIFIED to ROUTING to OFFERING to OFFER_RECEIVED to NEGOTIATING to AUTHORIZED to DILIGENCE to CONTRACTED to FULFILLING to SETTLING to CLOSED, with FAILED, CANCELLED, and BLOCKED as terminal states."},
+  s9:{t:"Fulfillment",b:"Fulfillment executes where needed, with Bookeit as the physical fulfillment rail: pickup, inspection, repair, transport, cleanout, appraisal, service appointment, field visit, storage, delivery."},
+  s10:{t:"Settlement",b:"Settlement closes the transaction and everyone entitled to compensation gets paid, subject to CompensationRule eligibility."},
+  s11:{t:"Outcome",b:"The outcome is captured: signal source, quality, qualification time, underwriting cost, route proposed, offers received, best and accepted offer, time to agreement and to cash, expected vs actual net, capital deployed and returned, margin, fees, partner compensation, failures, disputes, buyer and operator performance, owner satisfaction where collected."},
+  s12:{t:"Calibrate",b:"The outcome teaches the system. Outcome Intelligence calibrates pricing, routing, and recipes against actual results, and the economic flywheel compounds: more signal partners to more private opportunities to more underwritten supply to better buyer and capital participation to more liquidity to more closed outcomes to better data to higher signal value to more signal partners."}
+};
+var showLoop=wire("loopBtns","loopPanel",loop,simple);
+showLoop("s1");
+var routes={
+  rA:{t:"Route A: Direct buyer",b:"Cash to owner: $72,000. Time: 7 to 14 days. Certainty: high. Complexity: low. Figures are the filing's worked example, not a price or an offer."},
+  rB:{t:"Route B: Clean + market",b:"Expected net: $91,000. Time: 45 to 90 days. Capital: $4,500. Certainty: medium. Figures are the filing's worked example, not a price or an offer."},
+  rC:{t:"Route C: Partner / operator structure",b:"Expected owner proceeds: $103,000. Time: 90 to 150 days. Complexity: high. Figures are the filing's worked example, not a price or an offer."},
+  rD:{t:"Route D: No transaction",b:"Keep asset. Current liquidity: $0. Preservation: maximum. Figures are the filing's worked example, not a price or an offer."}
+};
+var showRoute=wire("routeBtns","routePanel",routes,simple);
+showRoute("rA");
+var phases={
+  ph0:{t:"Phase 0: Forensic recovery",b:"Before writing production implementation, produce FORENSIC_RECOVERY.md stating all relevant repositories and local work found, canonical vs duplicate classification, reusable contracts, existing tests, existing APIs, current custody, collision risks, what will be reused, and what must be newly built. Explicitly search for prior Liquidity Engine, Signal Market, Signal Partner, Sorceit, Opportunity Market, Liquidity on Demand, Capital Router, Demand Graph, Buyer Graph, and Capital Graph. Do not assume none exists."},
+  ph1:{t:"Phase 1: Contract freeze",b:"Before UI work, freeze Signal, Opportunity, UnderwritingCase, LiquidityRoute, LiquidityOffer, BuyerBuyBox, CapitalMandate, ComplianceGate, Transaction, and OutcomeEvent. Write schemas, invariants, state machines, and tests."},
+  ph2:{t:"Phase 2: First vertical slice",b:"Build one real path: partner submits signal to signal normalized to operator verifies to opportunity created to underwriting generated to three liquidity routes to match against buy boxes to buyer receives controlled opportunity to buyer submits offer to owner / operator selects route to transaction created to synthetic close to outcome recorded. No mocked button that skips the actual domain state."},
+  fix:{t:"Fixtures A to D",b:"Fixture A, property: owner needs liquidity; system finds direct sale, partial / structured route, hold / no-action. Fixture B, equipment: partner sees idle equipment; system determines dealer buy, auction, direct buyer. Fixture C, estate: multiple assets; system determines lot liquidation, individual high-value sale, donation / disposal remainder. Fixture D, farm: owner needs modest liquidity but wishes to preserve farm ownership; the test must prove the system does not automatically recommend selling the entire farm."},
+  adv:{t:"Adversarial tests",b:"Prove rejection behavior. Cases: fake signal, duplicate signal, no economic value, owner explicitly refuses contact, identity collision, restricted data, unverified ownership, illegal compensation path, capital mandate mismatch, buyer lacks capacity, offer above authorized amount, unknown compliance classification, signal partner attempting unauthorized outreach, conflict of interest. Unsafe workflows must fail closed."},
+  not:{t:"What V1 does NOT do",b:"V1 does not: move real money; issue loans; sell securities; execute deeds; perform escrow; send unauthorized owner outreach; pay unverified referral fees; create nationwide public marketplace liquidity; require crypto / tokenization; autonomously commit capital; replace attorney / title / licensed professional review; merge existing Neuruh databases; deploy over live DeedSonar / FSP without explicit authorization."},
+  done:{t:"Definition of done: V1",b:"V1 is not done because the UI renders. Done requires proof that the same canonical runtime can successfully execute Signal to Verification to Opportunity to Underwriting to Liquidity Routes to Demand Match to Offer to Authorization to Synthetic Transaction to Outcome across at least 1 property fixture, 1 equipment fixture, 1 estate fixture, and 1 farm-preservation fixture, and reject adversarial cases. Required courts: typecheck, unit tests, integration tests, E2E tests, state-machine tests, compliance tests, authorization tests, secret scan, dependency audit, build, clean-start reproduction, git diff check. No PASS without counts."}
+};
+var showPhase=wire("phaseBtns","phasePanel",phases,simple);
+showPhase("ph0");
+})();
+</script>
+</body>
+</html>
