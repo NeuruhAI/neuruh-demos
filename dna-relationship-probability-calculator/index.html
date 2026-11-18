@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNA Relationship Probability Calculator - Neuruh</title>
+<style>
+:root{--paper:#f7f4ec;--ink:#1c1a16;--muted:#6b6455;--brass:#9a7b2d;--line:#ddd5c2;--card:#fffdf7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Times New Roman',serif;line-height:1.55}
+header{border-bottom:3px solid var(--brass);padding:28px 20px 18px;max-width:860px;margin:0 auto}
+header .kicker{font-family:ui-monospace,Menlo,monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+h1{font-size:30px;margin:8px 0 4px;line-height:1.2}
+.sub{color:var(--muted);max-width:640px}
+main{max-width:860px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);padding:20px;margin:16px 0}
+h2{font-size:19px;margin:0 0 10px}
+label{display:block;font-family:ui-monospace,Menlo,monospace;font-size:13px;margin:14px 0 4px}
+input[type=number]{width:100%;padding:10px;font-size:17px;border:1px solid var(--line);background:#fff;font-family:ui-monospace,Menlo,monospace}
+button{background:var(--brass);color:#fff;border:0;padding:12px 22px;font-size:16px;cursor:pointer;margin-top:16px}
+button:hover{opacity:.9}
+#result{margin-top:16px}
+.match{border-left:4px solid var(--brass);padding:10px 14px;margin:10px 0;background:#fbf7ea}
+.match b{font-size:17px}
+.range{font-family:ui-monospace,Menlo,monospace;color:var(--muted);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+th{background:#f1ebdb}
+.note{font-size:13px;color:var(--muted)}
+code{background:#f1ebdb;padding:1px 5px}
+footer{max-width:860px;margin:0 auto;padding:10px 20px 34px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">Neuruh Builds - Genealogy - Demo</div>
+<h1>DNA Relationship Probability Calculator</h1>
+<p class="sub">Enter the shared centimorgans (cM) between two DNA matches. The calculator returns every relationship range from the source table that contains that value, plus the probability formula the source defines.</p>
+</header>
+<main>
+<div class="card">
+<h2>Calculator</h2>
+<label for="cm">Shared cM</label>
+<input id="cm" type="number" min="0" max="7000" step="1" value="850" inputmode="numeric">
+<button id="calc" type="button">Calculate matches</button>
+<div id="result" aria-live="polite"></div>
+</div>
+<div class="card">
+<h2>Source table: shared cM ranges and likely relationships</h2>
+<table>
+<tr><th>Shared cM</th><th>Likely relationships</th></tr>
+<tr><td>3400+</td><td>Parent/child</td></tr>
+<tr><td>2000-3400</td><td>Full sibling, grandparent/grandchild</td></tr>
+<tr><td>1300-2000</td><td>Half sibling, aunt/uncle, niece/nephew</td></tr>
+<tr><td>575-1300</td><td>First cousin, great-grandparent, great-aunt/uncle</td></tr>
+<tr><td>215-650</td><td>First cousin once removed, half first cousin</td></tr>
+<tr><td>75-360</td><td>Second cousin, first cousin twice removed</td></tr>
+<tr><td>30-215</td><td>Second cousin once removed, third cousin</td></tr>
+<tr><td>0-120</td><td>Third cousin once removed, fourth cousin</td></tr>
+</table>
+</div>
+<div class="card">
+<h2>Probability formula (from the source)</h2>
+<p><code>P(relationship R | shared cM = X) = (frequency of X cM in relationship R) / (sum of frequencies of X cM across all relationships)</code></p>
+<p class="note">Exact probabilities need Shared cM Project frequency data. That data is not in the source document, so this demo reports the matching ranges only and does not compute a probability. Any probability shown by another tool without that frequency table is an estimate, not a result of this formula.</p>
+</div>
+<div class="card">
+<h2>How to read the result</h2>
+<p>Ranges overlap on purpose: the same shared cM value appears in more than one relationship band. A match is a candidate, not a verdict. Confirm with known pedigree, age, and additional matches before concluding a relationship.</p>
+<p class="note">Source: "DNA Relationship Probability Calculator", Google Drive, Neuruh Builds / Genealogy, modified 2025-03-26. Built as a static demo from the source text. State: DESIGNED demo, not a genealogy service. No data leaves the browser.</p>
+</div>
+</main>
+<footer>Neuruh - AI That Executes. Demo built from the Drive source in slice-05-builds-b. Ranges are the source's own table, reproduced in full.</footer>
+<script>
+var RANGES=[
+{lo:3400,hi:Infinity,label:"Parent/child",range:"3400+"},
+{lo:2000,hi:3400,label:"Full sibling, grandparent/grandchild",range:"2000-3400"},
+{lo:1300,hi:2000,label:"Half sibling, aunt/uncle, niece/nephew",range:"1300-2000"},
+{lo:575,hi:1300,label:"First cousin, great-grandparent, great-aunt/uncle",range:"575-1300"},
+{lo:215,hi:650,label:"First cousin once removed, half first cousin",range:"215-650"},
+{lo:75,hi:360,label:"Second cousin, first cousin twice removed",range:"75-360"},
+{lo:30,hi:215,label:"Second cousin once removed, third cousin",range:"30-215"},
+{lo:0,hi:120,label:"Third cousin once removed, fourth cousin",range:"0-120"}];
+function calc(){
+  var v=parseFloat(document.getElementById('cm').value);
+  var out=document.getElementById('result');
+  if(isNaN(v)||v<0){out.innerHTML='<p>Enter a shared cM value of 0 or more.</p>';return;}
+  var hits=RANGES.filter(function(r){return v>=r.lo&&v<=r.hi;});
+  var html='<p><b>'+v+' shared cM</b> falls in '+hits.length+' range'+(hits.length===1?'':'s')+' from the source table:</p>';
+  hits.forEach(function(r){html+='<div class="match"><b>'+r.label+'</b><div class="range">Range '+r.range+' cM</div></div>';});
+  html+='<p class="note">Exact probability needs Shared cM Project frequency data, which is not in the source. These are candidate relationships, not a verdict.</p>';
+  out.innerHTML=html;
+}
+document.getElementById('calc').addEventListener('click',calc);
+calc();
+</script>
+</body>
+</html>
