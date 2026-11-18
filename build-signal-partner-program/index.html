@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Build Signal Partner Program: Liquidity on Demand</title>
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --ink-soft:#4a463d;
+  --brass:#9a7b2d; --brass-light:#c9a227; --line:#d8d2c4; --code-bg:#efece3;
+  --green:#2e6b3a; --amber:#8a6d1b; --red:#8a2f26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.25;margin:0 0 .5em}
+p{margin:0 0 .9em}
+a{color:var(--brass)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+code{font-size:.88em}
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#f4f1ea;display:flex;align-items:center;gap:16px;padding:10px 20px;font-size:13px;flex-wrap:wrap}
+.topbar .mark{font-family:Archivo,sans-serif;font-weight:700;letter-spacing:.12em;color:var(--brass-light)}
+.topbar a{color:#f4f1ea;text-decoration:none;border-bottom:1px solid transparent}
+.topbar a:hover{border-bottom-color:var(--brass-light)}
+.topbar .spacer{flex:1}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 20px 60px}
+.dochead{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--brass);padding:22px 24px;margin-bottom:20px}
+.dochead .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+.dochead h1{font-size:30px;margin-bottom:8px}
+.dochead .sub{color:var(--ink-soft);font-size:15px}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.meta-grid div{background:var(--paper);padding:10px 12px;font-size:13px}
+.meta-grid .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:2px}
+.banner{border:2px solid var(--brass);background:#fdf6dd;padding:16px 20px;margin-bottom:24px}
+.banner h2{font-size:16px;color:var(--ink);margin-bottom:6px}
+.banner p{font-size:14px;margin-bottom:.5em}
+.banner ul{margin:.2em 0 .4em 1.2em;font-size:14px}
+.banner li{margin-bottom:.25em}
+.contents{background:var(--paper);border:1px solid var(--line);padding:16px 20px;margin-bottom:28px}
+.contents h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+.contents ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+.contents li{margin-bottom:4px;font-size:14px}
+.contents a{text-decoration:none;color:var(--ink)}
+.contents a:hover{color:var(--brass);text-decoration:underline}
+section{margin-bottom:36px}
+.fig{background:var(--paper);border:1px solid var(--line);padding:20px 22px}
+.fig .fignum{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:4px}
+.fig h2{font-size:22px}
+.fig h3{font-size:16px;margin-top:18px}
+.figcap{font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:16px;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-family:Archivo,sans-serif;font-size:13px}
+tbody tr:nth-child(even){background:#f7f4ec}
+.pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass);margin-right:6px}
+.pill.solid{background:var(--brass);color:#fff}
+.pill.green{border-color:var(--green);color:var(--green)}
+.pill.amber{border-color:var(--amber);color:var(--amber)}
+.pill.red{border-color:var(--red);color:var(--red)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:14px 0}
+.flow .step{flex:1 1 140px;background:var(--code-bg);border:1px solid var(--line);padding:10px 12px;font-size:13px;text-align:center;font-weight:600}
+.flow .arrow{align-self:center;padding:0 6px;color:var(--brass);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);background:var(--bone);padding:14px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--ink-soft)}
+.card.active{border-color:var(--brass);border-width:2px;background:var(--paper)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{font-family:Inter,sans-serif;font-size:13px;padding:8px 14px;border:1px solid var(--brass);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:4px}
+button:hover{background:var(--code-bg)}
+button.on{background:var(--brass);color:#fff;border-color:var(--brass)}
+.panel{border:1px solid var(--line);background:var(--paper);padding:14px 16px;margin-top:8px;font-size:14px}
+.panel h4{font-size:15px;margin-bottom:4px}
+.hidden{display:none}
+details{border:1px solid var(--line);background:var(--paper);margin-bottom:8px}
+details summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ ";color:var(--brass);font-weight:700}
+details[open] summary::before{content:"- ";color:var(--brass)}
+details .body{padding:0 14px 12px;font-size:14px;color:var(--ink-soft)}
+details .body p{margin-bottom:.5em}
+.secnum{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:12px;margin-right:8px}
+ol.tight{columns:2;column-gap:28px;font-size:13px;padding-left:22px}
+ol.tight li{margin-bottom:5px;break-inside:avoid}
+ol.tight.single{columns:1}
+input[type="text"],input[type="number"]{font-family:Inter,sans-serif;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;width:100%;max-width:420px;background:var(--paper)}
+input[type="range"]{width:100%;max-width:420px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.tabs button{padding:6px 10px;font-size:12px}
+.turnpanel{border:1px solid var(--line);background:var(--paper);padding:16px 18px;font-size:14px}
+.turnpanel .who{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+blockquote{border-left:3px solid var(--brass);margin:10px 0;padding:4px 0 4px 14px;color:var(--ink-soft);font-style:italic}
+.note{font-size:13px;color:var(--ink-soft)}
+.callout{background:var(--code-bg);border-left:4px solid var(--brass);padding:12px 16px;margin:14px 0;font-size:14px}
+.sliderow{display:grid;grid-template-columns:220px 1fr 60px;gap:12px;align-items:center;margin:8px 0;font-size:14px}
+.sliderow label{font-weight:600}
+.sliderow output{font-family:"JetBrains Mono",monospace;text-align:right}
+.bigout{font-family:"JetBrains Mono",monospace;font-size:20px;font-weight:700;color:var(--brass);margin:10px 0}
+.numrow{display:grid;grid-template-columns:220px 1fr;gap:12px;align-items:center;margin:8px 0;font-size:14px}
+.numrow label{font-weight:600}
+.numrow input{max-width:200px}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:16px;font-size:13px;color:var(--ink-soft)}
+@media (max-width:760px){
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .cards{grid-template-columns:1fr}
+  .contents ol{columns:1}
+  ol.tight{columns:1}
+  .dochead h1{font-size:24px}
+  .sliderow{grid-template-columns:120px 1fr 44px}
+  .numrow{grid-template-columns:1fr}
+}
+@media print{
+  .topbar,.btnrow,.tabs,input[type="text"],input[type="number"],input[type="range"]{display:none}
+  body{background:#fff}
+  .fig,.dochead,.banner,.contents{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="mark">NEURUH</span>
+  <a href="https://neuruh-hub.pages.dev/">Hub</a>
+  <a href="https://neuruhai.github.io/neuruh-demos/master-map/">Master Map</a>
+  <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/build-signal-partner-program/">Verbatim filing</a>
+  <a href="https://chatgpt.com/share/6afd94dc-068c-83e9-a87a-ca7234643401">Source chat</a>
+  <span class="spacer"></span>
+  <span>Interactive document</span>
+</div>
+<div class="wrap">
+
+<div class="dochead">
+  <div class="kicker">Interactive Document &middot; Drive Pull &middot; Link 23</div>
+  <h1>Build Signal Partner Program</h1>
+  <p class="sub">Turn the gig economy into a signal economy. Liquidity on Demand: an AI-native origination and liquidity layer for fragmented real-world assets.</p>
+  <div class="meta-grid">
+    <div><span class="k">Source conversation</span><a href="https://chatgpt.com/share/6afd94dc-068c-83e9-a87a-ca7234643401">chatgpt.com/share/6afd94dc</a></div>
+    <div><span class="k">Conversation dates</span>Sat, Aug 22 at 8:58 AM; Sun, Aug 23 at 3:13 AM (no years shown)</div>
+    <div><span class="k">Read</span>2026-11-18, live browser read, 08:36 to 08:42 EST</div>
+    <div><span class="k">Turns</span>17 user / 17 assistant</div>
+    <div><span class="k">Verbatim filing</span>72,236 bytes, 1,921 lines</div>
+    <div><span class="k">Handoff sections</span>62 (sections 0 to 61, turn 17)</div>
+    <div><span class="k">Verbatim filing live</span><a href="https://neuruhai.github.io/neuruh-demos/drive-pull/build-signal-partner-program/">drive-pull/build-signal-partner-program/</a></div>
+    <div><span class="k">Mode</span>Voice-mode conversation</div>
+    <div><span class="k">Status</span>Concept defined, not productized</div>
+  </div>
+</div>
+
+<div class="banner">
+  <h2>Read this first: what is and is not established</h2>
+  <p>This page is an interactive document of a recorded voice-mode conversation and its two handoff documents. It is a concept, not a product. The filing's own limits, carried here:</p>
+  <ul>
+    <li><strong>Concept defined, not productized.</strong> The operating system does not yet exist. Strategy, product, AI, capital, legal, operations, and go-to-market work are all listed as not built in handoff section 49.</li>
+    <li><strong>Legal and financial structure unresolved.</strong> Lending, licensing, referral, and securities questions are open. The legal architecture (section 50, deliverable 7) should happen early, not after deployment. The farm vertical requires significant specialized legal, tax, agricultural, and securities analysis before implementation.</li>
+    <li><strong>The first handoff ends mid-list.</strong> Assistant turn 16 ends in the rendered browser view at the example list under its section 2. That is where the rendered view ended; the rest was not exposed.</li>
+    <li><strong>Several replies are truncated mid-line.</strong> Assistant turns 4, 8, 9, 12, 13, 15 and user turn 13 are cut off mid-line in the browser view and marked [truncated in browser view] in the filing. They are not reconstructed here.</li>
+    <li><strong>Dollar figures are the conversation's own illustrative figures.</strong> Every dollar figure on this page comes from the conversation and is preserved verbatim; none is a verified amount, a price, or an offer.</li>
+    <li><strong>Turn 5 appears in two rendered wordings.</strong> Both wordings are preserved in the filing; this page uses the "Hmm, that's interesting" wording as the primary one and notes the second.</li>
+  </ul>
+</div>
+
+<div class="contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#fig1">Figure 1: The three layers</a></li>
+    <li><a href="#fig2">Figure 2: The system loop</a></li>
+    <li><a href="#fig3">Figure 3: The liquidity curve calculator</a></li>
+    <li><a href="#fig4">Figure 4: Transition liquidity: the $329,000 pool</a></li>
+    <li><a href="#fig5">Figure 5: Opportunity Recipe Engine, routes A to K</a></li>
+    <li><a href="#fig6">Figure 6: The 10-layer system architecture</a></li>
+    <li><a href="#fig7">Figure 7: Underwriting model and the Neuruh Opportunity Score</a></li>
+    <li><a href="#fig8">Figure 8: Capital stack, layers 1 to 6</a></li>
+    <li><a href="#fig9">Figure 9: MVP screens and the 90-day target</a></li>
+    <li><a href="#fig10">Figure 10: Highest-tier value ranking</a></li>
+    <li><a href="#fig11">Figure 11: 8-phase execution sequence</a></li>
+    <li><a href="#fig12">Figure 12: Eight business units and what this is NOT</a></li>
+    <li><a href="#fig13">Figure 13: The ideal proof case and the five pitches</a></li>
+    <li><a href="#fig14">Figure 14: The 62-section handoff navigator</a></li>
+    <li><a href="#conv">Conversation map</a></li>
+    <li><a href="#fidelity">Fidelity register</a></li>
+  </ol>
+</div>
+
+<section class="fig" id="fig1">
+  <div class="fignum">Figure 1</div>
+  <h2>The three layers</h2>
+  <p>The conversation built the concept in three layers. Click a layer to read it. The central thesis, from section 1 of the turn 17 handoff: AI allows Neuruh to operate before the market formally recognizes that a transaction exists. The opportunity exists in the interval between reality changing and the traditional market noticing. That interval is the arbitrage.</p>
+  <div class="btnrow" id="layerBtns">
+    <button data-k="l1" class="on">Layer 1: Signal economy</button>
+    <button data-k="l2">Layer 2: Personal asset liquidity</button>
+    <button data-k="l3">Layer 3: Transition liquidity</button>
+  </div>
+  <div class="panel" id="layerPanel"></div>
+  <blockquote>"You don't need to be a lender. You need to be a router."</blockquote>
+  <p class="note">From assistant turn 5 (wording one: "Hmm, that's interesting."). A second rendered wording of the same reply begins "Okay, thinking. Yes, liquidity on demand is the product." Both are preserved in the filing.</p>
+  <div class="figcap">Figure 1. The three layers, handoff sections 5, 9, and 11. Layer 3 is where the most value is and where the most friction is.</div>
+</section>
+
+<section class="fig" id="fig2">
+  <div class="fignum">Figure 2</div>
+  <h2>The system loop</h2>
+  <p>Handoff section 4. The entire concept reduced to seven stages. Each stage matters. Click a stage to read what it does.</p>
+  <div class="flow">
+    <div class="step">SIGNAL</div><div class="arrow">to</div>
+    <div class="step">DISCERNMENT</div><div class="arrow">to</div>
+    <div class="step">OPTIONALITY</div><div class="arrow">to</div>
+    <div class="step">RIGHTS</div><div class="arrow">to</div>
+    <div class="step">LIQUIDITY</div><div class="arrow">to</div>
+    <div class="step">EXECUTION</div><div class="arrow">to</div>
+    <div class="step">OUTCOME</div>
+  </div>
+  <div class="btnrow" id="loopBtns">
+    <button data-k="0" class="on">Signal</button>
+    <button data-k="1">Discernment</button>
+    <button data-k="2">Optionality</button>
+    <button data-k="3">Rights</button>
+    <button data-k="4">Liquidity</button>
+    <button data-k="5">Execution</button>
+    <button data-k="6">Outcome</button>
+  </div>
+  <div class="panel" id="loopPanel"></div>
+  <p class="note">The flywheel: more signals to better outcomes to better underwriting to stronger capital relationships to faster liquidity to better partner economics to more signals. The first-principles thesis (section 2): Asset + State Change + Information + Rights + Liquidity + Execution = Transaction.</p>
+  <div class="figcap">Figure 2. The fundamental system loop, handoff section 4. The working strategic phrase throughout the thread is LIQUIDITY ON DEMAND.</div>
+</section>
+
+<section class="fig" id="fig3">
+  <div class="fignum">Figure 3</div>
+  <h2>The liquidity curve calculator</h2>
+  <p>Handoff section 10. A valuation engine is not the business. Liquidity is. An asset worth $100,000 theoretically but requiring 18 months to sell is economically different from an asset with a committed $78,000 buyer today. Each asset should have multiple values, not one appraisal. The filing's example, for a $100,000 theoretical market value: immediate execution $61,000; 30-day expected liquidation $72,000; 90-day optimized disposition $84,000; 12-month strategic sale $100,000+.</p>
+  <div class="numrow"><label for="liqVal">Theoretical market value ($)</label><input type="number" id="liqVal" min="0" step="1000" value="100000"></div>
+  <p class="note">The calculator scales the filing's example ratios (61%, 72%, 84%, 100%+) to your value. The ratios are the conversation's illustrative figures, not verified amounts.</p>
+  <div class="bigout" id="liqOut"></div>
+  <table>
+    <thead><tr><th>Timeframe</th><th>Filing example ($100,000)</th><th>Your value</th></tr></thead>
+    <tbody id="liqTable"></tbody>
+  </table>
+  <p class="note">The filing lists fourteen value types per asset: retail, auction, wholesale, immediate cash, 7-day, 30-day, 90-day, strategic, replacement, salvage, consignment, rental, collateral, and development value.</p>
+  <div class="figcap">Figure 3. The liquidity curve, handoff section 10. The owner can choose between time and price. That is materially more useful than a traditional appraisal.</div>
+</section>
+
+<section class="fig" id="fig4">
+  <div class="fignum">Figure 4</div>
+  <h2>Transition liquidity: the $329,000 pool</h2>
+  <p>Handoff sections 11 and 12. The key insight: the customer may already possess sufficient economic value to solve the problem. The friction is timing. The filing's example household owns a $275,000 house, an $18,000 vehicle, $10,000 tools, $8,000 collectibles, $6,000 jewelry, and $12,000 equipment, plus household estate inventory, but needs $20,000 now to move, clean, repair, stage, downsize, and pay transition expenses. Traditional system sees a borrower asking for money. Neuruh sees a $329,000+ fragmented asset pool requiring $20,000 of temporary liquidity to unlock orderly disposition.</p>
+  <div id="poolCalc">
+    <div class="numrow"><label for="pHouse">House ($)</label><input type="number" id="pHouse" min="0" step="1000" value="275000"></div>
+    <div class="numrow"><label for="pVehicle">Vehicle ($)</label><input type="number" id="pVehicle" min="0" step="500" value="18000"></div>
+    <div class="numrow"><label for="pTools">Tools ($)</label><input type="number" id="pTools" min="0" step="500" value="10000"></div>
+    <div class="numrow"><label for="pColl">Collectibles ($)</label><input type="number" id="pColl" min="0" step="500" value="8000"></div>
+    <div class="numrow"><label for="pJew">Jewelry ($)</label><input type="number" id="pJew" min="0" step="500" value="6000"></div>
+    <div class="numrow"><label for="pEquip">Equipment ($)</label><input type="number" id="pEquip" min="0" step="500" value="12000"></div>
+    <div class="numrow"><label for="pNeed">Liquidity needed now ($)</label><input type="number" id="pNeed" min="0" step="1000" value="20000"></div>
+  </div>
+  <div class="bigout" id="poolOut"></div>
+  <p id="poolNote" class="note"></p>
+  <p class="note">The transition liquidity thesis (section 12): we are not primarily underwriting the consumer. We are underwriting the asset pool and its liquidation pathways. The system evaluates asset coverage, valuation confidence, liquidity depth, liquidation timeline, execution control, capital required, coverage ratio, downside recovery, and customer outcome.</p>
+  <div class="figcap">Figure 4. Transition liquidity example, handoff sections 11 and 12. Figures are the conversation's illustrative figures, not verified amounts. Legal and financial structure for any advance is unresolved.</div>
+</section>
+
+<section class="fig" id="fig5">
+  <div class="fignum">Figure 5</div>
+  <h2>Opportunity Recipe Engine: routes A to K</h2>
+  <p>Handoff section 17. An incoming signal should not produce one recommendation. It should produce multiple monetization paths. The filing's example signal: elderly homeowner, tree damage, five-acre property, detached pole barn, three vehicles, old tractor, house requires repair. Click a route to read it.</p>
+  <div class="btnrow" id="routeBtns"></div>
+  <div class="panel" id="routePanel"></div>
+  <p class="note">The AI calculates the expected value and friction of each route. Status from section 30: logic concept developed, scoring framework not created.</p>
+  <div class="figcap">Figure 5. Opportunity Recipe Engine, handoff section 17. Eleven routes, A to K, from one signal.</div>
+</section>
+
+<section class="fig" id="fig6">
+  <div class="fignum">Figure 6</div>
+  <h2>The 10-layer system architecture</h2>
+  <p>Handoff section 32. Ten layers from intake to outcome ledger. Click a layer to read what it does.</p>
+  <div class="btnrow" id="archBtns"></div>
+  <div class="panel" id="archPanel"></div>
+  <div class="figcap">Figure 6. Proposed system architecture, handoff section 32. Architecture only; nothing here is built.</div>
+</section>
+
+<section class="fig" id="fig7">
+  <div class="fignum">Figure 7</div>
+  <h2>Underwriting model and the Neuruh Opportunity Score</h2>
+  <p>Handoff sections 39 and 40. Every opportunity receives ten scores, composited into the Neuruh Opportunity Score. Set each score 0 to 10; the calculator averages them. The averaging is this page's display convention only; the filing does not specify a weighting.</p>
+  <div id="scoreCalc">
+    <div class="sliderow"><label for="sSignal">Signal Score: how meaningful is the event?</label><input type="range" id="sSignal" min="0" max="10" step="0.1" value="8"><output id="sSignalv">8.0</output></div>
+    <div class="sliderow"><label for="sAsset">Asset Score: how strong is the underlying value?</label><input type="range" id="sAsset" min="0" max="10" step="0.1" value="7"><output id="sAssetv">7.0</output></div>
+    <div class="sliderow"><label for="sLiq">Liquidity Score: how easily can it convert to money?</label><input type="range" id="sLiq" min="0" max="10" step="0.1" value="6"><output id="sLiqv">6.0</output></div>
+    <div class="sliderow"><label for="sRights">Rights Score: how much transaction control can be obtained?</label><input type="range" id="sRights" min="0" max="10" step="0.1" value="6"><output id="sRightsv">6.0</output></div>
+    <div class="sliderow"><label for="sConf">Confidence Score: how trustworthy is the available information?</label><input type="range" id="sConf" min="0" max="10" step="0.1" value="7"><output id="sConfv">7.0</output></div>
+    <div class="sliderow"><label for="sUrg">Urgency Score: how time-sensitive is it?</label><input type="range" id="sUrg" min="0" max="10" step="0.1" value="8"><output id="sUrgv">8.0</output></div>
+    <div class="sliderow"><label for="sComp">Complexity Score: how difficult is execution?</label><input type="range" id="sComp" min="0" max="10" step="0.1" value="5"><output id="sCompv">5.0</output></div>
+    <div class="sliderow"><label for="sStrat">Strategic Score: does it unlock a higher Neuruh vertical?</label><input type="range" id="sStrat" min="0" max="10" step="0.1" value="7"><output id="sStratv">7.0</output></div>
+    <div class="sliderow"><label for="sRel">Relationship Score: strength of originator/customer relationship</label><input type="range" id="sRel" min="0" max="10" step="0.1" value="8"><output id="sRelv">8.0</output></div>
+    <div class="sliderow"><label for="sEV">Expected Value Score: risk-adjusted economic opportunity</label><input type="range" id="sEV" min="0" max="10" step="0.1" value="7"><output id="sEVv">7.0</output></div>
+  </div>
+  <div class="bigout" id="scoreOut">Neuruh Opportunity Score = 0.00 / 10</div>
+  <h3>The capital underwriting formula</h3>
+  <pre>Advance Capacity = Conservative Liquidation Value x Eligible Advance Rate - Execution Costs - Risk Reserve</pre>
+  <p>Not all assets receive equal advance rates. The filing's illustrative concept: gold high liquidity; common vehicles relatively high; equipment medium-high; graded collectibles medium; raw collectibles lower; household contents lower; unique antiques low unless buyer commitment exists; real estate structure-specific. The AI should not simply say "$100,000 value." It should say: "$100,000 estimated market value, $76,000 conservative liquidation value, $62,000 highly executable 14-day liquidity." Those figures are the conversation's illustrative figures.</p>
+  <div class="figcap">Figure 7. Underwriting model (section 39) and capital underwriting formula (section 40). The scoring engine is listed as not built in section 49.</div>
+</section>
+
+<section class="fig" id="fig8">
+  <div class="fignum">Figure 8</div>
+  <h2>Capital stack, layers 1 to 6</h2>
+  <p>Handoff sections 21 and 22. Two capital asks, kept separate: company/platform capital and transaction liquidity capital. They should not necessarily be the same investors or financial instruments.</p>
+  <table>
+    <thead><tr><th>Layer</th><th>What it funds</th></tr></thead>
+    <tbody>
+      <tr><td>Layer 1: Equity Capital</td><td>Funds the technology and operating company.</td></tr>
+      <tr><td>Layer 2: Committed Transaction Facility</td><td>Capital partner commits an amount available for qualified transactions. Example in the filing: $5M facility. Neuruh does not immediately draw $5M; it draws only against qualifying opportunities.</td></tr>
+      <tr><td>Layer 3: Asset-Specific SPVs</td><td>Larger opportunities can be funded individually.</td></tr>
+      <tr><td>Layer 4: Buyer Commitments</td><td>Prearranged demand reduces required capital.</td></tr>
+      <tr><td>Layer 5: Strategic Capital</td><td>Dealers, developers, family offices, REITs, equipment groups, agricultural investors, and other strategic buyers fund specific verticals.</td></tr>
+      <tr><td>Layer 6: Syndicated / Marketplace Liquidity</td><td>Eventually multiple capital sources compete for qualifying opportunities.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Investor language from section 23: "We are building the origination layer for fragmented physical assets." "Capital is abundant around high-quality opportunities. High-quality proprietary origination is scarce." Neuruh should position itself on the scarce side. The filing's figures are illustrative.</p>
+  <div class="figcap">Figure 8. Capital stack, handoff section 22. The capital partner deck, facility structure, underwriting policy, advance rates, and SPV model are all listed as not built in section 49.</div>
+</section>
+
+<section class="fig" id="fig9">
+  <div class="fignum">Figure 9</div>
+  <h2>MVP screens and the 90-day target</h2>
+  <p>Handoff sections 33 to 37 and 52. Do not attempt the universal system first. The best MVP should prove a field signal can be converted into proprietary executable liquidity materially faster than conventional processes. Recommended initial wedge: Property Transition + Associated Physical Assets.</p>
+  <h3>The six MVP product screens</h3>
+  <div class="btnrow" id="screenBtns">
+    <button data-k="0" class="on">Screen 1: Signal Intake</button>
+    <button data-k="1">Screen 2: Opportunity Intelligence</button>
+    <button data-k="2">Screen 3: Opportunity Routes</button>
+    <button data-k="3">Screen 4: Liquidity Match</button>
+    <button data-k="4">Screen 5: Execution Cockpit</button>
+    <button data-k="5">Screen 6: Outcome Ledger</button>
+  </div>
+  <div class="panel" id="screenPanel"></div>
+  <h3>The 90-day MVP target</h3>
+  <table>
+    <thead><tr><th>Target</th><th>Number</th></tr></thead>
+    <tbody>
+      <tr><td>Active Signal Partners</td><td>20</td></tr>
+      <tr><td>Signals</td><td>250</td></tr>
+      <tr><td>Qualified opportunities</td><td>100</td></tr>
+      <tr><td>Buyer counterparties</td><td>50</td></tr>
+      <tr><td>Capital counterparties</td><td>10</td></tr>
+      <tr><td>Closed transactions</td><td>25</td></tr>
+      <tr><td>Asset classes represented</td><td>At least 3</td></tr>
+    </tbody>
+  </table>
+  <p>Plus: measured signal-to-liquidity time; documented underwriting performance; at least one example where AI discovered materially more value than the originator originally saw. The objective is not scale. The objective is proof of the machine.</p>
+  <h3>The most important KPI</h3>
+  <p><strong>Time From Signal to Qualified Liquidity.</strong> Secondary metrics: signal-to-contact time; contact-to-opportunity rate; opportunity-to-contract rate; time to valuation; time to buyer match; capital deployed; capital velocity; gross margin; partner revenue per signal; customer realized value; multi-asset revenue per household; cost per qualified signal; buyer conversion rate; signal partner retention.</p>
+  <h3>Early partner pilot and liquidity network</h3>
+  <p>Pilot: 10 to 20 Signal Partners, a mix of tree service, junk removal, contractor, roofer, estate cleanout, mover, auto shop, landscaper, and restoration company, collecting 100 real signals. Do not obsess about revenue initially. Liquidity network: roughly 10 real-estate buyers, 5 vehicle buyers/dealers, 5 equipment buyers, 5 estate/collectible buyers, 5 contractors, and 3 to 5 capital partners, each given a structured buy box.</p>
+  <div class="figcap">Figure 9. MVP screens (section 34), KPI (section 35), pilot (section 36), liquidity network (section 37), and the 90-day target (section 52). Targets are the conversation's own figures, not results.</div>
+</section>
+
+<section class="fig" id="fig10">
+  <div class="fignum">Figure 10</div>
+  <h2>Highest-tier value ranking</h2>
+  <p>Handoff section 30. Ten ranked opportunities with their status as recorded in the conversation.</p>
+  <table>
+    <thead><tr><th>Tier</th><th>Opportunity</th><th>Status as recorded</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill solid">Tier S</span></td><td>Core Platform: Liquidity-on-Demand</td><td>Conceptually defined; not yet productized.</td></tr>
+      <tr><td><span class="pill solid">Tier S</span></td><td>Signal Network / Field Origination Network</td><td>Concept established. Partner economics, contracts, onboarding, and software not designed.</td></tr>
+      <tr><td><span class="pill solid">Tier S</span></td><td>Liquidity Graph</td><td>Concept defined. Data ontology not built.</td></tr>
+      <tr><td><span class="pill solid">Tier S</span></td><td>Asset Transition Liquidity</td><td>Thesis developed. Legal/financial product structure unresolved.</td></tr>
+      <tr><td><span class="pill">Tier A+</span></td><td>Committed Liquidity Network</td><td>Concept defined. Counterparty acquisition not started.</td></tr>
+      <tr><td><span class="pill">Tier A+</span></td><td>Opportunity Recipe Engine</td><td>Logic concept developed. Scoring framework not created.</td></tr>
+      <tr><td><span class="pill">Tier A+</span></td><td>Farm Continuity Liquidity</td><td>Thesis only. Requires significant research and structuring.</td></tr>
+      <tr><td><span class="pill">Tier A</span></td><td>Real Estate Opportunity Router</td><td>Strongest candidate for MVP wedge.</td></tr>
+      <tr><td><span class="pill">Tier A</span></td><td>Personal Asset Liquidity Router</td><td>Concept established. Asset-class underwriting models needed.</td></tr>
+      <tr><td><span class="pill">Tier A</span></td><td>Heirloom Asset Recovery</td><td>Early conceptual layer. Requires research partners and validation.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">The most important strategic insight (section 31): the real moat is PROPRIETARY ORIGINATION + PROPRIETARY DISCERNMENT + LIQUIDITY ACCESS. Capital alone becomes commoditized. AI alone becomes commoditized. Data alone increasingly becomes commoditized.</p>
+  <div class="figcap">Figure 10. Highest-tier value opportunities, handoff section 30.</div>
+</section>
+
+<section class="fig" id="fig11">
+  <div class="fignum">Figure 11</div>
+  <h2>8-phase execution sequence</h2>
+  <p>Handoff section 51. Click a phase to read it.</p>
+  <div class="btnrow" id="phaseBtns"></div>
+  <div class="panel" id="phasePanel"></div>
+  <h3>Farm Continuity Liquidity and Heirloom Asset Recovery</h3>
+  <p><strong>Farm Continuity Liquidity (sections 24 and 25):</strong> aging farmers, no clear successor, family does not want to operate the farm, significant land and equipment value, limited liquid capital, operational burden increasing, farm may eventually be sold piecemeal. The business is not merely buying farms: provide liquidity, succession intelligence, transition support, and alternative ownership or operating structures that preserve productive American agricultural assets while allowing aging owners to access value. Possible structures to investigate include sale-leaseback, partial land acquisition, long-term lease, operating partnership, farm-management transition, equity extraction, equipment monetization, conservation structure, family succession structure, land trust partnerships, farmer-to-younger-farmer transfer, buy-and-lease-to-operator, agricultural SPV, community or strategic ownership structures, development rights transactions, and partial acreage monetization. Mission language: "Preserve productive American land while giving aging owners fair access to the value they built."</p>
+  <p><strong>Heirloom Asset Recovery (sections 26 to 29):</strong> older farms, orchards, homesteads, nurseries, and rural properties may contain historically valuable biological assets that have disappeared from commercial markets: heritage apple varieties, old pear varieties, heritage grapes, historic berries, nut trees, old rootstocks, seed varieties, heritage livestock genetics, historic garden plants, regional cultivars, old orchard genetics. AI could help rediscover them from historical newspapers, agricultural extension documents, county histories, old farm advertisements, nursery catalogs, plat maps, historic aerial imagery, farm journals, agricultural census records, university archives, fruit-growing association records, local historical societies, genealogy records, oral histories, auction records, property ownership history, USDA documents, seed catalogs, and orchard maps. Example in the filing: AI finds a 1913 article about the Smith farm outside X Township, known for Northern Spy, Spitzenburg, and several locally developed apple varieties, then identifies the historic location, present parcels, current landowners, surviving orchard pattern from aerial imagery, likelihood of old trees, and family descendants. Preservation credibility should come before aggressive commercialization.</p>
+  <div class="figcap">Figure 11. Execution sequence (section 51) with the farm and heirloom verticals (sections 24 to 29).</div>
+</section>
+
+<section class="fig" id="fig12">
+  <div class="fignum">Figure 12</div>
+  <h2>Eight business units and what this is NOT</h2>
+  <p>Handoff sections 42 to 45. The long-term business units are conceptual names, not finalized branding.</p>
+  <table>
+    <thead><tr><th>Unit</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td>Neuruh Signal</td><td>Distributed field intelligence network.</td></tr>
+      <tr><td>Neuruh Liquidity</td><td>Capital and buyer routing.</td></tr>
+      <tr><td>Neuruh Assets</td><td>Physical asset intelligence.</td></tr>
+      <tr><td>Neuruh Transition</td><td>Household/estate transition operating layer.</td></tr>
+      <tr><td>Neuruh Property</td><td>Real-estate routes.</td></tr>
+      <tr><td>Neuruh Auto</td><td>Vehicle liquidity.</td></tr>
+      <tr><td>Neuruh Ag</td><td>Farm continuity and agricultural liquidity.</td></tr>
+      <tr><td>Neuruh Heritage</td><td>Heirloom asset recovery and preservation.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>What this is NOT (section 42):</strong> not a pawn shop; not merely a lender; not merely a marketplace; not a lead marketplace; not a wholesaling operation; not an AI appraiser; not a data broker; not a contractor referral service; not a resale company. Category framing (section 43): best umbrella framing currently is Real-World Liquidity Infrastructure; product promise is Liquidity on Demand; underlying engine is the Signal-to-Liquidity Engine.</p>
+  <p><strong>The data moat (section 46):</strong> every completed transaction answers questions competitors cannot easily answer from purchased datasets: what did this exact asset actually liquidate for, how quickly, which buyer acted, which visual condition signals mattered, which partner types generated quality, which state changes predict property sale, which combinations of household assets predict transition, what advance level remained profitable, what pricing produced customer acceptance. Over time Neuruh owns real-world liquidation truth. That dataset may become more valuable than the original transaction business.</p>
+  <p><strong>Autonomy vision (section 47):</strong> a tree company uploads six photos and an address; within minutes AI identifies the parcel, reads ownership history, estimates house value, detects severe roof damage, identifies barn, truck, and tractor, determines probable elderly ownership, generates owner conversation questions, identifies insurance and restoration paths, calculates property disposition routes, checks buy boxes, identifies three property buyers and a tractor buyer, generates partner instructions and outreach, creates a transaction workspace, and escalates required human decisions. That is autonomous execution, as described in the conversation.</p>
+  <div class="figcap">Figure 12. Long-term business units (section 45), what this is NOT (section 42), category (section 43), data moat (section 46), autonomy vision (section 47).</div>
+</section>
+
+<section class="fig" id="fig13">
+  <div class="fignum">Figure 13</div>
+  <h2>The ideal proof case and the five pitches</h2>
+  <p>Handoff sections 53 to 58. The flagship case study should look something like this:</p>
+  <table>
+    <thead><tr><th>Step</th><th>Detail</th></tr></thead>
+    <tbody>
+      <tr><td>Original economic value</td><td>$6,000 tree service job.</td></tr>
+      <tr><td>What Neuruh detects</td><td>$260,000 house; $40,000 truck; $18,000 tractor; $12,000 equipment; five acres; transitioning elderly owner; potential development optionality.</td></tr>
+      <tr><td>What Neuruh coordinates</td><td>Tree service; property strategy; equipment sale; vehicle sale; transition liquidity; buyer matching.</td></tr>
+      <tr><td>The point</td><td>One ordinary service call becomes a multi-asset liquidity event. That single case can explain the entire thesis.</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Figures are the conversation's illustrative figures, not verified amounts.</p>
+  <h3>The five pitches</h3>
+  <div class="btnrow" id="pitchBtns">
+    <button data-k="investor" class="on">Investor</button>
+    <button data-k="capital">Capital partner</button>
+    <button data-k="signal">Signal partner</button>
+    <button data-k="owner">Owner / consumer</button>
+    <button data-k="farm">Farm</button>
+  </div>
+  <div class="panel" id="pitchPanel"></div>
+  <blockquote>"Neuruh turns real-world signals into liquidity before the traditional market even realizes a transaction exists."</blockquote>
+  <p class="note">The one-line thesis, section 59. The deeper thesis, section 60: the largest opportunity is not buying undervalued assets. It is owning the system that decides, in real time, what is undervalued, why it matters, what changed, who can use it, who will fund it, and how to execute the transaction.</p>
+  <div class="figcap">Figure 13. Ideal proof case (section 53) and the five pitches (sections 54 to 58).</div>
+</section>
+
+<section class="fig" id="fig14">
+  <div class="fignum">Figure 14</div>
+  <h2>The 62-section handoff navigator</h2>
+  <p>Assistant turn 17 is the full reconstruction handoff, 62 sections numbered 0 to 61. Every section title below is from the filing. Use the filter to find a section, then open the verbatim filing for the full text. Assistant turn 16 is an earlier handoff document (sections 1 and 2) that ends in the rendered browser view at the example list under section 2; it is not reproduced as a separate navigator because the rendered view cut it off there.</p>
+  <input type="text" id="secFilter" placeholder="Filter sections, e.g. liquidity, farm, MVP, capital" aria-label="Filter handoff sections">
+  <div id="secList" style="margin-top:12px"></div>
+  <div class="figcap">Figure 14. All 62 handoff sections from assistant turn 17. The full text of each lives in the verbatim filing, not on this page.</div>
+</section>
+
+<section class="fig" id="conv">
+  <div class="fignum">Conversation map</div>
+  <h2>How the conversation ran</h2>
+  <p>A voice-mode conversation, 17 user turns and 17 assistant turns, Sat Aug 22 at 8:58 AM to Sun Aug 23 at 3:13 AM. The arc, in the filing's own order:</p>
+  <div class="turnpanel">
+    <div class="who">Turns 1 to 3: The signal economy</div>
+    <p>Jeramie asks how to turn the gig market into an opportunity market by pitching services to tree services and other first responders. The answer: build a Signal Partner Program. Treat tree services, roofers, plumbers, and junk haulers as sensors out in the world. They see distress first; a simple mobile form captures address, event type, photos, and permission; AI enriches, scores, and routes. Partners become field originators who own the first touch while Neuruh runs the back office. Static data is dead inventory unless something interprets change.</p>
+  </div>
+  <div class="turnpanel" style="margin-top:10px">
+    <div class="who">Turns 4 to 9: The three layers</div>
+    <p>Transition liquidity capital: people are asset rich, cash poor, stuck. Layer two is personal asset liquidity: the customer sits on an asset stack (cards, collectibles, gold, vehicles, tools, equipment, estate contents) and AI values and routes it. "You don't need to be a lender. You need to be a router." Layer three is transition liquidity: moving, downsizing, aging, assisted living, estate cleanout, business closure, retirement. That is where the most value is and where the most friction is. Turns 4, 8, and 9 are cut off mid-line in the browser view.</p>
+  </div>
+  <div class="turnpanel" style="margin-top:10px">
+    <div class="who">Turns 10 to 13: Bridge capital and investor language</div>
+    <p>Bridge financing, bridge capital, liquidity capital, transition capital: capital to fund the deals and the liquidity behind them. The investor pitch is reframed: do not pitch "we need money to go do deals." Pitch origination and rights: "we control the sourcing and routing of off-market asset liquidity. Capital plugs into that." Turn 13 is cut off mid-line in the browser view.</p>
+  </div>
+  <div class="turnpanel" style="margin-top:10px">
+    <div class="who">Turns 14 to 15: Farm Continuity Liquidity and Heirloom Asset Recovery</div>
+    <p>Older farmers who cannot continue, and the chance to preserve productive American land while giving aging owners access to value. Then old orchards and forgotten heirloom varieties: AI parses information, creates outreach, and tries to find and save what history lost. Turn 15 is cut off mid-line in the browser view.</p>
+  </div>
+  <div class="turnpanel" style="margin-top:10px">
+    <div class="who">Turns 16 and 17: The two handoffs</div>
+    <p>Turn 16 is the first handoff document, "LIQUIDITY-ON-DEMAND / SIGNAL MARKET: Master Handoff Script: Full Thread Capture, Opportunity Map, Architecture, Value Ranking, and Unfinished Work." It ends in the rendered view at the example list under section 2. Turn 17 is the full reconstruction handoff, "Neuruh Liquidity-on-Demand / Signal Market: Master Handoff Script: Full Thread Reconstruction, Strategic Thesis, Product Architecture, Highest-Value Opportunities, Capital Model, MVP, and Unfinished Work," 62 sections, 0 to 61.</p>
+  </div>
+  <p class="note" style="margin-top:12px">Work durations shown on the page: 17s (reply 8), 15s (reply 9), 12s (reply 12), 13s (reply 14), 14s (reply 15). Sources shown with replies: www.consumerfinance.gov, www.legislature.mi.gov, www.ftc.gov, www.moodys.com, www.mckinsey.com. Items created (names only, not opened): Track service-partner signal follow-ups; Track partner signal follow-ups; Track opportunity signal recipes; Review converting signal types weekly; Resume Liquidity Advance MVP; Review Liquidity Router MVP weekly; Review Asset Liquidity MVP; Framing asset lending; Review Unlock Capital pilot risks; Structuring bridge funding; Refining bridge-capital structure; Resume capital pitch build.</p>
+</section>
+
+<section class="fig" id="fidelity">
+  <div class="fignum">Fidelity register</div>
+  <h2>What this page does and does not claim</h2>
+  <ul>
+    <li>Every figure, count, and claim on this page comes from the verbatim filing at ~/workspace/drive-pull/build-signal-partner-program.md (72,236 bytes, 1,921 lines, 17 user / 17 assistant turns).</li>
+    <li>Assistant turns 4, 8, 9, 12, 13, 15 and user turn 13 are cut off mid-line in the browser view. They are marked [truncated in browser view] in the filing and are not reconstructed here.</li>
+    <li>Assistant turn 16 ends in the rendered view at the example list under section 2. This page does not invent the rest of that document.</li>
+    <li>Assistant turn 5 appears in the rendered view in two wordings. Both are preserved in the filing; this page uses the "Hmm, that's interesting" wording as primary and notes the second.</li>
+    <li>All dollar figures are the conversation's own illustrative figures, preserved verbatim. None is a verified amount, a price, an offer, or a financial product term.</li>
+    <li>The liquidity curve calculator scales the filing's own example ratios (61%, 72%, 84%, 100%+). The Neuruh Opportunity Score calculator averages the ten scores from section 39; the filing does not specify a weighting, so the average is this page's display convention only.</li>
+    <li>Nothing on this page is a built product. The Signal Partner Program, the router, the liquidity graph, the scoring engine, and the capital facilities are concepts, not systems.</li>
+    <li>Em dashes are rendered as colons and en dashes as hyphens throughout, per the house rule, as noted in the filing header.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Source conversation: <a href="https://chatgpt.com/share/6afd94dc-068c-83e9-a87a-ca7234643401">Build Signal Partner Program</a>, Sat, Aug 22 at 8:58 AM and Sun, Aug 23 at 3:13 AM. Verbatim filing: <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/build-signal-partner-program/">drive-pull/build-signal-partner-program/</a>. This conversation is the origin thread for the Liquidity Engine + Signal Market handoff in the Aug 23 audit-leverage conversation. Built 2026-11-18 from the filing only. Neuruh, AI That Executes. Contact: <a href="mailto:jeramie@neuruh.com">jeramie@neuruh.com</a> &middot; Scheduling: <a href="https://cal.com/neuruh">cal.com/neuruh</a></p>
+  <p>Every number on these pages carries its audit date. A stat without a date is a rumor with better formatting.</p>
+</footer>
+
+</div>
+<script>
+(function(){
+"use strict";
+function $(id){return document.getElementById(id);}
+function wire(btnsId,panelId,data,render){
+  var btns=$(btnsId); if(!btns) return;
+  var panel=$(panelId);
+  function show(key){
+    var bs=btns.querySelectorAll("button");
+    for(var i=0;i<bs.length;i++){bs[i].classList.toggle("on",bs[i].getAttribute("data-k")===String(key));}
+    panel.innerHTML=render(data[key]);
+  }
+  btns.addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return; show(b.getAttribute("data-k"));
+  });
+  return show;
+}
+var layers={
+  l1:{t:"Layer 1: Signal economy",b:"Turn the gig economy into a signal economy. Service businesses (tree services, roofers, plumbers, junk haulers, estate cleanout, contractors, restoration, haulers, landscapers, auto shops) are first responders who see distress first. They become Signal Partners or Field Originators: they submit address, event type, photos, and permission; AI enriches, scores, and routes. The traditional service company sees a $4,800 tree-removal job. The Neuruh system sees tree job + damaged property + owner transition + insurance event + potential property sale + cleanup work + equipment + land + redevelopment possibility + multiple downstream liquidity paths."},
+  l2:{t:"Layer 2: Personal asset liquidity",b:"People frequently possess significant value that financial systems fail to recognize: Pokemon cards, sports cards, collectibles, gold, jewelry, vehicles, equipment, tools, machinery, furniture, antiques, estate contents, agricultural equipment, land, houses, trailers, boats, recreational vehicles, commercial inventory, memorabilia. Many people are asset-rich but liquidity-poor. Banks are good at underwriting income, credit, houses, some commercial assets, and standard securities. They are much worse at rapidly understanding that a person has $180,000 worth of fragmented physical value spread across six categories. The core product opportunity becomes an Asset Liquidity Router."},
+  l3:{t:"Layer 3: Transition liquidity",b:"The biggest opportunity, because that is where the most value is and where the most friction is. People in transition: moving, downsizing, getting older, going into assisted living, cleaning out an estate, closing a business, retiring. They may already possess sufficient economic value to solve the problem; the friction is timing. The filing's example: a $329,000+ fragmented asset pool requiring $20,000 of temporary liquidity to unlock orderly disposition. See Figure 4."}
+};
+wire("layerBtns","layerPanel",layers,function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+$("layerPanel").innerHTML="<h4>Layer 1: Signal economy</h4><p>"+layers.l1.b+"</p>";
+
+var loop=[
+  {t:"Signal",b:"Something happened. A tree falls through a roof, an owner begins downsizing, a farmer cannot continue operations, an estate begins cleanout, a property becomes vacant."},
+  {t:"Discernment",b:"AI determines what that event means. Static data is dead inventory unless something interprets change."},
+  {t:"Optionality",b:"The system identifies every viable economic path, not one recommendation."},
+  {t:"Rights",b:"Neuruh determines whether it can secure contractual participation, representation, purchase rights, service rights, referral rights, options, assignments, consignment authority, brokerage relationships where licensed, or other legitimate transaction control."},
+  {t:"Liquidity",b:"The system identifies the party that can provide capital or become the end buyer. Capital liquidity and demand liquidity are separate resources; demand liquidity can sometimes eliminate the need for capital liquidity."},
+  {t:"Execution",b:"AI and operators move the transaction forward."},
+  {t:"Outcome",b:"Every transaction produces new data that improves underwriting, pricing, routing, and future performance."}
+];
+wire("loopBtns","loopPanel",loop,function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+$("loopPanel").innerHTML="<h4>Signal</h4><p>"+loop[0].b+"</p>";
+
+function money(n){return "$"+Math.round(n).toLocaleString("en-US");}
+function calcLiq(){
+  var v=parseFloat($("liqVal").value)||0;
+  var rows=[
+    ["Immediate execution",0.61],
+    ["30-day expected liquidation",0.72],
+    ["90-day optimized disposition",0.84],
+    ["12-month strategic sale",1.00]
+  ];
+  var html="";
+  rows.forEach(function(r){
+    var amt=v*r[1];
+    html+="<tr><td>"+r[0]+"</td><td>"+money(100000*r[1])+(r[1]===1?"+":"")+"</td><td>"+money(amt)+(r[1]===1?"+":"")+"</td></tr>";
+  });
+  $("liqTable").innerHTML=html;
+  $("liqOut").textContent="Theoretical "+money(v)+" to immediate "+money(v*0.61)+" to 12-month "+money(v)+"+";
+}
+$("liqVal").addEventListener("input",calcLiq);
+calcLiq();
+
+function calcPool(){
+  var ids=["pHouse","pVehicle","pTools","pColl","pJew","pEquip","pNeed"];
+  var vals={};
+  ids.forEach(function(id){vals[id]=parseFloat($(id).value)||0;});
+  var pool=vals.pHouse+vals.pVehicle+vals.pTools+vals.pColl+vals.pJew+vals.pEquip;
+  var ratio=vals.pNeed>0?pool/vals.pNeed:0;
+  $("poolOut").textContent="Asset pool "+money(pool)+" vs liquidity needed "+money(vals.pNeed)+" : coverage "+ratio.toFixed(1)+"x";
+  $("poolNote").textContent="Filing example: $275,000 house + $18,000 vehicle + $10,000 tools + $8,000 collectibles + $6,000 jewelry + $12,000 equipment = $329,000, plus household estate inventory, against a $20,000 need: about 16.5x coverage. Underwriting the asset pool and its liquidation pathways is fundamentally different from underwriting the consumer.";
+}
+["pHouse","pVehicle","pTools","pColl","pJew","pEquip","pNeed"].forEach(function(id){$(id).addEventListener("input",calcPool);});
+calcPool();
+
+var routes=[
+  ["Route A","Repair house and list traditionally."],
+  ["Route B","Acquire property directly."],
+  ["Route C","Wholesale property."],
+  ["Route D","Sell vehicles separately."],
+  ["Route E","Liquidate tractor."],
+  ["Route F","Partner with contractor."],
+  ["Route G","Explore land split."],
+  ["Route H","Investigate development potential."],
+  ["Route I","Hold property as rental."],
+  ["Route J","Provide transition liquidity and coordinate disposition."],
+  ["Route K","Route to institutional land buyer."]
+];
+var rb=$("routeBtns");
+routes.forEach(function(r,i){
+  var b=document.createElement("button"); b.textContent=r[0]; b.setAttribute("data-k",String(i)); if(i===0)b.className="on"; rb.appendChild(b);
+});
+function showRoute(i){
+  var bs=rb.querySelectorAll("button");
+  for(var j=0;j<bs.length;j++){bs[j].classList.toggle("on",j===i);}
+  $("routePanel").innerHTML="<h4>"+routes[i][0]+"</h4><p>"+routes[i][1]+"</p>";
+}
+rb.addEventListener("click",function(e){var b=e.target.closest("button"); if(b) showRoute(parseInt(b.getAttribute("data-k"),10));});
+showRoute(0);
+
+var arch=[
+  ["Layer 1: Signal Intake","Sources: partners, mobile app, SMS, email, APIs, photos, videos, public datasets, property records, internal datasets, historical archives, marketplace feeds where permitted, manual operators."],
+  ["Layer 2: Entity Resolution","Determine person, property, parcel, business, vehicle, equipment, collectible, asset, company, location. Merge duplicate records."],
+  ["Layer 3: Enrichment","Add ownership, geography, market values, comparable transactions, zoning, taxes, liens where legally/publicly available, parcel dimensions, infrastructure, asset metadata, buyer interest, historical information, prior signals."],
+  ["Layer 4: Signal Interpretation","Determine event: damage, aging, downsizing, sale intent, death/estate, vacancy, retirement, business closure, equipment idle, property neglected, agricultural succession, development change, market anomaly."],
+  ["Layer 5: Opportunity Detection","Generate economic possibilities."],
+  ["Layer 6: Underwriting","Calculate value range, confidence, liquidity, capital needed, time, execution friction, risk, expected margin, downside, customer benefit."],
+  ["Layer 7: Rights Engine","Track permission, referral agreement, service agreement, purchase contract, option, assignment rights, consignment, representation, exclusivity, LOI, buyer commitment, financing agreement. Exact rights depend on jurisdiction and transaction type."],
+  ["Layer 8: Liquidity Matching","Find buyers, dealers, investors, capital providers, developers, operators, auction channels, strategic purchasers."],
+  ["Layer 9: Execution Agent","AI produces outreach, calls/scripts, follow-ups, offers, deal summaries, buyer packages, due-diligence requests, scheduling, document checklist, transaction status, CRM updates. High-stakes commitments require appropriate human/legal approval."],
+  ["Layer 10: Outcome Ledger","Store signal source, estimated value, actual value, time to liquidity, buyer, capital used, margin, partner payout, failure reason, customer outcome. This is critical training data."]
+];
+var ab=$("archBtns");
+arch.forEach(function(a,i){
+  var b=document.createElement("button"); b.textContent=a[0]; b.setAttribute("data-k",String(i)); if(i===0)b.className="on"; ab.appendChild(b);
+});
+function showArch(i){
+  var bs=ab.querySelectorAll("button");
+  for(var j=0;j<bs.length;j++){bs[j].classList.toggle("on",j===i);}
+  $("archPanel").innerHTML="<h4>"+arch[i][0]+"</h4><p>"+arch[i][1]+"</p>";
+}
+ab.addEventListener("click",function(e){var b=e.target.closest("button"); if(b) showArch(parseInt(b.getAttribute("data-k"),10));});
+showArch(0);
+
+var scoreIds=["sSignal","sAsset","sLiq","sRights","sConf","sUrg","sComp","sStrat","sRel","sEV"];
+function calcScore(){
+  var sum=0;
+  scoreIds.forEach(function(id){var el=$(id); var v=parseFloat(el.value); $(id+"v").textContent=v.toFixed(1); sum+=v;});
+  var avg=sum/scoreIds.length;
+  $("scoreOut").textContent="Neuruh Opportunity Score = "+avg.toFixed(2)+" / 10  (average of 10 scores; the filing does not specify a weighting)";
+}
+scoreIds.forEach(function(id){$(id).addEventListener("input",calcScore);});
+calcScore();
+
+var screens=[
+  {t:"Screen 1: Signal Intake",b:"Partner uploads address, photos, event, customer context, notes, assets visible, permission status."},
+  {t:"Screen 2: Opportunity Intelligence",b:"AI displays property details, event summary, detected assets, opportunity score, estimated values, missing information, suggested questions."},
+  {t:"Screen 3: Opportunity Routes",b:"Example routes: direct property buyer, traditional listing, rehab, vehicle buyer, equipment liquidation, estate liquidation, transition capital, land strategy. Each route gets expected value, execution time, confidence, required capital, risk."},
+  {t:"Screen 4: Liquidity Match",b:"Displays qualified buyers, indicative bids, capital sources, contractors, route status."},
+  {t:"Screen 5: Execution Cockpit",b:"Calls, texts, follow-ups, documents, tasks, offers, deadlines, approval queue."},
+  {t:"Screen 6: Outcome Ledger",b:"Records final transaction economics."}
+];
+wire("screenBtns","screenPanel",screens,function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+$("screenPanel").innerHTML="<h4>Screen 1: Signal Intake</h4><p>"+screens[0].b+"</p>";
+
+var phases=[
+  ["Phase 1: Prove Signal","Recruit field partners. Receive real opportunities. Do not overbuild software."],
+  ["Phase 2: Prove Discernment","Demonstrate AI identifies additional value partners missed."],
+  ["Phase 3: Prove Liquidity","Secure buyers for identified assets."],
+  ["Phase 4: Prove Routing","Demonstrate multiple transaction routes."],
+  ["Phase 5: Add Capital","Deploy limited liquidity against clearly underwritten transactions."],
+  ["Phase 6: Automate","Automate intake, underwriting, routing, and execution."],
+  ["Phase 7: Expand Asset Classes","Vehicles to equipment to collectibles to estate assets to agriculture."],
+  ["Phase 8: Institutionalize Capital","Facilities, SPVs, strategic funds."]
+];
+var pb=$("phaseBtns");
+phases.forEach(function(p,i){
+  var b=document.createElement("button"); b.textContent="Phase "+(i+1); b.setAttribute("data-k",String(i)); if(i===0)b.className="on"; pb.appendChild(b);
+});
+function showPhase(i){
+  var bs=pb.querySelectorAll("button");
+  for(var j=0;j<bs.length;j++){bs[j].classList.toggle("on",j===i);}
+  $("phasePanel").innerHTML="<h4>"+phases[i][0]+"</h4><p>"+phases[i][1]+"</p>";
+}
+pb.addEventListener("click",function(e){var b=e.target.closest("button"); if(b) showPhase(parseInt(b.getAttribute("data-k"),10));});
+showPhase(0);
+
+var pitches={
+  investor:{t:"Investor elevator pitch",b:"Neuruh is building the AI-native origination and liquidity layer for fragmented real-world assets. Millions of valuable transactions begin as small physical-world signals: a contractor visit, an estate cleanout, a farmer retiring, an unused vehicle, a damaged property: long before those assets ever reach a formal marketplace. Our distributed signal network captures those events at the edge. AI identifies the assets, values them, generates every viable transaction path, and routes them to committed buyers or capital. Instead of waiting for markets to form, we create liquidity at the moment opportunity appears."},
+  capital:{t:"Capital partner pitch",b:"You don't need to fund our search for opportunities. We generate proprietary qualified flow. We want capital commitments attached to defined underwriting criteria. When an asset qualifies, the facility can deploy. When a committed buyer exists, capital exposure may be minimal or unnecessary. You provide liquidity capacity; we provide origination, intelligence, transaction control, and execution."},
+  signal:{t:"Signal partner pitch",b:"You already walk into situations containing value that you are not currently paid for discovering. Keep doing your core business. When you encounter a qualifying situation, submit it. Our system handles property research, asset intelligence, buyer matching, and transaction routing. When appropriate and lawful, you participate economically while keeping your original customer relationship and service revenue."},
+  owner:{t:"Owner / consumer pitch",b:"You may have more options than you realize. Instead of forcing you to sell everything through one channel, we identify the value across your property and assets, show you multiple liquidity paths, and help coordinate the transition. The goal is to turn what you already own into the flexibility you need."},
+  farm:{t:"Farm pitch",b:"You shouldn't have to choose between working the farm forever and selling everything at once. We analyze the land, equipment, operating potential, succession options, and available capital to create a transition plan designed around what you want preserved and what you need financially."}
+};
+wire("pitchBtns","pitchPanel",pitches,function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+$("pitchPanel").innerHTML="<h4>Investor elevator pitch</h4><p>"+pitches.investor.b+"</p>";
+
+var sections=[
+  "0. Purpose of This Handoff","1. The Core Discovery","2. The First-Principles Thesis","3. Static Data to Dynamic Opportunity Data","4. The Fundamental System Loop","5. Layer One: Turn the Gig Economy Into a Signal Economy","6. Signal Partner / Field Originator Model","7. Important Evolution: Partners Can Become Co-Originators","8. Signal Market vs. Gig Market","9. Layer Two: Personal Asset Liquidity","10. Critical Distinction: Valuation Is Not Enough","11. Layer Three: Transition Liquidity","12. Transition Liquidity Thesis","13. The Emotional / Human Advantage","14. The Bigger Capital Insight: Capital Without Always Using Capital","15. Commitment Liquidity","16. Real-Time Liquidity Graph","17. Opportunity Recipe Engine","18. The Real Estate Router","19. Strategic Land / Data-Center Example","20. Investor Positioning","21. Two Capital Asks","22. Capital Stack Concept","23. Investor Language","24. The Farmer Opportunity","25. Farm Continuity as a National Narrative","26. Heirloom Asset Recovery","27. Heirloom Recovery Intelligence System","28. Heirloom Field Workflow","29. Economic Optionality of Heirloom Recovery","30. Highest-Tier Value Opportunities","31. The Most Important Strategic Insight","32. Proposed System Architecture","33. MVP","34. MVP Product Screens","35. MVP KPI","36. Early Partner Pilot","37. Early Liquidity Network","38. Buy Box Data Model","39. Underwriting Model","40. The Capital Underwriting Formula","41. Customer Experience Vision","42. What This Is NOT","43. The Category","44. Potential Monetization","45. Potential Long-Term Business Units","46. The Data Moat","47. Autonomy Vision","48. What Has Been Created Conceptually","49. What Has NOT Been Built Yet","50. Most Important Next Deliverables","51. Recommended Execution Sequence","52. 90-Day MVP Target","53. The Ideal Proof Case","54. Investor Elevator Pitch","55. Capital Partner Pitch","56. Signal Partner Pitch","57. Owner / Consumer Pitch","58. Farm Pitch","59. The One-Line Thesis","60. The Deeper Thesis","61. Ultimate Vision"
+];
+var secList=$("secList");
+function renderSections(q){
+  q=(q||"").toLowerCase();
+  var html="<ol class='tight single'>";
+  var n=0;
+  sections.forEach(function(s){
+    if(q && s.toLowerCase().indexOf(q)<0) return;
+    n++;
+    html+="<li><span class='secnum'>"+s.split(".")[0]+"</span>"+s.replace(/^\d+\.\s*/,"")+"</li>";
+  });
+  html+="</ol>";
+  secList.innerHTML=html+"<p class='note'>"+n+" of 62 sections shown.</p>";
+}
+$("secFilter").addEventListener("input",function(){renderSections(this.value);});
+renderSections("");
+})();
+</script>
+</body>
+</html>
