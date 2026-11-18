@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuruh Intelligence Fabric</title>
+<meta name="description" content="Neuruh Intelligence Fabric: a governed organism for evidence-backed opportunity intelligence. Based on the Oct 18, 2026 OSINT Architecture Review.">
+<style>
+:root{--bone:#f4f1ea;--paper:#fbfaf6;--ink:#1c1a16;--muted:#6b655a;--brass:#9a7b2d;--brass-dark:#7d6423;--line:#d8d2c4;--card:#fffefb;--good:#2e6b34;--warn:#8a5a00;--bad:#8a2f2f}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.2;margin:0 0 .5rem}
+h2{font-size:1.55rem;border-bottom:2px solid var(--brass);padding-bottom:.35rem;margin-top:2.5rem}
+h3{font-size:1.15rem;margin-top:1.6rem}
+h4{font-size:1rem}
+p{margin:.5rem 0}
+a{color:var(--brass-dark)}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.88em}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px 60px}
+.doc-head{background:var(--ink);color:#f4f1ea;padding:22px 0 18px}
+.doc-head .wrap{padding-bottom:0}
+.doc-head h1{font-size:2rem;letter-spacing:.01em}
+.doc-head .sub{color:#cfc8b8;max-width:820px}
+.dc{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:14px;font-family:"JetBrains Mono",monospace;font-size:.78rem;color:#b9b2a2}
+.dc b{color:#f4f1ea;font-weight:600}
+nav.sticky{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line);overflow-x:auto;white-space:nowrap}
+nav.sticky .wrap{padding-bottom:0;display:flex;gap:4px}
+nav.sticky a{display:inline-block;padding:11px 10px;font-size:.82rem;color:var(--ink);text-decoration:none;border-bottom:2px solid transparent}
+nav.sticky a:hover{border-bottom-color:var(--brass);color:var(--brass-dark)}
+.badge{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.68rem;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:3px;vertical-align:middle;text-transform:uppercase}
+.b-doc{background:#e7e0cf;color:#5c4a12;border:1px solid #c9b98a}
+.b-dem{background:#dce8dc;color:var(--good);border:1px solid #9dbb9d}
+.b-prop{background:#e8ddf2;color:#5a3a7a;border:1px solid #c3aed8}
+.b-unv{background:#f3e2e2;color:var(--bad);border:1px solid #d8a8a8}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:16px 18px;margin:12px 0}
+.callout{border-left:4px solid var(--brass);background:#f7f3e6;padding:12px 16px;margin:14px 0}
+.callout.warn{border-left-color:var(--bad);background:#f9efef}
+.callout.good{border-left-color:var(--good);background:#eef5ee}
+figure{margin:22px 0;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px}
+figcaption{font-size:.85rem;color:var(--muted);margin-top:10px}
+figcaption b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin:12px 0}
+th,td{text-align:left;padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+th{background:#efeadd;font-family:Archivo,sans-serif;font-size:.85rem}
+tr:nth-child(even) td{background:#faf8f2}
+button{font-family:Inter,system-ui,sans-serif;cursor:pointer}
+.btn{border:1px solid var(--brass);background:var(--paper);color:var(--ink);border-radius:4px;padding:8px 14px;font-size:.9rem}
+.btn:hover{background:#f1ead6}
+.btn.active{background:var(--brass);color:#fff;border-color:var(--brass)}
+.btn.primary{background:var(--brass);color:#fff}
+.btn.primary:hover{background:var(--brass-dark)}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.stage{flex:1 1 150px;min-width:140px;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:12px;cursor:pointer;text-align:left}
+.stage:hover{border-color:var(--brass)}
+.stage.active{border:2px solid var(--brass);background:#f7f3e6}
+.stage .num{font-family:"JetBrains Mono",monospace;color:var(--brass-dark);font-weight:700;font-size:.8rem}
+.stage h4{margin:.25rem 0}
+.stage p{font-size:.85rem;color:var(--muted);margin:0}
+.detail{background:var(--paper);border:1px solid var(--brass);border-radius:6px;padding:16px 18px;margin-top:12px}
+.detail h3{margin-top:0}
+.layers{display:grid;grid-template-columns:1fr;gap:10px}
+.layer{border:1px solid var(--line);border-radius:6px;padding:14px 16px;background:var(--card);cursor:pointer}
+.layer:hover{border-color:var(--brass)}
+.layer.active{border:2px solid var(--brass);background:#f7f3e6}
+.layer h3{margin:0 0 .3rem}
+.layer p{margin:.2rem 0;font-size:.92rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:20px;padding:5px 12px;font-size:.85rem}
+.chip.active{background:var(--brass);color:#fff;border-color:var(--brass)}
+.timeline{display:flex;flex-wrap:wrap;gap:10px}
+.phase{flex:1 1 220px;border:1px solid var(--line);border-radius:6px;background:var(--card);padding:14px;cursor:pointer}
+.phase:hover{border-color:var(--brass)}
+.phase.active{border:2px solid var(--brass);background:#f7f3e6}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chain .link{flex:1 1 120px;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:10px;cursor:pointer;text-align:center;font-size:.9rem}
+.chain .link:hover{border-color:var(--brass)}
+.chain .link.active{background:var(--brass);color:#fff}
+.chain .arrow{color:var(--brass-dark);font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}.doc-head h1{font-size:1.55rem}}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:#fff;width:100%}
+label{font-size:.88rem;font-weight:600;display:block;margin:10px 0 4px}
+.result{background:#f7f3e6;border:1px solid var(--brass);border-radius:6px;padding:14px 16px;margin-top:14px}
+.result .big{font-size:1.4rem;font-weight:700;font-family:Archivo,sans-serif}
+.walk{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.walk button{flex:1 1 90px}
+.progress{height:8px;background:#e5dfd0;border-radius:4px;overflow:hidden;margin:10px 0}
+.progress div{height:100%;background:var(--brass);width:10%}
+.statusline{font-family:"JetBrains Mono",monospace;font-size:.85rem;background:#efeadd;border:1px solid var(--line);border-radius:4px;padding:8px 12px;margin-top:10px}
+.hidden{display:none}
+footer{border-top:2px solid var(--brass);margin-top:40px;padding-top:16px;font-size:.88rem;color:var(--muted)}
+@media print{nav.sticky{position:static}.btn,.walk{display:none}body{background:#fff}.card,figure{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="doc-head">
+<div class="wrap">
+<p class="mono" style="color:var(--brass);letter-spacing:.12em;margin:0">NEURUH / INTELLIGENCE FABRIC</p>
+<h1>Neuruh Intelligence Fabric</h1>
+<p class="sub">A governed organism for evidence-backed opportunity intelligence. Mission, intake, evidence, swarm, governance, execution, receipts, learning.</p>
+<div class="dc">
+<span>DOC <b>IF-2026-11-18</b></span>
+<span>VERSION <b>1.0</b></span>
+<span>SOURCE <b>OSINT Architecture Review, Oct 18, 2026</b></span>
+<span>STATUS <b>DOCUMENTED / DEMONSTRATED / PROPOSED, LABELED THROUGHOUT</b></span>
+<span>OWNER <b>Jeramie Hicks</b></span>
+</div>
+</div>
+</header>
+<nav class="sticky" aria-label="Section navigation"><div class="wrap">
+<a href="#vision">Vision</a><a href="#sources">Sources</a><a href="#status">Status</a><a href="#pipeline">Pipeline</a><a href="#relations">Relationships</a><a href="#swarm">Swarm</a><a href="#scoring">Scoring</a><a href="#receipt">Receipt</a><a href="#blooms">Blooms</a><a href="#gaps">Gaps</a><a href="#architecture">Architecture</a><a href="#extraction">Extraction</a><a href="#controller">Controller</a><a href="#qualification">Qualification</a><a href="#bloomintel">Bloom Intel</a><a href="#chain">Receipt Chain</a><a href="#controls">Controls</a><a href="#scorecard">Scorecard</a><a href="#roadmap">Roadmap</a><a href="#exceptional">Exceptional</a><a href="#refs">References</a>
+</div></nav>
+<main class="wrap">
+
+<section id="vision">
+<h2>Vision: a governed organism</h2>
+<p><strong>Neuruh is a governed organism: mission, intake, evidence, swarm, governance, execution, receipts, learning.</strong> Its job is to find and qualify the strongest evidence-backed opportunities, explain the causal signals behind them, identify the unresolved facts, quantify the uncertainty, allocate the minimum competent team, recommend a permitted next action, and produce a complete audit trail, then learn from the difference between prediction and reality.</p>
+<p>That is the whole system in one sentence. Everything on this page is a working part of that sentence: what evidence counts, who decides, what gets executed, what gets recorded, and what changes next time.</p>
+<div class="callout"><strong>How to read the labels.</strong> Every claim on this page carries one of three marks. <span class="badge b-doc">Documented</span> means it exists in a recovered document or specification. <span class="badge b-dem">Demonstrated</span> means it was shown working in case work. <span class="badge b-prop">Proposed</span> means it is target architecture, not yet built or proven. Where a current state could not be verified, the page says so plainly instead of upgrading the claim.</div>
+<figure>
+<figcaption><b>Figure 1.</b> The organism loop. A mission enters, evidence is gathered and resolved, a swarm qualifies it, governance permits or blocks action, execution leaves receipts, and outcomes feed learning into the next mission. Nothing in the loop is live end to end today; the loop itself is <span class="badge b-prop">Proposed</span> as a complete system, with parts <span class="badge b-dem">Demonstrated</span> in case work.</figcaption>
+<div class="flow" aria-label="Organism loop">
+<div class="stage" style="cursor:default"><div class="num">01</div><h4>Mission</h4><p>Question, purpose, boundaries</p></div>
+<div class="stage" style="cursor:default"><div class="num">02</div><h4>Evidence</h4><p>Sources, parsing, identity</p></div>
+<div class="stage" style="cursor:default"><div class="num">03</div><h4>Swarm</h4><p>Specialists qualify candidates</p></div>
+<div class="stage" style="cursor:default"><div class="num">04</div><h4>Governance</h4><p>Permit, escalate, or block</p></div>
+<div class="stage" style="cursor:default"><div class="num">05</div><h4>Execution</h4><p>Permitted actions only</p></div>
+<div class="stage" style="cursor:default"><div class="num">06</div><h4>Receipts</h4><p>Sealed, verifiable record</p></div>
+<div class="stage" style="cursor:default"><div class="num">07</div><h4>Learning</h4><p>Prediction vs reality</p></div>
+</div>
+</figure>
+</section>
+
+<section id="sources">
+<h2>1. Sources and recovered artifacts</h2>
+<p>Four recovered bodies of work anchor this page. Each is named where the Oct 18 conversation names it, with its date and what it contains. Nothing here is presented as live that is not.</p>
+
+<div class="card">
+<h3>Case Zero Temporal Evidence Protocol v1.0 <span class="badge b-doc">Documented</span></h3>
+<p>The evidence protocol specifies source manifests, artifact hashes, exact source spans, extraction metadata, confidence, contradiction tracking, merge history, prediction falsifiers, and scoring adjudication. Library copies are dated <strong>Aug 5, Aug 8, and Sep 6, 2026</strong>. The spec is recovered; code implementation and runtime are unverified.</p>
+</div>
+
+<div class="card">
+<h3>DeedSonar Master Control Hub, Aug 21, 2026 <span class="badge b-dem">Demonstrated</span> in case work</h3>
+<p>The 120 Willow case records:</p>
+<ul>
+<li><strong>87-page</strong> underwriting dossier</li>
+<li><strong>54-claim</strong> evidence ledger</li>
+<li><strong>10-node / 15-edge</strong> relationship graph</li>
+<li><strong>12-row</strong> kinship ledger</li>
+<li><strong>10-node</strong> bridge matrix</li>
+<li><strong>22 source families</strong> tracked, <strong>9 exhausted</strong>, <strong>19 attempted</strong> to some degree</li>
+<li>Owner locator <strong>unfinished</strong>, with <strong>5 free / operator research routes remaining</strong></li>
+</ul>
+<p>These counts are case records from Aug 21, 2026, not a live system dashboard.</p>
+</div>
+
+<div class="card">
+<h3>FindSell Profit plus Neuruh Master Codex, Aug 1, 2026 <span class="badge b-doc">Documented</span></h3>
+<p>The progression the Codex defines: signals become candidates, candidates become opportunities, repeatable recipes become capabilities, capability clusters become organs, and proven organs can become products or larger bounded operating environments. Each step requires evidence, repeatability, economics, authority, lifecycle state, and outcomes. A step that cannot show those six is not promoted.</p>
+</div>
+
+<div class="card">
+<h3>Topology notes, Aug 28, 2026 <span class="badge b-doc">Documented</span></h3>
+<p>The topology names the Opportunity Genome, the modulated swarm, the knowledge spine, the cognition pipeline, sovereign governance, execution receipts, and the revenue spine. Specialist roles named: research, data resolution, signal analysis, underwriting, market analysis, legal review, security, engineering, operations, and sales. Models are interchangeable providers, not permanent agent identities. A role is a function; the model filling it can change.</p>
+</div>
+
+<div class="card">
+<h3>Decision-receipt repository <span class="badge b-doc">Documented</span> existence, current health <span class="badge b-unv">Unverified</span></h3>
+<p><code>NeuruhAI/neuruh-decision-receipt</code>, described as "Deterministic content-bound decision receipt for governed agent systems". Existence comes from an Aug 2026 snapshot. Current source, tests, integration, and consumers are unverified.</p>
+</div>
+</section>
+
+<section id="status">
+<h2>2. Status inventory</h2>
+<p>Eleven components, each with the state that was actually recovered and what remains unverified. Filter the table by status to see where the system stands.</p>
+<div class="chips" id="statusFilters" role="group" aria-label="Filter status inventory">
+<button class="chip active" data-f="all">All 11</button>
+<button class="chip" data-f="demonstrated">Demonstrated</button>
+<button class="chip" data-f="documented">Documented only</button>
+<button class="chip" data-f="unverified">Unverified remainder</button>
+</div>
+<table id="statusTable">
+<thead><tr><th>Component</th><th>Recovered state</th><th>What remains unverified</th></tr></thead>
+<tbody>
+<tr data-s="documented"><td>OSINT protocol</td><td><span class="badge b-doc">Documented</span> in the Case Zero protocol and review</td><td>No canonical path or definitive owner found</td></tr>
+<tr data-s="documented"><td>Case Zero evidence protocol</td><td><span class="badge b-doc">Documented</span> spec recovered</td><td>Code implementation and runtime unverified</td></tr>
+<tr data-s="demonstrated"><td>Entity resolution</td><td><span class="badge b-dem">Demonstrated</span> in DeedSonar / LandOS case work</td><td>Universal cross-domain service unverified</td></tr>
+<tr data-s="demonstrated"><td>Relationship and affiliation graph</td><td><span class="badge b-dem">Demonstrated</span> in the Willow case (10 nodes, 15 edges)</td><td>General-purpose graph, refresh, production integrations unverified</td></tr>
+<tr data-s="documented"><td>Contact and kinship resolution</td><td><span class="badge b-doc">Documented</span> case-level work (12-row kinship ledger)</td><td>End-to-end production status unverified</td></tr>
+<tr data-s="documented"><td>Opportunity Genome</td><td><span class="badge b-doc">Documented</span> architecture</td><td>Deployed schema, scoring, and test receipts unverified</td></tr>
+<tr data-s="documented"><td>Agentic swarm modulation</td><td><span class="badge b-doc">Documented</span> target architecture</td><td>Live routing, allocation, evaluation, and measured performance unverified</td></tr>
+<tr data-s="documented"><td>Decision receipts</td><td><span class="badge b-doc">Documented</span> dedicated repo identified</td><td>Current source, tests, integration, and consumers unverified</td></tr>
+<tr data-s="documented"><td>Sentinel and governance</td><td><span class="badge b-doc">Documented</span> governance and receipt handoff</td><td>Complete live receipt-to-ingest-to-custody-to-promotion loop unverified</td></tr>
+<tr data-s="documented"><td>Local blooms</td><td><span class="badge b-doc">Documented</span> as capability / market phase transition</td><td>Universal detector and validated thresholds unverified</td></tr>
+<tr data-s="documented"><td>Outcome learning</td><td><span class="badge b-doc">Documented</span> N-Observer / N-Lab feedback architecture</td><td>Verified calibration results and governed promotion history unverified</td></tr>
+</tbody>
+</table>
+<p id="statusCount" class="statusline">Showing 11 of 11 rows.</p>
+<div class="callout"><strong>Reading the table honestly.</strong> Two components were demonstrated in case work. Nine exist as documented architecture with a real unverified remainder. Zero of the eleven are verified live as production services on this page. That is the convergence gap Phase 1 of the roadmap exists to close.</div>
+</section>
+
+<section id="pipeline">
+<h2>3. The 9-stage human-data intelligence pipeline</h2>
+<p>Click any stage for its detail. The final stage feeds back into the next mission, so the pipeline is a loop, not a straight line.</p>
+<figure>
+<figcaption><b>Figure 2.</b> The nine-stage pipeline. Click a stage to read what it does, what it takes in, and what it must produce before the next stage can start.</figcaption>
+<div class="flow" id="pipelineFlow">
+<button class="stage active" data-stage="0"><span class="num">01</span><h4>Mission and scope</h4><p>Question, purpose, boundaries</p></button>
+<button class="stage" data-stage="1"><span class="num">02</span><h4>Source acquisition</h4><p>Records, datasets, feeds</p></button>
+<button class="stage" data-stage="2"><span class="num">03</span><h4>Parsing and atomization</h4><p>Entities, claims, dates</p></button>
+<button class="stage" data-stage="3"><span class="num">04</span><h4>Identity resolution</h4><p>Normalize, compare, review</p></button>
+<button class="stage" data-stage="4"><span class="num">05</span><h4>Evidence graph</h4><p>Claims linked to sources</p></button>
+<button class="stage" data-stage="5"><span class="num">06</span><h4>Qualification and scoring</h4><p>Quality, coverage, value</p></button>
+<button class="stage" data-stage="6"><span class="num">07</span><h4>Swarm decision</h4><p>Specialists, gaps, actions</p></button>
+<button class="stage" data-stage="7"><span class="num">08</span><h4>Governed execution</h4><p>Approve, escalate, block</p></button>
+<button class="stage" data-stage="8"><span class="num">09</span><h4>Receipts and outcomes</h4><p>Seal, measure, recalibrate</p></button>
+</div>
+<div class="detail" id="stageDetail" aria-live="polite"></div>
+<div style="margin-top:10px"><button class="btn" id="nextStageBtn">Next stage</button> <span class="mono" id="stageCounter" style="font-size:.85rem">Stage 1 of 9</span></div>
+</figure>
+</section>
+
+<section id="relations">
+<h2>4. The five relationship types</h2>
+<p>Every edge in the evidence graph carries one of five types. The type is the claim; getting the type wrong is how a graph manufactures false certainty.</p>
+<table>
+<thead><tr><th>Type</th><th>Definition</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><strong>Identity</strong></td><td>Two records refer to the same real-world entity.</td><td><span class="badge b-dem">Demonstrated</span> in case work</td></tr>
+<tr><td><strong>Affiliation</strong></td><td>Documented membership, employment, officer, owner, or participant relationship.</td><td><span class="badge b-dem">Demonstrated</span> in case work</td></tr>
+<tr><td><strong>Association</strong></td><td>Appearing together in a record, event, address, or context.</td><td><span class="badge b-doc">Documented</span></td></tr>
+<tr><td><strong>Inference</strong></td><td>Suggested but unestablished. A hypothesis, not a fact.</td><td><span class="badge b-doc">Documented</span></td></tr>
+<tr><td><strong>Contradiction</strong></td><td>Sources disagreeing about the same claim.</td><td><span class="badge b-doc">Documented</span></td></tr>
+</tbody>
+</table>
+<div class="callout warn"><strong>Three errors the types exist to prevent.</strong>
+<ul>
+<li>Two people sharing an address does not establish they are relatives. That is association, not identity and not kinship.</li>
+<li>Two records with the same name do not establish the same person. That is a collision candidate until identity resolution says otherwise.</li>
+<li>Two websites repeating one report are not two independent confirmations. That is one source family, counted twice.</li>
+</ul></div>
+</section>
+
+<section id="swarm">
+<h2>5. The swarm decision process</h2>
+<p>The swarm is not a crowd voting. It is a modulated team: the right specialists, the right models, the right tools, the minimum size that can do the job competently. Principle: <strong>minimum sufficient competent topology</strong>.</p>
+<div class="grid2">
+<div class="card">
+<h3>Opportunity Genome fields <span class="badge b-doc">Documented</span></h3>
+<p>Every candidate carries these fifteen fields:</p>
+<p class="mono" style="font-size:.85rem">identity, environment, entities, signals, evidence, claims, conflicts, constraints, value hypotheses, strategies, economics, risk, authority, actions, outcomes</p>
+<p>A candidate missing fields is not a bad candidate. It is an incomplete one, and the gaps are named in the record.</p>
+</div>
+<div class="card">
+<h3>Modulation Engine <span class="badge b-prop">Proposed</span></h3>
+<p>For each mission the engine chooses: specialist roles, model selection, memory scope, tool access, communication topology, risk thresholds, budget, and evaluation standard. Models are interchangeable providers, not permanent agent identities.</p>
+</div>
+</div>
+<h3>Cognition pipeline</h3>
+<p>Intent and consequence analysis, graph and vector retrieval, HKRS ranking, ContextOS, QCM, DecisionOS, IAR / AEGIS, candidate decisions. <span class="badge b-doc">Documented</span> as pipeline stages; live routing and measured performance are <span class="badge b-unv">Unverified</span>.</p>
+<h3>Execution</h3>
+<p>Worker plans and DAGs, leases, checkpoints, tool execution, output, receipts. A lease bounds what a worker may do and for how long; a checkpoint is where work can be inspected, resumed, or rolled back.</p>
+<h3>Feedback: N-Observer and N-Lab</h3>
+<p><strong>N-Observer</strong> measures quality, errors, cost, latency, revenue, governance interventions, and drift. <strong>N-Lab</strong> evaluates proposed changes before governed promotion or rollback. Nothing is promoted on a claim alone; a change earns promotion by surviving evaluation. <span class="badge b-doc">Documented</span> architecture; verified calibration results are <span class="badge b-unv">Unverified</span>.</p>
+</section>
+
+<section id="scoring">
+<h2>6. Ten scoring dimensions</h2>
+<p>Each dimension measures one thing. Scores are not interchangeable: a high score in one dimension says nothing about another.</p>
+<table>
+<thead><tr><th>#</th><th>Dimension</th><th>What it measures</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>Extraction quality</strong></td><td>Precision and recall of what was pulled from sources.</td></tr>
+<tr><td>2</td><td><strong>Identity resolution</strong></td><td>Match score plus review status. A score without a review status is incomplete.</td></tr>
+<tr><td>3</td><td><strong>Source quality</strong></td><td>Origin, authenticity, reliability, recency.</td></tr>
+<tr><td>4</td><td><strong>Claim confidence</strong></td><td>Calibrated probability where validated, otherwise a defined ordinal confidence.</td></tr>
+<tr><td>5</td><td><strong>Relationship confidence</strong></td><td>Edge-level assessment of one relationship, not of the whole graph.</td></tr>
+<tr><td>6</td><td><strong>Coverage</strong></td><td>Percentage covered, plus the unresolved gaps listed by name.</td></tr>
+<tr><td>7</td><td><strong>Opportunity qualification</strong></td><td>Qualified, pending, or rejected, with reasons.</td></tr>
+<tr><td>8</td><td><strong>Decision utility</strong></td><td>Expected utility, or a ranked action.</td></tr>
+<tr><td>9</td><td><strong>Swarm efficiency</strong></td><td>Marginal quality gain, cost, latency.</td></tr>
+<tr><td>10</td><td><strong>Outcome calibration</strong></td><td>Brier score, calibration error, task-specific metrics.</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><strong>Three confusions to refuse.</strong> An identity-match score is not automatically a probability. A relationship confidence is not source reliability. An opportunity score is not a claim of success. Each confusion turns a measurement into a false promise.</div>
+<p><strong>OWASP OSINT Verification Standard v0.1.0</strong> <span class="badge b-doc">Documented</span> (external standard, cited by the review): traceable provenance, corroboration, explicit uncertainty, contradiction handling, reproducible analysis. The Fabric adopts those five as requirements, not aspirations.</p>
+</section>
+
+<section id="receipt">
+<h2>7. The complete receipt</h2>
+<p>A mission is not complete when the work is done. It is complete when the receipt is sealed. Nine sections, each with defined content. <span class="badge b-doc">Documented</span> as a structure; the end-to-end live chain is <span class="badge b-prop">Proposed</span>.</p>
+<table>
+<thead><tr><th>#</th><th>Section</th><th>Content</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>Mission identity</strong></td><td>Objective, scope, authorized purpose, boundaries, success criteria, mission ID.</td></tr>
+<tr><td>2</td><td><strong>Source lineage</strong></td><td>Every source consulted, its snapshot, its family, its retrieval time.</td></tr>
+<tr><td>3</td><td><strong>Evidence ledger</strong></td><td>Claims with exact source spans, extraction metadata, confidence, contradictions.</td></tr>
+<tr><td>4</td><td><strong>Entity graph</strong></td><td>Resolved entities, typed relationships, collisions, review status.</td></tr>
+<tr><td>5</td><td><strong>Decision trace</strong></td><td>Options considered, scores, challenges, who or what decided, and why.</td></tr>
+<tr><td>6</td><td><strong>Governance</strong></td><td>Authority relied on, approvals, escalations, blocks, policy checks.</td></tr>
+<tr><td>7</td><td><strong>Execution result</strong></td><td>Actions taken, outputs, checkpoints, leases used, failures.</td></tr>
+<tr><td>8</td><td><strong>Verification</strong></td><td>Integrity checks, content digests, independent re-checks.</td></tr>
+<tr><td>9</td><td><strong>Outcome feedback</strong></td><td>Observed result, prediction error, what changes next time.</td></tr>
+</tbody>
+</table>
+<div class="callout"><strong>Handoff topology.</strong> The handoff topology labels the overall autonomous handoff as target architecture, not fully live. The receipt-to-ingest-to-custody-to-promotion loop is the P0 seam: documented as a design, unverified as a live loop. A receipt that cannot be traced forward into learning is a record, not a loop.</div>
+</section>
+
+<section id="blooms">
+<h2>8. Local blooms</h2>
+<p>The Master Codex defines a bloom as a new viable capability, product, market, network, or bounded operating environment crossing qualification and sustainability thresholds. <span class="badge b-doc">Documented</span> definition; a universal detector and validated thresholds are <span class="badge b-unv">Unverified</span>.</p>
+<h3>Progression</h3>
+<p>Signal to opportunity to repeatable recipe to capability to organ to product to larger operating environment. Each step is a promotion with evidence, not a rename.</p>
+<h3>What a detector monitors</h3>
+<ul>
+<li>New organizations, projects, properties, events, public investments</li>
+<li>Ownership, permitting, zoning, infrastructure, and organizational participation changes</li>
+<li>Repeated signals from genuinely independent source families</li>
+<li>Increasing density of related entities, opportunities, and complementary capabilities</li>
+<li>Changes over time against a geographic and historical baseline</li>
+<li>Economic viability, accessibility, constraints, risk, and actionable next steps</li>
+</ul>
+<div class="callout"><strong>The trigger rule.</strong> A bloom triggers only when thresholds for relevance, persistence, opportunity quality, and economic or operational viability are crossed, not merely because a graph got bigger. Growth without viability is noise with a bigger footprint.</div>
+</section>
+
+<section id="gaps">
+<h2>9. The ten major gaps</h2>
+<p>Filter by severity. The recurring risk behind all ten: fragmentation. Separate repos disagreeing about identity, provenance, scoring semantics, authority, or what counts as a completed mission.</p>
+<div class="chips" id="gapFilters" role="group" aria-label="Filter gaps by severity">
+<button class="chip active" data-g="all">All 10</button>
+<button class="chip" data-g="critical">Critical</button>
+<button class="chip" data-g="high">High</button>
+</div>
+<table id="gapTable">
+<thead><tr><th>#</th><th>Gap</th><th>Severity</th></tr></thead>
+<tbody>
+<tr data-g="critical"><td>01</td><td><strong>Universal intelligence data contract</strong></td><td><span class="badge b-unv">Critical</span></td></tr>
+<tr data-g="critical"><td>02</td><td><strong>Identity resolution with collision control</strong></td><td><span class="badge b-unv">Critical</span></td></tr>
+<tr data-g="critical"><td>03</td><td><strong>Evidence quality and calibrated uncertainty</strong></td><td><span class="badge b-unv">Critical</span></td></tr>
+<tr data-g="high"><td>04</td><td><strong>Adaptive research planner</strong></td><td><span class="badge b-prop">High</span></td></tr>
+<tr data-g="critical"><td>05</td><td><strong>Measurable swarm controller</strong></td><td><span class="badge b-unv">Critical</span></td></tr>
+<tr data-g="high"><td>06</td><td><strong>Temporal, provenance-aware knowledge graph</strong></td><td><span class="badge b-prop">High</span></td></tr>
+<tr data-g="critical"><td>07</td><td><strong>Real qualification and opportunity engine</strong></td><td><span class="badge b-unv">Critical</span></td></tr>
+<tr data-g="critical"><td>08</td><td><strong>End-to-end decision and execution receipts</strong></td><td><span class="badge b-unv">Critical</span></td></tr>
+<tr data-g="critical"><td>09</td><td><strong>Closed-loop learning and calibration system</strong></td><td><span class="badge b-unv">Critical</span></td></tr>
+<tr data-g="high"><td>10</td><td><strong>Unified operational control plane</strong></td><td><span class="badge b-prop">High</span></td></tr>
+</tbody>
+</table>
+<p id="gapCount" class="statusline">Showing 10 of 10 gaps. 7 Critical, 3 High.</p>
+</section>
+
+<section id="architecture">
+<h2>10. Intelligence Fabric architecture</h2>
+<p>Click a layer to expand what lives inside it. <span class="badge b-prop">Proposed</span> as a unified architecture; individual components range from documented to demonstrated in case work.</p>
+<figure>
+<figcaption><b>Figure 3.</b> The four-layer Fabric. Authority flows down from mission; evidence flows up from sources; receipts and calibration close the loop.</figcaption>
+<div class="layers" id="archLayers">
+<div class="layer active" data-layer="0"><h3>Layer 1: Mission and Authority</h3><p>Objective, scope, consent, jurisdiction, risk, budget.</p><div class="layerDetail"><p>Nothing runs without a mission that names its purpose and its limits. Consent, jurisdiction, risk tolerance, and budget are set here, before any source is touched. This is where a mission can be refused before it starts.</p></div></div>
+<div class="layer" data-layer="1"><h3>Layer 2: Universal Intelligence Fabric</h3><p>Source Registry, Parsers, Entity Resolution, Temporal Knowledge Graph, Evidence Ledger; plus Research Engine, Relationship Engine, Qualification Engine, Swarm Controller.</p><div class="layerDetail hidden"><p>The working core. The Source Registry knows every source and its family. Parsers turn records into atoms. Entity Resolution decides what is the same thing. The Temporal Knowledge Graph holds entities, relationships, and time. The Evidence Ledger holds claims tied to exact source spans. The Research, Relationship, and Qualification Engines and the Swarm Controller operate on that shared core, so they cannot silently disagree about identity or provenance.</p></div></div>
+<div class="layer" data-layer="2"><h3>Layer 3: Governed Decision and Execution</h3><p>DecisionOS, IAR / AEGIS, Governance, AXON, Sentinel, immutable or tamper-evident receipts.</p><div class="layerDetail hidden"><p>Decisions are made here, under governance, and executed only as permitted. AXON carries signals; Sentinel watches execution; receipts are immutable or tamper-evident. A consequential action without a governance check does not run, and a run without a receipt does not count.</p></div></div>
+<div class="layer" data-layer="3"><h3>Layer 4: Outcome and Calibration Loop</h3><p>Observed results, prediction error, drift, controlled experiments, governed promotion.</p><div class="layerDetail hidden"><p>The loop closes here. Observed results are compared with predictions, error is measured, drift is detected, and changes are tested in controlled experiments before governed promotion. This is the layer that makes the system learn instead of merely repeat.</p></div></div>
+</div>
+</figure>
+</section>
+
+<section id="extraction">
+<h2>11. The 7-stage extraction pipeline and the contradiction engine</h2>
+<div class="grid2">
+<div class="card">
+<h3>Extraction pipeline <span class="badge b-doc">Documented</span></h3>
+<ol>
+<li>Preserve the original</li>
+<li>Extract atomic observations</li>
+<li>Normalize without destroying originals</li>
+<li>Resolve entities with competing hypotheses</li>
+<li>Create typed temporal relationships</li>
+<li>Detect contradictions and change</li>
+<li>Evaluate extraction quality</li>
+</ol>
+<p>Normalization never destroys the original. If the normalized form is wrong, the original is still there to re-derive from.</p>
+</div>
+<div class="card">
+<h3>Contradiction engine: seven questions</h3>
+<ol>
+<li>What evidence supports this?</li>
+<li>What contradicts it?</li>
+<li>Are supporting sources genuinely independent?</li>
+<li>Could two records be different entities?</li>
+<li>Is the evidence current enough?</li>
+<li>What observation would change the conclusion?</li>
+<li>What is the cheapest reliable way to resolve the uncertainty?</li>
+</ol>
+<p>Question 6 is the prediction falsifier: a conclusion that names nothing that could change it is not a finding, it is a preference.</p>
+</div>
+</div>
+</section>
+
+<section id="controller">
+<h2>12. Adaptive swarm controller</h2>
+<p>Eight steps, run for every mission. The controller earns its keep by measuring whether each worker added value, not by how many workers it can field.</p>
+<ol>
+<li>Compile the mission</li>
+<li>Estimate the gap</li>
+<li>Select the minimum sufficient team</li>
+<li>Partition independent work</li>
+<li>Execute in dependency order</li>
+<li>Reconcile disagreements by evidence and methods, not majority vote</li>
+<li>Run an independent challenge</li>
+<li>Stop, continue, or escalate</li>
+</ol>
+<div class="callout"><strong>Do not use agent agreement as proof of truth.</strong> Agents that share a source, a model, or a prompt will agree for the wrong reason. Agreement counts only when the evidence and the methods behind it are independent.</div>
+<h3>Marginal value</h3>
+<p>For worker <span class="mono">i</span>, the marginal quality gain is:</p>
+<p class="mono" style="font-size:1.05rem">delta Q_i = Q with i minus Q baseline</p>
+<p>where Q is a predefined task-quality measure. The controller also weighs incremental cost and latency, new independent evidence, errors caught or introduced, duplicate work, calibrated prediction improvement, and impact on the final decision.</p>
+<div class="card">
+<h3>Interactive calculator: marginal value of a worker</h3>
+<p>Enter baseline quality, quality with worker <span class="mono">i</span>, cost, and latency. Quality is a 0 to 1 task-quality score you define before the run, not after it.</p>
+<label for="qBase">Baseline quality Q (0 to 1)</label>
+<input id="qBase" type="number" min="0" max="1" step="0.01" value="0.62">
+<label for="qWith">Quality with worker i (0 to 1)</label>
+<input id="qWith" type="number" min="0" max="1" step="0.01" value="0.74">
+<label for="wCost">Incremental cost (dollars)</label>
+<input id="wCost" type="number" min="0" step="0.01" value="1.20">
+<label for="wLat">Incremental latency (seconds)</label>
+<input id="wLat" type="number" min="0" step="0.01" value="8">
+<button class="btn primary" id="calcBtn" style="margin-top:14px">Calculate marginal value</button>
+<button class="btn" id="calcReset">Reset</button>
+<div class="result hidden" id="calcResult" aria-live="polite"></div>
+<p class="statusline" id="calcNote">Recommendation rule: keep the worker when delta Q is positive and value per dollar is acceptable for the mission; route only to high-value work when the gain is small relative to cost; remove when delta Q is zero or negative.</p>
+</div>
+</section>
+
+<section id="qualification">
+<h2>13. Universal qualification engine</h2>
+<p>Click a state to see what it means and what it requires. Every output includes reasons, supporting evidence, unresolved questions, rubric version, and the next permitted action. <span class="badge b-prop">Proposed</span> as a universal engine; case-level qualification was <span class="badge b-dem">Demonstrated</span> in the Willow case.</p>
+<div class="chips" id="qualChips" role="group" aria-label="Qualification states">
+<button class="chip active" data-q="0">QUALIFIED</button>
+<button class="chip" data-q="1">PROVISIONAL</button>
+<button class="chip" data-q="2">REJECTED</button>
+<button class="chip" data-q="3">BLOCKED</button>
+<button class="chip" data-q="4">ESCALATED</button>
+<button class="chip" data-q="5">STALE</button>
+</div>
+<div class="detail" id="qualDetail" aria-live="polite"></div>
+<h3>The three questions</h3>
+<ol>
+<li>Is the claim sufficiently supported?</li>
+<li>Does the candidate meet eligibility?</li>
+<li>Is acting worth the cost and risk?</li>
+</ol>
+<h3>Expected value</h3>
+<p class="mono" style="font-size:1.02rem">EV = sum over i of P(O_i | E) x V(O_i) minus C minus R</p>
+<p>where P is the estimated probability of outcome <span class="mono">i</span> given evidence E, V is its value, C is expected cost, and R is an explicitly defined risk adjustment. Caveat: do not present this as rigorous merely because it contains a probability. Probabilities must be calibrated against observed outcomes, or the formula is arithmetic on guesses.</p>
+</section>
+
+<section id="bloomintel">
+<h2>14. Bloom Intelligence</h2>
+<div class="grid2">
+<div class="card">
+<h3>Three layers <span class="badge b-doc">Documented</span></h3>
+<ul>
+<li><strong>A. Environmental change.</strong> What changed in the region, market, or network, and by how much.</li>
+<li><strong>B. Cluster emergence.</strong> Related entities, opportunities, and capabilities gathering into a cluster.</li>
+<li><strong>C. Opportunity qualification.</strong> Whether the cluster contains a qualified, actionable opportunity.</li>
+</ul>
+</div>
+<div class="card">
+<h3>Four controls</h3>
+<ul>
+<li><strong>Baseline.</strong> Change measured against a geographic and historical baseline, not against yesterday.</li>
+<li><strong>Independence.</strong> Signals counted only from genuinely independent source families.</li>
+<li><strong>Persistence.</strong> The change lasts long enough to matter, not a one-day spike.</li>
+<li><strong>Falsification.</strong> A named observation that would kill the bloom claim if found.</li>
+</ul>
+</div>
+</div>
+<div class="callout good"><strong>Strongest output.</strong> An opportunity record with a temporal evidence graph, measurable change, an explanation, an uncertainty statement, and a recommended next test. If any of those five is missing, the output is a lead, not a bloom.</div>
+</section>
+
+<section id="chain">
+<h2>15. The seven receipt types: a clickable chain</h2>
+<p>Click each receipt to see what it seals. Each receipt carries a stable ID, schema version, parent references, content digest, timestamps, actor identity, verification state, and integrity checks. Corrections append a new event or a superseding receipt, never silently rewrite history. Hash chains prove integrity, not source truthfulness.</p>
+<figure>
+<figcaption><b>Figure 4.</b> The receipt chain. Each receipt points to its parents; the chain is only as strong as its weakest verification state.</figcaption>
+<div class="chain" id="receiptChain">
+<button class="link active" data-r="0">Research receipt</button><span class="arrow">&rarr;</span>
+<button class="link" data-r="1">Resolution receipt</button><span class="arrow">&rarr;</span>
+<button class="link" data-r="2">Qualification receipt</button><span class="arrow">&rarr;</span>
+<button class="link" data-r="3">Swarm receipt</button><span class="arrow">&rarr;</span>
+<button class="link" data-r="4">Decision receipt</button><span class="arrow">&rarr;</span>
+<button class="link" data-r="5">Execution receipt</button><span class="arrow">&rarr;</span>
+<button class="link" data-r="6">Outcome receipt</button>
+</div>
+<div class="detail" id="receiptDetail" aria-live="polite"></div>
+</figure>
+</section>
+
+<section id="controls">
+<h2>16. Enterprise-grade controls</h2>
+<table>
+<thead><tr><th>Control</th><th>Enhancement</th></tr></thead>
+<tbody>
+<tr><td><strong>Data governance</strong></td><td>Source registry, lineage, retention rules, and ownership for every dataset the Fabric touches.</td></tr>
+<tr><td><strong>Privacy</strong></td><td>Minimize person data collected, separate professional from private attributes, delete what is not needed.</td></tr>
+<tr><td><strong>Source safety</strong></td><td>Authorized sources only; no bypassing access controls to reach a record.</td></tr>
+<tr><td><strong>Security</strong></td><td>Least-privilege tool access, leased worker authority, audit logging on every consequential action.</td></tr>
+<tr><td><strong>Reliability</strong></td><td>Checkpoints, retries with bounds, graceful degradation when a source is down.</td></tr>
+<tr><td><strong>Observability</strong></td><td>Every mission, decision, and execution observable in receipts, not only in logs.</td></tr>
+<tr><td><strong>Reproducibility</strong></td><td>Same inputs, same schemas, same rubric version reproduces the same record.</td></tr>
+<tr><td><strong>Evaluation</strong></td><td>Golden datasets, labeled evaluation sets, and red-team challenges before promotion.</td></tr>
+<tr><td><strong>Cost governance</strong></td><td>Budgets per mission, marginal-value accounting per worker, spend visible in receipts.</td></tr>
+<tr><td><strong>Human authority</strong></td><td>Humans decide consequential actions; the system recommends, escalates, and records.</td></tr>
+</tbody>
+</table>
+<div class="callout warn"><strong>Person-related OSINT safeguards.</strong> Use lawful authorized sources. Distinguish public professional affiliations from private or sensitive attributes. Do not infer wrongdoing from graph proximity: being near a bad actor in a graph is not evidence of anything. Human review before consequential decisions about people, every time, with no exception for a high score.</div>
+</section>
+
+<section id="scorecard">
+<h2>17. Operational scorecard</h2>
+<p>Nine KPIs. Set thresholds only after a baseline and a labeled evaluation set exist, except hard safety requirements, which carry zero tolerance from the start.</p>
+<table>
+<thead><tr><th>KPI</th><th>What it measures</th></tr></thead>
+<tbody>
+<tr><td><strong>Evidence / source traceability</strong></td><td>Share of claims traceable to an exact source span.</td></tr>
+<tr><td><strong>Resolution / false-merge rate</strong></td><td>How often distinct entities were wrongly merged, and how often true matches were missed.</td></tr>
+<tr><td><strong>Research / useful discovery rate</strong></td><td>Share of research effort that produced usable evidence.</td></tr>
+<tr><td><strong>Calibration / prediction accuracy</strong></td><td>Brier score and calibration error on recorded predictions.</td></tr>
+<tr><td><strong>Swarm / marginal value per worker</strong></td><td>Average delta Q per worker against cost and latency.</td></tr>
+<tr><td><strong>Qualification / decision precision</strong></td><td>Share of qualified candidates that proved out, and of rejected ones that should not have been.</td></tr>
+<tr><td><strong>Execution / verified completion rate</strong></td><td>Share of executed actions verified complete, with receipts.</td></tr>
+<tr><td><strong>Governance / unauthorized action count</strong></td><td>Must remain zero. Any unauthorized action is a failure, not a metric to trend.</td></tr>
+<tr><td><strong>Economics / net value per completed mission</strong></td><td>Value delivered minus total cost, per mission, with receipts.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="roadmap">
+<h2>18. The 4-phase roadmap</h2>
+<p>Click a phase for its work and its exit criteria. A phase is not done when the work is described; it is done when its exit criteria are evidenced.</p>
+<figure>
+<figcaption><b>Figure 5.</b> Four phases, in order. Do not start Phase 3 before Phase 1 has produced the map, or the swarm will optimize a system nobody has inventoried.</figcaption>
+<div class="timeline" id="roadmapTimeline">
+<button class="phase active" data-p="0"><h3>Phase 1</h3><p><strong>Converge and establish truth</strong></p><p>Inventory, map, trace, baseline.</p></button>
+<button class="phase" data-p="1"><h3>Phase 2</h3><p><strong>Standardize the intelligence core</strong></p><p>Contracts, schemas, validators.</p></button>
+<button class="phase" data-p="2"><h3>Phase 3</h3><p><strong>Upgrade research and swarm decisions</strong></p><p>Planning, benchmarks, challenges.</p></button>
+<button class="phase" data-p="3"><h3>Phase 4</h3><p><strong>Close the loop</strong></p><p>Receipts, outcomes, promotion.</p></button>
+</div>
+<div class="detail" id="phaseDetail" aria-live="polite"></div>
+</figure>
+</section>
+
+<section id="exceptional">
+<h2>19. The definition of exceptional: a 10-step mission walkthrough</h2>
+<p>The mission: <em>find and qualify the strongest evidence-backed opportunities emerging in a defined region, and return them with the evidence, the uncertainty, and the next permitted action.</em> Walk the mission step by step. The same core powers real-estate intelligence, business research, resale, market detection, and other domains.</p>
+<div class="progress" aria-hidden="true"><div id="walkBar"></div></div>
+<div class="walk" id="walkBtns" role="group" aria-label="Mission walkthrough steps"></div>
+<div class="detail" id="walkDetail" aria-live="polite"></div>
+<div style="margin-top:10px">
+<button class="btn primary" id="walkPrev">Previous step</button>
+<button class="btn primary" id="walkNext">Next step</button>
+<span class="mono" id="walkCounter" style="font-size:.85rem">Step 1 of 10</span>
+</div>
+<div class="callout"><strong>Recommendation.</strong> Start with Phase 1. The most valuable next artifact is a canonical <strong>Neuruh Intelligence Fabric Convergence Specification</strong>: one document that names every repo, schema, owner, and consumer, with evidence for every status claim in Section 2.</div>
+</section>
+
+<section id="refs">
+<h2>20. External references worth evaluating</h2>
+<p>These are external sources named in the review, clearly labeled as external and not part of Neuruh. Evaluate each before adopting anything from it.</p>
+<table>
+<thead><tr><th>Reference</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td><strong>OpenOSINT</strong></td><td>External open-source intelligence community and tooling. Evaluate for methods and standards, not as a Neuruh component.</td></tr>
+<tr><td><strong>OWASP Open Source Intelligence Standard</strong></td><td>External standard; v0.1.0 cited in Section 6 for traceable provenance, corroboration, explicit uncertainty, contradiction handling, and reproducible analysis.</td></tr>
+<tr><td><strong>Open OSINT Knowledge Graph</strong></td><td>External knowledge-graph effort. Evaluate for schema and relationship conventions.</td></tr>
+<tr><td><strong>OSINT.dev</strong></td><td>External OSINT resource. Evaluate for source coverage and methods.</td></tr>
+<tr><td><strong>OSINT Foundation standards</strong></td><td>External professional standards body. Evaluate for practice and ethics guidance.</td></tr>
+</tbody>
+</table>
+</section>
+
+<footer>
+<p><strong>Neuruh Intelligence Fabric v1.0.</strong> Built from the Oct 18, 2026 OSINT Architecture Review. The source file <span class="mono">~/workspace/drive-pull/osint-architecture-review.md</span> did not exist at build time, so this page was built from the complete content specification supplied with the build order. No content was invented; where state could not be verified, the page says so.</p>
+<p>Status key: <span class="badge b-doc">Documented</span> exists in a recovered document or specification. <span class="badge b-dem">Demonstrated</span> was shown working in case work. <span class="badge b-prop">Proposed</span> is target architecture, not yet built or proven. <span class="badge b-unv">Unverified</span> means the current state could not be confirmed.</p>
+<p>Honesty line: the Fabric as a complete system is proposed, not live. Case Zero and Willow demonstrate parts of it. The end-to-end loop, the universal detector, calibrated probabilities, and governed promotion history are all unverified.</p>
+</footer>
+</main>
+<script>
+(function(){
+"use strict";
+function $(s){return document.querySelector(s);}
+function $all(s){return Array.prototype.slice.call(document.querySelectorAll(s));}
+function setActive(list, el){list.forEach(function(x){x.classList.remove("active");}); el.classList.add("active");}
+
+/* Pipeline */
+var stages=[
+{title:"01 Mission and scope",body:"<p><strong>What it does.</strong> Turns a request into a formal mission: the question, the authorized purpose, the boundaries, and the success criteria. A mission without boundaries is not a mission, it is an open-ended search.</p><p><strong>Produces:</strong> a mission record with objective, scope, consent, jurisdiction, risk, and budget. Nothing downstream may exceed it.</p><p><strong>Status:</strong> <span class='badge b-doc'>Documented</span></p>"},
+{title:"02 Source acquisition",body:"<p><strong>What it does.</strong> Gathers from public records, permitted datasets, documents, and feeds, and preserves a snapshot of each source as retrieved.</p><p><strong>Produces:</strong> source snapshots in the Source Registry, each with origin, retrieval time, and family. A source that cannot be re-fetched from its snapshot is a rumor.</p><p><strong>Status:</strong> <span class='badge b-dem'>Demonstrated</span> in case work (22 source families in the Willow case)</p>"},
+{title:"03 Parsing and atomization",body:"<p><strong>What it does.</strong> Extracts entities, claims, dates, identifiers, locations, and relationships as atomic observations, each tied to an exact source span.</p><p><strong>Produces:</strong> atoms that can be checked one by one. If an atom cannot point at its span, it is not evidence.</p><p><strong>Status:</strong> <span class='badge b-doc'>Documented</span> in the 7-stage extraction pipeline</p>"},
+{title:"04 Identity resolution",body:"<p><strong>What it does.</strong> Normalizes records, compares candidates, detects collisions, and sends proposed matches for review. Two records with the same name are a collision candidate until this stage says otherwise.</p><p><strong>Produces:</strong> resolved entities with match scores and review status.</p><p><strong>Status:</strong> <span class='badge b-dem'>Demonstrated</span> in case work; universal service <span class='badge b-unv'>Unverified</span></p>"},
+{title:"05 Evidence graph",body:"<p><strong>What it does.</strong> Links claims to sources, entities, relationships, time, and contradictions. The graph is typed: identity, affiliation, association, inference, contradiction.</p><p><strong>Produces:</strong> a temporal evidence graph where every edge can be inspected back to its source span.</p><p><strong>Status:</strong> <span class='badge b-dem'>Demonstrated</span> in the Willow case (10 nodes, 15 edges)</p>"},
+{title:"06 Qualification and scoring",body:"<p><strong>What it does.</strong> Scores evidence quality, relevance, coverage, risk, and opportunity value against explicit, versioned criteria.</p><p><strong>Produces:</strong> a qualification state (Section 13) with reasons, evidence, unresolved questions, rubric version, and next permitted action.</p><p><strong>Status:</strong> <span class='badge b-doc'>Documented</span>; deployed scoring <span class='badge b-unv'>Unverified</span></p>"},
+{title:"07 Swarm decision",body:"<p><strong>What it does.</strong> Allocates specialists, investigates gaps, challenges hypotheses, and selects next actions. The Modulation Engine picks the minimum sufficient competent team.</p><p><strong>Produces:</strong> a decision with a trace: options, scores, challenges, and who decided.</p><p><strong>Status:</strong> <span class='badge b-prop'>Proposed</span> as live routing; target architecture <span class='badge b-doc'>Documented</span></p>"},
+{title:"08 Governed execution",body:"<p><strong>What it does.</strong> Approves, escalates, blocks, or executes permitted actions. A consequential action without a governance check does not run.</p><p><strong>Produces:</strong> executed actions with leases, checkpoints, and outputs, or a recorded block with reasons.</p><p><strong>Status:</strong> <span class='badge b-doc'>Documented</span>; live loop <span class='badge b-unv'>Unverified</span></p>"},
+{title:"09 Receipts and outcomes",body:"<p><strong>What it does.</strong> Seals provenance, records decisions, measures results, and recalibrates. Then feeds back into the next mission: the prediction is compared with reality, and the difference is learned from.</p><p><strong>Produces:</strong> the complete nine-section receipt (Section 7) and a calibration update.</p><p><strong>Status:</strong> <span class='badge b-doc'>Documented</span> structure; end-to-end live chain <span class='badge b-prop'>Proposed</span></p>"}
+];
+var stageDetail=$("#stageDetail"), stageCounter=$("#stageCounter"), stageBtns=$all("#pipelineFlow .stage");
+var currentStage=0;
+function showStage(i){
+  currentStage=i;
+  setActive(stageBtns, stageBtns[i]);
+  stageDetail.innerHTML="<h3>"+stages[i].title+"</h3>"+stages[i].body;
+  stageCounter.textContent="Stage "+(i+1)+" of 9";
+}
+stageBtns.forEach(function(b,i){b.addEventListener("click",function(){showStage(i);});});
+$("#nextStageBtn").addEventListener("click",function(){showStage((currentStage+1)%9);});
+showStage(0);
+
+/* Status filter */
+var statusBtns=$all("#statusFilters .chip");
+statusBtns.forEach(function(b){
+  b.addEventListener("click",function(){
+    setActive(statusBtns,b);
+    var f=b.getAttribute("data-f"), shown=0, total=0;
+    $all("#statusTable tbody tr").forEach(function(r){
+      total++;
+      var ok=(f==="all")||(r.getAttribute("data-s")===f);
+      r.style.display=ok?"":"none";
+      if(ok) shown++;
+    });
+    $("#statusCount").textContent="Showing "+shown+" of "+total+" rows.";
+  });
+});
+
+/* Gap filter */
+var gapBtns=$all("#gapFilters .chip");
+gapBtns.forEach(function(b){
+  b.addEventListener("click",function(){
+    setActive(gapBtns,b);
+    var f=b.getAttribute("data-g"), shown=0;
+    $all("#gapTable tbody tr").forEach(function(r){
+      var ok=(f==="all")||(r.getAttribute("data-g")===f);
+      r.style.display=ok?"":"none";
+      if(ok) shown++;
+    });
+    $("#gapCount").textContent="Showing "+shown+" of 10 gaps. 7 Critical, 3 High.";
+  });
+});
+
+/* Architecture layers */
+var layers=$all("#archLayers .layer");
+layers.forEach(function(l){
+  l.addEventListener("click",function(){
+    layers.forEach(function(x){x.classList.remove("active"); x.querySelector(".layerDetail").classList.add("hidden");});
+    l.classList.add("active");
+    l.querySelector(".layerDetail").classList.remove("hidden");
+  });
+});
+
+/* Calculator */
+function calc(){
+  var qb=parseFloat($("#qBase").value), qw=parseFloat($("#qWith").value),
+      c=parseFloat($("#wCost").value), lat=parseFloat($("#wLat").value);
+  var out=$("#calcResult");
+  if(isNaN(qb)||isNaN(qw)||isNaN(c)||isNaN(lat)||qb<0||qb>1||qw<0||qw>1||c<0||lat<0){
+    out.classList.remove("hidden");
+    out.innerHTML="<p><strong>Check the inputs.</strong> Qualities must be 0 to 1; cost and latency must be 0 or more.</p>";
+    return;
+  }
+  var d=qw-qb;
+  var vpc=(c>0)?(d/c):(d>0?Infinity:0);
+  var vpcTxt=(c>0)?vpc.toFixed(4)+" per dollar":(d>0?"no cost, gain is free":"no cost, no gain");
+  var rec, why;
+  if(d<=0){rec="REMOVE"; why="Delta Q is zero or negative. The worker adds no quality, or makes it worse. Remove it, or re-scope it.";}
+  else if(c>0 && vpc<0.01){rec="ROUTE ONLY TO HIGH-VALUE WORK"; why="The gain is real but small relative to cost. Use this worker only where the decision value justifies it.";}
+  else{rec="KEEP"; why="Positive delta Q at an acceptable value per dollar. Keep the worker and keep measuring.";}
+  out.classList.remove("hidden");
+  out.innerHTML="<p class='big'>Delta Q = "+d.toFixed(2)+"</p><p><strong>Marginal value per cost:</strong> "+vpcTxt+"</p><p><strong>Latency added:</strong> "+lat.toFixed(2)+" seconds</p><p><strong>Recommendation: "+rec+"</strong><br>"+why+"</p>";
+}
+$("#calcBtn").addEventListener("click",calc);
+$("#calcReset").addEventListener("click",function(){
+  $("#qBase").value="0.62"; $("#qWith").value="0.74"; $("#wCost").value="1.20"; $("#wLat").value="8";
+  $("#calcResult").classList.add("hidden");
+  $("#calcResult").innerHTML="";
+});
+
+/* Qualification explorer */
+var quals=[
+{title:"QUALIFIED",body:"<p><strong>Meaning:</strong> all mandatory gates pass and the evidence is sufficient to act.</p><p><strong>Requires:</strong> reasons, supporting evidence, unresolved questions (none blocking), rubric version, next permitted action.</p><p><strong>Next step:</strong> execute the permitted action under governance.</p>"},
+{title:"PROVISIONAL",body:"<p><strong>Meaning:</strong> potential value, but specified gaps remain.</p><p><strong>Requires:</strong> the gaps listed by name, what would close each one, and the cheapest reliable way to close it.</p><p><strong>Next step:</strong> research the named gaps; do not act as if it were qualified.</p>"},
+{title:"REJECTED",body:"<p><strong>Meaning:</strong> a mandatory disqualifier applies.</p><p><strong>Requires:</strong> the disqualifier named, the evidence for it, and the rubric version applied.</p><p><strong>Next step:</strong> stop, record the rejection, and keep the receipt so the same candidate is not re-litigated blind.</p>"},
+{title:"BLOCKED",body:"<p><strong>Meaning:</strong> authority, policy, data access, or prerequisites prevent progress.</p><p><strong>Requires:</strong> the blocker named and its owner, if known.</p><p><strong>Next step:</strong> escalate to whoever can clear the blocker; no work around it.</p>"},
+{title:"ESCALATED",body:"<p><strong>Meaning:</strong> human or specialist judgment is required.</p><p><strong>Requires:</strong> the question put to the human, the evidence so far, and the options.</p><p><strong>Next step:</strong> a human decides; the decision and its reasons enter the receipt.</p>"},
+{title:"STALE",body:"<p><strong>Meaning:</strong> evidence expired or materially changed since qualification.</p><p><strong>Requires:</strong> what changed, when, and which claims it affects.</p><p><strong>Next step:</strong> re-qualify from the changed evidence; do not act on the old state.</p>"}
+];
+var qualDetail=$("#qualDetail"), qualChips=$all("#qualChips .chip");
+function showQual(i){
+  setActive(qualChips, qualChips[i]);
+  qualDetail.innerHTML="<h3>"+quals[i].title+"</h3>"+quals[i].body;
+}
+qualChips.forEach(function(b,i){b.addEventListener("click",function(){showQual(i);});});
+showQual(0);
+
+/* Receipt chain */
+var receipts=[
+{title:"Research receipt",body:"<p><strong>Seals:</strong> what was researched, which sources were consulted, what was found, and what was not found. Source snapshots and families included.</p><p>Without this, nobody can tell whether a missing fact was never looked for or looked for and absent. Those are different answers.</p>"},
+{title:"Resolution receipt",body:"<p><strong>Seals:</strong> which records were matched to which entities, match scores, collisions detected, and review status of each proposed match.</p><p>A false merge sealed here is a false merge that can be found and undone later.</p>"},
+{title:"Qualification receipt",body:"<p><strong>Seals:</strong> the qualification state, the rubric version, the reasons, the supporting evidence, and the unresolved questions.</p><p>This is the receipt that answers: why did this candidate qualify, and under what rules?</p>"},
+{title:"Swarm receipt",body:"<p><strong>Seals:</strong> the team selected, the models and tools used, the work partitioned, the disagreements and how they were reconciled, and the independent challenge.</p><p>Reconciliation by evidence and methods, not majority vote, is recorded here.</p>"},
+{title:"Decision receipt",body:"<p><strong>Seals:</strong> the options considered, the scores, the decision taken, who or what decided, and the governance check that permitted it.</p><p>The dedicated repo NeuruhAI/neuruh-decision-receipt is the named home for this receipt type. Current source and health unverified.</p>"},
+{title:"Execution receipt",body:"<p><strong>Seals:</strong> the actions executed, leases used, checkpoints, outputs, and failures.</p><p>An action without this receipt is an action that cannot be proven to have happened, or to have happened as permitted.</p>"},
+{title:"Outcome receipt",body:"<p><strong>Seals:</strong> the observed result, the prediction it is compared against, the error, and what changes next time.</p><p>This receipt is what turns a mission into learning. Without it the loop is open and the system repeats its mistakes with receipts.</p>"}
+];
+var receiptDetail=$("#receiptDetail"), receiptLinks=$all("#receiptChain .link");
+function showReceipt(i){
+  setActive(receiptLinks, receiptLinks[i]);
+  receiptDetail.innerHTML="<h3>"+receipts[i].title+"</h3>"+receipts[i].body;
+}
+receiptLinks.forEach(function(b,i){b.addEventListener("click",function(){showReceipt(i);});});
+showReceipt(0);
+
+/* Roadmap */
+var phases=[
+{title:"Phase 1: Converge and establish truth",body:"<p><strong>Work:</strong> inventory repos, canonical docs, schemas, and consumers; identify duplicates and owners; trace one mission end to end; establish a verified baseline; preserve working implementations.</p><p><strong>Exit:</strong> a repository-backed architecture map with evidence for every status claim in Section 2.</p>"},
+{title:"Phase 2: Standardize the intelligence core",body:"<p><strong>Work:</strong> finalize contracts; versioned schemas, compatibility tests, deterministic validators; temporal and provenance semantics; a golden dataset.</p><p><strong>Exit:</strong> independent components exchange valid records without losing evidence lineage.</p>"},
+{title:"Phase 3: Upgrade research and swarm decisions",body:"<p><strong>Work:</strong> research planning, source-gap analysis, stopping rules; benchmark specialist selection and model routing; qualification gates, red-team challenges, disagreement resolution; compare against a deterministic or single-agent baseline.</p><p><strong>Exit:</strong> measurable quality improvement at acceptable cost, against the baseline.</p>"},
+{title:"Phase 4: Close the loop",body:"<p><strong>Work:</strong> connect receipts to execution, governance, and verified outcomes; local-bloom detection and domain opportunity qualification; drift detection and controlled calibration experiments; promote only validated changes, with rollback.</p><p><strong>Exit:</strong> reproducible missions with end-to-end receipts and measured outcomes.</p>"}
+];
+var phaseDetail=$("#phaseDetail"), phaseBtns=$all("#roadmapTimeline .phase");
+function showPhase(i){
+  setActive(phaseBtns, phaseBtns[i]);
+  phaseDetail.innerHTML="<h3>"+phases[i].title+"</h3>"+phases[i].body;
+}
+phaseBtns.forEach(function(b,i){b.addEventListener("click",function(){showPhase(i);});});
+showPhase(0);
+
+/* Walkthrough */
+var steps=[
+{title:"Step 1: Translate the mission",body:"<p>Turn the mission into a formal objective and constraints: the region, the question, the authorized purpose, the boundaries, the success criteria, the budget. If it cannot be written down, it cannot be governed.</p>"},
+{title:"Step 2: Select authorized sources",body:"<p>Choose authorized sources and preserve provenance from the first retrieval. Every source gets a snapshot, a family, and a retrieval time.</p>"},
+{title:"Step 3: Resolve entities and relationships",body:"<p>Resolve entities and relationships without hiding ambiguity. Collisions, competing hypotheses, and inference are recorded as such, not smoothed over.</p>"},
+{title:"Step 4: Detect change and competing explanations",body:"<p>Detect meaningful changes against the baseline, and name the competing explanations for each change. A change with only one explanation considered is a change half investigated.</p>"},
+{title:"Step 5: Score candidates",body:"<p>Score candidates using explicit, versioned criteria. The rubric version is part of the score, so a later rubric change does not silently rewrite history.</p>"},
+{title:"Step 6: Allocate specialists",body:"<p>Allocate specialists based on measured performance, not reputation or availability. Minimum sufficient competent topology: the smallest team that can do the job well.</p>"},
+{title:"Step 7: Challenge material findings",body:"<p>Challenge material findings before deciding. Run the independent challenge and the seven contradiction questions. A finding that survives challenge is worth more than one that was never tested.</p>"},
+{title:"Step 8: Enforce governance",body:"<p>Enforce governance before consequential actions. Approve, escalate, or block. A blocked action with a reason is a success of the system, not a failure of it.</p>"},
+{title:"Step 9: Produce a verifiable receipt chain",body:"<p>Produce the seven-receipt chain from research through outcome, each with stable ID, schema version, parent references, content digest, timestamps, actor identity, verification state, and integrity checks.</p>"},
+{title:"Step 10: Compare prediction with reality",body:"<p>Compare the predicted result with reality and learn from the difference. Record the error, update calibration, and carry the lesson into the next mission. This step is what makes the system exceptional instead of merely busy.</p>"}
+];
+var walkDetail=$("#walkDetail"), walkCounter=$("#walkCounter"), walkBar=$("#walkBar"),
+    walkBtnsBox=$("#walkBtns"), walkBtns=[], walkCurrent=0;
+steps.forEach(function(s,i){
+  var b=document.createElement("button");
+  b.className="btn"+(i===0?" active":"");
+  b.textContent=(i+1)+". "+s.title.replace(/^Step \d+: /,"");
+  b.addEventListener("click",function(){showWalk(i);});
+  walkBtnsBox.appendChild(b);
+  walkBtns.push(b);
+});
+function showWalk(i){
+  walkCurrent=i;
+  walkBtns.forEach(function(b,j){b.classList.toggle("active",j===i);});
+  walkDetail.innerHTML="<h3>"+steps[i].title+"</h3>"+steps[i].body;
+  walkCounter.textContent="Step "+(i+1)+" of 10";
+  walkBar.style.width=((i+1)*10)+"%";
+}
+$("#walkPrev").addEventListener("click",function(){showWalk((walkCurrent+9)%10);});
+$("#walkNext").addEventListener("click",function(){showWalk((walkCurrent+1)%10);});
+showWalk(0);
+})();
+</script>
+</body>
+</html>
