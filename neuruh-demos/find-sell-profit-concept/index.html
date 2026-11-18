@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find Sell Profit Concept: Asset Intelligence and Transaction Orchestration</title>
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --ink-soft:#4a463d;
+  --brass:#9a7b2d; --brass-light:#c9a227; --line:#d8d2c4; --code-bg:#efece3;
+  --green:#2e6b3a; --amber:#8a6d1b; --red:#8a2f26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.25;margin:0 0 .5em}
+p{margin:0 0 .9em}
+a{color:var(--brass)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+code{font-size:.88em}
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#f4f1ea;display:flex;align-items:center;gap:16px;padding:10px 20px;font-size:13px;flex-wrap:wrap}
+.topbar .mark{font-family:Archivo,sans-serif;font-weight:700;letter-spacing:.12em;color:var(--brass-light)}
+.topbar a{color:#f4f1ea;text-decoration:none;border-bottom:1px solid transparent}
+.topbar a:hover{border-bottom-color:var(--brass-light)}
+.topbar .spacer{flex:1}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 20px 60px}
+.dochead{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--brass);padding:22px 24px;margin-bottom:20px}
+.dochead .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+.dochead h1{font-size:30px;margin-bottom:8px}
+.dochead .sub{color:var(--ink-soft);font-size:15px}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.meta-grid div{background:var(--paper);padding:10px 12px;font-size:13px}
+.meta-grid .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:2px}
+.banner{border:2px solid var(--brass);background:#fdf6dd;padding:16px 20px;margin-bottom:24px}
+.banner h2{font-size:16px;color:var(--ink);margin-bottom:6px}
+.banner p{font-size:14px;margin-bottom:.5em}
+.banner ul{margin:.2em 0 .4em 1.2em;font-size:14px}
+.banner li{margin-bottom:.25em}
+.contents{background:var(--paper);border:1px solid var(--line);padding:16px 20px;margin-bottom:28px}
+.contents h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+.contents ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+.contents li{margin-bottom:4px;font-size:14px}
+.contents a{text-decoration:none;color:var(--ink)}
+.contents a:hover{color:var(--brass);text-decoration:underline}
+section{margin-bottom:36px}
+.fig{background:var(--paper);border:1px solid var(--line);padding:20px 22px}
+.fig .fignum{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:4px}
+.fig h2{font-size:22px}
+.fig h3{font-size:16px;margin-top:18px}
+.figcap{font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:16px;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-family:Archivo,sans-serif;font-size:13px}
+tbody tr:nth-child(even){background:#f7f4ec}
+.pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass);margin-right:6px}
+.pill.solid{background:var(--brass);color:#fff}
+.pill.green{border-color:var(--green);color:var(--green)}
+.pill.amber{border-color:var(--amber);color:var(--amber)}
+.pill.red{border-color:var(--red);color:var(--red)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:14px 0}
+.flow .step{flex:1 1 140px;background:var(--code-bg);border:1px solid var(--line);padding:10px 12px;font-size:13px;text-align:center;font-weight:600}
+.flow .arrow{align-self:center;padding:0 6px;color:var(--brass);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);background:var(--bone);padding:14px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--ink-soft)}
+.card.active{border-color:var(--brass);border-width:2px;background:var(--paper)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{font-family:Inter,sans-serif;font-size:13px;padding:8px 14px;border:1px solid var(--brass);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:4px}
+button:hover{background:var(--code-bg)}
+button.on{background:var(--brass);color:#fff;border-color:var(--brass)}
+.panel{border:1px solid var(--line);background:var(--paper);padding:14px 16px;margin-top:8px;font-size:14px}
+.panel h4{font-size:15px;margin-bottom:4px}
+.hidden{display:none}
+details{border:1px solid var(--line);background:var(--paper);margin-bottom:8px}
+details summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ ";color:var(--brass);font-weight:700}
+details[open] summary::before{content:"- ";color:var(--brass)}
+details .body{padding:0 14px 12px;font-size:14px;color:var(--ink-soft)}
+details .body p{margin-bottom:.5em}
+.secnum{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:12px;margin-right:8px}
+ol.tight{columns:2;column-gap:28px;font-size:13px;padding-left:22px}
+ol.tight li{margin-bottom:5px;break-inside:avoid}
+ol.tight.single{columns:1}
+input[type="text"],input[type="number"]{font-family:Inter,sans-serif;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;width:100%;max-width:420px;background:var(--paper)}
+input[type="number"]{max-width:160px}
+.turnpanel{border:1px solid var(--line);background:var(--paper);padding:16px 18px;font-size:14px}
+.turnpanel .who{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+blockquote{border-left:3px solid var(--brass);margin:10px 0;padding:4px 0 4px 14px;color:var(--ink-soft);font-style:italic}
+.note{font-size:13px;color:var(--ink-soft)}
+.callout{background:var(--code-bg);border-left:4px solid var(--brass);padding:12px 16px;margin:14px 0;font-size:14px}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:16px;font-size:13px;color:var(--ink-soft)}
+@media (max-width:760px){
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .cards{grid-template-columns:1fr}
+  .contents ol{columns:1}
+  ol.tight{columns:1}
+  .dochead h1{font-size:24px}
+}
+@media print{
+  .topbar,.btnrow,input[type="text"],input[type="number"]{display:none}
+  body{background:#fff}
+  .fig,.dochead,.banner,.contents{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="mark">NEURUH</span>
+  <span>Find Sell Profit Concept</span>
+  <span class="spacer"></span>
+  <a href="#contents">Contents</a>
+  <a href="#fig2">Valuation</a>
+  <a href="#fig8">Value ladder</a>
+  <a href="#fidelity">Fidelity</a>
+</div>
+<div class="wrap">
+
+<div class="dochead">
+  <div class="kicker">Document Control: Interactive Page, Link 21</div>
+  <h1>Find Sell Profit Concept</h1>
+  <p class="sub">Not a car marketplace. An orchestration engine between any asset owner and the best exit path: find undervalued assets, determine true value, identify the highest-value disposition path, orchestrate execution, and capture a small portion of the value created.</p>
+  <div class="meta-grid">
+    <div><span class="k">Source conversation</span><a href="https://chatgpt.com/share/6afd9498-8184-83ea-969f-39f96c4ed62c">chatgpt.com/share/6afd9498</a></div>
+    <div><span class="k">Page date</span>Fri, Jul 31 at 8:18 PM (no year shown)</div>
+    <div><span class="k">Read</span>2026-11-18, live browser</div>
+    <div><span class="k">Turns</span>13 user, 12 assistant (25 messages; see anomaly)</div>
+    <div><span class="k">Verbatim filing</span>drive-pull/find-sell-profit-concept.md<br>67,959 bytes, 3,164 lines</div>
+    <div><span class="k">State</span><span class="pill solid">Concept</span> <span class="pill amber">Not built</span> Documentation suite created; production platform not yet built</div>
+  </div>
+</div>
+
+<div class="banner">
+  <h2>Read this first: what this is and what it is not</h2>
+  <ul>
+    <li><strong>Status in its own words: concept architecture defined; documentation suite created; production platform not yet built.</strong> Documentation must never be confused with implementation. The full created-versus-not-created list is in Figure 12.</li>
+    <li><strong>Turn-count anomaly, preserved exactly.</strong> 13 user turns and 12 assistant turns. User turn 10, "Perfect. Thank you", has no assistant reply following it; the next turn is another user turn. Assistant turn 10 is shown only as "Stopped thinking" with no message text.</li>
+    <li><strong>The codex figures are the conversation's own claims, not verified here.</strong> 12 separate PDFs, 126 rendered pages, a 34-page master codex. The PDF suite and ZIP were not opened or downloaded; file names are recorded only.</li>
+    <li><strong>Discovery access is NOT solved.</strong> Access rights, APIs, licensing, robots rules, terms of service, and scraping restrictions have NOT been solved. A production build must define a source-by-source acquisition strategy.</li>
+    <li><strong>Work durations on the page:</strong> "Worked for 8m 4s" before the Codex Suite reply (assistant turn 11), and "Worked for 14s" before the handoff reply (assistant turn 12). No sources were shown on the page.</li>
+    <li><strong>Record only.</strong> The conversation contains build directives and a handoff script. They are filed and presented as record only. Nothing on this page acts on them.</li>
+  </ul>
+</div>
+
+<div class="contents" id="contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#fig1">Figure 1: The name is the workflow</a></li>
+    <li><a href="#fig2">Figure 2: The valuation matrix</a></li>
+    <li><a href="#fig3">Figure 3: Universal asset expansion</a></li>
+    <li><a href="#fig4">Figure 4: Two-sided market and buyer graph</a></li>
+    <li><a href="#fig5">Figure 5: Single intake, multiple outcomes</a></li>
+    <li><a href="#fig6">Figure 6: The recipe engine</a></li>
+    <li><a href="#fig7">Figure 7: Nine core engines and the feedback loop</a></li>
+    <li><a href="#fig8">Figure 8: The value ladder, tiers 1 to 7</a></li>
+    <li><a href="#fig9">Figure 9: Data moat and three flywheels</a></li>
+    <li><a href="#fig10">Figure 10: What FSP is and is not</a></li>
+    <li><a href="#fig11">Figure 11: The codex suite</a></li>
+    <li><a href="#fig12">Figure 12: Created versus not created</a></li>
+    <li><a href="#fig13">Figure 13: Execution sequence and founder decisions</a></li>
+    <li><a href="#fig14">Figure 14: The conversation in order</a></li>
+    <li><a href="#fidelity">Fidelity register</a></li>
+  </ol>
+</div>
+
+<section class="fig" id="fig1">
+  <div class="fignum">Figure 1</div>
+  <h2>The name is the workflow</h2>
+  <p>Jeramie got find-so-profit.com and asked to link the opportunity where someone sells a private car into the consumer or business market, let a dealer buy on top of retail, and build the orchestration layer and valuation on top, with AI for the technical and admin work, taking a small profit on the orchestration or advertising, and the reverse: charging dealers to advertise or buy. The assistant's answer reframed it: this is not just a car marketplace, it is an orchestration engine that sits between any asset owner and the best possible exit path. The seller does not just list; they submit to the engine. The engine scans all paths, private sale, dealer buy, auction, export, parts out, and returns a profit scenario instead of a price.</p>
+  <div class="flow">
+    <div class="step">FIND</div><div class="arrow">to</div>
+    <div class="step">SELL</div><div class="arrow">to</div>
+    <div class="step">PROFIT</div>
+  </div>
+  <div class="btnrow" id="nameBtns">
+    <button data-k="n1" class="on">FIND</button>
+    <button data-k="n2">SELL</button>
+    <button data-k="n3">PROFIT</button>
+  </div>
+  <div class="panel" id="namePanel"></div>
+  <p>Positioning line from the thread: "Find what others overlook. Sell through the smartest path. Profit from better decisions." Other viable language: "Know what it's worth. Know who wants it. Know what to do next." / "Turn overlooked assets into optimized liquidity." / "The intelligence layer between ownership and sale." / "One asset. Every possible exit. One smartest path." The thread says not to prematurely lock final brand copy without testing.</p>
+  <div class="figcap">Figure 1: The functional brand, from turns 1 and 9 and handoff section 3. The name is the workflow: find, sell, profit.</div>
+</section>
+
+<section class="fig" id="fig2">
+  <div class="fignum">Figure 2</div>
+  <h2>The valuation matrix</h2>
+  <p>Valuation is not a single number. Find Sell Profit should produce a valuation matrix: a route, a gross value, a cost, an expected net, a time, and a confidence. The filing gives a worked example for a vehicle. Click a route to see it, and use the calculator below to test the same arithmetic on your own numbers.</p>
+  <div class="btnrow" id="valBtns">
+    <button data-k="v1" class="on">Instant dealer</button>
+    <button data-k="v2">Private sale</button>
+    <button data-k="v3">Auction</button>
+    <button data-k="v4">Repair + retail</button>
+  </div>
+  <div class="panel" id="valPanel"></div>
+  <table>
+    <thead><tr><th>Route</th><th>Gross value</th><th>Cost</th><th>Expected net</th><th>Time</th><th>Confidence</th></tr></thead>
+    <tbody>
+      <tr><td>Instant dealer</td><td>$18,500</td><td>$0</td><td>$18,500</td><td>1 day</td><td>High</td></tr>
+      <tr><td>Private sale</td><td>$21,500</td><td>$300</td><td>$21,200</td><td>21 days</td><td>Medium</td></tr>
+      <tr><td>Auction</td><td>$22,000</td><td>$2,000</td><td>$20,000</td><td>30 days</td><td>Medium</td></tr>
+      <tr><td>Repair + retail</td><td>$24,000</td><td>$2,400</td><td>$21,600</td><td>45 days</td><td>Medium</td></tr>
+    </tbody>
+  </table>
+  <h3>Net-outcome calculator</h3>
+  <p>Enter a gross value and a cost. The calculator returns the expected net, using the same arithmetic as the filing's worked examples. All figures here are the filing's illustrative examples, not verified market data.</p>
+  <p>Gross value: <input type="number" id="calcGross" value="21500"> Cost: <input type="number" id="calcCost" value="300"> <span id="calcOut"><strong>Expected net: $21,200</strong></span></p>
+  <p class="note">The filing's recommendation logic: "Dealer route is recommended because the additional expected proceeds from retail do not compensate for additional time, repair cost, and transaction risk." A $12,000 sale is not automatically superior to an $11,500 sale: if the $12,000 route takes six weeks, requires $700 of preparation, creates shipping risk, and has a 60% closing probability, while another party will pay $11,500 today, the second option may have superior utility. Profit means maximizing net economic outcome, counting fees, shipping, repairs, taxes, time-to-sale, probability of sale, fraud exposure, labor, liquidity, and more, not headline price.</p>
+  <div class="figcap">Figure 2: The valuation matrix from handoff section 11. AI should never disguise uncertainty: if identification is uncertain, the system should say so and state what evidence is required, for example "Potential match: Rolex Submariner reference X. Confidence 71%. Additional caseback/serial images required."</div>
+</section>
+
+<section class="fig" id="fig3">
+  <div class="fignum">Figure 3</div>
+  <h2>Universal asset expansion</h2>
+  <p>The concept expanded beyond automotive during the thread. Click an asset class to read what the system should do with it.</p>
+  <div class="btnrow" id="assetBtns">
+    <button data-k="a1" class="on">Vehicles (the wedge)</button>
+    <button data-k="a2">Rolex / luxury watches</button>
+    <button data-k="a3">Furniture</button>
+    <button data-k="a4">Household asset discovery</button>
+    <button data-k="a5">Real estate (regulated vertical)</button>
+  </div>
+  <div class="panel" id="assetPanel"></div>
+  <p class="note">Automotive was the strongest first wedge: large transaction values, fragmented disposition channels, dealers constantly needing inventory, private-party sellers disliking the process, structured identifiers, rich comparable data, measurable dealer acquisition economics, a meaningful wholesale to private to retail spread, and dealer SaaS that can support recurring revenue. Recommended approach: launch narrow externally, build universal internally. Frontend MVP: sell your vehicle through the smartest available route. Backend schema: universal asset intelligence engine.</p>
+  <div class="figcap">Figure 3: Universal asset expansion from handoff sections 4, 5, and 6, and section 24. Household discovery turns the system from a reactive valuation tool into a latent asset discovery engine: "What may I have in my house that I could potentially sell?"</div>
+</section>
+
+<section class="fig" id="fig4">
+  <div class="fignum">Figure 4</div>
+  <h2>Two-sided market and buyer graph</h2>
+  <p>Find Sell Profit is a two-sided engine. The same asset graph serves both sides: a seller listing becomes structured supply, and a buyer preference becomes structured demand. The live mapping is asset to estimated value to seller objective to buyer demand to transaction channels to recommended outcome.</p>
+  <div class="btnrow" id="sideBtns">
+    <button data-k="s1" class="on">Side A: Supply / sellers</button>
+    <button data-k="s2">Side B: Demand / buyers</button>
+    <button data-k="s3">Buyer graph: auto dealer</button>
+    <button data-k="s4">Buyer graph: watch dealer</button>
+    <button data-k="s5">Buyer graph: furniture reseller</button>
+  </div>
+  <div class="panel" id="sidePanel"></div>
+  <p>Dealer experience from the handoff: onboarding captures dealership information, buyer contacts, geography, makes and models, price bands, mileage bands, age, condition tolerance, title requirements, desired margins, transport radius, bid authority, and acquisition volume. Dashboards show matched vehicles, new private-party opportunities, saved searches, automated buying rules, bid history, win rate, acquisition cost, expected retail margin, local supply intelligence, and market movement. Later, autobid rules: for example, bid up to $17,800 on 2022-2024 Toyota RAV4 XLE under 50,000 miles within 150 miles if clean title and expected retail margin exceeds $2,800.</p>
+  <div class="figcap">Figure 4: The two-sided market structure and buyer graph from handoff sections 7 and 8, and section 26. The buyer graph transforms buyer demand from human-readable advertisements into computable demand.</div>
+</section>
+
+<section class="fig" id="fig5">
+  <div class="fignum">Figure 5</div>
+  <h2>Single intake, multiple outcomes</h2>
+  <p>One of the foundational principles: SINGLE INTAKE, MULTIPLE OUTCOMES. The user describes or uploads the asset once. The platform does not make them re-enter the same data for every transaction channel. Input may include photos, video, text, VIN, serial number, UPC, model number, reference number, address, documents, receipts, authentication paperwork, title, maintenance history, dimensions, condition description, and voice description. The engine normalizes this into a Universal Asset Record that can drive multiple workflows.</p>
+  <div class="btnrow" id="uarBtns">
+    <button data-k="u1" class="on">Identity</button>
+    <button data-k="u2">Ownership</button>
+    <button data-k="u3">Condition</button>
+    <button data-k="u4">Evidence</button>
+    <button data-k="u5">Market</button>
+    <button data-k="u6">Financial</button>
+    <button data-k="u7">Transaction</button>
+  </div>
+  <div class="panel" id="uarPanel"></div>
+  <div class="figcap">Figure 5: The seller intake principle and Universal Asset Record from handoff sections 9 and 10. The model stays category-agnostic at the core; category-specific adapters extend it.</div>
+</section>
+
+<section class="fig" id="fig6">
+  <div class="fignum">Figure 6</div>
+  <h2>The recipe engine</h2>
+  <p>A listing alone is not an opportunity. The system should generate an executable recipe. Click a recipe to read its worked example from the filing. All figures are the filing's illustrative examples.</p>
+  <div class="btnrow" id="recBtns">
+    <button data-k="r1" class="on">Buy-and-ship arbitrage</button>
+    <button data-k="r2">Buy-and-hold</button>
+    <button data-k="r3">Repair-and-sell</button>
+    <button data-k="r4">Immediate arbitrage</button>
+  </div>
+  <div class="panel" id="recPanel"></div>
+  <p class="note">Over time the system learns which buyers pay more and which close faster. That becomes the defensible data loop. It is not just another marketplace; it is a layer that helps everyone make smarter buy and sell calls and takes a cut when it routes to partners.</p>
+  <div class="figcap">Figure 6: The recipe engine from handoff section 14 and turn 7. Recipes are executable strategies with costs, expected proceeds, confidence, and time-to-sale, not just "here is a cheap car".</div>
+</section>
+
+<section class="fig" id="fig7">
+  <div class="fignum">Figure 7</div>
+  <h2>Nine core engines and the feedback loop</h2>
+  <p>Nine core engines, from handoff section 17. Click one to read it.</p>
+  <div class="btnrow" id="engBtns">
+    <button data-k="e1" class="on">1. Discovery</button>
+    <button data-k="e2">2. Asset Identity</button>
+    <button data-k="e3">3. Valuation</button>
+    <button data-k="e4">4. Market Intelligence</button>
+    <button data-k="e5">5. Buyer Graph</button>
+    <button data-k="e6">6. Recipe</button>
+    <button data-k="e7">7. Routing</button>
+    <button data-k="e8">8. Execution</button>
+    <button data-k="e9">9. Learning</button>
+  </div>
+  <div class="panel" id="engPanel"></div>
+  <h3>The core feedback loop</h3>
+  <div class="flow">
+    <div class="step">Asset submitted</div><div class="arrow">to</div>
+    <div class="step">AI valuation</div><div class="arrow">to</div>
+    <div class="step">Buyer demand</div><div class="arrow">to</div>
+    <div class="step">Recommended route</div><div class="arrow">to</div>
+    <div class="step">Offers</div><div class="arrow">to</div>
+    <div class="step">Selected route</div><div class="arrow">to</div>
+    <div class="step">Actual sale</div><div class="arrow">to</div>
+    <div class="step">Actual net proceeds</div><div class="arrow">to</div>
+    <div class="step">Actual closing time</div><div class="arrow">to</div>
+    <div class="step">Actual buyer</div><div class="arrow">to</div>
+    <div class="step">Model learns</div>
+  </div>
+  <p>The system eventually knows not merely what a Rolex sells for. It knows who actually buys this exact kind of Rolex, at what price, in what condition, how fast they close, and what route produces the best net outcome. That is much more defensible.</p>
+  <div class="figcap">Figure 7: The nine core engines and the feedback loop from handoff sections 17 and 18. The strategic moat is created when the system sees the full loop through to realized outcomes.</div>
+</section>
+
+<section class="fig" id="fig8">
+  <div class="fignum">Figure 8</div>
+  <h2>The value ladder, tiers 1 to 7</h2>
+  <p>The highest-value interpretation is not commissions and not advertising. Those can generate revenue, but they are downstream. The long-term asset is the intelligence graph. Click a tier to read it.</p>
+  <div class="btnrow" id="tierBtns">
+    <button data-k="t1" class="on">Tier 1: Classified Listings</button>
+    <button data-k="t2">Tier 2: Valuation Tool</button>
+    <button data-k="t3">Tier 3: Marketplace</button>
+    <button data-k="t4">Tier 4: Intelligent Routing</button>
+    <button data-k="t5">Tier 5: Recipe / Arbitrage Intelligence</button>
+    <button data-k="t6">Tier 6: Transaction Orchestration</button>
+    <button data-k="t7">Tier 7: Universal Asset Liquidity Intelligence</button>
+  </div>
+  <div class="panel" id="tierPanel"></div>
+  <div class="figcap">Figure 8: The value ladder from handoff section 21. At Tier 7, Find Sell Profit becomes an operating system for turning physical assets into optimized liquidity. That is the strategic target.</div>
+</section>
+
+<section class="fig" id="fig9">
+  <div class="fignum">Figure 9</div>
+  <h2>Data moat and three flywheels</h2>
+  <p>The most valuable proprietary dataset is not scraped listing data alone; listing data is frequently replicable. The real proprietary dataset is intent plus valuation plus demand plus recommendation plus transaction outcome. Example from the handoff: seller would accept $18,000; dealer bid $18,400; dealer historically closes 87% of matched opportunities; retail market estimate was $21,500; seller selected immediate dealer route; actual close $18,350; time 26 hours. Over millions of transactions, this becomes extremely powerful.</p>
+  <div class="btnrow" id="flyBtns">
+    <button data-k="f1" class="on">Flywheel 1: Marketplace / data</button>
+    <button data-k="f2">Flywheel 2: Discovery</button>
+    <button data-k="f3">Flywheel 3: Personal asset graph</button>
+  </div>
+  <div class="panel" id="flyPanel"></div>
+  <div class="figcap">Figure 9: The data moat and flywheels from handoff sections 22, 57, 58, and 59. Outcome data is the crown jewel: closed transactions, accepted bids, actual purchase prices, and actual sale prices take priority over asking prices.</div>
+</section>
+
+<section class="fig" id="fig10">
+  <div class="fignum">Figure 10</div>
+  <h2>What FSP is and is not</h2>
+  <p>Do not accidentally reduce the concept. Click to switch between the two lists.</p>
+  <div class="btnrow" id="isBtns">
+    <button data-k="i1" class="on">What Find Sell Profit IS</button>
+    <button data-k="i2">What Find Sell Profit is NOT</button>
+  </div>
+  <div class="panel" id="isPanel"></div>
+  <div class="figcap">Figure 10: The is / is not lists from handoff sections 19 and 20. Any one of the "is not" items could be a feature, channel, partner relationship, or initial wedge. None adequately describes the system.</div>
+</section>
+
+<section class="fig" id="fig11">
+  <div class="fignum">Figure 11</div>
+  <h2>The codex suite</h2>
+  <p>Turns 11 and 12 asked for a detailed codex built out as downloadable PDF documents, separately for anything in the thread, very thorough, skipping no details. The reply reported the Find Sell Profit Codex Suite completed: 12 separate PDFs, 126 rendered pages, including the master codex and specialist execution documents. These figures are the conversation's own claims, flagged in the filing header as not verified here. The PDFs and ZIP were not opened or downloaded; file names are recorded only.</p>
+  <table>
+    <thead><tr><th>Document</th><th>File name as shown</th><th>Purpose as stated</th></tr></thead>
+    <tbody>
+      <tr><td>Master Codex</td><td><code>Find_Sell_Profit_Master_Codex.pdf</code></td><td>Reported at approximately 34 pages. Mission, vision, constitution, product thesis, architecture, asset classes, valuation, discovery, marketplace, AI, monetization, roadmap, governance, GTM, technical model.</td></tr>
+      <tr><td>Specialist 01</td><td><code>01_FSP_Constitution_Brand_Ethos.pdf</code></td><td>Codifies the mission, philosophy, positioning, product rules, and operating ethos.</td></tr>
+      <tr><td>Specialist 02</td><td><code>02_FSP_Business_Model_Two_Sided_Marketplace.pdf</code></td><td>Seller and buyer architecture, marketplace mechanics, revenue possibilities, network structure.</td></tr>
+      <tr><td>Specialist 03</td><td><code>03_FSP_User_Experience_Seller_Buyer_Household.pdf</code></td><td>Consumer selling, buyer workflows, household asset-discovery experience.</td></tr>
+      <tr><td>Specialist 04</td><td><code>04_FSP_AI_Valuation_Asset_Intelligence.pdf</code></td><td>Asset identification, valuation concepts, market intelligence, confidence, outcome optimization.</td></tr>
+      <tr><td>Specialist 05</td><td><code>05_FSP_Discovery_Recipe_Arbitrage_Engine.pdf</code></td><td>External opportunity discovery, underpriced-asset detection, recipe generation, arbitrage logic.</td></tr>
+      <tr><td>Specialist 06</td><td><code>06_FSP_Technical_Architecture_Agent_Orchestration.pdf</code></td><td>Proposed architecture, AI agents, orchestration, workflows, Neuruh integration philosophy.</td></tr>
+      <tr><td>Specialist 07</td><td><code>07_FSP_Partner_Routing_Ecosystem.pdf</code></td><td>Partner-based execution, federated routing, revenue share, third-party last-mile infrastructure.</td></tr>
+      <tr><td>Specialist 08</td><td><code>08_FSP_Monetization_Growth_GTM.pdf</code></td><td>Potential monetization, dealer subscription models, growth, network effects, go-to-market.</td></tr>
+      <tr><td>Specialist 09</td><td><code>09_FSP_MVP_Roadmap_Operating_Model.pdf</code></td><td>Suggested MVP sequence, operating cadence, milestones, vehicle-first wedge.</td></tr>
+      <tr><td>Specialist 10</td><td><code>10_FSP_Data_Model_APIs_Workflows.pdf</code></td><td>Proposed entities, APIs, workflows, integration contracts.</td></tr>
+      <tr><td>Specialist 11</td><td><code>11_FSP_Thread_Decision_Ledger.pdf</code></td><td>Traceability between what was actually discussed and additional implementation extensions.</td></tr>
+      <tr><td>Complete archive</td><td><code>Find_Sell_Profit_Codex_PDF_Suite.zip</code></td><td>Contains the documentation set.</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Figure 11: The codex suite from assistant turn 11 and handoff section 52. Thread-confirmed concepts are distinguished from operating interpretations, proposed extensions, and unresolved founder decisions, per the reply.</div>
+</section>
+
+<section class="fig" id="fig12">
+  <div class="fignum">Figure 12</div>
+  <h2>Created versus not created</h2>
+  <p>Section 53 of the handoff insists this distinction must remain explicit. Documentation must never be confused with implementation.</p>
+  <div class="btnrow" id="crBtns">
+    <button data-k="c1" class="on">CREATED</button>
+    <button data-k="c2">NOT YET CREATED / NOT CONFIRMED</button>
+  </div>
+  <div class="panel" id="crPanel"></div>
+  <h3>Definition of done for first commercial version</h3>
+  <p>A commercial FSP v1 should not be considered complete until: a real consumer can submit a real vehicle; the vehicle can be normalized into a structured asset; FSP can calculate a defensible valuation range; at least one real qualified buyer can be matched; a real offer can be returned; multiple routes can be compared; the seller can choose one; the transaction can be completed; FSP records realized economics; the buyer sees measurable acquisition value; FSP earns or proves a repeatable path to revenue; the system requires limited manual intervention; the economics are measured; the recommendation can be audited. Until that happens, the company has a strategy and prototype, not a validated marketplace.</p>
+  <div class="figcap">Figure 12: Created versus not created, and the definition of done, from handoff sections 53 and 75.</div>
+</section>
+
+<section class="fig" id="fig13">
+  <div class="fignum">Figure 13</div>
+  <h2>Execution sequence and founder decisions</h2>
+  <p>Twelve phases, from handoff section 55. Click a phase to read it.</p>
+  <div class="btnrow" id="phBtns">
+    <button data-k="p0" class="on">Phase 0: Inventory</button>
+    <button data-k="p1">Phase 1: Vehicle wedge</button>
+    <button data-k="p2">Phase 2: Universal core</button>
+    <button data-k="p3">Phase 3: Dealer graph</button>
+    <button data-k="p4">Phase 4: Seller intake</button>
+    <button data-k="p5">Phase 5: Valuation</button>
+    <button data-k="p6">Phase 6: Matching + bidding</button>
+    <button data-k="p7">Phase 7: Transaction routing</button>
+    <button data-k="p8">Phase 8: Outcome learning</button>
+    <button data-k="p9">Phase 9: Discovery</button>
+    <button data-k="p10">Phase 10: Second asset class</button>
+    <button data-k="p11">Phase 11: Household asset graph</button>
+  </div>
+  <div class="panel" id="phPanel"></div>
+  <h3>Eight unresolved founder decisions</h3>
+  <table>
+    <thead><tr><th>Decision</th><th>Recommendation in the thread</th></tr></thead>
+    <tbody>
+      <tr><td>1. First vertical</td><td>Automotive. Alternative: launch multiple categories. Recommended: automotive externally, universal schema internally.</td></tr>
+      <tr><td>2. Initial business model</td><td>Dealer SaaS, transaction take rate, referral, or hybrid. Suggested experiment: dealer SaaS plus success fee.</td></tr>
+      <tr><td>3. Marketplace ownership</td><td>Own transactions, route externally, or hybrid. Thread strongly supports hybrid.</td></tr>
+      <tr><td>4. Consumer fee</td><td>Potential initial strategy: free consumer valuation to maximize supply; monetize downstream buyers and transactions.</td></tr>
+      <tr><td>5. Native dealer bidding</td><td>Likely high-value for vehicles. Needs product decision.</td></tr>
+      <tr><td>6. Household scan timing</td><td>Strategically powerful. Probably not Day 1 MVP.</td></tr>
+      <tr><td>7. Real estate timing</td><td>Large upside, high regulation. Should likely become a separate module after core orchestration proves itself.</td></tr>
+      <tr><td>8. Canonical brand / domain</td><td>Resolve: Find Sell Profit, Find-So-Profit, find-so-profit.com, and any other domains already owned. Do not assume naming consistency without confirming ownership and preferred canonical domain.</td></tr>
+    </tbody>
+  </table>
+  <h3>Immediate priority queue</h3>
+  <p>P0, required before coding: confirm canonical domain and name; inventory existing Neuruh infrastructure; select automotive as initial wedge or explicitly reject it; define MVP geography; define seller promise; define dealer promise; define primary monetization experiment; create data-source matrix; identify regulatory counsel and issues; define transaction boundary (referral versus broker versus marketplace). P1, core build: universal asset schema, vehicle adapter, seller intake, buyer profile, dealer matching, valuation service, offer service, route comparison, transaction state, outcome capture. P2, pilot: recruit dealer cohort, seed buyer preferences, process initial seller assets, manually supervise recommendations, measure predictions versus actual outcomes, fix valuation and buyer-matching errors, validate willingness to pay. P3, automation: dealer automated rules, partner APIs, Recipe Engine, external discovery, automated listing generation, transaction orchestration. P4, expansion: second asset class, household scan, personal asset graph, enterprise API, white label, regulated real-estate module.</p>
+  <div class="figcap">Figure 13: Execution sequence, founder decisions, and priority queue from handoff sections 54, 55, and 74. The most important next move, per the handoff's final line, is the Neuruh to FSP Reuse and Gap Matrix.</div>
+</section>
+
+<section class="fig" id="fig14">
+  <div class="fignum">Figure 14</div>
+  <h2>The conversation in order</h2>
+  <p>13 user turns and 12 assistant turns, in the order shown on the page, with the anomaly preserved exactly. Voice-mode conversation.</p>
+  <div class="turnpanel"><div class="who">Turn 1: User</div><p>"Alright, new play. I got find-so-profit.com. I need to link the opportunity where someone could sell their private car into the uh consumer market or the business market, allow a dealer to buy it- on top of retail will help them build the orchestration layer and everything on top of it for the valuation. Use AI for all the tech- Technical admin stuff uh and then make a small profit potentially on the orchestration or the ability to advertise. I'm not necessarily sure, but there's a massive opportunity here. And then also reverse, maybe we charge the dealers to be able to advertise or buy on there. Or deals uh also kind of the same thing on the undervalued assets on, you know, - listing shit uh I've got find sell profit. I have a bunch of stuff. Can you figure all that out"</p></div>
+  <div class="turnpanel"><div class="who">Turn 1: Assistant</div><p>"Hmm. Let me just work this out. So what you're describing isn't just a car marketplace, it's an orchestration engine that sits between any asset owner and the best possible exit path. Find, sell, profit. The name is the workflow." The reply ends mid-line at "Dealer [truncated in browser view]" in the filing.</p></div>
+  <div class="turnpanel"><div class="who">Turn 2: User</div><p>"All right, where were we at with Find so Profit"</p></div>
+  <div class="turnpanel"><div class="who">Turn 2: Assistant</div><p>Find-Sell-Profit is a decision engine, not just a car site. The wedge is cars, easy supply, big pain. The actual product is "route to highest return" as a service.</p></div>
+  <div class="turnpanel"><div class="who">Turn 3: User</div><p>"So, I want to list a Rolex, I want to list a piece of furniture, I want to be able to see what I may have in my house to see what I potentially could sell. Uh, maybe even I sell my house this way. Um That's the um, you know one side of it and then the other side of it is the buy side of it, who's buying it"</p></div>
+  <div class="turnpanel"><div class="who">Turn 3: Assistant</div><p>"Right, so for every seller submission, the system- [truncated in browser view]" (the reply is cut off mid-line in the filing).</p></div>
+  <div class="turnpanel"><div class="who">Turn 4: User</div><p>"For that So how do how do we structure the entire thing all together now"</p></div>
+  <div class="turnpanel"><div class="who">Turn 4: Assistant</div><p>Make it a two-sided engine. Ingest the item details once, run a valuation tree, route to the best path. The buyer side is a marketplace; dealers or resellers subscribe. Charge a take rate or SaaS. Zero inventory, high margin.</p></div>
+  <div class="turnpanel"><div class="who">Turn 5: User</div><p>"Perfect 'cause we could even route to some of these other people's places, their agents Um, even if they're not in house, just through a partnership"</p></div>
+  <div class="turnpanel"><div class="who">Turn 5: Assistant</div><p>Federate the last mile through partners instead of building it. Take a referral or success fee; they do the heavy lifting. Ops stay skeleton-thin and margin stays clean.</p></div>
+  <div class="turnpanel"><div class="who">Turn 6: User</div><p>"Alright, finish what you were saying"</p></div>
+  <div class="turnpanel"><div class="who">Turn 6: Assistant</div><p>"So keep the operation skeleton-thin and your margin clean."</p></div>
+  <div class="turnpanel"><div class="who">Turn 7: User</div><p>"All right, so how are we able to search for things like on a recipe side. So say we go find something, you're able to search the auctions or the um, you know, some what someone may have posted locally on marketplace or something. What does that side look like"</p></div>
+  <div class="turnpanel"><div class="who">Turn 7: Assistant</div><p>The recipe engine: the system scans marketplaces, auctions, estate sales, Facebook, dealer inventory, then the AI normalizes it and outputs plays: buy-and-ship arbitrage, buy-and-hold, immediate retail flip. Over time it learns which buyers pay more and close faster. That is the defensible data loop.</p></div>
+  <div class="turnpanel"><div class="who">Turn 8: User</div><p>"Alright, so, taking that into consideration, Um, find sell profit being the name. How do we execute on that based on everything we already have right now like how do we not have to reinvent the wheel and be able to plug and play and orchestrate and change this around"</p></div>
+  <div class="turnpanel"><div class="who">Turn 8: Assistant</div><p>Do not reinvent anything. Treat Find-Sell-Profit as one more organism inside Neuruh: same Recipe Engine, same AI agents, same CRM, same workflow engine, just a new vertical skinned on top. Recipes become universal: buy recipe, sell recipe, repair recipe, auction recipe.</p></div>
+  <div class="turnpanel"><div class="who">Turn 9: User</div><p>"All right, better out this ethos and everything that, I mean, the codex, the code, the um constitution, everything Layout at least uh some of the words and stuff so when I come back to desktop I know what's going on"</p></div>
+  <div class="turnpanel"><div class="who">Turn 9: Assistant</div><p>The constitution and skeleton: Mission, "Extract unrealized value from everyday assets through intelligent orchestration." Vision, "Every asset gets routed to its highest value outcome with the least friction." Pillars Find, Sell, Profit. Principles: single intake multi outcome; decisions over listings; evidence over hype; routing over relisting; architecture by config; no net new infra unless proven; universal asset model. North star question: "did this help someone realize more value from an asset, with less friction?"</p></div>
+  <div class="turnpanel"><div class="who">Turn 10: User</div><p>"Perfect. Thank you"</p></div>
+  <div class="turnpanel"><div class="who">Turn 10: Assistant (anomaly)</div><p>[No assistant reply follows this user turn on the page.]</p></div>
+  <div class="turnpanel"><div class="who">Turn 11: User</div><p>"build out a detailed codex of everything discussed in this thread. build out in PDF form downloadable documents seperately for nything in this thread as well. make it very thorough and done skip any details."</p></div>
+  <div class="turnpanel"><div class="who">Turn 10: Assistant (anomaly)</div><p>"Stopped thinking" (no message text is shown for this assistant turn on the page).</p></div>
+  <div class="turnpanel"><div class="who">Turn 12: User</div><p>"build out a detailed codex of everything discussed in this thread. build out in PDF form downloadable documents seperately for nything in this thread as well. make it very thorough and done skip any details." (duplicate of turn 11)</p></div>
+  <div class="turnpanel"><div class="who">Turn 11: Assistant</div><p>Worked for 8m 4s. The Find Sell Profit Codex Suite: 12 separate PDFs, 126 rendered pages, including the 34-page master codex and 11 specialist documents. See Figure 11.</p></div>
+  <div class="turnpanel"><div class="who">Turn 13: User</div><p>"create a super detailed handoff script of everything covered in this entire thread. items created highest tier value what it is and whats not done or needs finished. very thorough"</p></div>
+  <div class="turnpanel"><div class="who">Turn 12: Assistant</div><p>Worked for 14s. The Master System Handoff and Execution Script: 77 sections, from purpose and thesis through engines, risks, flywheels, execution sequence, metrics, and the final strategic summary. The figures on this page are drawn from it.</p></div>
+  <div class="figcap">Figure 14: All 13 user turns and 12 assistant turns, in the order shown on the page. Turn numbering follows the filing, including the anomaly: the assistant turn labeled 10 ("Stopped thinking") sits between user turns 11 and 12.</div>
+</section>
+
+<section class="fig" id="fidelity">
+  <div class="fignum">Fidelity register</div>
+  <h2>Fidelity register</h2>
+  <table>
+    <thead><tr><th>Item</th><th>What the page does</th></tr></thead>
+    <tbody>
+      <tr><td>Turn-count anomaly</td><td>Preserved exactly: 13 user turns, 12 assistant turns. User turn 10 has no following assistant reply. Assistant turn 10 is shown only as "Stopped thinking" with no message text. The filing's turn numbering is kept, including the assistant turn labeled 10 sitting between user turns 11 and 12.</td></tr>
+      <tr><td>Truncation</td><td>Two "[truncated in browser view]" markers appear in the transcript body (assistant turns 1 and 3). The missing characters were not reconstructed. Both are shown in Figure 14.</td></tr>
+      <tr><td>Codex figures</td><td>12 PDFs, 126 rendered pages, 34-page master codex are the conversation's own claims, flagged in the filing header as not verified here. The PDF suite and ZIP were not opened or downloaded; file names are recorded only.</td></tr>
+      <tr><td>Worked examples</td><td>Every dollar figure on this page is the filing's own illustrative example (valuation matrix, recipe examples, household scan ranges, dealer bid examples). None is a verified market price, offer, or revenue figure.</td></tr>
+      <tr><td>Discovery access</td><td>Access rights, APIs, licensing, robots rules, terms of service, and scraping restrictions have NOT been solved. This page does not assume any marketplace can legally or technically be scraped.</td></tr>
+      <tr><td>Work still required</td><td>Regulatory and legal review, data access matrix, valuation model validation, monetization pricing, unit economics, UX and UI, infrastructure reuse matrix, partner network, and brand work are all listed as still required in handoff sections 43 to 51. None is presented as done.</td></tr>
+      <tr><td>State claims</td><td>Every status on this page (concept defined, documentation created, production platform not built) is the conversation's own stated status as of Jul 31, 2026. Nothing has been re-verified against live product state here.</td></tr>
+      <tr><td>Domain naming</td><td>The conversation referenced both Find Sell Profit and find-so-profit.com. Do not assume naming consistency without confirming ownership and preferred canonical domain, per handoff section 51.</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Fidelity register: everything this page did not verify, did not reconstruct, or deliberately left as the source stated it.</div>
+</section>
+
+<footer>
+  <p>Source: verbatim filing <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/find-sell-profit-concept/">drive-pull/find-sell-profit-concept</a> (67,959 bytes, 3,164 lines, 13 user / 12 assistant turns). Original conversation: <a href="https://chatgpt.com/share/6afd9498-8184-83ea-969f-39f96c4ed62c">chatgpt.com/share/6afd9498</a>. Page built 2026-11-18. Record only: nothing on this page acts on instructions inside the conversation.</p>
+</footer>
+</div>
+<script>
+function $(id){return document.getElementById(id);}
+function wire(btnsId,panelId,data,render){
+  var btns=$(btnsId);
+  function show(key){
+    var b=btns.querySelectorAll("button");
+    b.forEach(function(x){x.classList.toggle("on",x.getAttribute("data-k")===key);});
+    $(panelId).innerHTML=render(data[key]);
+  }
+  btns.addEventListener("click",function(e){var b=e.target.closest("button");if(b)show(b.getAttribute("data-k"));});
+  show(Object.keys(data)[0]);
+}
+wire("nameBtns","namePanel",{
+n1:{t:"FIND",b:"Find assets. Find hidden value. Find buyers. Find demand. Find undervalued listings. Find arbitrage. Find alternative exit channels. Find overlooked opportunities. Find inventory before competitors do. Find assets inside a user's own environment."},
+n2:{t:"SELL",b:"Determine the optimal disposition path: private-party sale, dealer sale, wholesale, auction, consignment, specialist reseller, trade-in, export, direct institutional buyer, marketplace listing, partner marketplace, liquidation, parts, salvage, repair then sell, hold then sell, bundle, local sale, remote sale. The system should not automatically assume list it on our marketplace. Instead: here are the viable ways to sell it, and here is the path that appears to produce the best outcome for you."},
+n3:{t:"PROFIT",b:"Profit does not exclusively mean speculative flipping. Profit means maximizing the user's net economic outcome: gross sale price, marketplace fees, dealer margin, shipping, transportation, repairs, reconditioning, authentication, inspection, taxes where applicable, transaction fees, financing expense, holding cost, time-to-sale, probability of sale, fraud exposure, counterparty risk, labor required, convenience, and liquidity."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("valBtns","valPanel",{
+v1:{t:"Instant dealer",b:"Gross $18,500, cost $0, expected net $18,500, time 1 day, confidence High. The fastest route with the least friction and the lowest gross. The filing's recommendation logic favors it when the additional expected proceeds from retail do not compensate for additional time, repair cost, and transaction risk."},
+v2:{t:"Private sale",b:"Gross $21,500, cost $300, expected net $21,200, time 21 days, confidence Medium. The highest expected net in the filing's example, at the cost of three weeks and more seller effort."},
+v3:{t:"Auction",b:"Gross $22,000, cost $2,000, expected net $20,000, time 30 days, confidence Medium. The highest gross in the example, but fees take $2,000 and the net lands below the private sale."},
+v4:{t:"Repair + retail",b:"Gross $24,000, cost $2,400, expected net $21,600, time 45 days, confidence Medium. The highest gross and the highest net in the example, at the cost of 45 days and $2,400 of repair spend."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+function calcNet(){
+  var g=parseFloat($("calcGross").value)||0, c=parseFloat($("calcCost").value)||0;
+  $("calcOut").innerHTML="<strong>Expected net: $"+(g-c).toLocaleString("en-US")+"</strong>";
+}
+$("calcGross").addEventListener("input",calcNet);
+$("calcCost").addEventListener("input",calcNet);
+calcNet();
+wire("assetBtns","assetPanel",{
+a1:{t:"Vehicles: the wedge",b:"A consumer owns a vehicle. Traditional routes include trade it in, sell it privately, sell it to an online car buyer, sell it to a dealership, auction it, sell it wholesale, sell to an exporter, repair it first, or sell as-is. Find Sell Profit ingests the vehicle once and orchestrates the alternatives. Dealers subscribe to private-party inventory, submit bids, specify acquisition criteria, receive matched opportunities, advertise acquisition demand, and pay subscription, transaction, lead, success, or priority fees."},
+a2:{t:"Rolex / luxury watches",b:"A user uploads a Rolex and receives probable model identification, reference estimate, authenticity-confidence indicators, condition evaluation, comparable sales, dealer buy range, private-party range, consignment range, auction potential, specialist buyer offers, expected fees, expected time-to-sale, and a recommended disposition route."},
+a3:{t:"Furniture",b:"A user photographs furniture. AI potentially determines category, manufacturer, period, style, material, designer attribution, condition, comparable listings, comparable sold prices, local demand, shipping practicality, auction suitability, dealer demand, and consignment suitability. The system then determines whether the piece is low-value commodity furniture, locally sellable, vintage, designer, antique, collectible, worth consigning, worth auctioning, worth shipping, or worth bundling."},
+a4:{t:"Household asset discovery: Scan My Stuff",b:"One of the more important concepts: What may I have in my house that I could potentially sell? The user scans a room, garage, basement, barn, storage unit, closet, office, or estate. Computer vision identifies likely assets, categorizes them, calculates approximate values, assigns confidence, and surfaces high-potential assets. Example output from the filing: potential realizable household value $18,400 to $27,900, with high-value candidates including a watch, artwork, vintage furniture, tools, sports memorabilia, a motorcycle, a musical instrument, electronics, collectibles, jewelry, and commercial equipment. This could eventually create a personal asset balance sheet."},
+a5:{t:"Real estate: a valid long-term vertical, not in the first MVP",b:"Jeramie raised selling a house this way. The underlying engine still applies: identify property, determine value, determine highest and best exit path, identify buyers, determine investor versus retail value, identify improvements, identify zoning or development upside, route to partner, monetize referral or orchestration where legally permissible. But real estate introduces licensing, brokerage regulation, agency law, MLS restrictions, referral rules, disclosure requirements, state-specific requirements, mortgage and lien issues, title, escrow, closing, fair housing, consumer protection, and advertising rules. It should be modularized as a regulated vertical, not treated identically to selling a watch or couch."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("sideBtns","sidePanel",{
+s1:{t:"Side A: Supply / sellers",b:"Consumers, businesses, estates, collectors, property owners, fleet owners, equipment owners, resellers liquidating inventory, dealers liquidating aged inventory, institutions. Their question: What do I own, what is it worth, and what is the best way to monetize it?"},
+s2:{t:"Side B: Demand / buyers",b:"Dealers, resellers, collectors, investors, wholesalers, exporters, auction houses, consignment businesses, retail buyers, specialty buyers, liquidators, institutions. Their question: Where is the inventory that matches what I buy, and what should I pay for it?"},
+s3:{t:"Buyer graph: automotive dealer profile",b:"ZIP radius, makes, models, model years, mileage ceiling, vehicle classes, condition, accident tolerance, title requirements, price bands, desired margin, days supply, inventory gaps, and maximum acquisition amount."},
+s4:{t:"Buyer graph: watch dealer",b:"Brands, references, production years, box and papers preferences, condition, dial configurations, price ranges, geographic constraints, and authentication requirements."},
+s5:{t:"Buyer graph: furniture reseller",b:"Designers, styles, periods, materials, geographic radius, maximum transport distance, minimum resale margin, maximum dimensions, and condition."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("uarBtns","uarPanel",{
+u1:{t:"Identity",b:"Asset ID, category, subcategory, brand, manufacturer, model, variant, serial, reference, or VIN, year, production period, dimensions, material, location."},
+u2:{t:"Ownership",b:"Owner ID, proof of ownership, acquisition date, acquisition cost, liens, title status, documentation."},
+u3:{t:"Condition",b:"Cosmetic condition, mechanical condition, functional status, missing components, damage, modifications, repair requirements."},
+u4:{t:"Evidence",b:"Photos, video, documents, serial verification, inspection results, authentication, third-party reports."},
+u5:{t:"Market",b:"Comparable asking prices, comparable sold prices, wholesale values, dealer demand, auction results, geographic demand, velocity, seasonality."},
+u6:{t:"Financial",b:"Estimated retail, estimated wholesale, immediate liquidity value, repair-adjusted value, auction estimate, consignment estimate, expected fees, expected net proceeds."},
+u7:{t:"Transaction",b:"Current status, offers, bids, buyer matches, selected route, transaction history, final realized amount."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("recBtns","recPanel",{
+r1:{t:"Buy-and-ship recipe",b:"Asset listed in Market A for $800. Estimated verified resale in Market B: $1,650. Buyer transportation: $75. Shipping: $125. Platform fee: $180. Estimated net resale proceeds: $1,345. Estimated profit: $545. Confidence: 83%. Expected time-to-sale: 14 days."},
+r2:{t:"Buy-and-hold recipe",b:"The system determines the price is below historical market, demand is seasonally low, historical demand increases during another period, carry cost is acceptable, and expected future resale exceeds current immediate flip economics."},
+r3:{t:"Repair-and-sell recipe",b:"Buy vehicle: $8,000. Repair estimate: $1,400. Transportation: $250. Expected retail: $12,500. Expected fees: $500. Expected net profit: $2,350. Confidence: 76%."},
+r4:{t:"Immediate arbitrage recipe",b:"Asset can potentially be purchased in one marketplace and immediately sold to a known buyer or dealer. Example: listing $4,700, known buyer profile indicates willingness around $5,800, transport $250, transaction cost $150, potential spread $700. This converts discovery into executable economic intelligence."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("engBtns","engPanel",{
+e1:{t:"1. Discovery Engine",b:"Find external assets and opportunities."},
+e2:{t:"2. Asset Identity Engine",b:"Determine what the object is."},
+e3:{t:"3. Valuation Engine",b:"Estimate market value and confidence."},
+e4:{t:"4. Market Intelligence Engine",b:"Understand supply, demand, comps, velocity, geography, and pricing."},
+e5:{t:"5. Buyer Graph",b:"Understand who buys what."},
+e6:{t:"6. Recipe Engine",b:"Generate executable strategies."},
+e7:{t:"7. Routing Engine",b:"Determine the optimal channel, partner, and buyer."},
+e8:{t:"8. Execution Engine",b:"Coordinate next actions."},
+e9:{t:"9. Learning Engine",b:"Capture results and improve future decisions."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("tierBtns","tierPanel",{
+t1:{t:"Tier 1: Classified Listings",b:"Users post inventory. Low moat."},
+t2:{t:"Tier 2: Valuation Tool",b:"AI estimates value. Useful, but increasingly commoditized."},
+t3:{t:"Tier 3: Marketplace",b:"Buyers and sellers transact. More network value."},
+t4:{t:"Tier 4: Intelligent Routing",b:"The system determines where an asset should be sold. Higher-value decision layer."},
+t5:{t:"Tier 5: Recipe / Arbitrage Intelligence",b:"The system identifies underpriced assets and calculates executable strategies. Higher value again."},
+t6:{t:"Tier 6: Transaction Orchestration",b:"The system coordinates buyer, seller, inspection, transport, authentication, payments, listing, and closing. This moves Find Sell Profit toward infrastructure."},
+t7:{t:"Tier 7: Universal Asset Liquidity Intelligence",b:"The system knows what assets exist, who owns them, what they are worth, who wants them, what buyers pay, what channels perform, where market inefficiencies exist, and what actions maximize realized value. At this level, Find Sell Profit becomes an operating system for turning physical assets into optimized liquidity. This is the highest-tier vision discussed."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("flyBtns","flyPanel",{
+f1:{t:"Flywheel 1: Marketplace / data",b:"More sellers to more supply to more buyers to more bids to better liquidity to better transaction outcomes to more transaction data to better valuation to better recommendations to more seller trust to more buyers to better monetization. This is the core marketplace and data flywheel."},
+f2:{t:"Flywheel 2: Discovery",b:"More sources to more assets discovered to more undervalued opportunities to more buyer and reseller profit to more subscription value to more buyers to a richer buyer graph to more accurate opportunity ranking to more transactions to better models. This is the Find-side flywheel."},
+f3:{t:"Flywheel 3: Personal asset graph",b:"More objects identified to a richer household asset inventory to more valuation history to more monetization recommendations to more sales to more trust to more assets stored to higher switching cost. This becomes a long-term retention moat."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("isBtns","isPanel",{
+i1:{t:"What Find Sell Profit IS",b:"Asset intelligence. Value discovery. AI identification. AI-assisted valuation. Demand matching. Buyer intelligence. Seller intelligence. Market aggregation. Opportunity discovery. Arbitrage analysis. Recipe generation. Exit-path optimization. Partner routing. Transaction orchestration. Personal asset discovery. Dealer acquisition infrastructure. Reseller sourcing infrastructure. Potential B2B data infrastructure. Potential white-label infrastructure. Potential asset-liquidity operating system."},
+i2:{t:"What Find Sell Profit is NOT",b:"Not merely a classifieds site, an eBay competitor, a Facebook Marketplace clone, an auction site, a vehicle listing website, a car dealership, a consignment company, a watch marketplace, a price guide, a scraper, a sell my stuff app, a dealer lead-gen website, an AI image-recognition gimmick, a liquidation business, a brokerage, a flipping course, or a simple arbitrage-alert service."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("crBtns","crPanel",{
+c1:{t:"CREATED",b:"Strategy. Conceptual architecture. Codex. Product constitution. Marketplace thesis. Valuation framework. Recipe framework. Routing framework. Monetization hypotheses. Partner model. MVP roadmap. Data model proposal. AI orchestration proposal. PDF documentation."},
+c2:{t:"NOT YET CREATED / NOT CONFIRMED",b:"Production website. Production backend. Working universal asset database. Dealer portal. Consumer mobile app. Household-scanning system. Production valuation service. Marketplace integrations. Dealer bidding system. Partner APIs. Payment flow. Authentication flow. Live transaction orchestration. Production Recipe Engine implementation specifically configured for FSP. Real-time arbitrage feed. Data licensing agreements. Dealer network. Partner contracts. Revenue. Customer acquisition engine. Validated pricing. Regulatory review. Trademarks. Complete branding."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("phBtns","phPanel",{
+p0:{t:"Phase 0: Inventory what already exists",b:"Before new development, catalog all Neuruh infrastructure. Output: FSP_REUSE_MATRIX.md, with columns for capability, existing component, repository, status, reusable, extension needed, owner, and priority."},
+p1:{t:"Phase 1: Lock the vehicle wedge",b:"Define the exact promise. Suggested: enter your vehicle once. Find Sell Profit determines what it is worth, finds qualified buyers, compares your available exit routes, and helps you choose the best net outcome. Do not launch twenty categories simultaneously."},
+p2:{t:"Phase 2: Build universal asset core",b:"Create asset schema, media schema, valuation schema, buyer criteria, offer, route, transaction, and outcome. Vehicles extend that model."},
+p3:{t:"Phase 3: Build dealer graph",b:"Recruit pilot dealers. Target: 25 to 50 serious buyers in one geographic market. Capture exact acquisition criteria. This creates demand before consumer supply is aggressively acquired."},
+p4:{t:"Phase 4: Build seller intake",b:"Minimum: VIN, mileage, ZIP, photos, title status, condition, seller preference."},
+p5:{t:"Phase 5: Valuation",b:"Integrate production-grade data. Return immediate, wholesale, private-party, and retail-context values, plus confidence."},
+p6:{t:"Phase 6: Matching + bidding",b:"Match the asset against dealer profiles. Send opportunities. Collect bids. Rank. Return to seller."},
+p7:{t:"Phase 7: Transaction routing",b:"Initially do not overbuild. Use partners or a manual workflow behind the scenes if required. Validate behavior."},
+p8:{t:"Phase 8: Outcome learning",b:"Capture predicted versus actual. This must exist early. Otherwise the moat never compounds."},
+p9:{t:"Phase 9: Add discovery",b:"Once valuation and buyers work, scan external inventory and generate dealer and reseller opportunities. Now Find becomes active, not just inbound."},
+p10:{t:"Phase 10: Add second asset class",b:"Good candidates: watches, collectibles, equipment, motorcycles, furniture. Select based on data availability, buyer density, transaction value, margin, shipping complexity, and regulation."},
+p11:{t:"Phase 11: Household asset graph",b:"Deploy vision-based discovery. This can eventually become the consumer growth engine."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+</script>
+</body>
+</html>
