@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLMs and Compositional AGI | Neuruh</title>
+<meta name="description" content="AGI may emerge from assembling small modular nuanced units with composition, memory, verification, recursion, and action, not from making one model infinitely larger.">
+<style>
+  :root{
+    --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --muted:#5c564a;
+    --brass:#9a7b2d; --brass-soft:#e8dfc8; --line:#d8d2c2; --card:#fffefb;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bone);color:var(--ink);
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+  h1,h2,h3{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.2;margin:0 0 .5rem}
+  h1{font-size:2rem;letter-spacing:-.01em}
+  h2{font-size:1.35rem;border-bottom:2px solid var(--brass);padding-bottom:.35rem;margin-top:0}
+  h3{font-size:1.05rem}
+  code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+  a{color:var(--brass)}
+  .wrap{max-width:1020px;margin:0 auto;padding:0 20px}
+  /* Document control header */
+  header.doc-control{background:var(--ink);color:#f4f1ea;padding:18px 0 14px}
+  header.doc-control .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
+    font-size:.78rem;margin-top:12px;border-top:1px solid #3d3a33;padding-top:10px}
+  header.doc-control .meta b{display:block;color:#c9a94f;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase}
+  header.doc-control h1{color:#fbfaf6}
+  header.doc-control p.lede{color:#d8d2c2;margin:.4rem 0 0;max-width:70ch}
+  /* Sticky nav */
+  nav.sticky{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:1px solid var(--line)}
+  nav.sticky .wrap{display:flex;flex-wrap:wrap;gap:2px;padding:6px 20px}
+  nav.sticky a{display:inline-block;padding:6px 10px;font-size:.82rem;color:var(--ink);
+    text-decoration:none;border-radius:4px}
+  nav.sticky a:hover,nav.sticky a:focus{background:var(--brass-soft);outline:none}
+  nav.sticky a:focus-visible{outline:2px solid var(--brass)}
+  main{padding:28px 0 60px}
+  section.card{background:var(--paper);border:1px solid var(--line);border-radius:8px;
+    padding:24px;margin-bottom:28px;scroll-margin-top:64px}
+  .kicker{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700}
+  .thesis{background:var(--ink);color:#f4f1ea;border-radius:8px;padding:26px;margin-bottom:28px}
+  .thesis p{font-size:1.25rem;line-height:1.5;margin:.6rem 0 0;max-width:62ch}
+  .thesis .kicker{color:#c9a94f}
+  figure{margin:20px 0 0}
+  figcaption{font-size:.85rem;color:var(--muted);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+  figcaption b{color:var(--ink)}
+  .fig-no{font-family:"JetBrains Mono",monospace;color:var(--brass);font-weight:700}
+  .note{background:#fdf6e0;border:1px solid var(--brass);border-left:5px solid var(--brass);
+    border-radius:6px;padding:14px 16px;margin:16px 0}
+  .note.warn{background:#fbeeee;border-color:#a33;border-left-color:#a33}
+  .note p{margin:.3rem 0}
+  /* Flow nodes */
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+  .node{flex:1 1 140px;min-width:130px;background:var(--card);border:2px solid var(--line);
+    border-radius:8px;padding:12px 10px;cursor:pointer;text-align:left;font:inherit;
+    transition:border-color .15s,background .15s}
+  .node:hover{border-color:var(--brass)}
+  .node.active{border-color:var(--brass);background:var(--brass-soft)}
+  .node .n-num{font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--brass);font-weight:700}
+  .node .n-name{display:block;font-weight:700;font-size:.92rem;line-height:1.3;margin-top:2px}
+  .node .n-sub{display:block;font-size:.78rem;color:var(--muted);margin-top:2px}
+  .arrow{align-self:center;color:var(--brass);font-weight:700;font-size:1.1rem}
+  .detail{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--brass);
+    border-radius:6px;padding:14px 16px;margin-top:16px;min-height:96px}
+  .detail h3{margin-bottom:.3rem}
+  .detail p{margin:.2rem 0}
+  .detail .tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--brass);margin-bottom:4px}
+  /* Atom explorer */
+  .atom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:14px}
+  .field{background:var(--card);border:2px solid var(--line);border-radius:8px;padding:10px 12px;
+    cursor:pointer;font:inherit;text-align:left;transition:border-color .15s,background .15s}
+  .field:hover{border-color:var(--brass)}
+  .field.active{border-color:var(--brass);background:var(--brass-soft)}
+  .field b{display:block;font-size:.92rem}
+  .field span{font-size:.78rem;color:var(--muted)}
+  /* Questions */
+  .qlist{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+  .qlist button{width:100%;text-align:left;background:var(--card);border:2px solid var(--line);
+    border-radius:8px;padding:12px 14px;cursor:pointer;font:inherit;font-size:1rem}
+  .qlist button:hover{border-color:var(--brass)}
+  .qlist button.active{border-color:var(--brass);background:var(--brass-soft)}
+  .qlist button .q-num{font-family:"JetBrains Mono",monospace;color:var(--brass);font-weight:700;margin-right:8px}
+  /* Ladder */
+  .ladder{display:flex;flex-direction:column-reverse;gap:6px;margin-top:14px}
+  .rung{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--line);
+    border-radius:8px;padding:10px 14px;cursor:pointer;font:inherit;text-align:left;
+    transition:border-color .15s,background .15s}
+  .rung:hover{border-color:var(--brass)}
+  .rung.active{border-color:var(--brass);background:var(--brass-soft)}
+  .rung .r-num{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--brass);min-width:2ch}
+  .rung .r-name{font-weight:700}
+  .rung .r-desc{font-size:.85rem;color:var(--muted);margin-left:auto;text-align:right}
+  .climb-controls{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .btn{background:var(--ink);color:#fbfaf6;border:1px solid var(--ink);border-radius:6px;
+    padding:9px 16px;cursor:pointer;font:inherit;font-size:.92rem}
+  .btn:hover{background:var(--brass);border-color:var(--brass)}
+  .btn.ghost{background:transparent;color:var(--ink);border-color:var(--ink)}
+  .btn.ghost:hover{background:var(--brass-soft);border-color:var(--brass)}
+  .btn:focus-visible,.node:focus-visible,.field:focus-visible,.qlist button:focus-visible,
+  .rung:focus-visible,.loop-stage:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+  /* Loop */
+  .loop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:14px}
+  .loop-stage{background:var(--card);border:2px solid var(--line);border-radius:8px;padding:10px 12px;
+    cursor:pointer;font:inherit;text-align:left;transition:border-color .15s,background .15s}
+  .loop-stage:hover{border-color:var(--brass)}
+  .loop-stage.active{border-color:var(--brass);background:var(--brass-soft)}
+  .loop-stage.done{border-color:var(--brass)}
+  .loop-stage .l-num{font-family:"JetBrains Mono",monospace;font-size:.72rem;color:var(--brass);font-weight:700}
+  .loop-stage b{display:block;font-size:.92rem;margin-top:2px}
+  .loop-stage span{font-size:.78rem;color:var(--muted)}
+  .loop-close{margin-top:12px;font-size:.9rem;color:var(--muted)}
+  .loop-close b{color:var(--brass)}
+  .progress{height:10px;background:#e7e2d4;border-radius:5px;margin-top:14px;overflow:hidden}
+  .progress i{display:block;height:100%;width:0;background:var(--brass);transition:width .3s}
+  .progress-label{font-size:.82rem;color:var(--muted);margin-top:6px}
+  /* Contrast table */
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}
+  th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+  th{background:var(--ink);color:#f4f1ea}
+  td:first-child{font-weight:700}
+  /* Equation */
+  .equation{background:var(--ink);color:#f4f1ea;border-radius:8px;padding:26px;text-align:center}
+  .equation .terms{font-size:1.15rem;line-height:1.9}
+  .equation .op{color:#c9a94f;font-weight:700;padding:0 6px}
+  .equation .eq{font-size:1.3rem;color:#c9a94f;font-weight:700;display:block;margin:10px 0}
+  .equation .result{font-size:1.3rem;font-weight:700}
+  footer{border-top:1px solid var(--line);padding:20px 0 40px;color:var(--muted);font-size:.85rem}
+  .status-line{font-size:.9rem;color:var(--muted);margin-top:10px}
+  @media (max-width:640px){
+    h1{font-size:1.5rem}
+    .thesis p{font-size:1.1rem}
+    header.doc-control .meta{grid-template-columns:repeat(2,1fr)}
+    section.card{padding:18px}
+    .rung .r-desc{display:none}
+    .equation .terms{font-size:1rem}
+  }
+  @media print{
+    body{background:#fff}
+    nav.sticky{position:static}
+    section.card,.thesis,.equation{break-inside:avoid;border-color:#999}
+    .btn,.climb-controls{display:none}
+    a{color:#000;text-decoration:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="doc-control">
+  <div class="wrap">
+    <div class="kicker" style="color:#c9a94f">Neuruh | Architecture Document</div>
+    <h1>SLMs and Compositional AGI</h1>
+    <p class="lede">Small language model atoms, composed into a shared structured reality, checked by verification, corrected by feedback, and executed through agency.</p>
+    <div class="meta">
+      <div><b>Document</b>SLM-COMPOSITIONAL-AGI v1.0</div>
+      <div><b>Date</b>2026-11-18</div>
+      <div><b>Author</b>Jeramie Hicks, Neuruh</div>
+      <div><b>Status</b>Built from content spec; source file missing at build time, see Source Note</div>
+    </div>
+  </div>
+</header>
+
+<nav class="sticky" aria-label="Section navigation">
+  <div class="wrap">
+    <a href="#thesis">Thesis</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#atom">SLM Atom</a>
+    <a href="#questions">First Principles</a>
+    <a href="#ladder">Ladder</a>
+    <a href="#loop">Closed Loop</a>
+    <a href="#contrast">Contrast</a>
+    <a href="#equation">Equation</a>
+    <a href="#correction">Correction</a>
+    <a href="#neuruh">Neuruh</a>
+    <a href="#closing">Closing</a>
+    <a href="#source-note">Source Note</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+  <div class="thesis" id="thesis">
+    <div class="kicker">Thesis, up front</div>
+    <p>AGI may emerge from assembling small modular nuanced units with composition, memory, verification, recursion, and action, not from making one model infinitely larger.</p>
+  </div>
+
+  <!-- FIGURE 1: ARCHITECTURE -->
+  <section class="card" id="architecture">
+    <div class="kicker">Section 1</div>
+    <h2>The Architecture</h2>
+    <p>Intelligence is built from the ground up. First principles define what the system must do, a world interface connects it to reality, and small modular units do the work in a loop that ends in learning. Click any node to read what it does.</p>
+    <figure>
+      <div class="flow" id="arch-flow" role="group" aria-label="Architecture flow"></div>
+      <div class="detail" id="arch-detail" aria-live="polite">
+        <span class="tag">Select a node</span>
+        <h3>How to read this diagram</h3>
+        <p>Click a node above. Each node explains its role and what it passes to the next stage. The SLM node exchanges with sensors, data, and actions in both directions: the world feeds the units, and the units act back on the world.</p>
+      </div>
+      <figcaption><span class="fig-no">Figure 1.</span> <b>Compositional AGI architecture.</b> First principles to world interface to SLMs, through relationships, composition, memory, and verification, to action, outcome, and learning.</figcaption>
+    </figure>
+  </section>
+
+  <!-- FIGURE 2: SLM ATOM -->
+  <section class="card" id="atom">
+    <div class="kicker">Section 2</div>
+    <h2>The SLM Atom Explorer</h2>
+    <p>A small language model atom is a cognitive atom, not a database record. It carries twelve fields. Click each field for its definition and its role in the system.</p>
+    <figure>
+      <div class="atom-grid" id="atom-grid" role="group" aria-label="SLM atom fields"></div>
+      <div class="detail" id="atom-detail" aria-live="polite">
+        <span class="tag">Select a field</span>
+        <h3>Twelve fields, one atom</h3>
+        <p>Click a field above. Together the twelve fields let a small unit know what it is, what it has seen, what it can do, how sure it is, and what happened last time it acted.</p>
+      </div>
+      <figcaption><span class="fig-no">Figure 2.</span> <b>The SLM atom.</b> Twelve fields: identity, observation, attributes, context, relationships, provenance, confidence, temporal state, transformations, constraints, available operations, observed outcomes.</figcaption>
+    </figure>
+  </section>
+
+  <!-- FIGURE 3: FIRST PRINCIPLES QUESTIONS -->
+  <section class="card" id="questions">
+    <div class="kicker">Section 3</div>
+    <h2>First-Principles Questions</h2>
+    <p>Before the system scales, it must be able to answer nine questions about the world it operates in. Click each question for what it demands of the system.</p>
+    <figure>
+      <ol class="qlist" id="q-list"></ol>
+      <div class="detail" id="q-detail" aria-live="polite">
+        <span class="tag">Select a question</span>
+        <h3>Nine questions, one standard</h3>
+        <p>Click a question above. Each one names a capability the system must have before its answers can be trusted, and each one maps to a part of the architecture in Figure 1.</p>
+      </div>
+      <figcaption><span class="fig-no">Figure 3.</span> <b>First-principles questions.</b> What exists, what changed, what caused it, what is known, what is inferred, what is uncertain, what relates to what, what can be done, and what happened when we did it.</figcaption>
+    </figure>
+  </section>
+
+  <!-- FIGURE 4: LADDER -->
+  <section class="card" id="ladder">
+    <div class="kicker">Section 4</div>
+    <h2>The Ladder: From Primitive to Revised Model</h2>
+    <p>Abstraction climbs one rung at a time, and feedback climbs it back down. Click any rung, or use the climb controls to walk the ladder from the bottom up.</p>
+    <figure>
+      <div class="ladder" id="ladder-list"></div>
+      <div class="climb-controls">
+        <button class="btn" id="climb-prev" type="button">Previous rung</button>
+        <button class="btn" id="climb-next" type="button">Next rung</button>
+        <button class="btn ghost" id="climb-reset" type="button">Reset climb</button>
+      </div>
+      <div class="detail" id="ladder-detail" aria-live="polite">
+        <span class="tag">Select a rung</span>
+        <h3>Ten rungs</h3>
+        <p>Click a rung above, or use Next rung to climb. Each rung is built from the one below it, and the top rung, the revised model, becomes the starting point for the next climb.</p>
+      </div>
+      <figcaption><span class="fig-no">Figure 4.</span> <b>The abstraction ladder.</b> Primitive, SLM, relationship, pattern, concept, model, plan, action, feedback, revised model.</figcaption>
+    </figure>
+  </section>
+
+  <!-- FIGURE 5: CLOSED LOOP -->
+  <section class="card" id="loop">
+    <div class="kicker">Section 5</div>
+    <h2>The Closed Cognitive Loop</h2>
+    <p>Eleven stages, and the loop closes: after recomposition the system acts again, with a better model than it had the first time. Click any stage, or run the loop and watch it step through.</p>
+    <figure>
+      <div class="loop-grid" id="loop-grid"></div>
+      <div class="climb-controls">
+        <button class="btn" id="loop-run" type="button">Run the loop</button>
+        <button class="btn ghost" id="loop-reset" type="button">Reset loop</button>
+      </div>
+      <div class="progress" aria-hidden="true"><i id="loop-bar"></i></div>
+      <div class="progress-label" id="loop-label">Loop not started. 0 of 11 stages complete.</div>
+      <div class="detail" id="loop-detail" aria-live="polite">
+        <span class="tag">Select a stage</span>
+        <h3>Eleven stages, one loop</h3>
+        <p>Click a stage above, or press Run the loop. The loop is the unit of learning: every pass through it leaves the world model a little less wrong.</p>
+      </div>
+      <p class="loop-close">The loop closes here: <b>RECOMPOSE</b> leads back to <b>ACT AGAIN</b>, and ACT AGAIN feeds the next PERCEIVE. The cycle does not end; it tightens.</p>
+      <figcaption><span class="fig-no">Figure 5.</span> <b>The closed cognitive loop.</b> PERCEIVE, REPRESENT, RELATE, REASON, PLAN, ACT, OBSERVE RESULT, VERIFY, UPDATE WORLD MODEL, RECOMPOSE, ACT AGAIN.</figcaption>
+    </figure>
+  </section>
+
+  <!-- SECTION 6: CONTRAST -->
+  <section class="card" id="contrast">
+    <div class="kicker">Section 6</div>
+    <h2>The Bigger-Model Path, and Why This Differs</h2>
+    <p>The bigger-model path scales three things: corpus, network, and probabilistic generation. The compositional path scales something else entirely: structure, checking, and correction.</p>
+    <table>
+      <thead>
+        <tr><th scope="col">Dimension</th><th scope="col">Bigger-model path</th><th scope="col">Compositional path</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Unit of intelligence</td><td>One huge network, trained on a huge corpus</td><td>Many small modular units, each carrying identity, context, provenance, confidence, and outcomes</td></tr>
+        <tr><td>Reality model</td><td>Implicit, inside the weights</td><td>Structured and shared: explicit relationships, provenance, and uncertainty</td></tr>
+        <tr><td>Generation</td><td>Probabilistic generation, plausible by default</td><td>Compositional reasoning: assembled from checked parts, not sampled from a distribution</td></tr>
+        <tr><td>Correction</td><td>Retraining, or prompting around the error</td><td>Verification and recursion: check the claim, feed the result back, revise the model, act again</td></tr>
+        <tr><td>Memory</td><td>Context window, then it is gone</td><td>Persistent memory: observed outcomes stay attached to the units that produced them</td></tr>
+        <tr><td>Action</td><td>Output text, and hope the world cooperates</td><td>Agency: action in the world, observed result, verified outcome, updated model</td></tr>
+        <tr><td>What scales</td><td>Parameters and data</td><td>Composition, verification, and learning loops</td></tr>
+      </tbody>
+    </table>
+    <p class="status-line">The difference is not size. It is whether the system can say what it knows, how it knows it, how sure it is, and what happened the last time it acted on that knowledge.</p>
+  </section>
+
+  <!-- FIGURE 6: EQUATION -->
+  <section class="card" id="equation">
+    <div class="kicker">Section 7</div>
+    <h2>The Equation</h2>
+    <figure>
+      <div class="equation">
+        <div class="terms">Many small intelligences <span class="op">+</span> shared structured reality <span class="op">+</span> compositional reasoning <span class="op">+</span> persistent memory <span class="op">+</span> verification <span class="op">+</span> agency</div>
+        <span class="eq">=</span>
+        <div class="result">Potentially general intelligence</div>
+      </div>
+      <figcaption><span class="fig-no">Figure 6.</span> <b>The compositional equation.</b> No single term is enough on its own. General intelligence, if it comes this way, comes from the sum, and from the loop that keeps the sum honest.</figcaption>
+    </figure>
+  </section>
+
+  <!-- SECTION 8: CORRECTION -->
+  <section class="card" id="correction">
+    <div class="kicker">Section 8</div>
+    <h2>Correction: The "Data Qubit" Is an Analogy</h2>
+    <div class="note">
+      <p><strong>Stated plainly:</strong> "data qubit" is an analogy, not a mechanism. It is a useful way to picture a small modular unit that carries identity, context, relationships, and outcomes, the way a qubit carries state. It does not claim any quantum-information mechanism.</p>
+      <p>Unless a quantum-information mechanism is defined, with specified states, operations, and measurement, the term stays an analogy. Any future claim that the units are quantum in a literal sense must define that mechanism first, or the claim is withdrawn.</p>
+    </div>
+    <p>Keeping the analogy labeled as an analogy matters, because the rest of the architecture does not depend on it. Composition, memory, verification, recursion, and action work the same whether the unit is called an SLM, an atom, or a data qubit. The architecture stands on its own terms.</p>
+  </section>
+
+  <!-- SECTION 9: NEURUH -->
+  <section class="card" id="neuruh">
+    <div class="kicker">Section 9</div>
+    <h2>Connection to Neuruh</h2>
+    <p>Stated as Jeramie Hicks's framing, not as proof of AGI. Neuruh already contains working instances of this pattern: composition plus verification plus feedback, in production-shaped systems.</p>
+    <ul>
+      <li><strong>Recipes.</strong> Repeatable acquisition patterns that turn signals into qualified opportunities. Small modular units of logic, composed into larger operations. This is composition in practice.</li>
+      <li><strong>Receipts.</strong> Hash-chained evidence for machine actions: who, what, when, why, input, output, authority, source, provenance, result, next state. This is verification and provenance in practice.</li>
+      <li><strong>The organism loop.</strong> Mission to conductor to worker to action to receipt to Sentinel to governance to custody to promotion to deployment to result to ingest to next mission. This is the closed loop in practice: act, observe, verify, update, act again.</li>
+      <li><strong>The REA A2A router.</strong> Agent-to-agent routing that composes specialized agents into larger operations, with authority and receipts attached. This is composition plus governance in practice.</li>
+    </ul>
+    <p>None of these is a claim that AGI has been achieved. They are evidence that the pattern, composition plus verification plus feedback, is already the operating shape of the Neuruh estate, and that the compositional thesis is a description of work already underway, not a distant speculation.</p>
+  </section>
+
+  <!-- SECTION 10: CLOSING -->
+  <section class="card" id="closing">
+    <div class="kicker">Section 10</div>
+    <h2>Closing: The Stronger Technical Formulation</h2>
+    <p style="font-size:1.12rem;line-height:1.6">General intelligence is approached as a compositional architecture, not as a scaling target. Small modular units carry identity, observation, attributes, context, relationships, provenance, confidence, temporal state, transformations, constraints, available operations, and observed outcomes. Those units compose through explicit relationships into patterns, concepts, models, and plans. Verification checks each claim against evidence and the world. Feedback revises the model. Agency executes the plan and observes the result. The loop repeats, and each pass leaves the world model less wrong than the last.</p>
+    <p>Scale is a resource, not the mechanism. The mechanism is composition, memory, verification, recursion, and action, running in a shared structured reality.</p>
+  </section>
+
+  <!-- SOURCE NOTE -->
+  <section class="card" id="source-note">
+    <div class="kicker">Source Note</div>
+    <h2>About This Document</h2>
+    <div class="note warn">
+      <p><strong>Source file missing at build time.</strong> The canonical source, <code>~/workspace/drive-pull/slm-compositional-agi.md</code>, the full verbatim paste of Jeramie Hicks's SLM / compositional AGI architecture piece dated 2026-11-18, did not exist in the workspace when this page was built. This page was built from the content specification supplied with the build order, cross-checked against the durable record of the thesis in memory (the SLM field list and the closed cognitive loop). No content was invented beyond what the specification and that record contain.</p>
+      <p>When the source file is available, this page should be re-checked against the verbatim paste and corrected wherever the paste differs from the specification.</p>
+    </div>
+    <p>Thesis, architecture, atom fields, questions, ladder, loop, contrast, equation, correction, and Neuruh connection are all built from the supplied specification. The "data qubit" correction and the Neuruh framing are stated exactly as specified: analogy only, and framing rather than proof.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>SLMs and Compositional AGI, SLM-COMPOSITIONAL-AGI v1.0, 2026-11-18. Jeramie Hicks, Neuruh. Built from the content specification; canonical source file was not present at build time. See Source Note.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  function setDetail(el, tag, title, body){
+    el.innerHTML = "";
+    var t = document.createElement("span"); t.className = "tag"; t.textContent = tag; el.appendChild(t);
+    var h = document.createElement("h3"); h.textContent = title; el.appendChild(h);
+    var p = document.createElement("p"); p.textContent = body; el.appendChild(p);
+  }
+  function markActive(list, btn){
+    var items = list.querySelectorAll("button");
+    for(var i=0;i<items.length;i++){ items[i].classList.remove("active"); }
+    if(btn){ btn.classList.add("active"); }
+  }
+
+  /* ---- Figure 1: architecture ---- */
+  var arch = [
+    {n:"AGI to First Principles", s:"The starting point", d:"Start from what intelligence must do, not from how big a model can get. First principles define the job: perceive reality, represent it, reason over it, act on it, and learn from the result. Everything downstream is judged against that job."},
+    {n:"World Interface", s:"The boundary with reality", d:"The layer where the system meets the world. Sensors and data come in, actions go out. If the interface is wrong, no amount of reasoning upstream can fix it, because the system is reasoning about a world it cannot touch."},
+    {n:"SLMs", s:"Small modular units", d:"Small language model atoms: compact units that each carry identity, context, provenance, confidence, and outcomes. They do the work in small pieces, and they exchange with sensors, data, and actions in both directions: the world feeds them, and they act back on it."},
+    {n:"Sensors, Data, Actions", s:"Two-way exchange with SLMs", d:"The live channel between the units and the world. Sensors and data flow in and update the atoms. Actions flow out and change the world. The exchange runs both ways on every pass, so the units are never reasoning about a stale picture."},
+    {n:"Relationships", s:"Context, provenance, uncertainty", d:"How units connect, and what is known about each connection. A relationship carries its context (when and where it holds), its provenance (where the claim came from), and its uncertainty (how sure the system is). Without this, composition is just piling units together."},
+    {n:"Composition", s:"Abstraction, decomposition", d:"Build bigger structures from smaller units, and break big problems into smaller ones. Abstraction climbs from primitives to patterns to concepts to models. Decomposition does the reverse when a plan fails: split the problem and find the piece that broke."},
+    {n:"Memory", s:"Reasoning, simulation", d:"What the system retains, and what it can try before it acts. Memory holds observed outcomes attached to the units that produced them. Simulation runs what-if models against that memory, so the system can rehearse a plan before paying for it in the world."},
+    {n:"Verification", s:"Governance, feedback", d:"Check the claim against evidence and the world before trusting it. Governance sets who may authorize what. Feedback carries the result of the check back upstream, so a failed verification revises the model instead of being forgotten."},
+    {n:"Action", s:"Act on the world", d:"Execute the plan through the world interface. Action is where the system stops describing reality and starts changing it, which is why verification comes first and observation comes right after."},
+    {n:"Outcome", s:"What actually happened", d:"The observed result of the action, recorded as evidence. Outcome is the ground truth the system learns from. A plan that predicted one thing and produced another has taught the system something, but only if the outcome is recorded honestly."},
+    {n:"Learning", s:"Update and feed back", d:"Fold the outcome back into the units, the relationships, and the models. Learning is the loop closing: the next pass starts with better atoms, better relationships, and a world model that is a little less wrong."}
+  ];
+  var archFlow = document.getElementById("arch-flow");
+  var archDetail = document.getElementById("arch-detail");
+  arch.forEach(function(item, i){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "node";
+    b.innerHTML = "";
+    var num = document.createElement("span"); num.className = "n-num"; num.textContent = "0" + (i+1); b.appendChild(num);
+    var name = document.createElement("span"); name.className = "n-name"; name.textContent = item.n; b.appendChild(name);
+    var sub = document.createElement("span"); sub.className = "n-sub"; sub.textContent = item.s; b.appendChild(sub);
+    b.addEventListener("click", function(){
+      markActive(archFlow, b);
+      setDetail(archDetail, "Node " + (i+1) + " of " + arch.length, item.n, item.d);
+    });
+    archFlow.appendChild(b);
+    if(i < arch.length - 1){
+      var a = document.createElement("span"); a.className = "arrow"; a.setAttribute("aria-hidden","true"); a.textContent = "->"; archFlow.appendChild(a);
+    }
+  });
+
+  /* ---- Figure 2: SLM atom ---- */
+  var fields = [
+    {n:"Identity", s:"What this unit is", d:"A stable identifier for the unit, so the system can tell one atom from another, track it over time, and attribute outcomes to it. Without identity there is no accountability and no learning, because the system cannot say which unit did what."},
+    {n:"Observation", s:"What it has seen", d:"The evidence this unit has taken in from the world: sensor readings, data, messages, results. Observation is the unit's contact with reality, and it is kept separate from inference so the system can tell what was seen from what was guessed."},
+    {n:"Attributes", s:"What it is like", d:"The unit's properties: its type, its domain, its capabilities, its current state. Attributes let the system match the right unit to the right job and compose units whose properties fit together."},
+    {n:"Context", s:"When and where it holds", d:"The situation the unit's knowledge applies to. A claim that is true in one context can be false in another. Context bounds the unit's claims so composition does not mix facts from different worlds."},
+    {n:"Relationships", s:"What it connects to", d:"The unit's links to other units, with their type and strength. Relationships are the structure that composition climbs: patterns are relationships between units, concepts are relationships between patterns."},
+    {n:"Provenance", s:"Where it came from", d:"The source and history of the unit's knowledge: who or what produced it, when, from what evidence, under what authority. Provenance is what makes a claim checkable instead of merely plausible."},
+    {n:"Confidence", s:"How sure it is", d:"A stated degree of certainty, carried with the claim rather than assumed. Confidence lets the system prefer strong evidence, flag weak links, and know where verification matters most."},
+    {n:"Temporal State", s:"When it was true", d:"The time dimension: when the observation was made, how fresh it is, whether it still holds. The world changes, and a unit that cannot say when its knowledge was current will reason from a dead past."},
+    {n:"Transformations", s:"How it changes", d:"The operations that can change the unit: updates, merges, splits, refinements. Transformations are how learning writes back into the atom instead of leaving knowledge frozen at creation."},
+    {n:"Constraints", s:"What it may not do", d:"The bounds on the unit: authority limits, safety limits, domain limits. Constraints are the governance of the small: a unit that knows its limits will not compose itself into a plan it has no right to execute."},
+    {n:"Available Operations", s:"What it can do", d:"The actions this unit can perform or participate in. Operations are the unit's agency at small scale: the verbs it can execute, alone or composed with other units into larger plans."},
+    {n:"Observed Outcomes", s:"What happened last time", d:"The recorded results of the unit's past actions. Outcomes are the unit's memory of its own track record, and they are what let the system learn which units to trust, which to revise, and which to retire."}
+  ];
+  var atomGrid = document.getElementById("atom-grid");
+  var atomDetail = document.getElementById("atom-detail");
+  fields.forEach(function(f, i){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "field";
+    var name = document.createElement("b"); name.textContent = f.n; b.appendChild(name);
+    var sub = document.createElement("span"); sub.textContent = f.s; b.appendChild(sub);
+    b.addEventListener("click", function(){
+      markActive(atomGrid, b);
+      setDetail(atomDetail, "Field " + (i+1) + " of 12", f.n, f.d);
+    });
+    atomGrid.appendChild(b);
+  });
+
+  /* ---- Figure 3: questions ---- */
+  var questions = [
+    {q:"What exists?", d:"Demands an inventory of reality: entities, their attributes, and their state. The system must be able to say what is in the world before it can reason about the world. This is the job of SLMs and their identity and attributes."},
+    {q:"What changed?", d:"Demands change detection: compare the world now against the world as remembered, and name the difference. Without this, the system reasons from a snapshot that may already be stale. This is the job of observation and temporal state."},
+    {q:"What caused it?", d:"Demands causal reasoning: link a change to the action or event that produced it. Correlation is not enough; the system needs a mechanism it can test. This is the job of relationships and observed outcomes."},
+    {q:"What is known?", d:"Demands an honest ledger of knowledge: what the system has evidence for, and what it does not. Known claims carry provenance and confidence; everything else is marked as unknown, not quietly assumed."},
+    {q:"What is inferred?", d:"Demands a line between evidence and inference. Inferences are built from known facts by stated reasoning, and they carry the confidence of their weakest link. If the system cannot say what it inferred, it cannot check the inference."},
+    {q:"What is uncertain?", d:"Demands explicit uncertainty: what is unknown, how uncertain it is, and what would resolve it. Uncertainty is carried on the relationship and the claim, so the system can act carefully where it is unsure and verify where it matters."},
+    {q:"What relates to what?", d:"Demands a relationship map: which entities, units, and facts connect, and how. This is the structured reality the composition climbs. Without it there is no pattern, no concept, and no model, only a pile of facts."},
+    {q:"What can be done?", d:"Demands an action inventory: given the state of the world, what operations are available, under what constraints, with what authority. This is the job of available operations and constraints on every unit."},
+    {q:"What happened when we did it?", d:"Demands a recorded outcome for every action, checked against what was predicted. This is the feedback that makes the loop a loop. Without it, the system repeats its mistakes with perfect confidence."}
+  ];
+  var qList = document.getElementById("q-list");
+  var qDetail = document.getElementById("q-detail");
+  questions.forEach(function(item, i){
+    var li = document.createElement("li");
+    var b = document.createElement("button");
+    b.type = "button";
+    var num = document.createElement("span"); num.className = "q-num"; num.textContent = "Q" + (i+1); b.appendChild(num);
+    b.appendChild(document.createTextNode(item.q));
+    b.addEventListener("click", function(){
+      markActive(qList, b);
+      setDetail(qDetail, "Question " + (i+1) + " of 9", item.q, item.d);
+    });
+    li.appendChild(b); qList.appendChild(li);
+  });
+
+  /* ---- Figure 4: ladder ---- */
+  var rungs = [
+    {n:"Primitive", d:"The smallest piece of reality the system records: a raw observation, a single fact, a sensor reading. Nothing is inferred yet."},
+    {n:"SLM", d:"A primitive wrapped in an atom: identity, context, provenance, confidence, and outcomes attached, so the fact becomes a usable unit."},
+    {n:"Relationship", d:"A link between units, carrying context, provenance, and uncertainty. Relationships turn a pile of atoms into structure."},
+    {n:"Pattern", d:"A recurring arrangement of relationships. When the same structure shows up repeatedly, the system names it, and can recognize it next time."},
+    {n:"Concept", d:"A named pattern with meaning: what the pattern indicates, what it predicts, what it rules out. Concepts are the system's vocabulary."},
+    {n:"Model", d:"A composed set of concepts that describes how a piece of the world works, well enough to make predictions the system can test."},
+    {n:"Plan", d:"A model turned into action: a sequence of operations, with constraints and authority, aimed at a chosen outcome."},
+    {n:"Action", d:"The plan executed in the world, through the world interface. This is where prediction meets reality."},
+    {n:"Feedback", d:"The observed outcome, compared against the prediction. Feedback is the evidence that the model was right, wrong, or partly right."},
+    {n:"Revised Model", d:"The model updated by feedback, becoming the starting point for the next climb. The ladder does not end here; it restarts, one rung higher."}
+  ];
+  var ladderList = document.getElementById("ladder-list");
+  var ladderDetail = document.getElementById("ladder-detail");
+  var ladderIdx = -1;
+  function showRung(i){
+    ladderIdx = i;
+    var btns = ladderList.querySelectorAll(".rung");
+    markActive(ladderList, btns[i]);
+    setDetail(ladderDetail, "Rung " + (i+1) + " of 10", rungs[i].n, rungs[i].d);
+  }
+  rungs.forEach(function(r, i){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "rung";
+    var num = document.createElement("span"); num.className = "r-num"; num.textContent = (i+1); b.appendChild(num);
+    var name = document.createElement("span"); name.className = "r-name"; name.textContent = r.n; b.appendChild(name);
+    var desc = document.createElement("span"); desc.className = "r-desc"; desc.textContent = r.d; b.appendChild(desc);
+    b.addEventListener("click", function(){ showRung(i); });
+    ladderList.appendChild(b);
+  });
+  document.getElementById("climb-next").addEventListener("click", function(){
+    showRung(Math.min(ladderIdx + 1, rungs.length - 1));
+  });
+  document.getElementById("climb-prev").addEventListener("click", function(){
+    showRung(Math.max(ladderIdx - 1, 0));
+  });
+  document.getElementById("climb-reset").addEventListener("click", function(){
+    ladderIdx = -1;
+    markActive(ladderList, null);
+    setDetail(ladderDetail, "Select a rung", "Ten rungs",
+      "Click a rung above, or use Next rung to climb. Each rung is built from the one below it, and the top rung, the revised model, becomes the starting point for the next climb.");
+  });
+
+  /* ---- Figure 5: closed loop ---- */
+  var stages = [
+    {n:"PERCEIVE", s:"Take in the world", d:"Gather observations through the world interface: sensors, data, messages. Perception is the loop's contact with reality, and everything downstream depends on its honesty."},
+    {n:"REPRESENT", s:"Build the picture", d:"Turn observations into SLMs and relationships: a structured representation of what exists, what changed, and what is known. Representation is where raw input becomes a model the system can reason over."},
+    {n:"RELATE", s:"Connect the pieces", d:"Map what relates to what. Relating builds the structure that reasoning climbs: patterns, dependencies, causes, and constraints, each carrying provenance and uncertainty."},
+    {n:"REASON", s:"Draw conclusions", d:"Infer what follows from the representation: causes, predictions, options. Reasoning is explicit and checkable, because its inputs carry provenance and its inferences carry confidence."},
+    {n:"PLAN", s:"Choose the action", d:"Turn reasoning into a sequence of operations under constraints and authority, aimed at a chosen outcome. A plan names what will be done, in what order, and what success looks like."},
+    {n:"ACT", s:"Execute in the world", d:"Run the plan through the world interface. Action is the loop's point of contact with consequences: the system stops describing reality and starts changing it."},
+    {n:"OBSERVE RESULT", s:"See what happened", d:"Record the actual outcome of the action as evidence. The observed result is ground truth for this pass, whether or not it matches the prediction."},
+    {n:"VERIFY", s:"Check the claim", d:"Compare the observed result against the prediction and the evidence. Verification is governance in action: a claim that fails its check does not get trusted, and the failure is recorded."},
+    {n:"UPDATE WORLD MODEL", s:"Fold in the evidence", d:"Revise the representation with what the result taught. The world model is updated, not defended: a prediction that missed is information, not embarrassment."},
+    {n:"RECOMPOSE", s:"Rebuild from the parts", d:"Recompose the units, relationships, and concepts with the updated model. Recomposition is where the system gets better, not just busier: the same pieces, arranged by better knowledge."},
+    {n:"ACT AGAIN", s:"Close the loop", d:"Execute again, with the revised model. ACT AGAIN is not a repeat of the first ACT; it is the same loop, one pass wiser, feeding its own next PERCEIVE. This is where the loop closes, and where learning lives."}
+  ];
+  var loopGrid = document.getElementById("loop-grid");
+  var loopDetail = document.getElementById("loop-detail");
+  var loopBar = document.getElementById("loop-bar");
+  var loopLabel = document.getElementById("loop-label");
+  var loopTimer = null;
+  var loopIdx = -1;
+  function showStage(i){
+    loopIdx = i;
+    var btns = loopGrid.querySelectorAll(".loop-stage");
+    for(var j=0;j<btns.length;j++){
+      btns[j].classList.toggle("active", j === i);
+      btns[j].classList.toggle("done", j < i);
+    }
+    loopBar.style.width = Math.round(((i+1)/stages.length)*100) + "%";
+    loopLabel.textContent = "Stage " + (i+1) + " of 11: " + stages[i].n + ". " + (i+1) + " of 11 stages complete." + (i === stages.length-1 ? " Loop closed: ACT AGAIN feeds the next PERCEIVE." : "");
+    setDetail(loopDetail, "Stage " + (i+1) + " of 11", stages[i].n, stages[i].d);
+  }
+  stages.forEach(function(s, i){
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "loop-stage";
+    var num = document.createElement("span"); num.className = "l-num"; num.textContent = "Stage " + (i+1); b.appendChild(num);
+    var name = document.createElement("b"); name.textContent = s.n; b.appendChild(name);
+    var sub = document.createElement("span"); sub.textContent = s.s; b.appendChild(sub);
+    b.addEventListener("click", function(){
+      if(loopTimer){ clearInterval(loopTimer); loopTimer = null; document.getElementById("loop-run").textContent = "Run the loop"; }
+      showStage(i);
+    });
+    loopGrid.appendChild(b);
+  });
+  document.getElementById("loop-run").addEventListener("click", function(){
+    var btn = document.getElementById("loop-run");
+    if(loopTimer){
+      clearInterval(loopTimer); loopTimer = null;
+      btn.textContent = "Run the loop";
+      return;
+    }
+    var i = (loopIdx >= stages.length - 1) ? -1 : loopIdx;
+    btn.textContent = "Stop loop";
+    showStage(i + 1);
+    loopTimer = setInterval(function(){
+      i++;
+      if(i >= stages.length - 1){
+        showStage(stages.length - 1);
+        clearInterval(loopTimer); loopTimer = null;
+        btn.textContent = "Run the loop again";
+        return;
+      }
+      showStage(i + 1);
+    }, 900);
+  });
+  document.getElementById("loop-reset").addEventListener("click", function(){
+    if(loopTimer){ clearInterval(loopTimer); loopTimer = null; }
+    document.getElementById("loop-run").textContent = "Run the loop";
+    loopIdx = -1;
+    var btns = loopGrid.querySelectorAll(".loop-stage");
+    for(var j=0;j<btns.length;j++){ btns[j].classList.remove("active"); btns[j].classList.remove("done"); }
+    loopBar.style.width = "0";
+    loopLabel.textContent = "Loop not started. 0 of 11 stages complete.";
+    setDetail(loopDetail, "Select a stage", "Eleven stages, one loop",
+      "Click a stage above, or press Run the loop. The loop is the unit of learning: every pass through it leaves the world model a little less wrong.");
+  });
+})();
+</script>
+</body>
+</html>
