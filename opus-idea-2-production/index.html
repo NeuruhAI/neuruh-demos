@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opus: Idea 2 Production Engine (Demo)</title>
+<style>
+  :root{
+    --stone-50:#FAFAF9; --stone-100:#F5F5F4; --stone-200:#E7E5E4; --stone-300:#D6D3D1;
+    --stone-400:#A8A29E; --stone-600:#57534E; --stone-800:#292524; --stone-900:#1C1917;
+    --red:#DC2626;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--stone-50);color:var(--stone-600);
+    font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5}
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  header{padding:28px 32px 8px;display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between}
+  h1{color:var(--stone-800);font-size:28px;letter-spacing:-.02em;margin:0}
+  h2{color:var(--stone-800);font-size:18px;letter-spacing:-.02em;margin:0 0 4px}
+  h3{color:var(--stone-800);font-size:14px;margin:0 0 6px}
+  .sub{color:var(--stone-400);font-size:14px;margin:4px 0 0}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 32px 48px}
+  .glass{background:rgba(255,255,255,.4);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.6);box-shadow:0 1px 2px rgba(0,0,0,.05);border-radius:24px;
+    padding:20px;transition:transform .3s ease,background .3s ease,box-shadow .3s ease}
+  .glass:hover{transform:scale(1.01);background:rgba(255,255,255,.6);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+  .span2{grid-column:span 2;grid-row:span 2}
+  .span4{grid-column:span 4}
+  .tabs{display:flex;gap:8px;margin:16px 0 24px;flex-wrap:wrap}
+  .tab{border:1px solid var(--stone-200);background:#fff;border-radius:999px;padding:8px 18px;
+    font-size:14px;cursor:pointer;color:var(--stone-600)}
+  .tab.active{background:var(--stone-900);color:var(--stone-50);border-color:var(--stone-900)}
+  .pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--stone-200);background:#fff}
+  .pill.dark{background:var(--stone-900);color:var(--stone-50);border-color:var(--stone-900)}
+  .pill.red{color:var(--red);border-color:var(--red)}
+  .big{font-size:34px;color:var(--stone-800);letter-spacing:-.02em;line-height:1.1}
+  .label{font-size:12px;color:var(--stone-400);text-transform:uppercase;letter-spacing:.06em}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--stone-200)}
+  th{color:var(--stone-400);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .btn{border:1px solid var(--stone-200);background:#fff;border-radius:8px;padding:6px 12px;
+    font-size:12px;cursor:pointer;color:var(--stone-600);font-family:inherit}
+  .btn:hover{background:var(--stone-100)}
+  .btn.dark{background:var(--stone-900);color:var(--stone-50);border-color:var(--stone-900);
+    border-radius:999px;padding:12px 24px;font-size:15px;font-weight:500;
+    box-shadow:0 8px 20px rgba(28,25,23,.2);display:inline-block;will-change:transform}
+  .btn.dark:hover{box-shadow:0 10px 24px rgba(28,25,23,.28)}
+  .lock{position:absolute;inset:0;background:rgba(255,255,255,.1);backdrop-filter:blur(3px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:24px}
+  .lock .padlock{font-size:34px;color:var(--stone-400)}
+  .rel{position:relative}
+  .heat{display:grid;grid-template-columns:repeat(12,1fr);gap:4px}
+  .cell{aspect-ratio:1;border-radius:4px;background:var(--stone-200)}
+  .plans{display:flex;gap:24px;flex-wrap:wrap}
+  .plan{flex:1;min-width:260px;padding:28px;border-radius:24px;
+    background:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.7);
+    box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .plan ul{padding-left:18px;margin:14px 0}
+  .plan li{margin:6px 0;font-size:14px}
+  .price{font-size:30px;color:var(--stone-800)}
+  .note{font-size:12px;color:var(--stone-400);margin-top:32px;border-top:1px solid var(--stone-200);padding-top:16px}
+  .err{background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:12px 16px;
+    font-size:13px;color:#991B1B;white-space:pre-wrap;display:none;margin-top:12px}
+  .okline{font-size:13px;color:#166534}
+  .radial{width:120px;height:120px}
+  @media (max-width:760px){.grid{grid-template-columns:1fr 1fr}.span2{grid-column:span 2}.span4{grid-column:span 2}header,.wrap{padding-left:16px;padding-right:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Opus: Idea 2 Production Engine</h1>
+      <p class="sub">Napkin to Production dashboard. Soft Bento Glass design system. Browser simulation, no backend, no sends.</p>
+    </div>
+    <div>
+      <span class="pill" id="tierPill">Plan: Free</span>
+      <span class="pill">API: simulated</span>
+      <button class="btn" id="tierBtn" type="button">Switch to Pro</button>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-view="usage" type="button">Customer Usage</button>
+    <button class="tab" data-view="metrics" type="button">User Metrics</button>
+    <button class="tab" data-view="plans" type="button">Pay Plans</button>
+  </div>
+
+  <!-- VIEW A: CUSTOMER USAGE -->
+  <section id="view-usage">
+    <div class="grid">
+      <div class="glass span2">
+        <h2>Live API Traffic</h2>
+        <p class="sub">Requests per second, simulated spikes. Free tier limit line at 100 req/s.</p>
+        <svg id="trafficChart" viewBox="0 0 560 220" width="100%" role="img" aria-label="API traffic area chart">
+          <defs>
+            <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#D6D3D1" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#D6D3D1" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g stroke="#E7E5E4" stroke-dasharray="3 3">
+            <line x1="40" y1="40" x2="550" y2="40"/><line x1="40" y1="90" x2="550" y2="90"/>
+            <line x1="40" y1="140" x2="550" y2="140"/><line x1="40" y1="190" x2="550" y2="190"/>
+          </g>
+          <line id="limitLine" x1="40" y1="90" x2="550" y2="90" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="6 4"/>
+          <text id="limitLabel" x="545" y="82" text-anchor="end" fill="#DC2626" font-size="11" font-family="monospace">Limit 100 req/s</text>
+          <path id="areaPath" fill="url(#areaFill)" stroke="none"/>
+          <path id="linePath" fill="none" stroke="#292524" stroke-width="2"/>
+          <g font-size="10" fill="#A8A29E" font-family="monospace">
+            <text x="4" y="44">150</text><text x="4" y="94">100</text><text x="4" y="144">50</text><text x="4" y="194">0</text>
+          </g>
+        </svg>
+        <p class="mono" style="font-size:12px" id="trafficNow">Now: -- req/s</p>
+      </div>
+
+      <div class="glass">
+        <h3>Storage Meter</h3>
+        <svg class="radial" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="48" fill="none" stroke="#E7E5E4" stroke-width="10"/>
+          <circle id="storageArc" cx="60" cy="60" r="48" fill="none" stroke="#292524" stroke-width="10"
+            stroke-linecap="round" stroke-dasharray="301.6" stroke-dashoffset="166" transform="rotate(-90 60 60)"/>
+          <text x="60" y="66" text-anchor="middle" font-size="18" fill="#292524" font-weight="bold" id="storagePct">45%</text>
+        </svg>
+        <p class="mono" style="font-size:12px" id="storageText">45 GB of 100 GB used</p>
+        <p class="sub" id="storageCap">Free tier caps storage at 5 GB.</p>
+      </div>
+
+      <div class="glass">
+        <h3>Security Status</h3>
+        <p style="font-size:28px;margin:6px 0">Shield</p>
+        <p><strong style="color:var(--stone-800)">Rate Limiting Active</strong></p>
+        <p class="mono" style="font-size:12px" id="rateText">Free: 5 requests per minute. Pro: 100 per minute.</p>
+        <button class="btn" id="apiBtn" type="button">Send test API request</button>
+        <p class="mono okline" id="apiOk"></p>
+        <div class="err mono" id="apiErr"></div>
+      </div>
+
+      <div class="glass span4">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2>Recent API Calls</h2>
+          <button class="btn" id="csvBtn" type="button">Download CSV</button>
+        </div>
+        <table>
+          <thead><tr><th>Time</th><th>Endpoint</th><th>Status</th><th>Latency</th></tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW C: USER METRICS -->
+  <section id="view-metrics" hidden>
+    <div class="grid">
+      <div class="glass"><p class="label">MRR</p><p class="big mono" id="mrrVal">$12,450</p><p class="sub">From the growth engine, 12 month loop.</p></div>
+      <div class="glass"><p class="label">ARPU</p><p class="big mono" id="arpuVal">$8.77</p><p class="sub">MRR divided by active users.</p></div>
+      <div class="glass"><p class="label">Churn</p><p class="big mono">4.2%</p><p class="sub">Spec output: 5% monthly churn in the loop.</p></div>
+      <div class="glass"><p class="label">Active users</p><p class="big mono" id="usersVal">1,420</p><p class="sub">Month 12 of the growth loop.</p></div>
+      <div class="glass span4 rel">
+        <h2>Cohort Retention Heatmap</h2>
+        <p class="sub">Retention by signup month cohort across 12 months. Darker means higher retention.</p>
+        <div class="heat" id="heatmap" style="margin-top:12px"></div>
+        <div class="lock" id="cohortLock">
+          <div class="padlock">Locked</div>
+          <p style="margin:0;color:var(--stone-800)"><strong>Unlock Cohort Analysis</strong></p>
+          <button class="btn" id="unlockBtn" type="button">Upgrade</button>
+        </div>
+      </div>
+      <div class="glass span4">
+        <h2>Growth History (spec algorithm)</h2>
+        <p class="sub">Initial users 100, growth rate 1.15, churn 5% per month, 12 months. Net users equals new users minus churned users.</p>
+        <table>
+          <thead><tr><th>Month</th><th>Users</th><th>Churned</th><th>Net</th></tr></thead>
+          <tbody id="growthBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW B: PAY PLANS -->
+  <section id="view-plans" hidden>
+    <div class="plans">
+      <div class="plan">
+        <span class="pill dark">Current Plan</span>
+        <h2 style="margin-top:12px">Free</h2>
+        <p class="price">$0<span style="font-size:14px;color:var(--stone-400)"> / month</span></p>
+        <ul>
+          <li>100 requests per hour</li>
+          <li>5 GB storage cap</li>
+          <li>Community support</li>
+          <li>Usage dashboard</li>
+        </ul>
+        <button class="btn" type="button" disabled>Current plan</button>
+      </div>
+      <div class="plan" style="border:2px solid var(--stone-800)">
+        <span class="pill dark">Recommended</span>
+        <h2 style="margin-top:12px">Pro</h2>
+        <p class="price">$29<span style="font-size:14px;color:var(--stone-400)"> / month</span></p>
+        <ul>
+          <li>10,000 requests per hour</li>
+          <li>100 GB storage</li>
+          <li>Unlimited API calls</li>
+          <li>Data export (CSV)</li>
+          <li>Cohort analysis unlocked</li>
+        </ul>
+        <button class="btn dark" id="subscribeBtn" type="button">Subscribe</button>
+        <p class="sub" id="subscribeNote">Demo only. No payment is taken and nothing is charged.</p>
+      </div>
+      <div class="plan">
+        <span class="pill">Scale</span>
+        <h2 style="margin-top:12px">Scale</h2>
+        <p class="price">$99<span style="font-size:14px;color:var(--stone-400)"> / month</span></p>
+        <ul>
+          <li>Everything in Pro</li>
+          <li>Priority rate limits</li>
+          <li>Team seats</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="btn" type="button" id="scaleBtn">Contact sales (demo)</button>
+      </div>
+    </div>
+  </section>
+
+  <p class="note">Source: Opus App spec set from Drive (00 Master Plan, 01 Design System, 02 Backend Logic, 03 Component Specs, 04 View Definitions). This page is a static browser simulation of that spec: the growth numbers, traffic, logs, and MRR are demo data computed in this page, not real business figures. No backend, no account, no payment, no data leaves this page. Free tier limits shown: 100 requests per hour, 5 requests per minute, 5 GB storage cap. Pro tier: 10,000 requests per hour, 100 requests per minute.</p>
+</div>
+
+<script>
+var tier = "free";
+var calls = [];
+var traffic = [42,55,48,70,96,88,120,110,95,130,118,140,128,145,138,150,132,118,104,92,86,98,112,124];
+var logRows = [
+  ["10:41:02","GET /api/metrics/usage","200","42 ms"],
+  ["10:40:47","GET /api/metrics/growth","200","58 ms"],
+  ["10:40:31","POST /api/export/data","200","121 ms"],
+  ["10:40:12","GET /api/pricing/tiers","200","35 ms"],
+  ["10:39:58","GET /api/metrics/usage","429","12 ms"],
+  ["10:39:41","GET /api/metrics/financials","200","64 ms"]
+];
+
+function drawTraffic(){
+  var pts = traffic.map(function(v,i){
+    var x = 40 + i*(510/(traffic.length-1));
+    var y = 190 - (v/150)*150;
+    return [x,y];
+  });
+  var line = pts.map(function(p,i){ return (i===0?"M":"L")+p[0].toFixed(1)+" "+p[1].toFixed(1); }).join(" ");
+  document.getElementById("linePath").setAttribute("d", line);
+  document.getElementById("areaPath").setAttribute("d", line+" L"+pts[pts.length-1][0].toFixed(1)+" 190 L40 190 Z");
+  document.getElementById("trafficNow").textContent = "Now: "+traffic[traffic.length-1]+" req/s";
+}
+function renderLogs(){
+  document.getElementById("logBody").innerHTML = logRows.map(function(r){
+    var color = r[2]==="200" ? "#166534" : "#DC2626";
+    return "<tr><td class='mono'>"+r[0]+"</td><td class='mono'>"+r[1]+"</td><td class='mono' style='color:"+color+"'>"+r[2]+"</td><td class='mono'>"+r[3]+"</td></tr>";
+  }).join("");
+}
+function growthLoop(){
+  var users = 100, rows = [], months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  for(var m=0;m<12;m++){
+    var nu = Math.round(users*1.15), ch = Math.round(users*0.05), net = nu-ch;
+    rows.push({month:months[m], users:users, churn:ch, net:net});
+    users = net;
+  }
+  return rows;
+}
+function renderGrowth(){
+  var rows = growthLoop();
+  document.getElementById("growthBody").innerHTML = rows.map(function(r){
+    return "<tr><td>"+r.month+"</td><td class='mono'>"+r.users+"</td><td class='mono'>"+r.churn+"</td><td class='mono'>"+r.net+"</td></tr>";
+  }).join("");
+  var last = rows[rows.length-1];
+  document.getElementById("usersVal").textContent = last.net.toLocaleString();
+}
+function renderHeat(){
+  var el = document.getElementById("heatmap");
+  var html = "";
+  for(var i=0;i<144;i++){
+    var v = 100 - Math.floor(i/12)*7 - (i%12)*3 + (i%5);
+    v = Math.max(8, Math.min(98, v));
+    var shade = 232 - Math.round(v*0.9);
+    html += "<div class='cell' title='Retention "+v+"%' style='background:rgb("+shade+","+ (shade-4) +","+(shade-8)+")'></div>";
+  }
+  el.innerHTML = html;
+}
+function applyTier(){
+  document.getElementById("tierPill").textContent = "Plan: " + (tier==="free" ? "Free" : "Pro");
+  document.getElementById("tierBtn").textContent = tier==="free" ? "Switch to Pro" : "Switch to Free";
+  document.getElementById("rateText").textContent = tier==="free"
+    ? "Free: 5 requests per minute. Pro: 100 per minute."
+    : "Pro: 100 requests per minute. Free: 5 per minute.";
+  document.getElementById("limitLine").style.display = tier==="free" ? "" : "none";
+  document.getElementById("limitLabel").style.display = tier==="free" ? "" : "none";
+  document.getElementById("storagePct").textContent = tier==="free" ? "5%" : "45%";
+  document.getElementById("storageArc").setAttribute("stroke-dashoffset", tier==="free" ? "286" : "166");
+  document.getElementById("storageText").textContent = tier==="free" ? "5 GB of 5 GB used (capped)" : "45 GB of 100 GB used";
+  document.getElementById("storageCap").textContent = tier==="free"
+    ? "Free tier caps storage at 5 GB."
+    : "Pro tier: 100 GB storage.";
+  document.getElementById("cohortLock").style.display = tier==="free" ? "flex" : "none";
+  document.getElementById("subscribeNote").textContent = tier==="pro"
+    ? "You are on Pro in this demo. No payment was taken."
+    : "Demo only. No payment is taken and nothing is charged.";
+}
+document.getElementById("tierBtn").addEventListener("click", function(){
+  tier = tier==="free" ? "pro" : "free";
+  calls = [];
+  document.getElementById("apiErr").style.display = "none";
+  document.getElementById("apiOk").textContent = "";
+  applyTier();
+});
+document.querySelectorAll(".tab").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    document.querySelectorAll(".tab").forEach(function(b){ b.classList.remove("active"); });
+    btn.classList.add("active");
+    ["usage","metrics","plans"].forEach(function(v){
+      document.getElementById("view-"+v).hidden = (v !== btn.dataset.view);
+    });
+  });
+});
+document.getElementById("apiBtn").addEventListener("click", function(){
+  var now = Date.now();
+  calls = calls.filter(function(t){ return now - t < 60000; });
+  var limit = tier==="free" ? 5 : 100;
+  var err = document.getElementById("apiErr"), ok = document.getElementById("apiOk");
+  if(calls.length >= limit){
+    err.style.display = "block";
+    err.textContent = JSON.stringify({
+      error: "RateLimitExceeded",
+      message: "You have hit the Free Tier limit. Upgrade to Pro for unlimited access.",
+      retry_after: 45
+    }, null, 2);
+    ok.textContent = "";
+    return;
+  }
+  calls.push(now);
+  err.style.display = "none";
+  ok.textContent = "200 OK. Request " + calls.length + " of " + limit + " this minute.";
+});
+document.getElementById("csvBtn").addEventListener("click", function(){
+  var btn = document.getElementById("csvBtn");
+  btn.textContent = "Preparing...";
+  btn.disabled = true;
+  setTimeout(function(){
+    var csv = "time,endpoint,status,latency\n" + logRows.map(function(r){ return r.join(","); }).join("\n");
+    var blob = new Blob([csv], {type:"text/csv"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "report.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    btn.textContent = "Download CSV";
+    btn.disabled = false;
+  }, 700);
+});
+document.getElementById("unlockBtn").addEventListener("click", function(){
+  tier = "pro"; calls = []; applyTier();
+});
+var sub = document.getElementById("subscribeBtn");
+sub.addEventListener("mousemove", function(e){
+  var r = sub.getBoundingClientRect();
+  var dx = (e.clientX - (r.left + r.width/2)) / r.width;
+  var dy = (e.clientY - (r.top + r.height/2)) / r.height;
+  sub.style.transform = "translate("+(dx*12)+"px,"+(dy*8)+"px)";
+});
+sub.addEventListener("mouseleave", function(){ sub.style.transform = ""; });
+sub.addEventListener("click", function(){
+  tier = "pro"; calls = []; applyTier();
+  document.getElementById("subscribeNote").textContent = "Pro enabled in this demo. No payment was taken.";
+});
+document.getElementById("scaleBtn").addEventListener("click", function(){
+  alert("Demo only: no sales call is placed from this page.");
+});
+drawTraffic(); renderLogs(); renderGrowth(); renderHeat(); applyTier();
+setInterval(function(){
+  traffic.push(60 + Math.round(Math.random()*95));
+  traffic.shift();
+  drawTraffic();
+}, 3000);
+</script>
+</body>
+</html>
