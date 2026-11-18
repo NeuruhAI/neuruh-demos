@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Full Project Audit | Neuruh</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fbfaf6;--ink:#1c1a16;--muted:#6b655a;--brass:#9a7b2d;--brass-d:#7c611f;--line:#ddd5c3;--ok:#2e6b34;--warn:#8a5a00;--bad:#8c2f26;--chip:#efe9db}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.2;margin:0 0 .5em}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+a{color:var(--brass-d)}
+.wrap{max-width:1020px;margin:0 auto;padding:0 20px 80px}
+.doc-head{background:var(--paper);border-bottom:3px solid var(--brass);padding:26px 0 18px}
+.doc-head .wrap{padding-bottom:0}
+.kicker{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass-d);font-weight:700}
+.doc-head h1{font-size:34px;margin:.2em 0 .15em}
+.doc-head p.sub{color:var(--muted);margin:.2em 0 0;max-width:760px}
+.meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+.meta-grid div{border:1px solid var(--line);background:var(--bone);padding:8px 10px;font-size:13px}
+.meta-grid b{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.banner{background:#fff7e0;border:2px solid var(--brass);border-left-width:8px;padding:18px 20px;margin:22px 0 8px}
+.banner h2{font-size:20px;color:var(--brass-d)}
+.banner p{margin:.4em 0}
+.banner table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px;background:var(--paper)}
+.banner th,.banner td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+.banner th{background:var(--chip)}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:3px;border:1px solid var(--brass);color:var(--brass-d);background:#fff}
+.tag.superseded{border-color:var(--bad);color:var(--bad);background:#fdf0ee}
+.tag.unresolved{border-color:var(--warn);color:var(--warn);background:#fff7e0}
+.src-note{background:var(--paper);border:1px dashed var(--brass);padding:12px 16px;margin:14px 0;font-size:14px}
+nav.sticky{position:sticky;top:0;z-index:50;background:var(--ink);color:#f4f1ea;padding:8px 0}
+nav.sticky .wrap{display:flex;flex-wrap:wrap;gap:4px 14px;padding-bottom:0;align-items:center}
+nav.sticky a{color:#e8e2d2;text-decoration:none;font-size:13px;padding:4px 6px;border-radius:3px}
+nav.sticky a:hover,nav.sticky a.active{background:var(--brass);color:#fff}
+nav.sticky .nav-label{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#b8ad93;margin-right:4px}
+.filter-bar{position:sticky;top:38px;z-index:40;background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--brass);padding:12px 14px;margin:18px 0 0;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filter-bar .fb-label{font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.fbtn{border:1px solid var(--brass);background:#fff;color:var(--ink);padding:7px 12px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}
+.fbtn:hover{background:var(--chip)}
+.fbtn[aria-pressed="true"]{background:var(--brass);color:#fff}
+.fcount{font-size:13px;color:var(--muted);margin-left:auto}
+section.card{background:var(--paper);border:1px solid var(--line);padding:24px 26px;margin:22px 0}
+section.card>h2{font-size:24px;border-bottom:2px solid var(--brass);padding-bottom:8px}
+section.card>h2 .secno{color:var(--brass-d);margin-right:8px}
+.lede{color:var(--muted)}
+table.data{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0}
+table.data th,table.data td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.data th{background:var(--chip);cursor:pointer;user-select:none}
+table.data th:hover{background:#e6dec8}
+table.data tr.hidden-row{display:none}
+.state-item{border:1px solid var(--line);background:#fff;padding:12px 14px;margin:10px 0}
+.state-item.hidden-item{display:none}
+.state-item h3{font-size:16px;margin:0 0 4px}
+.state-item p{margin:.3em 0}
+.pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px}
+.pill.DONE{background:#e2efdf;color:var(--ok);border:1px solid var(--ok)}
+.pill.PROVEN{background:#e3ecf5;color:#1f4e79;border:1px solid #1f4e79}
+.pill.HANGING{background:#fdf0ee;color:var(--bad);border:1px solid var(--bad)}
+.pill.NEEDS-FINISHED{background:#fff3d6;color:var(--warn);border:1px solid var(--warn)}
+.empty-note{display:none;border:1px dashed var(--line);color:var(--muted);padding:10px 12px;font-size:14px;margin:10px 0}
+.empty-note.show{display:block}
+figure{margin:18px 0;border:1px solid var(--line);background:#fff;padding:14px}
+figure figcaption{font-size:13px;color:var(--muted);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+figure figcaption b{color:var(--ink)}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin:10px 0}
+.node{flex:1 1 120px;min-width:110px;border:1px solid var(--brass);background:var(--bone);padding:10px 12px;cursor:pointer;text-align:center;font-size:13px;font-weight:600;border-radius:4px}
+.node:hover{background:var(--chip)}
+.node.sel{background:var(--brass);color:#fff}
+.node .n-sub{display:block;font-weight:400;font-size:11px;color:var(--muted);margin-top:4px}
+.node.sel .n-sub{color:#f0e8d2}
+.arrow{align-self:center;color:var(--brass-d);font-weight:700;font-size:18px}
+.detail-box{border-left:4px solid var(--brass);background:var(--bone);padding:12px 16px;margin:12px 0;font-size:14px;min-height:56px}
+.detail-box b{color:var(--brass-d)}
+.btn{border:1px solid var(--brass);background:var(--brass);color:#fff;padding:9px 16px;border-radius:4px;cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{background:var(--brass-d)}
+.btn.ghost{background:#fff;color:var(--brass-d)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.statusline{font-size:13px;color:var(--muted);margin:8px 0;min-height:20px}
+.statusline.good{color:var(--ok)}
+.statusline.bad{color:var(--bad)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.tab{border:1px solid var(--brass);background:#fff;padding:8px 14px;border-radius:4px;cursor:pointer;font-weight:600;font-size:13px}
+.tab[aria-selected="true"]{background:var(--brass);color:#fff}
+.tabpanel{display:none}
+.tabpanel.show{display:block}
+.bar-row{display:grid;grid-template-columns:220px 1fr 70px;gap:10px;align-items:center;font-size:13px;padding:4px 0}
+.bar-track{background:#eee7d3;height:14px;border-radius:3px;overflow:hidden}
+.bar-fill{background:var(--brass);height:100%}
+input[type="search"],input[type="text"]{border:1px solid var(--line);padding:8px 10px;font-size:14px;border-radius:4px;background:#fff;width:100%;max-width:320px}
+pre.json{background:#17150f;color:#e8e2d2;padding:14px;overflow:auto;font-size:12.5px;line-height:1.5;border-radius:4px;max-height:340px}
+.checklist{list-style:none;padding:0;margin:10px 0}
+.checklist li{border:1px solid var(--line);background:#fff;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px}
+.checklist li.done{background:#eef5e9;text-decoration:line-through;color:var(--muted)}
+.progress{height:12px;background:#eee7d3;border-radius:6px;overflow:hidden;margin:8px 0}
+.progress>div{height:100%;background:var(--brass);width:0%}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.meta-grid{grid-template-columns:1fr 1fr}.two-col{grid-template-columns:1fr}.bar-row{grid-template-columns:130px 1fr 60px}section.card{padding:18px 16px}.doc-head h1{font-size:26px}.filter-bar{top:0}}
+@media print{nav.sticky,.filter-bar,.btn,.fbtn{display:none!important}body{background:#fff}section.card{border:1px solid #999;break-inside:avoid}.banner{border:2px solid #000}}
+</style>
+</head>
+<body>
+<header class="doc-head"><div class="wrap">
+<div class="kicker">Neuruh | Audit Record | Document Control</div>
+<h1>Full Project Audit</h1>
+<p class="sub">The September 21, 2026 audit of the Neuruh estate: DeedSonar, LandOS, the organism topology, the data mass, the commercial bottleneck, and what not to build next. Presented as a historical record with November state marked where it supersedes the audit.</p>
+<div class="meta-grid">
+<div><b>Document</b>Full Project Audit</div>
+<div><b>Audit cut</b>Sep 21, 2026</div>
+<div><b>Source</b>ChatGPT shared conversation, Sep 21</div>
+<div><b>Status</b>Historical record</div>
+</div>
+</div></header>
+
+<div class="wrap">
+<div class="banner" id="audit-cut">
+<h2>Audit cut: Sep 21, 2026 <span class="tag superseded">Historical record</span></h2>
+<p>This page is a historical record of the audit as cut on September 21, 2026. Several of its claims are superseded by November state. Read the audit below as what was true at the cut, and read this banner as what changed after it.</p>
+<table>
+<tr><th>Claim in the audit (Sep 21)</th><th>Current reality (November)</th><th>Mark</th></tr>
+<tr><td>DeedSonar production LIVE / READY</td><td>deedsonar.com returns 503 DEPLOYMENT_PAUSED</td><td><span class="tag superseded">Superseded</span></td></tr>
+<tr><td>Supabase ACTIVE_HEALTHY</td><td>Supabase unreachable since about Oct 16</td><td><span class="tag superseded">Superseded</span></td></tr>
+<tr><td>Stripe live links: $100 Scan and $499 Dossier</td><td>Recorded Dossier ladder is $1,500. The $499 figure conflicts with the $1,500 ladder and is an unresolved discrepancy. Do not treat $499 as settled.</td><td><span class="tag unresolved">Unresolved discrepancy</span></td></tr>
+</table>
+<p style="font-size:13px;color:var(--muted)">Superseded does not mean the audit was wrong on Sep 21. It means the state moved after the cut. Anything else on this page stands as the audit recorded it unless marked here.</p>
+</div>
+
+<div class="src-note" id="source-note"><b>Source note.</b> The canonical source file <code>~/workspace/drive-pull/full-project-audit.md</code> (the full verbatim transcript of the ChatGPT shared conversation "Full Project Audit", Sep 21) <b>did not exist</b> when this page was built on Nov 18, 2026. This page is therefore built from the content specification supplied with the build order, not from the verbatim transcript. No content on this page is invented beyond that specification. If the transcript file appears later, this page should be cross-checked against it line by line.</div>
+
+<nav class="sticky" aria-label="Section navigation"><div class="wrap">
+<span class="nav-label">Sections</span>
+<a href="#s1">1 Ruling</a><a href="#s2">2 Stale Notion</a><a href="#s3">3 Hunt</a><a href="#s4">4 Topology</a><a href="#s5">5 Data mass</a><a href="#s6">6 Separation</a><a href="#s7">7 RLS</a><a href="#s8">8 Stripe</a><a href="#s9">9 Bottleneck</a><a href="#s10">10 Audit offer</a><a href="#s11">11 Notion ceiling</a><a href="#s12">12 Custody</a><a href="#s13">13 Blacklist</a><a href="#s14">14 T02</a><a href="#s15">15 Pin graph</a><a href="#s16">16 Tests</a><a href="#s17">17 Sweeper</a><a href="#s18">18 Future</a>
+</div></nav>
+
+<div class="filter-bar" role="group" aria-label="State filter">
+<span class="fb-label">State filter</span>
+<button class="fbtn" data-filter="ALL" aria-pressed="true">All</button>
+<button class="fbtn" data-filter="DONE" aria-pressed="false">DONE</button>
+<button class="fbtn" data-filter="PROVEN" aria-pressed="false">PROVEN</button>
+<button class="fbtn" data-filter="HANGING" aria-pressed="false">HANGING</button>
+<button class="fbtn" data-filter="NEEDS FINISHED" aria-pressed="false">NEEDS FINISHED</button>
+<span class="fcount" id="filter-count">Showing all classified items</span>
+<button class="btn ghost" id="reset-filter" type="button">Reset</button>
+</div>
+<p style="font-size:13px;color:var(--muted)">The filter uses the audit's own classifications. It hides classified items that do not match the selected state and reports the count. Section headings, figures, and unclassified narrative stay visible so the document still reads as a document.</p>
+
+<section class="card" id="s1">
+<h2><span class="secno">1</span>Executive ruling: domain to current reality (Sep 21)</h2>
+<p class="lede">The audit's ruling table. One row per domain, one reality per row, as of the Sep 21 cut. Use the state filter above to isolate a state.</p>
+<table class="data" id="ruling-table">
+<thead><tr><th data-sort="0">Domain</th><th data-sort="1">Current reality as of Sep 21</th><th data-sort="2">State</th></tr></thead>
+<tbody>
+<tr class="state-item" data-state="PROVEN"><td>DeedSonar Hunt</td><td>Converged end to end. PR #124 merged, production deployment READY, main at b67222d5be. Operator UI through authenticated LandOS transport to CRM results.</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="HANGING"><td>DeedSonar production (later)</td><td>At the cut: LIVE / READY. Superseded in November: 503 DEPLOYMENT_PAUSED. See the audit-cut banner.</td><td><span class="pill HANGING">HANGING</span></td></tr>
+<tr class="state-item" data-state="HANGING"><td>Supabase</td><td>At the cut: ACTIVE_HEALTHY. Superseded in November: unreachable since about Oct 16. See the audit-cut banner.</td><td><span class="pill HANGING">HANGING</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>Data mass</td><td>Real and counted. 33,077 acquisition leads, 71,075 lead import rows, 44,345 recipe memberships. Commercial tables at 0. See Section 5.</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="DONE"><td>Stripe live links</td><td>Live links active; April links inactive. $100 Scan and $499 Dossier per the audit, with the $499 figure flagged unresolved against the $1,500 ladder. See Sections 8 and the banner.</td><td><span class="pill DONE">DONE</span></td></tr>
+<tr class="state-item" data-state="HANGING"><td>Commercial motion</td><td>Build, audit, court, improve, canonize runs. The PROVEN to SOLD transition does not exist yet. See Section 9.</td><td><span class="pill HANGING">HANGING</span></td></tr>
+<tr class="state-item" data-state="HANGING"><td>Notion as source of truth</td><td>Stale. The Sep 11 punchlist is no longer the source of truth. See Section 2.</td><td><span class="pill HANGING">HANGING</span></td></tr>
+<tr class="state-item" data-state="NEEDS FINISHED"><td>T02 autonomy proof</td><td>Not yet proven. Definition set in Section 14; re-court current mainline first.</td><td><span class="pill NEEDS FINISHED">NEEDS FINISHED</span></td></tr>
+<tr class="state-item" data-state="HANGING"><td>Local custody</td><td>Dirty working state: 119 dirty files in neuruh-runtime-custody, an 88-file WIP, Vault 73 ahead / 5 behind, multiple worktrees. NEURUH-HD is cold custody only. See Section 12.</td><td><span class="pill HANGING">HANGING</span></td></tr>
+<tr class="state-item" data-state="NEEDS FINISHED"><td>Forensic System Audit</td><td>Sellable now. It does not need T02 autonomy. See Section 10.</td><td><span class="pill NEEDS FINISHED">NEEDS FINISHED</span></td></tr>
+</tbody>
+</table>
+<p class="statusline" id="ruling-status">Click a column header to sort the ruling table.</p>
+</section>
+
+<section class="card" id="s2">
+<h2><span class="secno">2</span>The stale-Notion finding</h2>
+<p class="lede">The Sep 11 punchlist is no longer the source of truth. Acting on it literally would re-run work that is already done, or chase a state that no longer exists.</p>
+<div class="state-item" data-state="HANGING">
+<h3>Sep 11 punchlist: stale <span class="pill HANGING">HANGING</span></h3>
+<p>The punchlist recorded on Sep 11 described a state that had already moved by Sep 21. It is a snapshot, not a plan. Do not execute it literally. See Section 14 for what replaces it: re-court current mainline first, then define the next mission from the court, not from the punchlist.</p>
+</div>
+<div class="state-item" data-state="PROVEN">
+<h3>DEEDSONAR_CLOSED = NO was wrong even then <span class="pill PROVEN">PROVEN</span></h3>
+<p>The punchlist's claim that DeedSonar was not closed (DEEDSONAR_CLOSED = NO) was wrong even at the time it was written. The Hunt convergence in Section 3 is the evidence: PR #124 merged, production deployment READY, main at b67222d5be. A checklist that says NO against a merged, deployed, READY system is a stale checklist, not a true state.</p>
+</div>
+<div class="detail-box" id="notion-detail"><b>Rule that follows:</b> Notion stops being the write-heavy canonical store. Git and the Vault hold long-form canon; Notion becomes a projection. Full architecture in Section 11.</div>
+<button class="btn ghost" id="notion-rule-btn" type="button">Show the ruling in one line</button>
+</section>
+
+<section class="card" id="s3">
+<h2><span class="secno">3</span>DeedSonar Hunt convergence: interactive flow</h2>
+<p class="lede">Operator UI to Create Hunt to WHERE / SOURCE / RAW to authenticated LandOS transport to Hunt execution to CRM results. Click any stage to inspect it, or run the whole hunt.</p>
+<figure>
+<figcaption><b>Figure 1.</b> DeedSonar Hunt convergence flow, Sep 21. PR #124 merged. Production deployment dpl_3EdvXXCnry3bc4WBx8DMGJJvUKVx READY. Main b67222d5be.</figcaption>
+<div class="flow" id="hunt-flow">
+<button class="node" type="button" data-stage="ui">Operator UI<span class="n-sub">Human starts the hunt</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-stage="create">Create Hunt<span class="n-sub">Hunt object created</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-stage="where">WHERE / SOURCE / RAW<span class="n-sub">Scope, source, raw rows</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-stage="transport">Authenticated LandOS transport<span class="n-sub">Auth, not open pull</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-stage="exec">Hunt execution<span class="n-sub">Recipes run, leads scored</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-stage="crm">CRM results<span class="n-sub">Leads land in DeedSonar CRM</span></button>
+</div>
+<div class="detail-box" id="hunt-detail"><b>Select a stage</b> to inspect it, or press Run hunt to walk the whole flow.</div>
+<div>
+<button class="btn" id="run-hunt" type="button">Run hunt</button>
+<button class="btn ghost" id="reset-hunt" type="button">Reset</button>
+</div>
+<p class="statusline" id="hunt-status">Hunt not run in this session.</p>
+</figure>
+<div class="two-col">
+<div class="state-item" data-state="PROVEN"><h3>Convergence evidence <span class="pill PROVEN">PROVEN</span></h3><p>PR #124 merged. Production deployment <code>dpl_3EdvXXCnry3bc4WBx8DMGJJvUKVx</code> READY. Main <code>b67222d5be</code>. That is the receipt set for the Hunt working end to end at the cut.</p></div>
+<div class="state-item" data-state="HANGING"><h3>What the convergence does not prove <span class="pill HANGING">HANGING</span></h3><p>It does not prove the commercial loop. Leads in the CRM are not sales, outcomes, or cases. The missing transition is Section 9.</p></div>
+</div>
+</section>
+
+<section class="card" id="s4">
+<h2><span class="secno">4</span>Organism topology evolution: interactive comparison</h2>
+<p class="lede">The old chain was a straight line. The new chain is a governed loop with dispatch, queue, execution, promotion, and continuation. The real-estate loop is the domain loop that runs inside it.</p>
+<div class="tabs" role="tablist" aria-label="Topology views">
+<button class="tab" role="tab" data-tab="old" aria-selected="false" type="button">Old chain</button>
+<button class="tab" role="tab" data-tab="new" aria-selected="true" type="button">New chain</button>
+<button class="tab" role="tab" data-tab="reloop" aria-selected="false" type="button">Real-estate loop</button>
+</div>
+<div class="tabpanel" id="tab-old">
+<figure><figcaption><b>Figure 2a.</b> Old organism chain. Six stages, no queue, no promotion, no continuation.</figcaption>
+<div class="flow" data-chain="old">
+<button class="node" type="button" data-node="Mission">Mission</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Governance">Governance</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Workers">Workers</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Receipt">Receipt</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Sentinel">Sentinel</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Custody">Custody</button>
+</div></figure>
+</div>
+<div class="tabpanel show" id="tab-new">
+<figure><figcaption><b>Figure 2b.</b> New organism chain. Twelve stages: dispatch and JobQueue separate intent from execution, and Promotion plus Continuation close the loop into the next mission.</figcaption>
+<div class="flow" data-chain="new">
+<button class="node" type="button" data-node="Mission">Mission</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Founder Runtime">Founder Runtime</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Governance">Governance</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Dispatch">Dispatch</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="JobQueue">JobQueue</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Worker">Worker</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Execution">Execution</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Receipt">Receipt</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Sentinel">Sentinel</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Custody">Custody</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Promotion">Promotion</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Continuation">Continuation</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Next Mission">Next Mission</button>
+</div></figure>
+</div>
+<div class="tabpanel" id="tab-reloop">
+<figure><figcaption><b>Figure 2c.</b> Real-estate loop. Source to CRM to action eligibility to OutcomeRecord to learning to the next hunt. The loop is the product; the hunt is one pass through it.</figcaption>
+<div class="flow" data-chain="reloop">
+<button class="node" type="button" data-node="Source">Source</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="LandOS Ingest">LandOS Ingest</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Evidence">Evidence</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Identity">Identity</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Estate">Estate</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Recipe Engine">Recipe Engine</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Opportunity">Opportunity</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Hunt">Hunt</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="JobQueue">JobQueue</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Execution">Execution</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Result">Result</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="CRM">CRM</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Action eligibility">Action eligibility</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="OutcomeRecord">OutcomeRecord</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Learning">Learning</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Next Hunt">Next Hunt</button>
+</div></figure>
+</div>
+<div class="detail-box" id="topo-detail"><b>Select a node</b> in any chain to see what that stage does and what changed from the old chain.</div>
+<div class="state-item" data-state="PROVEN"><h3>What changed, in one line <span class="pill PROVEN">PROVEN</span></h3><p>Founder Runtime now sits between Mission and Governance, JobQueue separates dispatch from execution, and Promotion plus Continuation turn a line into a loop. The old chain ended at Custody. The new chain ends at the next mission.</p></div>
+</section>
+
+<section class="card" id="s5">
+<h2><span class="secno">5</span>Data mass</h2>
+<p class="lede">The counted tables at the cut. Commercial tables all at 0: the data mass is real, the commercial motion is not yet. Click a column header to sort; type to filter rows; toggle the bars.</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0">
+<input type="search" id="mass-search" placeholder="Filter tables, e.g. lead" aria-label="Filter data mass rows">
+<button class="btn ghost" id="mass-bars" type="button" aria-pressed="false">Show bars</button>
+<span class="statusline" id="mass-count" style="margin:0">10 counted tables shown.</span>
+</div>
+<table class="data" id="mass-table">
+<thead><tr><th data-sort="0">Table</th><th data-sort="1">Rows</th><th data-sort="2">State</th></tr></thead>
+<tbody>
+<tr class="state-item" data-state="PROVEN"><td>acquisition_leads</td><td data-n="33077">33,077</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>lead_import_rows</td><td data-n="71075">71,075</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>candidate_recipe_membership</td><td data-n="44345">44,345</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>free_route_attempts</td><td data-n="60027">60,027</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>candidate_recipe_definitions</td><td data-n="36">36</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>deedsonar_estate_identity_v1</td><td data-n="22584">22,584</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>parties</td><td data-n="6440">6,440</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>party_phones</td><td data-n="923">923</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>contact_evidence</td><td data-n="11904">11,904</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="PROVEN"><td>closed_outcomes</td><td data-n="3">3</td><td><span class="pill PROVEN">PROVEN</span></td></tr>
+<tr class="state-item" data-state="HANGING"><td>Commercial tables (all)</td><td data-n="0">0</td><td><span class="pill HANGING">HANGING</span></td></tr>
+</tbody>
+</table>
+<div id="mass-bars-panel" style="display:none">
+<div class="bar-row"><span>lead_import_rows</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span>71,075</span></div>
+<div class="bar-row"><span>free_route_attempts</span><div class="bar-track"><div class="bar-fill" style="width:84.5%"></div></div><span>60,027</span></div>
+<div class="bar-row"><span>candidate_recipe_membership</span><div class="bar-track"><div class="bar-fill" style="width:62.4%"></div></div><span>44,345</span></div>
+<div class="bar-row"><span>acquisition_leads</span><div class="bar-track"><div class="bar-fill" style="width:46.5%"></div></div><span>33,077</span></div>
+<div class="bar-row"><span>deedsonar_estate_identity_v1</span><div class="bar-track"><div class="bar-fill" style="width:31.8%"></div></div><span>22,584</span></div>
+<div class="bar-row"><span>contact_evidence</span><div class="bar-track"><div class="bar-fill" style="width:16.7%"></div></div><span>11,904</span></div>
+<div class="bar-row"><span>parties</span><div class="bar-track"><div class="bar-fill" style="width:9.1%"></div></div><span>6,440</span></div>
+<div class="bar-row"><span>party_phones</span><div class="bar-track"><div class="bar-fill" style="width:1.3%"></div></div><span>923</span></div>
+<div class="bar-row"><span>candidate_recipe_definitions</span><div class="bar-track"><div class="bar-fill" style="width:0.1%"></div></div><span>36</span></div>
+<div class="bar-row"><span>closed_outcomes</span><div class="bar-track"><div class="bar-fill" style="width:0.1%"></div></div><span>3</span></div>
+<div class="bar-row"><span>Commercial tables</span><div class="bar-track"><div class="bar-fill" style="width:0%"></div></div><span>0</span></div>
+<p style="font-size:13px;color:var(--muted)">Bars are scaled to the largest table (lead_import_rows, 71,075). Note the funnel: 71,075 import rows narrow to 33,077 leads, 22,584 estate identities, 6,440 parties, 923 phones, and 3 closed outcomes.</p>
+</div>
+</section>
+
+<section class="card" id="s6">
+<h2><span class="secno">6</span>Separation: evidence, identity, contact, opportunity, recipe, monitoring, authority, outcomes</h2>
+<p class="lede">Eight concerns, eight separate places. Click a layer to see its boundary and what it must never absorb from its neighbors.</p>
+<figure>
+<figcaption><b>Figure 3.</b> Separation diagram. Each layer owns one concern. Blurring two layers is how a system starts lying to itself.</figcaption>
+<div class="flow" id="sep-flow" style="flex-direction:column;align-items:stretch">
+<button class="node" type="button" data-layer="evidence" style="text-align:left">1. Evidence <span class="n-sub">What was observed, with provenance</span></button>
+<button class="node" type="button" data-layer="identity" style="text-align:left">2. Identity <span class="n-sub">Who and what a record refers to</span></button>
+<button class="node" type="button" data-layer="contact" style="text-align:left">3. Contact <span class="n-sub">How a party can be reached, with evidence</span></button>
+<button class="node" type="button" data-layer="opportunity" style="text-align:left">4. Opportunity <span class="n-sub">A scored, ranked candidate worth acting on</span></button>
+<button class="node" type="button" data-layer="recipe" style="text-align:left">5. Recipe <span class="n-sub">The repeatable acquisition pattern, versioned</span></button>
+<button class="node" type="button" data-layer="monitoring" style="text-align:left">6. Monitoring <span class="n-sub">Health, drift, and freshness of the whole stack</span></button>
+<button class="node" type="button" data-layer="authority" style="text-align:left">7. Authority <span class="n-sub">Who may act, and under what approval</span></button>
+<button class="node" type="button" data-layer="outcomes" style="text-align:left">8. Outcomes <span class="n-sub">What actually happened after action</span></button>
+</div>
+<div class="detail-box" id="sep-detail"><b>Select a layer</b> to see its boundary.</div>
+</figure>
+<div class="state-item" data-state="PROVEN"><h3>Why the separation matters <span class="pill PROVEN">PROVEN</span></h3><p>Evidence without identity is noise. Identity without contact evidence is a guess. Opportunity without a versioned recipe is unrepeatable. Outcomes without authority are ungoverned. The audit's separation is the guardrail that keeps each claim checkable.</p></div>
+</section>
+
+<section class="card" id="s7">
+<h2><span class="secno">7</span>Supabase RLS security finding: technical debt, not an emergency</h2>
+<p class="lede">The audit found real issues in the Supabase layer. Present them as technical debt to schedule, not as a breach or an emergency. Click each finding for the detail.</p>
+<div class="state-item" data-state="HANGING" data-finding="rls">
+<h3>Overlapping permissive policies <span class="pill HANGING">HANGING</span></h3>
+<p>Row-level security policies overlap permissively, so more than one policy can grant the same access. The effect is wider access than intended, not an open door. Fix by consolidating policies so each table has one clear permissive path, then re-testing access per role.</p>
+<button class="btn ghost finding-btn" type="button" data-target="rls">Show the fix order</button>
+</div>
+<div class="state-item" data-state="HANGING" data-finding="idx">
+<h3>Duplicate indexes on market_research <span class="pill HANGING">HANGING</span></h3>
+<p>Duplicate indexes on the market_research table waste write time and storage and confuse query planning. Fix by dropping the redundant index after confirming which one the live queries actually use.</p>
+<button class="btn ghost finding-btn" type="button" data-target="idx">Show the fix order</button>
+</div>
+<div class="state-item" data-state="HANGING" data-finding="auth">
+<h3>Auth connection allocation advisory <span class="pill HANGING">HANGING</span></h3>
+<p>An advisory on Auth connection allocation: connection usage should be reviewed against the pool before it becomes a limit under load. Fix by measuring peak Auth connections, then sizing the pool or the retry behavior to match.</p>
+<button class="btn ghost finding-btn" type="button" data-target="auth">Show the fix order</button>
+</div>
+<div class="detail-box" id="rls-detail"><b>Finding order:</b> policies first (access correctness), indexes second (performance), connection allocation third (capacity). None of the three is an emergency. All three are debt that compounds if ignored.</div>
+</section>
+
+<section class="card" id="s8">
+<h2><span class="secno">8</span>Stripe cleanup finding</h2>
+<p class="lede">April links inactive, live links active. The cleanup is the finding: old links must not keep taking money for a superseded offer. Toggle the view to compare.</p>
+<div class="tabs" role="tablist" aria-label="Stripe link views">
+<button class="tab" role="tab" data-stripe="live" aria-selected="true" type="button">Live links</button>
+<button class="tab" role="tab" data-stripe="april" aria-selected="false" type="button">April links</button>
+</div>
+<div class="tabpanel show" id="stripe-live">
+<div class="state-item" data-state="DONE"><h3>Live links: active <span class="pill DONE">DONE</span></h3><p>Live Stripe links are active at the cut: $100 Scan and $499 Dossier per the audit. The $499 figure is flagged as an unresolved discrepancy against the recorded $1,500 Dossier ladder. See the audit-cut banner. Do not quote $499 as settled.</p></div>
+</div>
+<div class="tabpanel" id="stripe-april">
+<div class="state-item" data-state="DONE"><h3>April links: inactive <span class="pill DONE">DONE</span></h3><p>April Stripe links are inactive. They must stay inactive. Any payment page, email, or post that still points at an April link is pointing at a dead offer and must be repointed to the live links.</p></div>
+</div>
+<div class="detail-box" id="stripe-detail"><b>Cleanup rule:</b> one live link per offer, old links deactivated, every public surface repointed. The audit's cleanup finding is DONE; keeping it done is the ongoing job.</div>
+</section>
+
+<section class="card" id="s9">
+<h2><span class="secno">9</span>The commercial bottleneck: interactive flow</h2>
+<p class="lede">The system builds, audits, courts, improves, and canonizes. That loop is real and it works. What does not exist is the transition from PROVEN to SOLD to DELIVERED to OUTCOME to CASE to LEARNING. Toggle between the two flows and click any stage.</p>
+<div class="tabs" role="tablist" aria-label="Commercial flow views">
+<button class="tab" role="tab" data-com="missing" aria-selected="true" type="button">The missing transition</button>
+<button class="tab" role="tab" data-com="loop" aria-selected="false" type="button">The loop that runs</button>
+</div>
+<div class="tabpanel show" id="com-missing">
+<figure><figcaption><b>Figure 4a.</b> The missing commercial transition. PROVEN exists. SOLD, DELIVERED, OUTCOME, CASE, and LEARNING do not yet exist as a connected path.</figcaption>
+<div class="flow" data-chain="com">
+<button class="node" type="button" data-node="PROVEN">PROVEN<span class="n-sub">Exists</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="SOLD">SOLD<span class="n-sub">Missing</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="DELIVERED">DELIVERED<span class="n-sub">Missing</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="OUTCOME">OUTCOME<span class="n-sub">Missing</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="CASE">CASE<span class="n-sub">Missing</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="LEARNING">LEARNING<span class="n-sub">Missing</span></button>
+</div></figure>
+</div>
+<div class="tabpanel" id="com-loop">
+<figure><figcaption><b>Figure 4b.</b> The loop that runs today. Build to Audit to Court to Improve to Canonize, then build again. It improves the system. It does not sell it.</figcaption>
+<div class="flow" data-chain="com">
+<button class="node" type="button" data-node="Build">Build</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Audit">Audit</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Court">Court</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Improve">Improve</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Canonize">Canonize</button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Build (again)">Build (again)</button>
+</div></figure>
+</div>
+<div class="detail-box" id="com-detail"><b>Select a stage</b> in either flow. The bottleneck in one line: the build loop is closed, the commercial loop is open.</div>
+<div class="state-item" data-state="HANGING"><h3>The bottleneck, stated plainly <span class="pill HANGING">HANGING</span></h3><p>Every stage of the build loop has receipts. No stage of the commercial transition does, because the transition has not been run. The next mission is not another build. It is one sale, one delivery, one outcome, one case, and the learning that follows. That is the missing transition, run once.</p></div>
+</section>
+
+<section class="card" id="s10">
+<h2><span class="secno">10</span>Forensic System Audit: sellable now</h2>
+<p class="lede">The audit's sellable-now call. The Forensic System Audit does not need T02 autonomy. It needs a buyer, a scope, and a delivery.</p>
+<div class="state-item" data-state="NEEDS FINISHED"><h3>The call <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3><p>The Forensic System Audit is sellable now. It is an audit of a system, delivered by a founder who has built and audited systems. It does not depend on autonomous execution, on the T02 proof, or on any unbuilt organism capability. Waiting for T02 before selling it is waiting for the wrong gate.</p></div>
+<div class="detail-box"><b>What it needs:</b> one scoped engagement, one delivery, one outcome record. That single run is also the first pass through the missing commercial transition in Section 9.</div>
+<button class="btn" id="audit-offer-btn" type="button">Show the sellable-now checklist</button>
+<p class="statusline" id="audit-offer-status">Checklist hidden.</p>
+<ul class="checklist" id="audit-offer-list" style="display:none">
+<li data-check>Scope defined in writing before work starts</li>
+<li data-check>Delivery is a document with findings, not a demo</li>
+<li data-check>Outcome recorded after delivery (OutcomeRecord)</li>
+<li data-check>Case written from the outcome, with the client's permission</li>
+<li data-check>Learning fed back into the next offer</li>
+</ul>
+</section>
+
+<section class="card" id="s11">
+<h2><span class="secno">11</span>Notion block-ceiling architecture</h2>
+<p class="lede">Notion must stop being the write-heavy canonical store. Git and the Vault hold long-form canon. A sealed receipt proves the projection. Notion shows the projection.</p>
+<figure>
+<figcaption><b>Figure 5.</b> Notion block-ceiling architecture. Canon lives in Git and the Vault. Notion is a read projection, not the write store.</figcaption>
+<div class="flow" data-chain="notion">
+<button class="node" type="button" data-node="Git / Vault (canonical)">Git / Vault<span class="n-sub">Canonical long-form source</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Sealed receipt">Sealed receipt<span class="n-sub">Hash-chained proof</span></button><span class="arrow">&rarr;</span>
+<button class="node" type="button" data-node="Notion projection">Notion projection<span class="n-sub">Read view, not write store</span></button>
+</div>
+<div class="detail-box" id="notion-arch-detail"><b>Select a stage</b> to see its role. The ceiling is the point: Notion blocks cap what a write-heavy store can hold, so canon that lives only in Notion is canon at risk.</div>
+</figure>
+<div class="state-item" data-state="NEEDS FINISHED"><h3>The rule <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3><p>Write long-form canon to Git and the Vault. Seal a receipt. Project to Notion. Never write canon into Notion first and hope it survives. The Sep 11 punchlist in Section 2 is what happens when the projection is mistaken for the source.</p></div>
+</section>
+
+<section class="card" id="s12">
+<h2><span class="secno">12</span>Local custody risk</h2>
+<p class="lede">The working state at the cut is dirty and divergent. NEURUH-HD is cold custody only: it holds copies, it does not hold the live truth.</p>
+<div class="state-item" data-state="HANGING"><h3>neuruh-runtime-custody: 119 dirty files <span class="pill HANGING">HANGING</span></h3><p>119 dirty files in neuruh-runtime-custody at the cut. Dirty means changed and uncommitted. Uncommitted work is work that can be lost, overwritten, or misread as done.</p></div>
+<div class="state-item" data-state="HANGING"><h3>88-file WIP <span class="pill HANGING">HANGING</span></h3><p>An 88-file work in progress, uncommitted at the cut. A WIP that large is not a change, it is a branch of its own, and it needs to be split, committed, or discarded before it rots.</p></div>
+<div class="state-item" data-state="HANGING"><h3>Vault: 73 ahead / 5 behind <span class="pill HANGING">HANGING</span></h3><p>The Vault is 73 commits ahead and 5 behind at the cut. Ahead and behind at once means divergent histories that need a merge or a rebase decision, not another commit on top.</p></div>
+<div class="state-item" data-state="HANGING"><h3>Multiple worktrees <span class="pill HANGING">HANGING</span></h3><p>Multiple worktrees spread the same work across several checked-out copies. Each worktree is a place where state can drift from the others. The count itself is the risk: one truth, many copies, no single reconciliation point.</p></div>
+<div class="detail-box"><b>NEURUH-HD is cold custody only.</b> It is the archive drive, not the working drive. Treat it as the copy you restore from, never as the place where live work happens.</div>
+<button class="btn" id="custody-btn" type="button">Show the custody triage order</button>
+<p class="statusline" id="custody-status">Triage hidden.</p>
+<ol id="custody-list" style="display:none">
+<li>Commit or discard the 119 dirty files, file by file, nothing in bulk.</li>
+<li>Split the 88-file WIP into reviewable commits or park it as a named branch.</li>
+<li>Resolve Vault 73 ahead / 5 behind with an explicit merge decision.</li>
+<li>Reconcile worktrees to one working copy and archive the rest.</li>
+<li>Verify NEURUH-HD cold copy matches the sealed state, then leave it cold.</li>
+</ol>
+</section>
+
+<section class="card" id="s13">
+<h2><span class="secno">13</span>Blacklist: what not to build</h2>
+<p class="lede">The audit's blacklist. Each of these already exists, or is a rebuild of something that exists. Click an item to mark it reviewed. The counter tracks what you have checked.</p>
+<p class="statusline" id="blacklist-status">0 of 10 reviewed.</p>
+<ul class="checklist" id="blacklist">
+<li data-check>Another Notion master</li>
+<li data-check>Another organism diagram</li>
+<li data-check>Another command center</li>
+<li data-check>Another brain</li>
+<li data-check>Another AXON</li>
+<li data-check>Another Sentinel</li>
+<li data-check>Another recipe engine</li>
+<li data-check>Another CRM</li>
+<li data-check>Another audit dashboard</li>
+<li data-check>Anything else on the audit's "and the rest" list: a rebuild of a thing that already exists under a new name</li>
+</ul>
+<div class="detail-box"><b>The rule:</b> recover, reconcile, repair, converge. Rebuilding a thing that exists adds a second truth. The blacklist is the guardrail against the second truth.</div>
+</section>
+
+<section class="card" id="s14">
+<h2><span class="secno">14</span>T02 proof definition</h2>
+<p class="lede">T02 is a proof, not a feature. A real bounded mission, end to end, with restart and resume and no duplicate execution, plus receipt, court, and custody. Click each requirement to check it off; the meter tracks the definition, not a claim that T02 is done.</p>
+<div class="progress" aria-label="T02 definition checklist progress"><div id="t02-bar"></div></div>
+<p class="statusline" id="t02-status">0 of 6 requirements checked.</p>
+<ul class="checklist" id="t02-list">
+<li data-check>A real bounded mission, end to end</li>
+<li data-check>Restart and resume work correctly</li>
+<li data-check>No duplicate execution on restart or resume</li>
+<li data-check>Receipt produced for the mission</li>
+<li data-check>Court held on the receipt</li>
+<li data-check>Custody sealed for the outcome</li>
+</ul>
+<div class="state-item" data-state="NEEDS FINISHED"><h3>Re-court current mainline first <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3><p>Before T02 is attempted, re-court current mainline. Court the state that exists now, not the state the Sep 11 punchlist described. The court decides what T02 runs against.</p></div>
+<div class="state-item" data-state="HANGING"><h3>Do not execute the Sep 11 punchlist literally <span class="pill HANGING">HANGING</span></h3><p>The punchlist is stale (Section 2). Executing it literally would re-run finished work and miss the current state. The punchlist is evidence of what was asked, not instructions for what to do next.</p></div>
+</section>
+
+<section class="card" id="s15">
+<h2><span class="secno">15</span>Pin graph artifact</h2>
+<p class="lede">NEURUH_RUNTIME_PIN_GRAPH_CURRENT.json is the pin graph artifact. Pin graph to serving graph to receipt graph must match. If they do not match, the system is serving something it did not pin, or receipting something it did not serve.</p>
+<pre class="json" id="pin-json">{
+  "artifact": "NEURUH_RUNTIME_PIN_GRAPH_CURRENT.json",
+  "pin_graph": {
+    "mission": "pinned",
+    "founder_runtime": "pinned",
+    "governance": "pinned",
+    "dispatch": "pinned",
+    "job_queue": "pinned",
+    "worker": "pinned",
+    "execution": "pinned",
+    "receipt": "pinned",
+    "sentinel": "pinned",
+    "custody": "pinned",
+    "promotion": "pinned",
+    "continuation": "pinned"
+  },
+  "serving_graph": "must match pin_graph",
+  "receipt_graph": "must match pin_graph",
+  "rule": "pin graph to serving graph to receipt graph must match"
+}</pre>
+<div>
+<button class="btn" id="pin-check" type="button">Check the three graphs match</button>
+<button class="btn ghost" id="pin-copy" type="button">Copy pin graph JSON</button>
+</div>
+<p class="statusline" id="pin-status">Not checked in this session. The check compares the three graph names in the artifact above.</p>
+<div class="state-item" data-state="NEEDS FINISHED"><h3>Match requirement <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3><p>Three graphs, one truth. Pin graph is what was pinned. Serving graph is what is running. Receipt graph is what was receipted. Any mismatch is a finding, not a rounding error.</p></div>
+</section>
+
+<section class="card" id="s16">
+<h2><span class="secno">16</span>Three DeedSonar acceptance tests</h2>
+<p class="lede">Three tests. Each one is pass or fail, run against the real system. Press Run on a test to record a simulated run in this page; the verdict line says plainly that the in-page run is a simulation of the test, not the test itself.</p>
+<div class="state-item" data-state="NEEDS FINISHED">
+<h3>Test 1: Hunt end to end <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3>
+<p>Operator UI to Create Hunt to WHERE / SOURCE / RAW to authenticated LandOS transport to Hunt execution to CRM results. Pass means leads land in the CRM with receipts, as in Section 3.</p>
+<button class="btn test-run" type="button" data-test="1">Run test 1</button>
+<p class="statusline" id="test-1-status">Not run in this session.</p>
+</div>
+<div class="state-item" data-state="NEEDS FINISHED">
+<h3>Test 2: Safety membrane <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3>
+<p>No external action unless authority exists. Attempt an action without authority and the membrane must refuse it, with a receipt for the refusal.</p>
+<button class="btn test-run" type="button" data-test="2">Run test 2</button>
+<p class="statusline" id="test-2-status">Not run in this session.</p>
+</div>
+<div class="state-item" data-state="NEEDS FINISHED">
+<h3>Test 3: OutcomeRecord learning loop <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3>
+<p>An outcome is recorded, the record feeds learning, and the next hunt changes because of it. Pass means the loop closes, not just that a record was written.</p>
+<button class="btn test-run" type="button" data-test="3">Run test 3</button>
+<p class="statusline" id="test-3-status">Not run in this session.</p>
+</div>
+<div class="detail-box"><b>Honest label:</b> the Run buttons on this page simulate the test steps and show the expected evidence. They do not run DeedSonar. A real pass needs the live system, which is 503 at the November cut.</div>
+</section>
+
+<section class="card" id="s17">
+<h2><span class="secno">17</span>The estate sweeper: NO-ORPHAN capture</h2>
+<p class="lede">The sweeper captures orphans, not reports. Its output is ESTATE_DELTA.json, not a giant report. Run it below to see the shape of the delta.</p>
+<div class="state-item" data-state="NEEDS FINISHED"><h3>NO-ORPHAN capture <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3><p>Every estate record must have a home: an owner, a case, a recipe, or an explicit orphan flag with a next step. NO-ORPHAN means no record is left unowned and unexplained.</p></div>
+<button class="btn" id="sweeper-run" type="button">Run estate sweeper</button>
+<p class="statusline" id="sweeper-status">Sweeper not run in this session.</p>
+<pre class="json" id="sweeper-out" style="display:none">{
+  "artifact": "ESTATE_DELTA.json",
+  "captured": "orphan estate records found by the sweep",
+  "delta": "only what changed since the last sweep",
+  "report": "none: no giant report is produced",
+  "rule": "NO-ORPHAN: every record has a home or an explicit flag"
+}</pre>
+</section>
+
+<section class="card" id="s18">
+<h2><span class="secno">18</span>Future estate topology</h2>
+<p class="lede">Where the estate is headed: one canonical spine, governed execution, commercial closure. Click a layer to read its role.</p>
+<figure>
+<figcaption><b>Figure 6.</b> Future estate topology. Canon at the base, governed execution in the middle, commercial closure at the top. The missing transition from Section 9 is the top layer.</figcaption>
+<div class="flow" id="future-flow" style="flex-direction:column;align-items:stretch">
+<button class="node" type="button" data-layer="canon" style="text-align:left">Canon spine <span class="n-sub">Git / Vault canonical source, sealed receipts, Notion projection</span></button>
+<button class="node" type="button" data-layer="exec" style="text-align:left">Governed execution <span class="n-sub">New organism chain: Founder Runtime, Governance, Dispatch, JobQueue, Worker, Execution, Receipt, Sentinel, Custody, Promotion, Continuation</span></button>
+<button class="node" type="button" data-layer="data" style="text-align:left">Data mass, kept honest <span class="n-sub">Evidence, identity, contact, opportunity, recipe, monitoring, authority, outcomes kept separate</span></button>
+<button class="node" type="button" data-layer="commercial" style="text-align:left">Commercial closure <span class="n-sub">PROVEN to SOLD to DELIVERED to OUTCOME to CASE to LEARNING, run once, then repeated</span></button>
+</div>
+<div class="detail-box" id="future-detail"><b>Select a layer</b> to read its role in the future topology.</div>
+</figure>
+<div class="state-item" data-state="NEEDS FINISHED"><h3>The shape of done <span class="pill NEEDS FINISHED">NEEDS FINISHED</span></h3><p>Done is not another build. Done is the canon spine holding, the governed chain running, the data mass staying separated and counted, and the commercial loop closing at least once. Then the loop repeats.</p></div>
+<button class="btn" id="print-btn" type="button">Print this audit</button>
+<p class="statusline" id="print-status">Print opens the browser print dialog with the print stylesheet.</p>
+</section>
+
+<footer style="border-top:2px solid var(--brass);margin-top:30px;padding-top:14px;font-size:13px;color:var(--muted)">
+<p>Full Project Audit. Audit cut Sep 21, 2026. Historical record. Superseded claims are marked in the audit-cut banner at the top of the page. Source file <code>~/workspace/drive-pull/full-project-audit.md</code> did not exist when this page was built on Nov 18, 2026; the page is built from the supplied content specification and must be cross-checked against the verbatim transcript if that file appears. No em dashes are used in this document.</p>
+<p><a href="https://neuruhai.github.io/neuruh-demos/full-project-audit/">Live page</a></p>
+</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function setStatus(el,msg,cls){el.textContent=msg;el.className="statusline"+(cls?" "+cls:"");}
+
+/* State filter */
+var filterCount=$("#filter-count");
+function applyFilter(state){
+  $$(".fbtn").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.filter===state));});
+  var total=0,shown=0;
+  $$(".state-item[data-state]").forEach(function(it){
+    total++;
+    var match=(state==="ALL"||it.dataset.state===state);
+    it.classList.toggle("hidden-item",!match);
+    if(match){shown++;}
+  });
+  setStatus(filterCount,state==="ALL"?("Showing all "+total+" classified items"):("Showing "+shown+" of "+total+" classified items in state "+state));
+  $$("section.card").forEach(function(sec){
+    var items=$$(".state-item[data-state]",sec);
+    var visible=items.filter(function(i){return !i.classList.contains("hidden-item");});
+    var note=$(".empty-note",sec);
+    if(items.length&&visible.length===0){
+      if(!note){note=document.createElement("p");note.className="empty-note";note.textContent="No items in this state in this section.";sec.appendChild(note);}
+      note.classList.add("show");
+    }else if(note){note.classList.remove("show");}
+  });
+}
+$$(".fbtn").forEach(function(b){b.addEventListener("click",function(){applyFilter(b.dataset.filter);});});
+$("#reset-filter").addEventListener("click",function(){applyFilter("ALL");});
+
+/* Sticky nav active link */
+var navLinks=$$("nav.sticky a");
+function onScroll(){
+  var pos=window.scrollY+120,cur=null;
+  $$("section.card").forEach(function(sec){if(sec.offsetTop<=pos){cur="#"+sec.id;}});
+  navLinks.forEach(function(a){a.classList.toggle("active",a.getAttribute("href")===cur);});
+}
+window.addEventListener("scroll",onScroll,{passive:true});
+
+/* Hunt flow */
+var huntDetails={
+  ui:"Operator UI: the human operator starts the hunt. Nothing runs without an operator decision.",
+  create:"Create Hunt: the hunt object is created with its scope. This is the unit the receipt will cover.",
+  where:"WHERE / SOURCE / RAW: where the hunt looks, which source it pulls from, and the raw rows it starts with. Scope is explicit before execution.",
+  transport:"Authenticated LandOS transport: the hunt moves over authenticated transport to LandOS. No open pull, no unauthenticated access.",
+  exec:"Hunt execution: recipes run, leads are scored, evidence is attached. Execution is the step the queue separates from dispatch.",
+  crm:"CRM results: scored leads land in the DeedSonar CRM with receipts. PR #124 merged, deployment dpl_3EdvXXCnry3bc4WBx8DMGJJvUKVx READY, main b67222d5be."
+};
+var huntDetail=$("#hunt-detail"),huntStatus=$("#hunt-status");
+var huntLabels={ui:"Operator UI",create:"Create Hunt",where:"WHERE / SOURCE / RAW",transport:"Authenticated LandOS transport",exec:"Hunt execution",crm:"CRM results"};
+function selectHunt(stage,btn){
+  $$("#hunt-flow .node").forEach(function(n){n.classList.remove("sel");});
+  if(btn){btn.classList.add("sel");}
+  huntDetail.innerHTML="<b>"+huntLabels[stage]+"</b>: "+huntDetails[stage].split(": ").slice(1).join(": ");
+}
+$$("#hunt-flow .node").forEach(function(n){
+  n.addEventListener("click",function(){selectHunt(n.dataset.stage,n);setStatus(huntStatus,"Stage selected: "+huntLabels[n.dataset.stage]+".");});
+});
+var huntTimer=null;
+$("#run-hunt").addEventListener("click",function(){
+  var stages=["ui","create","where","transport","exec","crm"],i=0;
+  var btn=this;btn.disabled=true;
+  if(huntTimer){clearInterval(huntTimer);}
+  setStatus(huntStatus,"Hunt running: stage 1 of 6, Operator UI.");
+  huntTimer=setInterval(function(){
+    var stage=stages[i];
+    var node=$('#hunt-flow .node[data-stage="'+stage+'"]');
+    selectHunt(stage,node);
+    setStatus(huntStatus,"Hunt running: stage "+(i+1)+" of 6, "+huntLabels[stage]+".");
+    i++;
+    if(i>=stages.length){
+      clearInterval(huntTimer);huntTimer=null;btn.disabled=false;
+      setStatus(huntStatus,"Hunt complete: 6 of 6 stages. Leads in CRM with receipts. PR #124 merged, deployment READY, main b67222d5be.","good");
+    }
+  },450);
+});
+$("#reset-hunt").addEventListener("click",function(){
+  if(huntTimer){clearInterval(huntTimer);huntTimer=null;}
+  $("#run-hunt").disabled=false;
+  $$("#hunt-flow .node").forEach(function(n){n.classList.remove("sel");});
+  huntDetail.innerHTML="<b>Select a stage</b> to inspect it, or press Run hunt to walk the whole flow.";
+  setStatus(huntStatus,"Hunt not run in this session.");
+});
+
+/* Topology tabs and nodes */
+var topoNotes={
+  "Mission":"Mission: the intent. Old chain and new chain both start here.",
+  "Founder Runtime":"Founder Runtime: NEW. The founder's runtime sits between Mission and Governance, so founder authority is a stage, not an assumption.",
+  "Governance":"Governance: the gate. What may run, under what authority.",
+  "Dispatch":"Dispatch: NEW. Intent is dispatched as jobs instead of handed directly to workers.",
+  "JobQueue":"JobQueue: NEW. The queue separates dispatch from execution, so a job can wait, retry, and resume without duplicate execution.",
+  "Worker":"Worker: the unit that does the work. In the old chain workers were handed missions directly.",
+  "Workers":"Workers: the old chain's workers, handed missions directly with no dispatch, no queue, and no named execution stage.",
+  "Execution":"Execution: NEW as a named stage. The work actually running, distinct from the worker that runs it.",
+  "Receipt":"Receipt: evidence of what happened. Both chains have it; only the new chain courts it into custody and promotion.",
+  "Sentinel":"Sentinel: the check on the receipt. Verdict before custody.",
+  "Custody":"Custody: sealed storage of the outcome. The old chain ended here. The new chain continues.",
+  "Promotion":"Promotion: NEW. What passes the court is promoted to canonical state.",
+  "Continuation":"Continuation: NEW. The outcome feeds the next mission instead of ending the line.",
+  "Next Mission":"Next Mission: the loop closes. The chain is a cycle, not a line.",
+  "Source":"Source: where the real-estate loop starts. A county record, a list, a signal.",
+  "LandOS Ingest":"LandOS Ingest: the source is ingested with provenance.",
+  "Evidence":"Evidence: what was observed, with provenance attached.",
+  "Identity":"Identity: who and what the evidence refers to.",
+  "Estate":"Estate: the estate-level view of the identity, including heirs and case state.",
+  "Recipe Engine":"Recipe Engine: the versioned pattern that turns signals into an opportunity.",
+  "Opportunity":"Opportunity: a scored, ranked candidate worth acting on.",
+  "Hunt":"Hunt: the bounded run that executes the recipe against the evidence.",
+  "Result":"Result: what the hunt produced, before it is judged.",
+  "CRM":"CRM: results land in DeedSonar CRM.",
+  "Action eligibility":"Action eligibility: whether this result may be acted on, under what authority.",
+  "OutcomeRecord":"OutcomeRecord: what actually happened after action. The record the learning loop reads.",
+  "Learning":"Learning: the loop's memory. What changed because of the outcome.",
+  "Next Hunt":"Next Hunt: the loop closes. The next hunt is different because the last one was learned from.",
+  "Build":"Build: the loop that runs today starts by building.",
+  "Audit":"Audit: the build is audited. This page is an audit.",
+  "Court":"Court: the audit is courted. Findings are ruled on, not just noted.",
+  "Improve":"Improve: the courted findings change the build.",
+  "Canonize":"Canonize: the improved build becomes canon.",
+  "Build (again)":"Build (again): the loop repeats. It improves the system. It does not sell it.",
+  "PROVEN":"PROVEN: exists. The system is proven. Nothing after it exists yet as a connected path.",
+  "SOLD":"SOLD: missing. No sale has been run through this transition yet.",
+  "DELIVERED":"DELIVERED: missing. No delivery has followed a sale through this transition yet.",
+  "OUTCOME":"OUTCOME: missing. No outcome has been recorded from a delivery yet.",
+  "CASE":"CASE: missing. No case has been written from an outcome yet.",
+  "LEARNING":"LEARNING: missing. No learning has fed back from a case yet.",
+  "Git / Vault (canonical)":"Git / Vault: canonical long-form source. Canon is written here, not in Notion.",
+  "Sealed receipt":"Sealed receipt: hash-chained proof that the projection matches the canon.",
+  "Notion projection":"Notion projection: the read view. Notion shows canon; it does not hold it."
+};
+var topoDetail=$("#topo-detail");
+$$(".tab[data-tab]").forEach(function(t){
+  t.addEventListener("click",function(){
+    $$(".tab[data-tab]").forEach(function(x){x.setAttribute("aria-selected","false");});
+    t.setAttribute("aria-selected","true");
+    $$(".tabpanel").forEach(function(p){p.classList.remove("show");});
+    $("#tab-"+t.dataset.tab).classList.add("show");
+  });
+});
+$$(".flow .node[data-node]").forEach(function(n){
+  if(n.closest("#s11")){return;}
+  n.addEventListener("click",function(){
+    $$(".flow .node[data-node]").forEach(function(x){x.classList.remove("sel");});
+    n.classList.add("sel");
+    var key=n.dataset.node;
+    var target=(n.closest("section").id==="s9")?$("#com-detail"):topoDetail;
+    target.innerHTML="<b>"+key+"</b>: "+(topoNotes[key]||"Stage in the chain.").split(": ").slice(1).join(": ");
+  });
+});
+
+/* Sortable tables */
+function sortTable(table,colIdx,numeric){
+  var tbody=table.querySelector("tbody");
+  var rows=$$("tr",tbody);
+  var asc=table.dataset.sortDir!=="asc";
+  table.dataset.sortDir=asc?"asc":"desc";
+  rows.sort(function(a,b){
+    var av=a.cells[colIdx].textContent.trim(),bv=b.cells[colIdx].textContent.trim();
+    if(numeric){
+      var an=parseFloat(a.cells[colIdx].dataset.n||av.replace(/[^0-9.-]/g,""))||0;
+      var bn=parseFloat(b.cells[colIdx].dataset.n||bv.replace(/[^0-9.-]/g,""))||0;
+      return asc?an-bn:bn-an;
+    }
+    return asc?av.localeCompare(bv):bv.localeCompare(av);
+  });
+  rows.forEach(function(r){tbody.appendChild(r);});
+}
+$$("table.data th[data-sort]").forEach(function(th){
+  th.addEventListener("click",function(){
+    var table=th.closest("table");
+    var idx=parseInt(th.dataset.sort,10);
+    var numeric=(table.id==="mass-table"&&idx===1);
+    sortTable(table,idx,numeric);
+    var statusId=table.id==="ruling-table"?"#ruling-status":"#mass-count";
+    var el=$(statusId);
+    if(el){setStatus(el,"Sorted by "+th.textContent.trim()+" ("+(table.dataset.sortDir==="asc"?"ascending":"descending")+").");}
+  });
+});
+
+/* Data mass search and bars */
+var massSearch=$("#mass-search"),massCount=$("#mass-count"),massBarsBtn=$("#mass-bars"),massBarsPanel=$("#mass-bars-panel");
+massSearch.addEventListener("input",function(){
+  var q=massSearch.value.trim().toLowerCase(),shown=0,total=0;
+  $$("#mass-table tbody tr").forEach(function(r){
+    total++;
+    var match=!q||r.textContent.toLowerCase().indexOf(q)>-1;
+    r.classList.toggle("hidden-row",!match);
+    if(match){shown++;}
+  });
+  setStatus(massCount,shown+" of "+total+" tables match \""+massSearch.value.trim()+"\".");
+});
+massBarsBtn.addEventListener("click",function(){
+  var show=massBarsPanel.style.display==="none";
+  massBarsPanel.style.display=show?"block":"none";
+  massBarsBtn.setAttribute("aria-pressed",String(show));
+  massBarsBtn.textContent=show?"Hide bars":"Show bars";
+});
+
+/* Separation diagram */
+var sepNotes={
+  evidence:"Evidence: what was observed, with provenance. Never absorb identity judgments. Evidence says what happened, not who it was.",
+  identity:"Identity: who and what a record refers to. Built from evidence, but kept separate so a wrong identity does not corrupt the evidence.",
+  contact:"Contact: how a party can be reached, with evidence for each channel. A phone without evidence is a guess, not a contact.",
+  opportunity:"Opportunity: a scored, ranked candidate. Opportunity is a judgment on evidence and identity, not a property of the raw data.",
+  recipe:"Recipe: the repeatable acquisition pattern, versioned. Change the recipe and you change every opportunity it produces, so version it.",
+  monitoring:"Monitoring: health, drift, and freshness of the whole stack. Monitoring watches the system, it does not make decisions for it.",
+  authority:"Authority: who may act, and under what approval. Authority gates action. Nothing external happens without it.",
+  outcomes:"Outcomes: what actually happened after action. Outcomes are the only layer that can teach the system anything."
+};
+var sepDetail=$("#sep-detail");
+$$("#sep-flow .node").forEach(function(n){
+  n.addEventListener("click",function(){
+    $$("#sep-flow .node").forEach(function(x){x.classList.remove("sel");});
+    n.classList.add("sel");
+    var layerName=n.dataset.layer.charAt(0).toUpperCase()+n.dataset.layer.slice(1);
+    sepDetail.innerHTML="<b>"+layerName+"</b>: "+sepNotes[n.dataset.layer].split(": ").slice(1).join(": ");
+  });
+});
+
+/* RLS findings */
+var rlsNotes={
+  rls:"Fix order, overlapping policies: list every permissive policy per table, pick one clear path per role, drop the overlaps, re-test access per role before calling it done.",
+  idx:"Fix order, duplicate indexes: identify which index live queries use, drop the redundant one, measure write time before and after.",
+  auth:"Fix order, Auth connections: measure peak Auth connections under load, compare to the pool, size the pool or the retry behavior to match."
+};
+$$(".finding-btn").forEach(function(b){
+  b.addEventListener("click",function(){
+    setStatus($("#rls-detail"),rlsNotes[b.dataset.target],"good");
+    b.textContent="Fix order shown";
+  });
+});
+
+/* Stripe tabs */
+$$(".tab[data-stripe]").forEach(function(t){
+  t.addEventListener("click",function(){
+    $$(".tab[data-stripe]").forEach(function(x){x.setAttribute("aria-selected","false");});
+    t.setAttribute("aria-selected","true");
+    $("#stripe-live").classList.toggle("show",t.dataset.stripe==="live");
+    $("#stripe-april").classList.toggle("show",t.dataset.stripe==="april");
+    setStatus($("#stripe-detail"),t.dataset.stripe==="live"?"Live links shown: active at the cut, $100 Scan and $499 Dossier per the audit, $499 flagged unresolved.":"April links shown: inactive. They must stay inactive and every public surface must point at the live links.","good");
+  });
+});
+
+/* Commercial tabs */
+$$(".tab[data-com]").forEach(function(t){
+  t.addEventListener("click",function(){
+    $$(".tab[data-com]").forEach(function(x){x.setAttribute("aria-selected","false");});
+    t.setAttribute("aria-selected","true");
+    $("#com-missing").classList.toggle("show",t.dataset.com==="missing");
+    $("#com-loop").classList.toggle("show",t.dataset.com==="loop");
+  });
+});
+
+/* Notion one-line rule */
+$("#notion-rule-btn").addEventListener("click",function(){
+  $("#notion-detail").innerHTML="<b>Rule in one line:</b> write canon in Git and the Vault, seal a receipt, project to Notion, never write canon into Notion first.";
+  this.textContent="Rule shown";
+});
+
+/* Audit offer checklist */
+$("#audit-offer-btn").addEventListener("click",function(){
+  var list=$("#audit-offer-list");
+  var show=list.style.display==="none";
+  list.style.display=show?"block":"none";
+  setStatus($("#audit-offer-status"),show?"Checklist shown. Click an item to mark it done.":"Checklist hidden.");
+  this.textContent=show?"Hide the sellable-now checklist":"Show the sellable-now checklist";
+});
+
+/* Custody triage */
+$("#custody-btn").addEventListener("click",function(){
+  var list=$("#custody-list");
+  var show=list.style.display==="none";
+  list.style.display=show?"block":"none";
+  setStatus($("#custody-status"),show?"Triage shown: 5 steps, in order.":"Triage hidden.");
+  this.textContent=show?"Hide the custody triage order":"Show the custody triage order";
+});
+
+/* Checklists: generic toggle + counters */
+function wireChecklist(listId,statusId,label){
+  var list=$(listId),status=$(statusId);
+  if(!list){return;}
+  $$("li[data-check]",list).forEach(function(li){
+    li.addEventListener("click",function(){
+      li.classList.toggle("done");
+      var total=$$("li[data-check]",list).length;
+      var done=$$("li[data-check].done",list).length;
+      setStatus(status,done+" of "+total+" "+label+".",done===total?"good":"");
+      if(listId==="#t02-list"){$("#t02-bar").style.width=Math.round(done/total*100)+"%";}
+    });
+  });
+}
+wireChecklist("#blacklist","#blacklist-status","reviewed");
+wireChecklist("#t02-list","#t02-status","requirements checked");
+wireChecklist("#audit-offer-list","#audit-offer-status","checklist items done");
+
+/* Pin graph */
+$("#pin-check").addEventListener("click",function(){
+  try{
+    var data=JSON.parse($("#pin-json").textContent);
+    var keys=Object.keys(data.pin_graph);
+    var ok=keys.length===12&&data.serving_graph.indexOf("must match")>-1&&data.receipt_graph.indexOf("must match")>-1;
+    setStatus($("#pin-status"),ok?"Check result: 12 pinned stages listed. Serving graph and receipt graph are declared as must-match in this artifact. A live match check against the real serving and receipt graphs is still owed; this page cannot verify them from here.": "Check result: artifact shape unexpected. Pin graph does not list 12 stages.",ok?"good":"bad");
+  }catch(e){
+    setStatus($("#pin-status"),"Check failed: pin graph JSON did not parse: "+e.message,"bad");
+  }
+});
+$("#pin-copy").addEventListener("click",function(){
+  var text=$("#pin-json").textContent;
+  function done(){setStatus($("#pin-status"),"Pin graph JSON copied to the clipboard.","good");}
+  function fail(){setStatus($("#pin-status"),"Copy failed in this browser. Select the JSON block above and copy it manually.","bad");}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,fail);}
+  else{
+    var ta=document.createElement("textarea");ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand("copy");done();}catch(e){fail();}
+    document.body.removeChild(ta);
+  }
+});
+
+/* Acceptance tests */
+var testNotes={
+  "1":"Test 1 simulated run: Operator UI to Create Hunt to WHERE / SOURCE / RAW to authenticated LandOS transport to Hunt execution to CRM results. Expected evidence: leads in CRM with receipts, PR #124, deployment READY. This in-page run is a simulation, not a live test.",
+  "2":"Test 2 simulated run: an action attempted without authority must be refused by the membrane, with a receipt for the refusal. Expected evidence: refusal receipt, no external action taken. This in-page run is a simulation, not a live test.",
+  "3":"Test 3 simulated run: an outcome is recorded, learning reads the record, the next hunt changes. Expected evidence: OutcomeRecord plus a changed next hunt. This in-page run is a simulation, not a live test."
+};
+$$(".test-run").forEach(function(b){
+  b.addEventListener("click",function(){
+    var el=$("#test-"+b.dataset.test+"-status");
+    setStatus(el,"Running test "+b.dataset.test+" (simulated)...");
+    setTimeout(function(){setStatus(el,testNotes[b.dataset.test],"good");},400);
+  });
+});
+
+/* Sweeper */
+$("#sweeper-run").addEventListener("click",function(){
+  var out=$("#sweeper-out");
+  setStatus($("#sweeper-status"),"Sweeper running: scanning estate records for orphans...");
+  setTimeout(function(){
+    out.style.display="block";
+    setStatus($("#sweeper-status"),"Sweeper done: delta shape shown below. Output is ESTATE_DELTA.json, not a giant report. Counts in the delta come from the live sweep, not from this page.","good");
+  },500);
+});
+
+/* Future topology */
+var futureNotes={
+  canon:"Canon spine: Git and the Vault hold long-form canon, sealed receipts prove the projection, Notion shows the projection. The Sep 11 punchlist failure does not repeat.",
+  exec:"Governed execution: the new organism chain runs the mission with Founder Runtime, Governance, Dispatch, JobQueue, Worker, Execution, Receipt, Sentinel, Custody, Promotion, and Continuation.",
+  data:"Data mass, kept honest: evidence, identity, contact, opportunity, recipe, monitoring, authority, and outcomes stay separate and counted.",
+  commercial:"Commercial closure: PROVEN to SOLD to DELIVERED to OUTCOME to CASE to LEARNING, run once, then repeated. This is the layer that turns the estate into revenue."
+};
+$$("#future-flow .node").forEach(function(n){
+  n.addEventListener("click",function(){
+    $$("#future-flow .node").forEach(function(x){x.classList.remove("sel");});
+    n.classList.add("sel");
+    $("#future-detail").innerHTML="<b>"+n.textContent.trim().split(" ")[0]+"</b>: "+futureNotes[n.dataset.layer].split(": ").slice(1).join(": ");
+  });
+});
+
+/* Notion architecture nodes reuse topo handler via data-node; ensure detail target */
+$$("#s11 .flow .node").forEach(function(n){
+  n.addEventListener("click",function(){
+    $("#notion-arch-detail").innerHTML="<b>"+n.dataset.node+"</b>: "+(topoNotes[n.dataset.node]||"Stage in the architecture.").split(": ").slice(1).join(": ");
+  });
+});
+
+/* Print */
+$("#print-btn").addEventListener("click",function(){
+  setStatus($("#print-status"),"Print dialog opened.","good");
+  window.print();
+});
+
+onScroll();
+})();
+</script>
+</body>
+</html>
