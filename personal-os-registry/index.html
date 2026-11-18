@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal OS Registry Explorer</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fbf9f4;--ink:#1c1a16;--muted:#6b655a;--brass:#9a7b2d;--line:#d8d2c4;--card:#fffdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.55}
+header{background:var(--ink);color:var(--bone);padding:22px 28px}header .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;color:#c9a86a;text-transform:uppercase}
+header h1{font-family:Archivo,system-ui,sans-serif;font-size:26px;margin:6px 0 4px}header p{margin:0;color:#cfc9bb;font-size:14px}
+main{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 16px}
+h2{font-family:Archivo,system-ui,sans-serif;font-size:18px;margin:0 0 8px}h3{font-size:15px;margin:14px 0 6px}
+.muted{color:var(--muted);font-size:13px}.mono{font-family:"JetBrains Mono",monospace;font-size:12.5px}
+.badge{display:inline-block;border:1px solid var(--brass);color:var(--brass);border-radius:999px;padding:2px 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.domains{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.domain{border:1px solid var(--line);border-radius:8px;padding:12px 14px;cursor:pointer;background:var(--paper)}
+.domain.sel{border-color:var(--brass);box-shadow:0 0 0 2px rgba(154,123,45,.25)}
+.domain b{font-family:"JetBrains Mono",monospace;font-size:13px}.domain p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+pre{background:#17150f;color:#e8e2d2;border-radius:8px;padding:14px;overflow:auto;font-size:12px;line-height:1.5}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;width:100%}
+label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+button{background:var(--ink);color:var(--bone);border:0;border-radius:6px;padding:10px 16px;font:inherit;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.steps{counter-reset:s}.steps li{margin:8px 0}
+.note{border-left:3px solid var(--brass);padding:8px 12px;background:#f6efdc;font-size:13px}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><div class="k">Neuruh Drive Build | Slice 01 | Personal OS v1.0.0-Canonical</div>
+<h1>Personal OS Registry Explorer</h1>
+<p>Interactive reader for the Personal OS canonical architecture, schema, and system index. Schema simulation, not a live index of any machine.</p></header>
+<main>
+<div class="card"><span class="badge">Status: Designed, not proven</span>
+<p class="muted">Source: Google Doc "Personal OS: Canonical Architecture, Schema &amp; System Index", Drive 2026-08-30. The companion registry sheet (Master Asset &amp; Manifest Registry) is BLOCKED on the Google Sheets connector not being connected, so no real registry rows exist in this demo. The sample record below is generated from the schema, not from his files. No local files were scanned.</p></div>
+
+<div class="card"><h2>1. Domain taxonomy</h2><p class="muted">Click a domain to see its definition, node mapping, and a sample record.</p>
+<div class="domains" id="domains"></div>
+<div id="domainDetail" style="margin-top:14px"></div></div>
+
+<div class="card"><h2>2. Storage node topology</h2>
+<table><tr><th>Node</th><th>Type</th><th>Role</th><th>Root path</th></tr>
+<tr><td class="mono">Node 01: LOCAL_NVME</td><td>Workstation internal</td><td>Active execution, local model harness (Bonsai / Gemma), active git branches, transient scratchpads</td><td class="mono">/Users/[local]/Developer/</td></tr>
+<tr><td class="mono">Node 02: EXTERNAL_HD_NEURUH</td><td>High-speed SSD</td><td>Model weights, training datasets, repository history, project assets, virtual environments</td><td class="mono">/Volumes/Neuruh_Ext/</td></tr>
+<tr><td class="mono">Node 03: EXTERNAL_HD_BACKUP</td><td>Mass storage HDD</td><td>Bulk dumps, historical disk images, cold archives, raw video/audio captures</td><td class="mono">/Volumes/Archive_Storage/</td></tr>
+<tr><td class="mono">Node 04: GOOGLE_DRIVE_CLOUD</td><td>Workspace cloud</td><td>Live canonical docs, spreadsheet registries, cross-agent coordination artifacts, operational logs</td><td class="mono">Personal OS - Canonical Architecture &amp; Registry</td></tr>
+</table></div>
+
+<div class="card"><h2>3. Asset record generator</h2>
+<p class="muted">Build a PersonalOS_AssetRecord exactly per the schema. UUID is deterministic from the URI (UUIDv5-style SHA-1), SHA-256 is computed in-browser when you pick a file. Nothing leaves the browser.</p>
+<div class="grid2">
+<div><label>URI (canonical)</label><input id="uri" value="storage://external_hd_neuruh/10_NEURUH_SYSTEMS/axon/mcp_server.py">
+<label>Domain</label><select id="domain"><option>00_CORE_OPS</option><option selected>10_NEURUH_SYSTEMS</option><option>20_DATA_PIPELINES_GIS</option><option>30_COMMERCE_ARBITRAGE</option><option>40_LEGAL_FINANCE_ENTITIES</option><option>50_PERSONAL_FAMILY_OPS</option><option>90_RAW_ARCHIVES_STORAGE</option></select>
+<label>Subsystem</label><input id="subsystem" value="axon">
+<label>Storage node</label><select id="node"><option>LOCAL_NVME</option><option selected>EXTERNAL_HD_NEURUH</option><option>EXTERNAL_HD_BACKUP</option><option>GOOGLE_DRIVE_CLOUD</option><option>COLD_VAULT</option></select></div>
+<div><label>Lifecycle status</label><select id="life"><option selected>ACTIVE_PRODUCTION</option><option>STAGING_DEV</option><option>REFERENCE_STATIC</option><option>DEPRECATED</option><option>RAW_COLD</option></select>
+<label>Retrieval priority</label><select id="prio"><option selected>P0_IMMEDIATE_CONTEXT</option><option>P1_ACTIVE_PROJECT</option><option>P2_REFERENCE_ONLY</option><option>P3_COLD_ARCHIVE</option></select>
+<label>Summary (one line)</label><input id="summary" value="AXON MCP gateway server for agent tool calls.">
+<label>Semantic tags (comma separated)</label><input id="tags" value="mcp, axon, gateway">
+<label>Hash a file for SHA-256 (optional, local only)</label><input type="file" id="filepick"></div>
+</div>
+<p style="margin-top:14px"><button onclick="gen()">Generate record</button> <button class="ghost" onclick="copyRec()">Copy JSON</button></p>
+<pre id="record"></pre></div>
+
+<div class="card"><h2>4. Query protocol</h2>
+<ol class="steps"><li><b>Domain scoping.</b> Identify the target domain namespace (10_NEURUH_SYSTEMS, 20_DATA_PIPELINES_GIS, etc.).</li>
+<li><b>Priority filtering.</b> Default search scope is P0_IMMEDIATE_CONTEXT and P1_ACTIVE_PROJECT only, to prevent context bloat.</li><li><b>Exact node resolution.</b> Map the file URI to its physical or cloud storage node before dispatching execution commands.</li><li><b>Dependency check.</b> Resolve dependent configs in 00_CORE_OPS before invoking local scripts.</li></ol>
+<div class="note"><b>Open gap:</b> personal_os_scanner.py is specified in the source doc (scan, hash, UUID, categorize, emit manifest.jsonl) but no code ships with it. It is a build item for the Mac, not present here.</div></div>
+
+<div class="card"><h2>5. Full JSON schema (from the source)</h2>
+<pre>{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PersonalOS_AssetRecord",
+  "type": "object",
+  "required": ["uuid","uri","domain","subsystem","filename","file_extension",
+    "mime_type","storage_node","lifecycle_status","llm_retrieval_priority"],
+  "properties": {
+    "uuid": {"type":"string","format":"uuid"},
+    "uri": {"type":"string"},
+    "domain": {"type":"string","enum":["00_CORE_OPS","10_NEURUH_SYSTEMS",
+      "20_DATA_PIPELINES_GIS","30_COMMERCE_ARBITRAGE","40_LEGAL_FINANCE_ENTITIES",
+      "50_PERSONAL_FAMILY_OPS","90_RAW_ARCHIVES_STORAGE"]},
+    "subsystem": {"type":"string"},
+    "filename": {"type":"string"},
+    "file_extension": {"type":"string"},
+    "mime_type": {"type":"string"},
+    "byte_size": {"type":"integer"},
+    "sha256_hash": {"type":"string"},
+    "storage_node": {"type":"string","enum":["LOCAL_NVME","EXTERNAL_HD_NEURUH",
+      "EXTERNAL_HD_BACKUP","GOOGLE_DRIVE_CLOUD","COLD_VAULT"]},
+    "lifecycle_status": {"type":"string","enum":["ACTIVE_PRODUCTION","STAGING_DEV",
+      "REFERENCE_STATIC","DEPRECATED","RAW_COLD"]},
+    "llm_retrieval_priority": {"type":"string","enum":["P0_IMMEDIATE_CONTEXT",
+      "P1_ACTIVE_PROJECT","P2_REFERENCE_ONLY","P3_COLD_ARCHIVE"]},
+    "semantic_tags": {"type":"array","items":{"type":"string"}},
+    "summary": {"type":"string"},
+    "dependencies": {"type":"array","items":{"type":"string"}},
+    "last_indexed_utc": {"type":"string","format":"date-time"}
+  }
+}</pre></div>
+</main>
+<script>
+const DOMAINS={
+"00_CORE_OPS":{d:"Root configuration files, global environment templates, system manifests, agent skill definitions, and master index metadata.",ex:"00_CORE_OPS/system_manifest.json"},
+"10_NEURUH_SYSTEMS":{d:"AI harnesses, local model runtimes (Bonsai/Gemma on Apple Silicon), MCP servers/gateways (AXON), prompt templates, and agent orchestration graphs.",ex:"10_NEURUH_SYSTEMS/axon/mcp_server.py"},
+"20_DATA_PIPELINES_GIS":{d:"Automated data extraction workflows, ProbateOps court scrapers, GIS layers, soil/aerial raster data, and boundary shapefiles.",ex:"20_DATA_PIPELINES_GIS/probateops/court_scraper.py"},
+"30_COMMERCE_ARBITRAGE":{d:"Find Sell Profit marketplace engines, vintage electronics repair documentation, hardware specs, part catalogs, and valuation models.",ex:"30_COMMERCE_ARBITRAGE/find_sell_profit/engine.py"},
+"40_LEGAL_FINANCE_ENTITIES":{d:"Entity documentation for Neuruh LLC, Anchor Point Property Group, Lakeside Renovations; corporate filings, tax records, client contracts.",ex:"40_LEGAL_FINANCE_ENTITIES/neuruh_llc/operating_agreement.pdf"},
+"50_PERSONAL_FAMILY_OPS":{d:"Household management, vacation itineraries, health and routine documentation, personal property records.",ex:"50_PERSONAL_FAMILY_OPS/household/maintenance_log.md"},
+"90_RAW_ARCHIVES_STORAGE":{d:"Unsorted legacy dumps, historical archives from external hard drives, raw disk images, and read-only cold archives.",ex:"90_RAW_ARCHIVES_STORAGE/archive_2024/disk_image_01.raw"}};
+const box=document.getElementById('domains');
+Object.keys(DOMAINS).forEach(k=>{const d=document.createElement('div');d.className='domain';d.innerHTML='<b>'+k+'</b><p>'+DOMAINS[k].d+'</p>';d.onclick=()=>{document.querySelectorAll('.domain').forEach(x=>x.classList.remove('sel'));d.classList.add('sel');document.getElementById('domainDetail').innerHTML='<h3>'+k+'</h3><p>'+DOMAINS[k].d+'</p><p class="mono">Example URI: storage://external_hd_neuruh/'+DOMAINS[k].ex+'</p>';};box.appendChild(d);});
+async function sha1hex(s){const b=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+let fileHash='',fileSize=0,fileName='';
+document.getElementById('filepick').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;fileName=f.name;fileSize=f.size;const buf=await f.arrayBuffer();const h=await crypto.subtle.digest('SHA-256',buf);fileHash=[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');gen();});
+async function gen(){const uri=document.getElementById('uri').value.trim();const parts=uri.split('/');const fn=parts[parts.length-1]||'unknown';const ext=fn.includes('.')?fn.split('.').pop():'';const h=await sha1hex(uri);const uuid=h.slice(0,8)+'-'+h.slice(8,12)+'-5'+h.slice(13,16)+'-'+h.slice(16,20)+'-'+h.slice(20,32);
+const rec={"$schema":"PersonalOS_AssetRecord","uuid":uuid,"uri":uri,"domain":document.getElementById('domain').value,"subsystem":document.getElementById('subsystem').value,"filename":fileName||fn,"file_extension":ext,"mime_type":ext==='py'?'text/x-python':ext==='md'?'text/markdown':ext==='pdf'?'application/pdf':'application/octet-stream',"byte_size":fileSize||0,"sha256_hash":fileHash||'(hash a file to fill this in)',"storage_node":document.getElementById('node').value,"lifecycle_status":document.getElementById('life').value,"llm_retrieval_priority":document.getElementById('prio').value,"semantic_tags":document.getElementById('tags').value.split(',').map(s=>s.trim()).filter(Boolean),"summary":document.getElementById('summary').value,"dependencies":[],"last_indexed_utc":new Date().toISOString()};
+document.getElementById('record').textContent=JSON.stringify(rec,null,2);}
+function copyRec(){navigator.clipboard.writeText(document.getElementById('record').textContent);}
+gen();
+</script></body></html>
