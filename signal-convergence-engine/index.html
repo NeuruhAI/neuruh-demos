@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal Convergence Engine</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fbf9f4;--ink:#1c1a16;--muted:#6b655a;--brass:#9a7b2d;--line:#d8d2c4;--card:#fffdf8}
+*{box-sizing:border-box}body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.55}
+header{background:var(--ink);color:var(--bone);padding:22px 28px}header .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;color:#c9a86a;text-transform:uppercase}
+header h1{font-family:Archivo,system-ui,sans-serif;font-size:26px;margin:6px 0 4px}header p{margin:0;color:#cfc9bb;font-size:14px}
+main{max-width:1080px;margin:0 auto;padding:24px 20px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 16px}
+h2{font-family:Archivo,system-ui,sans-serif;font-size:18px;margin:0 0 8px}h3{font-size:15px;margin:14px 0 6px}
+.muted{color:var(--muted);font-size:13px}.badge{display:inline-block;border:1px solid var(--brass);color:var(--brass);border-radius:999px;padding:2px 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+textarea{width:100%;min-height:170px;font:inherit;font-family:"JetBrains Mono",monospace;font-size:13px;padding:12px;border:1px solid var(--line);border-radius:8px;background:#fff;line-height:1.5}
+input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:#fff;width:90px}
+label{font-size:12px;color:var(--muted)}
+button{background:var(--ink);color:var(--bone);border:0;border-radius:6px;padding:10px 16px;font:inherit;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+pre{background:#17150f;color:#e8e2d2;border-radius:8px;padding:14px;overflow:auto;font-size:12px;line-height:1.5}
+.note{border-left:3px solid var(--brass);padding:8px 12px;background:#f6efdc;font-size:13px}
+.lay{display:inline-block;border:1px solid var(--brass);border-radius:6px;padding:2px 8px;margin:2px;font-size:12px;font-family:"JetBrains Mono",monospace}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+</style></head>
+<body>
+<header><div class="k">Neuruh Drive Build | Slice 01 | Signal Convergence Engine, Full Stack Build</div>
+<h1>Signal Convergence Engine</h1>
+<p>Browser implementation of the source pipeline: ingest, n-gram motif mining, metaphor detection, DIMEA cross-link, mirror vocabulary matrix. Simulation of the specified Python pipeline, not the pipeline itself.</p></header>
+<main>
+<div class="card"><span class="badge">Browser simulation</span>
+<p class="muted">Source: Google Doc "SIGNAL CONVERGENCE ENGINE - FULL STACK BUILD", Drive 2025-07-13. The Python pipeline in the source has never been shown running, and reading it found four defects. They are fixed here and listed below. The JS version tokenizes and lemmatizes lightly (lowercase plus a small stem rule) instead of the 500 MB spaCy model. No text leaves the browser.</p>
+<div class="note"><b>Defects fixed vs the source:</b> (1) ngram_miner.py loads engine.toml with yaml.safe_load, but TOML key = value lines are not valid YAML, so it fails. Fixed: config is parsed as TOML-style key/value here. (2) build_matrix.py iterates motifs.json top-level keys, but the miner writes {"motifs": {...}}, so it reads the wrong level. Fixed: the motif dict is read from the "motifs" key. (3) metaphor_sniffer.py returns bare regex fragments ("like a") instead of sentences. Fixed: the containing sentence plus the matched pattern is returned. (4) requirements.txt pins pandas==3.0.0, a release that does not exist on the public index. Not applicable in JS; flagged for the Python run. Also: context_window = 5 is configured but never used by any module (dead config), and Node.js is listed as a prerequisite although nothing uses it.</div></div>
+
+<div class="card"><h2>1. Corpus</h2>
+<p class="muted">Paste .txt / .md text, or load the built-in sample (the DIMEA seed vocabulary plus Tree-Logic lines, so the layers have something to catch).</p>
+<textarea id="corpus">Signal pierces the noise. Signal pierces the dark. The warrior defends the legacy with coherence and harmony. Hunger drives domination. The oracle sees the signal and the shadow moves. Defend the roots, correct the course, disrupt the old order. Coherence is the weapon. Harmony and sync hold the line. The tree grows when the signal pierces through. Legacy demands a warrior who defends with coherence.</textarea>
+<p><label>Minimum motif frequency <input id="minfreq" type="number" value="2" min="1" max="10"></label> &nbsp; <label>N-gram range <input id="nlow" type="number" value="2" min="1" max="3" style="width:60px"> to <input id="nhigh" type="number" value="4" min="2" max="4" style="width:60px"></label></p>
+<p><button onclick="run()">Run engine</button> <button class="ghost" onclick="loadSample()">Load sample</button> <button class="ghost" onclick="downloadCSV()">Download matrix CSV</button></p></div>
+
+<div class="card"><h2>2. DIMEA seed map (from the source config)</h2>
+<p><span class="lay">D: hunger, domination, legacy</span> <span class="lay">I: warrior, oracle, shadow</span> <span class="lay">M: defend, correct, disrupt</span> <span class="lay">E: signal, pierce, weapon</span> <span class="lay">A: coherence, harmony, sync</span></p>
+<p class="muted">The doc never expands the D, I, M, E, A letters. Layers are shown by letter plus seed keywords only.</p></div>
+
+<div class="grid2">
+<div class="card"><h2>3. Motifs</h2><div id="motifs"><p class="muted">Run the engine.</p></div></div>
+<div class="card"><h2>4. Metaphors</h2><div id="metaphors"><p class="muted">Run the engine.</p></div></div>
+</div>
+
+<div class="card"><h2>5. DIMEA layer map</h2><div id="layermap"><p class="muted">Run the engine.</p></div></div>
+
+<div class="card"><h2>6. Mirror vocabulary matrix</h2><div id="matrix"><p class="muted">Run the engine.</p></div></div>
+
+<div class="card"><h2>7. Pipeline outputs (JSON)</h2><pre id="jsonout">{}</pre></div>
+</main>
+<script>
+const DIMEA={D:['hunger','domination','legacy'],I:['warrior','oracle','shadow'],M:['defend','correct','disrupt'],E:['signal','pierce','weapon'],A:['coherence','harmony','sync']};
+const SAMPLE=document.getElementById('corpus').value;
+function loadSample(){document.getElementById('corpus').value=SAMPLE;}
+function stem(w){return w.replace(/(ing|ed|es|s)$/,'');}
+function tokenize(t){return t.toLowerCase().replace(/[^a-z\s]/g,' ').split(/\s+/).filter(w=>w.length>1).map(stem);}
+function run(){
+const text=document.getElementById('corpus').value;
+const minF=+document.getElementById('minfreq').value||2;
+const nLow=+document.getElementById('nlow').value||2, nHigh=+document.getElementById('nhigh').value||4;
+const toks=tokenize(text);
+const freq={};
+for(let n=nLow;n<=nHigh;n++)for(let i=0;i<=toks.length-n;i++){const g=toks.slice(i,i+n).join(' ');freq[g]=(freq[g]||0)+1;}
+const motifs={};Object.keys(freq).sort((a,b)=>freq[b]-freq[a]).forEach(k=>{if(freq[k]>=minF)motifs[k]=freq[k];});
+const sentences=text.split(/(?<=[.!?])\s+/);
+const pat=/\b(as\s+\w+\s+as|like\s+a|is\s+a|is\s+the)\b/i;
+const metaphors=[];sentences.forEach(s=>{const m=s.match(pat);if(m)metaphors.push({sentence:s.trim(),pattern:m[0]});});
+const layerMap={};Object.keys(DIMEA).forEach(L=>layerMap[L]=[]);
+Object.keys(motifs).forEach(m=>{Object.keys(DIMEA).forEach(L=>{if(DIMEA[L].some(kw=>new RegExp('\\b'+stem(kw)+'\\b').test(m)))layerMap[L].push(m);});});
+document.getElementById('motifs').innerHTML=Object.keys(motifs).length?'<table><tr><th>Motif</th><th>Freq</th><th>Layers</th></tr>'+Object.keys(motifs).map(m=>{const ls=Object.keys(layerMap).filter(L=>layerMap[L].includes(m));return '<tr><td>'+m+'</td><td>'+motifs[m]+'</td><td>'+(ls.join(', ')||'N/A')+'</td></tr>';}).join('')+'</table>':'<p class="muted">No motifs at or above the minimum frequency. Lower it or add text.</p>';
+document.getElementById('metaphors').innerHTML=metaphors.length?'<table><tr><th>Sentence</th><th>Pattern</th></tr>'+metaphors.map(x=>'<tr><td>'+x.sentence+'</td><td>'+x.pattern+'</td></tr>').join('')+'</table>':'<p class="muted">No metaphor patterns found.</p>';
+document.getElementById('layermap').innerHTML=Object.keys(layerMap).map(L=>'<p><span class="lay">'+L+'</span> '+(layerMap[L].length?layerMap[L].join(', '):'(none)')+'</p>').join('');
+const rows=Object.keys(motifs).map(m=>({motif:m,freq:motifs[m],layers:Object.keys(layerMap).filter(L=>layerMap[L].includes(m)).join('|')||'N/A'}));
+window._rows=rows;
+document.getElementById('matrix').innerHTML=rows.length?'<table><tr><th>Motif</th><th>Freq</th><th>Layers</th></tr>'+rows.map(r=>'<tr><td>'+r.motif+'</td><td>'+r.freq+'</td><td>'+r.layers+'</td></tr>').join('')+'</table>':'<p class="muted">Matrix is empty.</p>';
+document.getElementById('jsonout').textContent=JSON.stringify({motifs:motifs,metaphors:metaphors,layer_map:layerMap,matrix:rows},null,2);
+}
+function downloadCSV(){if(!window._rows||!window._rows.length){alert('Run the engine first.');return;}const csv='motif,freq,layers\n'+window._rows.map(r=>'"'+r.motif+'",'+r.freq+',"'+r.layers+'"').join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='mirror_vocab_matrix.csv';a.click();}
+run();
+</script></body></html>
