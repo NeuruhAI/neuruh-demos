@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card X: Ludex Card Scanner</title>
+<style>
+  :root{ --paper:#f7f3ea; --bone:#efe9db; --ink:#1c1a16; --muted:#6b6455; --brass:#9a7b2d; --line:#d8d0bd; --card:#fffdf7; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--paper); color:var(--ink); font-family:Georgia, "Times New Roman", serif; line-height:1.55; }
+  .wrap{ max-width:960px; margin:0 auto; padding:0 20px 60px; }
+  header{ border-bottom:3px double var(--ink); padding:28px 0 14px; }
+  .kicker{ font-family:"Courier New", monospace; font-size:12px; letter-spacing:2px; text-transform:uppercase; color:var(--brass); }
+  h1{ font-size:36px; line-height:1.1; margin:8px 0 4px; }
+  h2{ font-size:22px; border-bottom:1px solid var(--line); padding-bottom:6px; margin:36px 0 12px; }
+  h3{ font-size:17px; margin:20px 0 6px; }
+  p, li{ font-size:16px; }
+  .sub{ color:var(--muted); font-style:italic; }
+  .banner{ background:var(--bone); border:1px solid var(--brass); border-left:6px solid var(--brass); padding:14px 18px; margin:20px 0; }
+  .banner b{ color:var(--brass); }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:14px 0; }
+  .card{ background:var(--card); border:1px solid var(--line); padding:14px 16px; }
+  .card h3{ margin-top:0; }
+  .tab{ padding:8px 16px; border:1px solid var(--line); background:var(--bone); cursor:pointer; font-family:"Courier New", monospace; font-size:14px; margin:0 4px 0 0; }
+  .tab.active{ background:var(--card); color:var(--brass); font-weight:bold; }
+  .view{ display:none; }
+  .view.active{ display:block; }
+  button{ background:var(--ink); color:var(--paper); border:none; cursor:pointer; margin:6px 6px 0 0; font-family:"Courier New", monospace; font-size:14px; padding:10px 16px; }
+  button.ghost{ background:transparent; color:var(--ink); border:1px solid var(--ink); }
+  button.brass{ background:var(--brass); color:#fff; }
+  button:disabled{ opacity:0.5; cursor:default; }
+  .mono{ font-family:"Courier New", monospace; font-size:14px; }
+  .viewfinder{ position:relative; max-width:420px; margin:14px auto; aspect-ratio:3/4; background:#2b2721; border:3px solid var(--brass); overflow:hidden; }
+  .viewfinder .frame{ position:absolute; top:12%; left:12%; right:12%; bottom:12%; border:2px dashed #f4f1ea; }
+  .viewfinder .frame span{ position:absolute; top:-24px; left:0; color:#f4f1ea; font-family:"Courier New", monospace; font-size:12px; }
+  .viewfinder .scanline{ position:absolute; left:12%; right:12%; height:3px; background:var(--brass); top:20%; display:none; }
+  .viewfinder.scanning .scanline{ display:block; animation:scan 1.6s ease-in-out infinite alternate; }
+  @keyframes scan{ from{ top:14%; } to{ top:84%; } }
+  .viewfinder .idle{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#f4f1ea; font-family:"Courier New", monospace; font-size:14px; text-align:center; padding:20px; }
+  .viewfinder.live .idle{ display:none; }
+  .viewfinder .mockcard{ position:absolute; top:16%; left:18%; right:18%; bottom:16%; background:var(--card); border:1px solid var(--line); display:none; align-items:center; justify-content:center; text-align:center; padding:12px; }
+  .viewfinder.live .mockcard{ display:flex; }
+  .live-dot{ display:inline-block; width:10px; height:10px; border-radius:50%; background:#b3261e; margin-right:6px; }
+  .live-dot.on{ animation:blink 1s steps(2) infinite; }
+  @keyframes blink{ 50%{ opacity:0.2; } }
+  .result-row{ display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line); font-size:15px; }
+  .note{ color:var(--muted); font-size:14px; font-style:italic; }
+  .tag{ display:inline-block; font-family:"Courier New", monospace; font-size:12px; border:1px solid var(--brass); color:var(--brass); padding:2px 8px; margin:2px 4px 2px 0; }
+  footer{ border-top:1px solid var(--line); margin-top:40px; padding-top:14px; color:var(--muted); font-size:14px; }
+  @media (max-width:640px){ h1{ font-size:28px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="kicker">Neuruh &middot; Drive Build Slice 08 &middot; Ludex</div>
+  <h1>Card X: Ludex Card Scanner</h1>
+  <p class="sub">The CardIQ Scan app from the Manus build spec: camera card scanning, market analysis, live streaming, trending cards, and portfolio tracking. Implemented in the spec as React 18 with Vite and the MediaDevices camera API.</p>
+</header>
+
+<div class="banner">
+  <b>Status: SIMULATION.</b> This page is a static browser simulation of the spec, not the React app and not a live camera. No camera is accessed, no card is really recognized, and no price is live. Every price and viewer count shown here is a mock value for the simulation, except where the spec itself supplies a figure. The spec's own simulated viewer count is 1,247. Real pricing was to come from the eBay Marketplace Insights API and card recognition from Google Vision, both listed in the spec as not yet implemented. Source: Google Doc "Card X - Ludex - Manus Build", Drive folder /Neuruh Proposals - 2025/Ludex, modified 2025-06-16. Live build referenced in the spec: https://ueevyeda.manus.space/
+</div>
+
+<div>
+  <button class="tab active" data-view="scan" type="button">Scan</button>
+  <button class="tab" data-view="trending" type="button">Trending</button>
+  <button class="tab" data-view="portfolio" type="button">Portfolio</button>
+  <button class="tab" data-view="live" type="button">Go Live</button>
+</div>
+
+<section id="view-scan" class="view active">
+  <h2>Figure 1. Card Scanner Interface</h2>
+  <p>Tap Start Camera, point the frame at a trading card, then tap Capture and Analyze. In this simulation the camera is a mock viewfinder and the card is a mock card.</p>
+  <div class="viewfinder" id="viewfinder">
+    <div class="idle" id="idleText">Camera off.<br>Tap Start Camera to open the simulated viewfinder.</div>
+    <div class="frame"><span>Position card inside the frame</span></div>
+    <div class="scanline"></div>
+    <div class="mockcard"><div><b>Mock card</b><br><span class="mono">LeBron James Rookie Card<br>Simulated scan target</span></div></div>
+  </div>
+  <div style="text-align:center;">
+    <button class="brass" id="startCameraBtn" type="button">Start Camera</button>
+    <button id="captureBtn" type="button" disabled>Capture and Analyze</button>
+    <button class="ghost" id="stopCameraBtn" type="button" disabled>Stop Camera</button>
+  </div>
+  <div id="scanStatus" style="margin-top:14px;"></div>
+  <div id="scanResult" class="card" style="display:none; margin-top:14px;">
+    <h3>Scan Result <span class="tag">SIMULATED</span></h3>
+    <div class="result-row"><span>Card:</span><span class="mono" id="resCard">LeBron James RC</span></div>
+    <div class="result-row"><span>Set:</span><span class="mono">Mock Set, 2003</span></div>
+    <div class="result-row"><span>Condition:</span><span class="mono">Near Mint (mock grade)</span></div>
+    <div class="result-row"><span>Rarity:</span><span class="mono">Rookie Card</span></div>
+    <div class="result-row"><span>Market value:</span><span class="mono" id="resPrice">$1,250 (mock)</span></div>
+    <div class="result-row"><span>Price trend:</span><span class="mono">+4.2% this week (mock)</span></div>
+    <div class="result-row"><span>Recent sales:</span><span class="mono">3 mock sales, $1,180 to $1,310</span></div>
+    <p class="note">Mock result. Real pricing would come from the eBay Marketplace Insights API and recognition from Google Vision, per the spec. Neither is connected here.</p>
+    <button class="brass" id="addToPortfolioBtn" type="button">Add to Portfolio</button>
+    <span class="note" id="addNote"></span>
+  </div>
+</section>
+
+<section id="view-trending" class="view">
+  <h2>Figure 2. Trending Cards</h2>
+  <p>Market leaders from the spec. All values are mock values for the simulation.</p>
+  <div class="grid">
+    <div class="card"><h3>LeBron James RC <span class="tag">SIMULATED</span></h3><p class="mono">$1,250<br>+4.2% this week</p><p class="note">Top performing card in the mock feed.</p><button class="ghost trendBtn" type="button" data-card="LeBron James RC" data-price="$1,250">View details</button></div>
+    <div class="card"><h3>Tom Brady RC <span class="tag">SIMULATED</span></h3><p class="mono">$890<br>+2.8% this week</p><p class="note">Top performing card in the mock feed.</p><button class="ghost trendBtn" type="button" data-card="Tom Brady RC" data-price="$890">View details</button></div>
+    <div class="card"><h3>Kobe Bryant RC <span class="tag">SIMULATED</span></h3><p class="mono">$640<br>-1.1% this week</p><p class="note">Top performing card in the mock feed.</p><button class="ghost trendBtn" type="button" data-card="Kobe Bryant RC" data-price="$640">View details</button></div>
+  </div>
+  <div id="trendDetail" class="card" style="display:none;"></div>
+</section>
+
+<section id="view-portfolio" class="view">
+  <h2>Figure 3. Portfolio Management</h2>
+  <p>Your scanned cards live here. The portfolio starts empty, exactly as the spec describes for a first-time user.</p>
+  <div id="portfolioList"><p class="note">No cards scanned yet. Scan a card and tap Add to Portfolio to start building your collection.</p></div>
+  <div class="result-row"><span>Cards in portfolio:</span><span class="mono" id="portfolioCount">0</span></div>
+  <div class="result-row"><span>Total mock value:</span><span class="mono" id="portfolioValue">$0</span></div>
+  <button class="ghost" id="clearPortfolioBtn" type="button">Clear Portfolio</button>
+</section>
+
+<section id="view-live" class="view">
+  <h2>Figure 4. Live Streaming Integration</h2>
+  <p>One-click streaming to social media platforms, per the spec. Streaming here is simulated: no stream is actually sent anywhere.</p>
+  <div class="card">
+    <p><span class="live-dot" id="liveDot"></span><b id="liveLabel">Not streaming</b></p>
+    <p class="mono" id="viewerCount">Viewers: 0</p>
+    <p class="note">The spec's simulated audience figure is 1,247 viewers. That number is shown only while the simulated stream is running.</p>
+    <button class="brass" id="goLiveBtn" type="button">Go Live</button>
+    <button class="ghost" id="stopStreamBtn" type="button" disabled>Stop Stream</button>
+    <p class="note" id="streamNote"></p>
+  </div>
+</section>
+
+<footer>
+  <p>Source: Google Doc "Card X - Ludex - Manus Build", Drive id 12P-eZR81Ik7PGJzDwSW5Z8oM6y5RVIQ3Duw0Q-caoFg, modified 2025-06-16. Item doc: s08-card-x-ludex-manus-build.md. Companion demo in this repo: s08-cardiq-scan. This page simulates the spec only. API integrations listed in the spec (eBay, Google Vision, social streaming, Firebase auth) are not implemented here.</p>
+</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var tabs = document.querySelectorAll('.tab');
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            tabs.forEach(function (t) { t.classList.remove('active'); });
+            document.querySelectorAll('.view').forEach(function (v) { v.classList.remove('active'); });
+            tab.classList.add('active');
+            document.getElementById('view-' + tab.dataset.view).classList.add('active');
+        });
+    });
+
+    var viewfinder = document.getElementById('viewfinder');
+    var startBtn = document.getElementById('startCameraBtn');
+    var captureBtn = document.getElementById('captureBtn');
+    var stopBtn = document.getElementById('stopCameraBtn');
+    var scanStatus = document.getElementById('scanStatus');
+    var scanResult = document.getElementById('scanResult');
+    var addBtn = document.getElementById('addToPortfolioBtn');
+    var addNote = document.getElementById('addNote');
+    var portfolio = [];
+    var portfolioList = document.getElementById('portfolioList');
+    var portfolioCount = document.getElementById('portfolioCount');
+    var portfolioValue = document.getElementById('portfolioValue');
+
+    function renderPortfolio() {
+        portfolioCount.textContent = portfolio.length;
+        var total = 0;
+        portfolio.forEach(function (c) { total += c.value; });
+        portfolioValue.textContent = '$' + total.toLocaleString() + ' (mock)';
+        if (portfolio.length === 0) {
+            portfolioList.innerHTML = '<p class="note">No cards scanned yet. Scan a card and tap Add to Portfolio to start building your collection.</p>';
+            return;
+        }
+        var html = '';
+        portfolio.forEach(function (c, i) {
+            html += '<div class="result-row"><span>' + c.name + ' <span class="tag">SIMULATED</span></span><span class="mono">$' + c.value.toLocaleString() + ' (mock)</span></div>';
+        });
+        portfolioList.innerHTML = html;
+    }
+
+    startBtn.addEventListener('click', function () {
+        viewfinder.classList.add('live');
+        scanStatus.innerHTML = '<p class="mono">Simulated camera on. Position the mock card inside the frame, then tap Capture and Analyze.</p>';
+        captureBtn.disabled = false;
+        stopBtn.disabled = false;
+        startBtn.disabled = true;
+    });
+
+    stopBtn.addEventListener('click', function () {
+        viewfinder.classList.remove('live', 'scanning');
+        scanStatus.innerHTML = '<p class="note">Camera stopped.</p>';
+        captureBtn.disabled = true;
+        stopBtn.disabled = true;
+        startBtn.disabled = false;
+    });
+
+    captureBtn.addEventListener('click', function () {
+        viewfinder.classList.add('scanning');
+        scanResult.style.display = 'none';
+        addNote.textContent = '';
+        scanStatus.innerHTML = '<p class="mono">Analyzing mock card image... (simulated: no image is processed and no API is called)</p>';
+        setTimeout(function () {
+            viewfinder.classList.remove('scanning');
+            scanResult.style.display = 'block';
+            scanStatus.innerHTML = '<p class="mono">Analysis complete. Mock result below.</p>';
+        }, 1800);
+    });
+
+    addBtn.addEventListener('click', function () {
+        portfolio.push({ name: 'LeBron James RC', value: 1250 });
+        renderPortfolio();
+        addNote.textContent = ' Added to your portfolio.';
+    });
+
+    document.getElementById('clearPortfolioBtn').addEventListener('click', function () {
+        portfolio = [];
+        renderPortfolio();
+    });
+
+    document.querySelectorAll('.trendBtn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var d = document.getElementById('trendDetail');
+            d.style.display = 'block';
+            d.innerHTML = '<h3>' + btn.dataset.card + ' <span class="tag">SIMULATED</span></h3>' +
+                '<div class="result-row"><span>Mock market value:</span><span class="mono">' + btn.dataset.price + '</span></div>' +
+                '<div class="result-row"><span>Sales history:</span><span class="mono">Mock data only, no live sales feed connected</span></div>' +
+                '<p class="note">Live pricing would come from the eBay Marketplace Insights API, per the spec. Not connected in this simulation.</p>';
+        });
+    });
+
+    var goLiveBtn = document.getElementById('goLiveBtn');
+    var stopStreamBtn = document.getElementById('stopStreamBtn');
+    var liveDot = document.getElementById('liveDot');
+    var liveLabel = document.getElementById('liveLabel');
+    var viewerCount = document.getElementById('viewerCount');
+    var streamNote = document.getElementById('streamNote');
+    var liveTimer = null;
+    var viewers = 1247;
+
+    goLiveBtn.addEventListener('click', function () {
+        liveDot.classList.add('on');
+        liveLabel.textContent = 'LIVE (simulated)';
+        viewerCount.textContent = 'Viewers: 1,247 (simulated, per spec)';
+        streamNote.textContent = 'Simulated stream running. No video is sent to any platform.';
+        goLiveBtn.disabled = true;
+        stopStreamBtn.disabled = false;
+        liveTimer = setInterval(function () {
+            viewers += Math.floor(Math.random() * 11) - 3;
+            if (viewers < 1200) viewers = 1200;
+            viewerCount.textContent = 'Viewers: ' + viewers.toLocaleString() + ' (simulated, per spec)';
+        }, 2000);
+    });
+
+    stopStreamBtn.addEventListener('click', function () {
+        clearInterval(liveTimer);
+        liveDot.classList.remove('on');
+        liveLabel.textContent = 'Not streaming';
+        viewerCount.textContent = 'Viewers: 0';
+        streamNote.textContent = 'Stream stopped.';
+        goLiveBtn.disabled = false;
+        stopStreamBtn.disabled = true;
+    });
+
+    renderPortfolio();
+});
+</script>
+</body>
+</html>
