@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Radio Station Planner</title>
+<style>
+:root{--paper:#f7f3ea;--ink:#1c1a16;--brass:#9a7b2d;--line:#d8cfba;--muted:#6b6455;--card:#fffdf7}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,serif;line-height:1.5}
+header{border-bottom:3px double var(--brass);padding:22px 20px 14px;max-width:960px;margin:0 auto}
+header .kicker{font-family:monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass)}
+h1{font-size:28px;margin:6px 0 4px}h2{font-size:19px;border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:28px}
+main{max-width:960px;margin:0 auto;padding:0 20px 40px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);padding:14px 16px;cursor:pointer}
+.card.sel{border:2px solid var(--brass);background:#fbf6e6}
+label{display:block;font-size:13px;margin:10px 0 3px;font-family:monospace}
+input,select{width:100%;padding:8px;border:1px solid var(--line);background:#fff;font-size:15px}
+button{background:var(--ink);color:var(--paper);border:0;padding:12px 22px;font-size:16px;cursor:pointer;margin-top:16px}
+button:hover{background:var(--brass)}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
+.note{font-size:13px;color:var(--muted)}
+.badge{display:inline-block;font-family:monospace;font-size:11px;border:1px solid var(--brass);color:var(--brass);padding:2px 8px;letter-spacing:.12em;text-transform:uppercase}
+pre{background:#211f1a;color:#f0ead8;padding:14px;overflow:auto;font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+<div class="kicker">Neuruh Drive Build &middot; Slice 04 &middot; Browser simulation, not a live station</div>
+<h1>AI Radio Station Planner</h1>
+<p>From the Drive spec &ldquo;24/7 &lsquo;AI + AI&amp;Me + Me-only&rsquo; radio/talk station&rdquo; (2025-08-02). The spec ranks three architectures by speed-to-air and details the setup for each. This page turns that into a picker plus a one-hour clock builder: choose the architecture, lay out the segments, and export the clock. It streams nothing. It is a planner, not a station.</p>
+<p><span class="badge">Planner</span> <span class="badge">Spec architectures</span></p>
+</header>
+<main>
+<h2>1. Pick an architecture (spec ranked by speed-to-air)</h2>
+<div class="grid" id="arch">
+<div class="card sel" data-a="A"><b>Option A. Free, fastest launch</b><p>Local PC to YouTube Live. OBS Studio + PlayIt Live or Mixxx + Piper TTS or XTTS-v2. Cost $0. Live as long as the PC stays on. YouTube enforces copyright and live policy strictly.</p></div>
+<div class="card" data-a="B"><b>Option B. Free, real radio</b><p>Local PC to a free Icecast host (e.g. Caster.fm). BUTT or Mixxx encoder + PlayIt Live or Mixxx playout. Cost $0. Free plans may reset, inject ads, or limit direct stream links.</p></div>
+<div class="card" data-a="C"><b>Option C. Near-free, pro control</b><p>$5 to $10 VPS + AzuraCast (Docker). Icecast/Shoutcast, Liquidsoap AutoDJ, scheduling, web player, SFTP, REST APIs, webhooks. Spec&rsquo;s recommended minimum for a serious 24/7 channel.</p></div>
+</div>
+<div id="archDetail"></div>
+<h2>2. Build one hour of clock</h2>
+<p class="note">The station has three voices: AI-only, AI+Me, Me-only. Add segments until the hour totals 60 minutes. Segment names and lengths are yours; the defaults below follow a talk-station shape.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<label style="flex:1;min-width:140px">Segment name<input id="segName" value="AI news read"></label>
+<label style="min-width:110px">Voice<select id="segVoice"><option>AI-only</option><option>AI+Me</option><option>Me-only</option></select></label>
+<label style="min-width:110px">Minutes<input id="segMin" type="number" value="10" min="1" max="60"></label>
+</div>
+<button onclick="addSeg()">Add segment</button>
+<button onclick="clearClock()" style="background:#6b6455">Clear clock</button>
+<table style="margin-top:14px"><tr><th>#</th><th>Segment</th><th>Voice</th><th>Minutes</th><th></th></tr><tbody id="clock"></tbody></table>
+<p id="total" class="note">Clock total: 0 of 60 minutes.</p>
+<button onclick="exportClock()">Export clock as text</button>
+<pre id="export" style="display:none"></pre>
+<h2>About this demo</h2>
+<p class="note">Setup steps for the chosen architecture are the spec&rsquo;s own, summarized in the detail box. Nothing here creates a stream key, installs AzuraCast, or goes live. Going live is a founder step: it needs a YouTube or Icecast account, a machine that stays on (Options A and B), and a copyright-clean playlist. Keep streams free of copyrighted music; the spec warns YouTube will scan and can interrupt or terminate the stream.</p>
+</main>
+<script>
+const DETAILS={
+A:"<h3>Option A setup (spec)</h3><ol><li>Create a persistent YouTube stream key: YouTube Studio, Create, Go Live, Stream, Reusable Stream Key.</li><li>OBS scene with a static PNG or looping MP4 station slate. Route automation audio via VB-Audio Virtual Cable. Compressor 3:1, limiter -1.0 dB, aim near -16 LUFS.</li><li>PlayIt Live (free tier) for clocks, rotation, and live-assist; or Mixxx cross-platform.</li><li>Piper TTS for offline liners, IDs, and hourly news reads; XTTS-v2 if near-clone voices are needed. Mono 48kHz, 96 to 128 kbps AAC/MP3.</li><li>OBS service YouTube RTMP, paste the key, start streaming.</li></ol>",
+B:"<h3>Option B setup (spec)</h3><ol><li>Register a free stream on an Icecast host (e.g. Caster.fm). Note server, port, password, mountpoint, and bitrate limit.</li><li>Encoder: BUTT (Broadcast Using This Tool) or Mixxx, MP3 96 to 128 kbps for talk.</li><li>PlayIt Live or Mixxx for playout and scheduling; feed the encoder via system audio or a virtual mixer.</li><li>Share the host player page; free plans often restrict direct stream URLs.</li></ol>",
+C:"<h3>Option C setup (spec)</h3><ol><li>Rent a $5 to $10 VPS (Linode, DigitalOcean, Vultr) and install AzuraCast with Docker (one-command install from AzuraCast docs).</li><li>AzuraCast bundles Icecast/Shoutcast, Liquidsoap 2.3.x AutoDJ, scheduling, web player, SFTP, REST APIs, and webhooks.</li><li>Configure stations, playlists, schedules, and the web player. Add TuneIn AIR updates via webhook if wanted.</li></ol>"};
+let arch="A", segs=[];
+document.querySelectorAll("#arch .card").forEach(c=>c.onclick=()=>{document.querySelectorAll("#arch .card").forEach(x=>x.classList.remove("sel"));c.classList.add("sel");arch=c.dataset.a;document.getElementById("archDetail").innerHTML=DETAILS[arch]});
+document.getElementById("archDetail").innerHTML=DETAILS.A;
+function render(){const tb=document.getElementById("clock");tb.innerHTML=segs.map((s,i)=>`<tr><td>${i+1}</td><td>${s.name}</td><td>${s.voice}</td><td>${s.min}</td><td><button style="padding:4px 10px;margin:0" onclick="segs.splice(${i},1);render()">Remove</button></td></tr>`).join("");const t=segs.reduce((a,s)=>a+s.min,0);document.getElementById("total").textContent=`Clock total: ${t} of 60 minutes.`+(t===60?" Hour is full.":t>60?" Over by "+(t-60)+" minutes. Trim a segment.":" "+(60-t)+" minutes still open.");}
+function addSeg(){const n=document.getElementById("segName").value.trim()||"Segment";const m=+document.getElementById("segMin").value||5;segs.push({name:n,voice:document.getElementById("segVoice").value,min:m});render()}
+function clearClock(){segs=[];render()}
+function exportClock(){const t=segs.reduce((a,s)=>a+s.min,0);const lines=["24/7 AI RADIO STATION - ONE HOUR CLOCK","Architecture: Option "+arch,"Total: "+t+" of 60 minutes",""].concat(segs.map((s,i)=>`${String(i+1).padStart(2,"0")}. [${s.voice}] ${s.name} - ${s.min} min`));const pre=document.getElementById("export");pre.style.display="block";pre.textContent=lines.join("\n")}
+render();
+</script>
+</body>
+</html>
