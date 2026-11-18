@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rebuild and Integrate Architecture: Research Swarm Recovery</title>
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --ink-soft:#4a463d;
+  --brass:#9a7b2d; --brass-light:#c9a227; --line:#d8d2c4; --code-bg:#efece3;
+  --green:#2e6b3a; --amber:#8a6d1b; --red:#8a2f26;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:72px}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.25;margin:0 0 .5em}
+p{margin:0 0 .9em}
+a{color:var(--brass)}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+code{font-size:.88em}
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#f4f1ea;display:flex;align-items:center;gap:16px;padding:10px 20px;font-size:13px;flex-wrap:wrap}
+.topbar .mark{font-family:Archivo,sans-serif;font-weight:700;letter-spacing:.12em;color:var(--brass-light)}
+.topbar a{color:#f4f1ea;text-decoration:none;border-bottom:1px solid transparent}
+.topbar a:hover{border-bottom-color:var(--brass-light)}
+.topbar .spacer{flex:1}
+.wrap{max-width:1020px;margin:0 auto;padding:28px 20px 60px}
+.dochead{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--brass);padding:22px 24px;margin-bottom:20px}
+.dochead .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+.dochead h1{font-size:30px;margin-bottom:8px}
+.dochead .sub{color:var(--ink-soft);font-size:15px}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:16px}
+.meta-grid div{background:var(--paper);padding:10px 12px;font-size:13px}
+.meta-grid .k{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:2px}
+.banner{border:2px solid var(--brass);background:#fdf6dd;padding:16px 20px;margin-bottom:24px}
+.banner h2{font-size:16px;color:var(--ink);margin-bottom:6px}
+.banner p{font-size:14px;margin-bottom:.5em}
+.banner ul{margin:.2em 0 .4em 1.2em;font-size:14px}
+.banner li{margin-bottom:.25em}
+.contents{background:var(--paper);border:1px solid var(--line);padding:16px 20px;margin-bottom:28px}
+.contents h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px}
+.contents ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+.contents li{margin-bottom:4px;font-size:14px}
+.contents a{text-decoration:none;color:var(--ink)}
+.contents a:hover{color:var(--brass);text-decoration:underline}
+section{margin-bottom:36px}
+.fig{background:var(--paper);border:1px solid var(--line);padding:20px 22px}
+.fig .fignum{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:4px}
+.fig h2{font-size:22px}
+.fig h3{font-size:16px;margin-top:18px}
+.figcap{font-size:13px;color:var(--ink-soft);border-top:1px solid var(--line);margin-top:16px;padding-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--code-bg);font-family:Archivo,sans-serif;font-size:13px}
+tbody tr:nth-child(even){background:#f7f4ec}
+.pill{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:20px;border:1px solid var(--brass);color:var(--brass);margin-right:6px}
+.pill.solid{background:var(--brass);color:#fff}
+.pill.green{border-color:var(--green);color:var(--green)}
+.pill.amber{border-color:var(--amber);color:var(--amber)}
+.pill.red{border-color:var(--red);color:var(--red)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0;margin:14px 0}
+.flow .step{flex:1 1 140px;background:var(--code-bg);border:1px solid var(--line);padding:10px 12px;font-size:13px;text-align:center;font-weight:600}
+.flow .arrow{align-self:center;padding:0 6px;color:var(--brass);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0}
+.card{border:1px solid var(--line);background:var(--bone);padding:14px}
+.card h3{font-size:15px;margin-bottom:4px}
+.card p{font-size:13px;color:var(--ink-soft)}
+.card.active{border-color:var(--brass);border-width:2px;background:var(--paper)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+button{font-family:Inter,sans-serif;font-size:13px;padding:8px 14px;border:1px solid var(--brass);background:var(--paper);color:var(--ink);cursor:pointer;border-radius:4px}
+button:hover{background:var(--code-bg)}
+button.on{background:var(--brass);color:#fff;border-color:var(--brass)}
+.panel{border:1px solid var(--line);background:var(--paper);padding:14px 16px;margin-top:8px;font-size:14px}
+.panel h4{font-size:15px;margin-bottom:4px}
+.hidden{display:none}
+details{border:1px solid var(--line);background:var(--paper);margin-bottom:8px}
+details summary{cursor:pointer;padding:10px 14px;font-weight:600;font-size:14px;list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ ";color:var(--brass);font-weight:700}
+details[open] summary::before{content:"- ";color:var(--brass)}
+details .body{padding:0 14px 12px;font-size:14px;color:var(--ink-soft)}
+details .body p{margin-bottom:.5em}
+.secnum{color:var(--brass);font-family:"JetBrains Mono",monospace;font-size:12px;margin-right:8px}
+ol.tight{columns:2;column-gap:28px;font-size:13px;padding-left:22px}
+ol.tight li{margin-bottom:5px;break-inside:avoid}
+ol.tight.single{columns:1}
+input[type="text"]{font-family:Inter,sans-serif;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:4px;width:100%;max-width:420px;background:var(--paper)}
+.turnpanel{border:1px solid var(--line);background:var(--paper);padding:16px 18px;font-size:14px}
+.turnpanel .who{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:700;margin-bottom:6px}
+blockquote{border-left:3px solid var(--brass);margin:10px 0;padding:4px 0 4px 14px;color:var(--ink-soft);font-style:italic}
+.note{font-size:13px;color:var(--ink-soft)}
+.callout{background:var(--code-bg);border-left:4px solid var(--brass);padding:12px 16px;margin:14px 0;font-size:14px}
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:16px;font-size:13px;color:var(--ink-soft)}
+@media (max-width:760px){
+  .meta-grid{grid-template-columns:1fr 1fr}
+  .cards{grid-template-columns:1fr}
+  .contents ol{columns:1}
+  ol.tight{columns:1}
+  .dochead h1{font-size:24px}
+}
+@media print{
+  .topbar,.btnrow,input[type="text"]{display:none}
+  body{background:#fff}
+  .fig,.dochead,.banner,.contents{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <span class="mark">NEURUH</span>
+  <span>Rebuild and Integrate Architecture</span>
+  <span class="spacer"></span>
+  <a href="#contents">Contents</a>
+  <a href="#fig1">Donor</a>
+  <a href="#fig10">Cockpit PRs</a>
+  <a href="#fidelity">Fidelity</a>
+</div>
+<div class="wrap">
+
+<div class="dochead">
+  <div class="kicker">Document Control: Interactive Page, Link 12</div>
+  <h1>Rebuild and Integrate Architecture</h1>
+  <p class="sub">A 375-page donor architecture is harvested into the Neuruh organism, not rebuilt as a second swarm. Research Swarm becomes a named durable program; three draft PRs and three Cockpit candidates follow, all court pending.</p>
+  <div class="meta-grid">
+    <div><span class="k">Source conversation</span><a href="https://chatgpt.com/share/6afd90b6-07b4-83ea-b503-ea5b9086d10a">chatgpt.com/share/6afd90b6</a></div>
+    <div><span class="k">Page date</span>Tue, Sep 8 at 2:42 PM, and 4:23 PM before turn 4 (no year shown)</div>
+    <div><span class="k">Read</span>2026-11-18, live browser, fresh re-read (first read was partial, 3 turns only)</div>
+    <div><span class="k">Turns</span>7 user, 7 assistant (14 messages)</div>
+    <div><span class="k">Verbatim filing</span>drive-pull/rebuild-and-integrate-architecture.md<br>68,272 bytes, 1,395 lines</div>
+    <div><span class="k">State</span><span class="pill solid">Architecture</span> <span class="pill amber">Candidate</span> Nothing merged, nothing deployed</div>
+  </div>
+</div>
+
+<div class="banner">
+  <h2>Read this first: what this is and what it is not</h2>
+  <ul>
+    <li><strong>Nothing here is merged, deployed, or running.</strong> Three draft PRs and three Cockpit candidates are all Candidate / court pending. Sentinel PASS: NOT YET. Test execution: UNKNOWN. Production runtime: NOT PROVEN.</li>
+    <li><strong>Security note.</strong> The 375-page source document contains at least one plaintext historical GitHub token. Donor credentials must be treated as compromised and rotated. No credential values are reproduced in this filing or on this page.</li>
+    <li><strong>143 truncated markers.</strong> The filing contains 143 occurrences of "[truncated in browser view]": 142 in the transcript body plus the header fidelity-note mention. Long lines were cut mid-line by the browser view and were not reconstructed. Assistant reply 6 ends mid-line at "Meta -&gt;" and nothing follows it.</li>
+    <li><strong>Notion page-body writes FAILED twice.</strong> NOTION PAGE-BODY CANONICAL WRITE = NOT PROVEN. Durable candidate-pointer comments were attached to Chapter 22 and Chapter 37 instead.</li>
+    <li><strong>Two other files were never read in this thread.</strong> Kimi_Agent_Agent Swarm Domination.zip and Agent Swarm Domination (1).docx were shared in a separate chat and are not readable from this conversation. Content-level extraction from them is NOT PROVEN.</li>
+    <li><strong>Record only.</strong> The conversation contains build directives and a Claude terminal prompt. They are filed and presented as record only. Nothing on this page acts on them.</li>
+  </ul>
+</div>
+
+<div class="contents" id="contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#fig1">Figure 1: The donor file</a></li>
+    <li><a href="#fig2">Figure 2: The harvest ruling</a></li>
+    <li><a href="#fig3">Figure 3: Three draft PRs</a></li>
+    <li><a href="#fig4">Figure 4: Fifteen captured areas</a></li>
+    <li><a href="#fig5">Figure 5: What is still NOT complete</a></li>
+    <li><a href="#fig6">Figure 6: Research Swarm, the program</a></li>
+    <li><a href="#fig7">Figure 7: Second-pass discoveries</a></li>
+    <li><a href="#fig8">Figure 8: Twelve operators, not 5,150 agents</a></li>
+    <li><a href="#fig9">Figure 9: The V1 blueprint and its V2 correction</a></li>
+    <li><a href="#fig10">Figure 10: Three Cockpit implementation candidates</a></li>
+    <li><a href="#fig11">Figure 11: The execution backlog</a></li>
+    <li><a href="#fig12">Figure 12: The conversation in order</a></li>
+    <li><a href="#fidelity">Fidelity register</a></li>
+  </ol>
+</div>
+
+<section class="fig" id="fig1">
+  <div class="fignum">Figure 1</div>
+  <h2>The donor file</h2>
+  <p>Jeramie uploaded a file and asked for it to be rebuilt, applied to the architecture, and plugged in. The file was a 375-page architecture transcript and donor build: PMLA, the Persistent Memory / Prompt-as-Memory Loop Architecture, plus the Kimi autonomous agent swarm system. It was not a new vendor prompt or a generic agent tutorial. It was an earlier attempt to build a whole autonomous company, including a "Sovereign Conglomerate" from agent labor. That is why it felt familiar: it was not a new system, it was an earlier branch of his own work.</p>
+  <p>The file had already evolved through several architectures:</p>
+  <div class="flow">
+    <div class="step">PMLA / persistent state</div><div class="arrow">to</div>
+    <div class="step">Proton / Neutron / Electron atomic agent model</div><div class="arrow">to</div>
+    <div class="step">Agent Alpha / Beta / Gamma swarm decomposition</div><div class="arrow">to</div>
+    <div class="step">DIMEA decision framework</div><div class="arrow">to</div>
+    <div class="step">MCP / Notion / GitHub / Docker architecture</div><div class="arrow">to</div>
+    <div class="step">AutonomousDirector</div><div class="arrow">to</div>
+    <div class="step">Meta-cognition and recursive alignment</div><div class="arrow">to</div>
+    <div class="step">Security / prompt-injection defenses</div><div class="arrow">to</div>
+    <div class="step">Economic / monetization models</div>
+  </div>
+  <div class="figcap">Figure 1: What the uploaded file actually was, from assistant reply 1. The donor is both real and historically dangerous: real architecture, dangerous authority shortcuts.</div>
+</section>
+
+<section class="fig" id="fig2">
+  <div class="fignum">Figure 2</div>
+  <h2>The harvest ruling</h2>
+  <p>The key ruling: do not re-add the old swarm as a new autonomous organ. Map its real architecture into the current Neuruh organism using the modern rules. Click a mapping to read it.</p>
+  <div class="btnrow" id="mapBtns">
+    <button data-k="m1" class="on">Proton / Neutron / Electron</button>
+    <button data-k="m2">PMLA / Context MUX</button>
+    <button data-k="m3">Specialist swarm agents</button>
+    <button data-k="m4">AutonomousDirector</button>
+    <button data-k="m5">DIMEA</button>
+    <button data-k="m6">Meta-cognition</button>
+    <button data-k="m7">Security</button>
+    <button data-k="m8">Economics</button>
+  </div>
+  <div class="panel" id="mapPanel"></div>
+  <div class="figcap">Figure 2: The eight harvest mappings from assistant reply 1. In every case the donor concept is preserved and its authority shortcut is retired.</div>
+</section>
+
+<section class="fig" id="fig3">
+  <div class="fignum">Figure 3</div>
+  <h2>Three draft PRs</h2>
+  <p>Three draft PRs across three repos were created as candidates. None are merged, none are deployed, and all require Sentinel court. Click one to read its custody.</p>
+  <div class="btnrow" id="prBtns">
+    <button data-k="p6" class="on">neuruh-axon draft PR #6</button>
+    <button data-k="p1">atomic-node-registry draft PR #1</button>
+    <button data-k="p8">neuruh-vault draft PR #8</button>
+  </div>
+  <div class="panel" id="prPanel"></div>
+  <table>
+    <thead><tr><th>Repo</th><th>PR</th><th>Head</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>neuruh-axon</td><td>draft PR #6</td><td><code>9acc132139fb072631b50eea9fca4286daa8fcd1</code></td><td><span class="pill amber">Draft, not merged, not deployed</span></td></tr>
+      <tr><td>atomic-node-registry</td><td>draft PR #1</td><td><code>7bb1639005dea1408a3c06359ca50725eb296664</code></td><td><span class="pill amber">Draft, not merged, not deployed</span></td></tr>
+      <tr><td>neuruh-vault</td><td>draft PR #8</td><td><code>bb98019566fc8dfedb579884fc45b14b14a2295e</code></td><td><span class="pill amber">Draft, not merged, not deployed</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note">The Vault PR #8 head changed as the work progressed: first bb98019566fc8dfedb579884fc45b14b14a2295e (991-line recovery file), then 1c595e4d73859d69d4f7d484892c514e28cd8e83 when reframed as Research Swarm, then 8968b04d587f6cbddacd760dd145dd88a0ce6471 after the visual integration blueprint was added. The table shows the original heads as first reported; the later heads are recorded in Figures 6 and 9.</p>
+  <div class="figcap">Figure 3: The three custody lanes from assistant reply 1. The Context MUX path is AXON to MOTHER to BOB to Workers to Governance to OutcomeRecord to Refined Memory back to AXON.</div>
+</section>
+
+<section class="fig" id="fig4">
+  <div class="fignum">Figure 4</div>
+  <h2>Fifteen captured areas</h2>
+  <p>Reply 2 admitted the first pass under-captured the donor and corrected it with a 15-area capture list. Click an area to read what was captured and how it was dispositioned.</p>
+  <div class="btnrow" id="capBtns">
+    <button data-k="c1" class="on">1. PMLA / persistent state</button>
+    <button data-k="c2">2. Proton / Neutron / Electron</button>
+    <button data-k="c3">3. Specialist roles</button>
+    <button data-k="c4">4. PMLA Memory Nodes</button>
+    <button data-k="c5">5. DIMEA</button>
+    <button data-k="c6">6. MCP architecture</button>
+    <button data-k="c7">7. AutonomousDirector</button>
+    <button data-k="c8">8. Continuous scheduling</button>
+    <button data-k="c9">9. Meta-orchestration</button>
+    <button data-k="c10">10. Authority matrix</button>
+    <button data-k="c11">11. Meta-cognition</button>
+    <button data-k="c12">12. Security</button>
+    <button data-k="c13">13. Notion / data models</button>
+    <button data-k="c14">14. Skills</button>
+    <button data-k="c15">15. Monetization</button>
+  </div>
+  <div class="panel" id="capPanel"></div>
+  <div class="figcap">Figure 4: The 15 captured areas from assistant reply 2. The biggest initial miss was AutonomousDirector, called "the big thing I initially under-captured".</div>
+</section>
+
+<section class="fig" id="fig5">
+  <div class="fignum">Figure 5</div>
+  <h2>What is still NOT complete</h2>
+  <p>The reply is explicit that canonical recovery is substantially captured but full forensic extraction is NOT YET. Eight forensic tasks remain outstanding, and the two files from the other swarm chat are a separate gap.</p>
+  <table>
+    <thead><tr><th>#</th><th>Outstanding item</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Every code filename / class / function manifest: all Python, TypeScript, Docker, schemas, scripts, Cloudflare workers, configs, skills</td><td><span class="pill red">Not yet</span></td></tr>
+      <tr><td>2</td><td>Exact chronology: when each architecture appeared and how one concept evolved into another</td><td><span class="pill red">Not yet</span></td></tr>
+      <tr><td>3</td><td>Repo-by-repo uniqueness audit: does the donor concept already exist today, is the donor implementation stronger, does the current implementation supersede it, is it a true missing primitive</td><td><span class="pill red">Not yet</span></td></tr>
+      <tr><td>4</td><td>Exact schema harvest: compare old CRM / Mirror / DIMEA / FounderOS fields against current schemas</td><td><span class="pill red">Not yet</span></td></tr>
+      <tr><td>5</td><td>External-claim verification: SkillsMP claims, Kimi capabilities, marketplace claims, historical provider behavior</td><td><span class="pill red">Not yet</span></td></tr>
+      <tr><td>6</td><td>Full secret / security sweep: the document contains at least one plaintext historical GitHub token; donor credentials must be treated as compromised</td><td><span class="pill red">Not yet</span></td></tr>
+      <tr><td>7</td><td>Independent court: AXON #6 has not passed Sentinel; Atomic Registry #1 has not passed Sentinel; Vault #8 is still draft custody</td><td><span class="pill red">Not yet</span></td></tr>
+      <tr><td>8</td><td>Notion: nothing from this recovery landed in Notion; the workspace exhausted its free block allowance</td><td><span class="pill red">Blocked external</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><strong>The other two files.</strong> Kimi_Agent_Agent Swarm Domination.zip and Agent Swarm Domination (1).docx were shared in a separate recent chat and are not readable from this thread. Existence in recent chat: KNOWN. Content-level extraction in this thread: NOT PROVEN. Unique concepts captured: UNKNOWN. "That is the one place I would absolutely not tell you 'yes, everything is captured' yet."</div>
+  <div class="figcap">Figure 5: The outstanding forensic list from assistant reply 2. Current verdict: canonical architecture CAPTURED, important concepts CAPTURED, runtime transplants CANDIDATE, complete forensic artifact extraction NOT YET, Notion BLOCKED_EXTERNAL.</div>
+</section>
+
+<section class="fig" id="fig6">
+  <div class="fignum">Figure 6</div>
+  <h2>Research Swarm, the program</h2>
+  <p>Turn 3 asked for the work to be pushed to GitHub and labeled, with a downloadable document and a detailed handoff, plus where it all plays into the overall system. The answer created Research Swarm as a named, durable Neuruh program: but not another runtime organ. Its job is to continuously recover old builds, research, abandoned architecture, provider experiments, papers, donor repos, and external ideas; compare them against the current organism; preserve provenance; identify the genuinely missing residue; and turn only that residue into governed build missions.</p>
+  <table>
+    <thead><tr><th>Item</th><th>Value as stated in the conversation</th></tr></thead>
+    <tbody>
+      <tr><td>Repo / PR</td><td>NeuruhAI/neuruh-vault, draft PR #8, reframed as "Research Swarm: recover PMLA, autonomy, signal, security, and economic architecture"</td></tr>
+      <tr><td>Head after reframe</td><td><code>1c595e4d73859d69d4f7d484892c514e28cd8e83</code></td></tr>
+      <tr><td>Size</td><td>9 files changed, 2,262 lines added; Draft: YES; Merged: NO</td></tr>
+      <tr><td>Package path</td><td><code>01-CANON/research-swarm/</code> with README.md, 01_DONOR_RECOVERY_CANON.md, 02_SYSTEM_INTEGRATION_TOPOLOGY.md, 03_CAPABILITY_DISPOSITION_MAT... (shown truncated in the browser view)</td></tr>
+      <tr><td>Downloadable master</td><td>16-page master document, DOCX and PDF, rendered and visually QA'd; final numbered sections shown truncated in the browser view</td></tr>
+      <tr><td>Where it sits</td><td>Before execution, parallel to the normal context / reconciliation path: it answers "What do we know, what did we invent before, what did we forget, what has the outside world discovered?" while AXON answers context, Workers answer work, Governance answers authorization, Sentinel answers verification, HONEY answers custody, and OutcomeRecord answers what happened</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Figure 6: Research Swarm as a program, from assistant reply 3. It is Neuruh's research and architectural immune-memory function, not a runtime organ.</div>
+</section>
+
+<section class="fig" id="fig7">
+  <div class="fignum">Figure 7</div>
+  <h2>Second-pass discoveries</h2>
+  <p>The second pass changed the assessment materially. Ten discoveries are listed here; click one to read it.</p>
+  <div class="btnrow" id="discBtns">
+    <button data-k="d1" class="on">1. Economic Circuit Breaker</button>
+    <button data-k="d2">2. Graduated autonomy</button>
+    <button data-k="d3">3. Founder override learning</button>
+    <button data-k="d4">4. Distributed meta-cognition</button>
+    <button data-k="d5">5. Foundational Intelligence</button>
+    <button data-k="d6">6. Signal Intelligence Grid</button>
+    <button data-k="d7">7. Bridge to products</button>
+    <button data-k="d8">8. 10,000-worker material</button>
+    <button data-k="d9">9. Beast / Predator anti-pattern</button>
+    <button data-k="d10">10. Real estate into DeedSonar</button>
+  </div>
+  <div class="panel" id="discPanel"></div>
+  <div class="figcap">Figure 7: The second-pass discoveries from assistant reply 3. The Economic Circuit Breaker and graduated autonomy were classified RESIDUE / P1 BUILD CANDIDATE; the 10,000-worker material was classified ARCHIVE / LONG-HORIZON RESEARCH; the Beast / Predator material was classified ANTI-PATTERN / RED-TEAM LINEAGE.</div>
+</section>
+
+<section class="fig" id="fig8">
+  <div class="fignum">Figure 8</div>
+  <h2>Twelve operators, not 5,150 agents</h2>
+  <p>Turn 4 asked how many swarm agents there are and what the swarm can do. The answer: 12 persistent operators, not 5,150 permanent agents. The 5,150 and 10,000-agent claims are real, but they are historical capacity designs in the donor build, not what was recommended to operationalize as permanent agents. The donor itself contains several generations: 12 specialists, then a 40-agent layout, then a 5,150-agent capacity plan, then a 10,000-worker target. The number should be elastic.</p>
+  <div class="flow">
+    <div class="step">12 core specialists</div><div class="arrow">to</div>
+    <div class="step">40 in a deep investigation</div><div class="arrow">to</div>
+    <div class="step">250+ in a large nationwide hunt</div><div class="arrow">to</div>
+    <div class="step">Thousands of logical concurrent tasks at scale</div>
+  </div>
+  <p>Click an operator to read its role.</p>
+  <div class="btnrow" id="opBtns">
+    <button data-k="o1" class="on">Founder / JERAMIE</button>
+    <button data-k="o2">MOTHER</button>
+    <button data-k="o3">BOB</button>
+    <button data-k="o4">LARIC</button>
+    <button data-k="o5">JGI</button>
+    <button data-k="o6">HONEY</button>
+    <button data-k="o7">Adaptive / Learner</button>
+    <button data-k="o8">Sentinel</button>
+    <button data-k="o9">Governance</button>
+    <button data-k="o10">RICHIE</button>
+    <button data-k="o11">IAR</button>
+    <button data-k="o12">Neuruh Workspace</button>
+  </div>
+  <div class="panel" id="opPanel"></div>
+  <p class="note">Research Swarm adds three capabilities to the current system: donor recovery, pattern extraction, and signal convergence. It is not a replacement for the current Neuruh system.</p>
+  <div class="figcap">Figure 8: The 12 persistent operators from assistant reply 4. Capacity tiers are not a permanent headcount; there is no need to spin up 5,150 permanent agents.</div>
+</section>
+
+<section class="fig" id="fig9">
+  <div class="fignum">Figure 9</div>
+  <h2>The V1 blueprint and its V2 correction</h2>
+  <p>Turn 5 asked for a downloadable integration plan for Copilot / organism / Worlds, built on the already built and proven infrastructure, with Notion and GitHub updated so nothing is lost. Reply 5 delivered the Master Visual Integration Blueprint: 23 pages, DOCX and PDF, plus a lossless source archive with a SHA-256 manifest. Its core ruling: Neuruh is the organism, Presence is the Copilot face, Cockpit / Galaxy is the observable nervous system. Worlds are vertical environments; SREIC is the Real Estate World. The swarm is elastic: 12 roles plus shared organs plus 0 to N ephemeral specialists, and the UI must distinguish configured capacity from active workers from queued work from runtime processes.</p>
+  <p>Turn 6 pushed back: what was not included, it seemed to be missing a lot more integration with what already existed. Reply 6 agreed: the first document was materially under-integrated. It got the thesis right but flattened too much of what already existed. The corrected V2 is 41 pages. Click a row of the miss table to read what V1 got wrong and what V2 recognizes.</p>
+  <div class="btnrow" id="missBtns">
+    <button data-k="v1" class="on">Cockpit / Spatial Organism</button>
+    <button data-k="v2">Operating Model</button>
+    <button data-k="v3">World Emitter / World Factory</button>
+    <button data-k="v4">N-Cell</button>
+    <button data-k="v5">Effective-state machinery</button>
+    <button data-k="v6">AutonomousDirector</button>
+    <button data-k="v7">OutcomeRecord / 017 / 019</button>
+    <button data-k="v8">Autonomy Dial / Trust</button>
+    <button data-k="v9">Economic Guardian</button>
+    <button data-k="v10">Real Estate 30 recipes</button>
+    <button data-k="v11">QuerySpec / next-best-evidence</button>
+    <button data-k="v12">Dangerous behavior</button>
+  </div>
+  <div class="panel" id="missPanel"></div>
+  <p class="note">The full miss table in the filing has 50+ rows. This page shows 12 of the most load-bearing rows; the rest are listed in the fidelity register as present in the filing but not individually rendered here. SREIC legions in V2: Acquisition (signals, identity, evidence, recipes, opportunity closure), Capital (financing, liquidity, capital matching, scenario research), Development (zoning, entitlement, feasibility, physical constraints, project economics), Exit (buyer intelligence, demand, disposition, route optimization), Counter-Intel (safely reframed as market / competitor / risk observation), Tokenization (future finance / legal research, explicitly held), Meta (the reply ends mid-line at "Meta -&gt;" and nothing follows).</p>
+  <div class="figcap">Figure 9: V1 (23 pages) and the V2 correction (41 pages) from assistant replies 5 and 6. The corrected architecture is much bigger than "Copilot to Worlds to Swarm", and swarm is an elastic execution expression inside the organism, not the organism.</div>
+</section>
+
+<section class="fig" id="fig10">
+  <div class="fignum">Figure 10</div>
+  <h2>Three Cockpit implementation candidates</h2>
+  <p>Turn 7 called out that the building had stopped. Reply 7 resumed the actual build and pushed three concrete Cockpit implementation candidates, not just architecture documents. Click one to read what it builds and what is not done.</p>
+  <div class="btnrow" id="ckBtns">
+    <button data-k="k16" class="on">Cockpit PR #16: SWARM</button>
+    <button data-k="k17">Cockpit PR #17: WORLD FACTORY</button>
+    <button data-k="k18">Cockpit PR #18: OPPORTUNITY</button>
+  </div>
+  <div class="panel" id="ckPanel"></div>
+  <table>
+    <thead><tr><th>Candidate</th><th>Head</th><th>Court comment</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td>Cockpit PR #16: SWARM</td><td><code>53d945232925f67c0525043c33cbf5280be74c4b</code></td><td>5592356698</td><td><span class="pill amber">Candidate / court pending</span></td></tr>
+      <tr><td>Cockpit PR #17: WORLD FACTORY</td><td><code>79886fd9f9a67c1b31f5d7509131445a3bf328a3</code></td><td>5592435545</td><td><span class="pill amber">Candidate / court pending</span></td></tr>
+      <tr><td>Cockpit PR #18: OPPORTUNITY</td><td><code>1fc6da1b044c45abc3eeffbd7e8094c1509dfef4</code></td><td>5592525531</td><td><span class="pill amber">Candidate / court pending</span></td></tr>
+    </tbody>
+  </table>
+  <h3>What is NOT done yet</h3>
+  <p>GitHub showed no Actions workflow runs and no commit statuses for these candidates when checked. Therefore: source code exists: PROVEN. Tests have been authored: PROVEN. Test execution: UNKNOWN. Sentinel PASS: NOT YET. Merged: NO. Deployed: NO. Production runtime: NOT PROVEN. The build stopped before violating the builder to Sentinel to HONEY to promotion structure.</p>
+  <p class="note">Execution receipts 13, 14, and 15 were added to the Research Swarm V2 Vault branch, corresponding to PRs #16, #17, and #18. The README update commit was 1d8956af240daa4f4b58a3611ffba5058f63526d. The downloadable continuation handoff update was NOT finished; the 41-page V2 blueprint remains the last completed master download.</p>
+  <div class="figcap">Figure 10: The three Cockpit candidates from assistant reply 7. PR #16 is a read-only adapter over the Workers ExecutionLedger that fails closed on corruption; no ledger configured means UNKNOWN, not zero workers and absolutely not "5,150 active agents". PR #17 carries the invariant gate-passed is not tenant configured is not preview built is not deployed is not runtime live. PR #18 exposes that the Recipe Engine's runtime receipt says RUNTIME_CALL_PATH = CALLER_ABSENT and that DeedSonar's membership reader is deedsonar_result_set_members_v1, NOT candidate_recipe_membership.</div>
+</section>
+
+<section class="fig" id="fig11">
+  <div class="fignum">Figure 11</div>
+  <h2>The execution backlog</h2>
+  <p>The Research Swarm backlog has a deliberate order, from assistant reply 3.</p>
+  <div class="btnrow" id="blBtns">
+    <button data-k="b0" class="on">P0: Close the candidate lanes</button>
+    <button data-k="b1">P1: Build the missing seams</button>
+    <button data-k="b2">P2: Research intelligence</button>
+    <button data-k="b3">P3: Preserve, do not chase yet</button>
+  </div>
+  <div class="panel" id="blPanel"></div>
+  <h3>Current status table</h3>
+  <table>
+    <thead><tr><th>Area</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>375-page donor architectural recovery</td><td>PROVEN / CUSTODIED</td></tr>
+      <tr><td>Research Swarm GitHub package</td><td>CANDIDATE: PR #8</td></tr>
+      <tr><td>Context MUX implementation</td><td>CANDIDATE: PR #6</td></tr>
+      <tr><td>Atomic taxonomy implementation</td><td>CANDIDATE: PR #1</td></tr>
+      <tr><td>Second-pass system crosswalk</td><td>CAPTURED</td></tr>
+      <tr><td>Security / non-adoption rulings</td><td>CAPTURED</td></tr>
+      <tr><td>Execution backlog</td><td>CAPTURED</td></tr>
+      <tr><td>Downloadable master handoff</td><td>COMPLETE</td></tr>
+      <tr><td>Notion update</td><td>BLOCKED_EXTERNAL</td></tr>
+      <tr><td>Merge / runtime deployment</td><td>NO</td></tr>
+      <tr><td>Two other Swarm Domination files</td><td>UNRESOLVED / NOT YET READABLE HERE</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Figure 11: The P0 to P3 backlog and status table from assistant reply 3. P0 item 4 is to rotate any potentially live historical secret.</div>
+</section>
+
+<section class="fig" id="fig12">
+  <div class="fignum">Figure 12</div>
+  <h2>The conversation in order</h2>
+  <p>Seven user turns and seven assistant turns, in the order shown on the page. Work durations are from the page: reply 1 worked 17m 30s; reply 2 worked 4m 36s; reply 3 worked 11m 23s with "Analysis paused" shown; reply 4 worked 45s; reply 5 worked 25m 18s; reply 6 worked 19m 7s; reply 7 worked 25m 57s. The page carries a second date separator, Tue, Sep 8 at 4:23 PM, before turn 4.</p>
+  <div class="turnpanel"><div class="who">Turn 1: User</div><p>Uploaded a file. "look what i found. i want them rebuilt and applied to our architecture and plugged in." The file is named in reply 2 as "Neuruh Swarm Architecture Blueprint.docx", 375 pages.</p></div>
+  <div class="turnpanel"><div class="who">Turn 1: Assistant</div><p>Rebuilt the donor as real Neuruh architecture, not a second control plane. Created the three draft PRs. Key ruling: harvest the system, retire its dangerous authority shortcuts.</p></div>
+  <div class="turnpanel"><div class="who">Turn 2: User</div><p>"what is everything i shared you? did you capture all of the canotical and impoprtant stuff" (spelling as shown on the page).</p></div>
+  <div class="turnpanel"><div class="who">Turn 2: Assistant</div><p>Short answer: not at first. Corrected the first pass with the 15-area capture list, and stated plainly what is still not complete, including the two unread files from the other chat.</p></div>
+  <div class="turnpanel"><div class="who">Turn 3: User</div><p>"all of this needs pushed to git hub and labeled something maybe research Swarm?? CREATRE A DOWNLOADABLE DOCUMENT OF WHAT YOU CAPTURED AND FIRED OUT AS WELL AS A DETAILED HANDOFF. WHERE DOES ALL THIS PLAY INTO MY OVERALL SYSTEM. ANOTHER THOROUGH P[ASS" (the final line is shown exactly this way, including the "[" character).</p></div>
+  <div class="turnpanel"><div class="who">Turn 3: Assistant</div><p>Created Research Swarm as a named durable program, reframed Vault PR #8, delivered the 16-page master handoff, and recorded the second-pass discoveries and the P0 to P3 backlog.</p></div>
+  <div class="turnpanel"><div class="who">Turn 4: User</div><p>"How many swarm agents and what's the capability of this swarm?"</p></div>
+  <div class="turnpanel"><div class="who">Turn 4: Assistant</div><p>12 persistent operators, not 5,150 permanent agents. Capacity tiers, not headcount.</p></div>
+  <div class="turnpanel"><div class="who">Turn 5: User</div><p>"create download of what we a re going to do as far as integrating it into our larger neuruh system like copilot/organism/worlds/ etc. how do we build this as that massive visual integrated system with our already buiolt and proven infrastructure. thorough analysis. our notion and github stuffdf will need to be updated if it hasnt so we dont loose or forget any of this including the original file downloads."</p></div>
+  <div class="turnpanel"><div class="who">Turn 5: Assistant</div><p>Built the 23-page Master Visual Integration Blueprint, the source archive with SHA-256 manifest, and recorded that Notion page-body writes failed twice; candidate-pointer comments were attached to Chapters 22 and 37 instead.</p></div>
+  <div class="turnpanel"><div class="who">Turn 6: User</div><p>"WHAT DIDNT YOU INCLUDE. SEEMS LIKE ITS MISSING ALOT MORE STUFF AND ALOT MORE INTEGRATION WITH WHAT WE HAD"</p></div>
+  <div class="turnpanel"><div class="who">Turn 6: Assistant</div><p>Agreed the first document was materially under-integrated and delivered the corrected 41-page V2 with the 50+ row miss table. The reply ends mid-line at "Meta -&gt;" in the browser view; nothing follows it.</p></div>
+  <div class="turnpanel"><div class="who">Turn 7: User</div><p>"YOU STOPPED BUILDING EVERYTHING AND CREATING WHATEVER IT WAS YOU WERE DOING"</p></div>
+  <div class="turnpanel"><div class="who">Turn 7: Assistant</div><p>Resumed the build and pushed the three Cockpit implementation candidates PR #16, #17, and #18, with independent court attached and the unfinished parts stated plainly. The downloadable continuation handoff update was not finished.</p></div>
+  <div class="figcap">Figure 12: All 7 user turns and 7 assistant turns, in order. User text is quoted as shown on the page, including typos.</div>
+</section>
+
+<section class="fig" id="fidelity">
+  <div class="fignum">Fidelity register</div>
+  <h2>Fidelity register</h2>
+  <table>
+    <thead><tr><th>Item</th><th>What the page does</th></tr></thead>
+    <tbody>
+      <tr><td>Truncation</td><td>The filing has 143 occurrences of "[truncated in browser view]": 142 in the transcript body plus the header fidelity-note mention. This page does not reconstruct any truncated line. Inline source citations appear throughout the assistant replies, shown in the browser view truncated as "Neuruh Swarm Architecture Bluep...".</td></tr>
+      <tr><td>Reply 6 cut off</td><td>Assistant reply 6 ends mid-line at "Meta -&gt;" before the next user turn. Nothing follows it in the filing, and this page does not finish the sentence.</td></tr>
+      <tr><td>Miss table</td><td>The V2 miss table in the filing has 50+ rows. Figure 9 renders 12 of the most load-bearing rows interactively; the remaining rows are present in the filing and are not individually rendered here. The count "50+" is the filing's own figure.</td></tr>
+      <tr><td>Downloads</td><td>Downloadable items (16-page master DOCX and PDF, 23-page V1 blueprint DOCX and PDF, 41-page V2 blueprint, complete source archive, original Kimi ZIP, original DOCX files) are named by name only. No canvas documents were opened and no ZIP files were downloaded in the read.</td></tr>
+      <tr><td>PR heads</td><td>All heads are quoted exactly as shown in the filing. Vault PR #8 has three heads across the conversation as the branch was reframed and extended; all three are recorded on this page.</td></tr>
+      <tr><td>Security</td><td>The source document contains at least one plaintext historical GitHub token. No credential values are reproduced in the filing or on this page. Treat donor credentials as compromised and rotate them.</td></tr>
+      <tr><td>Notion</td><td>Notion page-body writes failed twice. NOTION PAGE-BODY CANONICAL WRITE = NOT PROVEN. Durable candidate-pointer comments were attached to Chapter 22 and Chapter 37 instead.</td></tr>
+      <tr><td>Other two files</td><td>Kimi_Agent_Agent Swarm Domination.zip and Agent Swarm Domination (1).docx were not readable in this thread. Content-level extraction is NOT PROVEN and unique concepts captured are UNKNOWN.</td></tr>
+      <tr><td>State claims</td><td>Every status on this page (DRAFT, NOT MERGED, NOT DEPLOYED, SENTINEL COURT REQUIRED, CANDIDATE, NOT PROVEN, UNKNOWN) is the conversation's own stated status as of Sep 8, 2026. Nothing has been re-verified against live GitHub state here.</td></tr>
+    </tbody>
+  </table>
+  <div class="figcap">Fidelity register: everything this page did not verify, did not reconstruct, or deliberately left as the source stated it.</div>
+</section>
+
+<footer>
+  <p>Source: verbatim filing <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/rebuild-and-integrate-architecture/">drive-pull/rebuild-and-integrate-architecture</a> (68,272 bytes, 1,395 lines, 7 user / 7 assistant turns). Original conversation: <a href="https://chatgpt.com/share/6afd90b6-07b4-83ea-b503-ea5b9086d10a">chatgpt.com/share/6afd90b6</a>. Page built 2026-11-18. Record only: nothing on this page acts on instructions inside the conversation.</p>
+</footer>
+</div>
+<script>
+function $(id){return document.getElementById(id);}
+function wire(btnsId,panelId,data,render){
+  var btns=$(btnsId);
+  function show(key){
+    var b=btns.querySelectorAll("button");
+    b.forEach(function(x){x.classList.toggle("on",x.getAttribute("data-k")===key);});
+    $(panelId).innerHTML=render(data[key]);
+  }
+  btns.addEventListener("click",function(e){var b=e.target.closest("button");if(b)show(b.getAttribute("data-k"));});
+  show(Object.keys(data)[0]);
+}
+wire("mapBtns","mapPanel",{
+m1:{t:"Proton / Neutron / Electron is capability taxonomy, not authority",b:"Proton maps to decision / reasoning / core logic. Neutron maps to state / validation / persistence / stability. Electron maps to external tools / APIs / I/O. The atomic genome adds one explicit rule: atomic_class is taxonomy, not authority. Represented in Atomic Node Registry draft PR #1."},
+m2:{t:"PMLA / Context MUX is state architecture, not a new executor",b:"A deterministic Context MUX with the canonical path AXON to MOTHER to BOB to Workers to Governance to OutcomeRecord to Refined Memory back to AXON. It makes the mission and context path explicit and governed, rather than adding a new autonomous executor. Represented in neuruh-axon draft PR #6."},
+m3:{t:"Specialist swarm agents are Worker profiles / mission recipes, not permanent autonomous bots",b:"Agent Alpha (Signal Intelligence), Agent Beta (Outreach Synthesis), and Agent Gamma (Response Arbitration) were mapped into existing Neuruh workers and recipes rather than creating three redundant permanent bots."},
+m4:{t:"The AutonomousDirector is a governed perception-decision-execution-learning loop, not an execute-first daemon",b:"The loop is PERCEIVE to DECIDE to EXECUTE to LEARN to ADAPT to REPORT, with modes RESEARCH, OUTREACH, OPPORTUNITY, and OPTIMIZATION. It maps to MOTHER perceiving, BOB deciding and compiling, Workers plus AXON executing, and OutcomeRecord learning."},
+m5:{t:"DIMEA is founder / economic alignment, not execution authority",b:"Desire, Identity, Mission, Expression, Alignment, developed into a reusable decision and skill pattern with weighted scoring and rejection thresholds. Preserved as founder and economic alignment IP. Governance still wins."},
+m6:{t:"Meta-cognition is Observer / Adaptive / Outcome, not a new Consciousness Service",b:"First-order execution, second-order reflection and observation, third-order meta-reflection, with reflections, anomalies, predictions, alignment score, coherence index, recursive feedback, and divergence detection. It aligns with the later Observer / Adaptive / Outcome architecture."},
+m7:{t:"Security is Semantic Fuse + Governance + audit, not another security overlord",b:"Prompt-injection defense, secret and canary leak detection, incident records, quarantine, human review, and constitutional guardians, captured as historical lineage into Semantic Fuse, Governance, the security and audit ledger, and connector input validation."},
+m8:{t:"Economics is commercial / IP strategy, not canonized revenue claims",b:"Research Arbitrage, Outcome-Based Outreach, Skill Publishing, and the Sovereign Conglomerate thesis were preserved as commercial and IP strategy history. Historical pricing, income guarantees, close-rate claims, and future-market predictions were not turned into canonized claims."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("prBtns","prPanel",{
+p6:{t:"neuruh-axon draft PR #6: PMLA / Context MUX",b:"Head 9acc132139fb072631b50eea9fca4286daa8fcd1. Status: DRAFT, NOT MERGED, NOT DEPLOYED, SENTINEL COURT REQUIRED. A deterministic Context MUX with the full canonical path: AXON to MOTHER to BOB to Workers to Governance to OutcomeRecord to Refined Memory to AXON."},
+p1:{t:"atomic-node-registry draft PR #1: Proton / Neutron / Electron",b:"Head 7bb1639005dea1408a3c06359ca50725eb296664. Status: DRAFT, NOT MERGED, SENTINEL COURT REQUIRED. Proton is decision / reasoning / core logic, Neutron is state / validation / persistence / stability, Electron is external tools / APIs / I/O. The atomic genome declares atomic_class as taxonomy, not authority."},
+p8:{t:"neuruh-vault draft PR #8: the canonical PMLA recovery file",b:"File PMLA_SWARM_DONOR_RECOVERY_2026-09-08.md, head bb98019566fc8dfedb579884fc45b14b14a2295e. 991 lines of what survives, what gets absorbed, what gets rejected, what is commercial hypothesis, what is unverified, what must never regain authority, and where the new code candidates live. Everything else (swarm economics, real-estate strategy, full donor inventory) is preserved in this draft PR."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("capBtns","capPanel",{
+c1:{t:"1. PMLA / persistent-state architecture: CAPTURED",b:"MemoryVector, deterministic checksums, Context MUX, memory bus, state admission, context retrieval, semantic and constitutional checks, bounded context horizon, neural compression, telemetry, and Output to Refined Memory. Now represented in AXON draft PR #6."},
+c2:{t:"2. Proton / Neutron / Electron architecture: CAPTURED",b:"Proton is decision / reasoning / core logic, Neutron is state, validation, persistence, stability, Electron is external tools / APIs / I/O. Now represented in Atomic Node Registry draft PR #1 as capability taxonomy, explicitly not authority."},
+c3:{t:"3. Specialist swarm roles: CAPTURED",b:"Agent Alpha: Signal Intelligence (ingestion, qualification, vertical classification, pain-signal extraction, target scoring). Agent Beta: Outreach Synthesis (personalization, send windows, performance projection, quality checking). Agent Gamma: Response Arbitration (response classification, CRM synchronization, next-action selection, objection routing, referral handling, escalation boundaries). Mapped into existing workers and recipes."},
+c4:{t:"4. The PMLA Memory Node system: CAPTURED",b:"M01 DIMEA is founder objectives and mission constraints. M05 Mirror is OutcomeRecord, learning, calibration, founder reflection. M07 Multi-Memory Chain is Workers mission DAG plus receipts. M09 FounderOS is Cockpit plus VIBIN plus projection. M11 Trigger Pattern Router is BOB plus Workers plus Switchboard. M14 MetaLoop is LARIC plus JGI plus Factory and learning proposal layer. M23 Outreach Swarm is a commercial mission recipe. M24 Skills bridge is the reusable skill, plugin, and TINKA layer. Chains such as M23 to M05 to M09 (Outreach to Reflection to Dashboard) are preserved."},
+c5:{t:"5. DIMEA as an actual decision framework: CAPTURED",b:"Desire, Identity, Mission, Expression, Alignment, developed across the document into a reusable decision and skill pattern with weighted scoring and rejection thresholds. Preserved as founder and economic alignment IP, deliberately not converted into execution authority."},
+c6:{t:"6. MCP architecture: CAPTURED",b:"Notion MCP, GitHub MCP, Kimi MCP and session bridge, prospect CRUD, DIMEA queries, FounderOS telemetry, Mirror Agent updates, version storage, memory-node registration, code reading and writing, Docker composition, and Redis state and cache. Classified rather than blindly ported: Notion MCP becomes a projection and docs connector, GitHub MCP becomes current Git Custody and HONEY authority."},
+c7:{t:"7. AutonomousDirector: THIS WAS THE BIG THING INITIALLY UNDER-CAPTURED",b:"The donor identifies the missing architecture as the Autonomous Execution Loop, moving from human uploads, human prompts, AI output, human chooses next step, to monitor, self-prompt, execute, report, adjust, repeat. AutonomousDirector has PersistentMemory, ToolRegistry, GoalManager, and ReflectionEngine, with modes RESEARCH, OUTREACH, OPPORTUNITY, OPTIMIZATION, and the loop PERCEIVE to DECIDE to EXECUTE to LEARN to ADAPT to REPORT. It maps almost perfectly to MOTHER, BOB, Workers plus AXON, and OutcomeRecord."},
+c8:{t:"8. Continuous autonomous scheduling: CAPTURED",b:"Continuous response monitoring, document scans, periodic optimization, morning strategy, midday adjustment, evening reporting, weekly Mirror review, and weekly goal reset. The scheduling architecture was preserved, not the historical cron values."},
+c9:{t:"9. Meta-orchestration layer: CAPTURED",b:"Cross-domain signal aggregation, REI and other signal-stack integration, entity resolution, validated pattern-library feedback, capacity gating, swarm utilization, and shared intelligence across domains. Plus a PARL and debugging model with retry policies and debugger-agent authority. Maps into JGI plus Workers plus Switchboard plus Sentinel repair and recourt plus Adaptive Intelligence plus resource and budget controls."},
+c10:{t:"10. Authority matrix: CAPTURED",b:"An explicit response-handling authority matrix: AUTO for interested and referral, DRAFT and REVIEW for price and timing complexity, HUMAN for high-risk, unusual, or major cases. Plus an escalation matrix, retry boundaries, and debugger permissions. Maps directly into modern Governance and role constitution doctrine."},
+c11:{t:"11. Meta-cognition / recursive alignment: CAPTURED",b:"A Meta-Cognitive Alignment Layer: first-order execution, second-order reflection and observation, third-order meta-reflection. It defines reflections, anomalies, predictions, alignment score, coherence index, existential risks, recursive feedback, and divergence detection, and persists meta-reflection and alignment vectors. Plus cross-system coherence checks (economic to constitutional, security to pricing, performance to economic) and meta-confidence, model-drift diagnosis, insufficient-data diagnosis, recursive correction, and human escalation."},
+c12:{t:"12. Security / prompt-injection / quarantine concepts: CAPTURED",b:"Prompt-injection defense, secret and canary leak detection, incident records, quarantine, human review, and constitutional guardians. Captured as historical lineage into Semantic Fuse plus Governance plus the security and audit ledger plus connector input validation, not as another security authority."},
+c13:{t:"13. Notion / data models: CAPTURED",b:"Proposed schemas for Outreach CRM (stages, qualification, pain points, cycle ID, DIMEA alignment, estimated value, priority), Mirror Agent Reflection Log (reflection, cognitive state, burnout signals, conversion, strategic adjustments), DIMEA Constitution (vector, statement, threshold, active, last validated, conflicts), and FounderOS (weekly metrics, pipeline, DIMEA, active swarms, alerts). Preserved as information-model candidates, with an explicit rule to harvest fields into existing current schemas rather than create duplicate schemas."},
+c14:{t:"14. Skill / reusable-capability architecture: CAPTURED",b:"Neuruh proprietary cognitive logic equals Protons; commodity and tool capabilities equal Electrons. Examples include PMLA outreach, DIMEA validator, Mirror Agent, MetaLoop, vertical-specific skills, and CRM, email, calendar, and research Electrons. An earlier version of the current modular plugin, skill, and capability doctrine. Historical claims about SkillsMP size, ranking, indexing, and downloads were not canonized."},
+c15:{t:"15. Monetization architecture: CAPTURED, but classified correctly",b:"Research Arbitrage (sell intelligence), Outcome-Based Outreach (sell booked outcomes instead of software seats), Skill Publishing (package the IP as reusable capability), and the Sovereign Conglomerate (deploy multiple revenue-producing agents as owned infrastructure). Plus deployment fees, retainers, revenue share, reusable cognitive IP, network effects, cross-domain swarms, agent marketplaces, and cognitive real estate. Preserved as commercial and IP strategy history; historical pricing, income guarantees, close-rate claims, and future-market predictions were not turned into canonized claims."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("discBtns","discPanel",{
+d1:{t:"1. Economic Circuit Breaker / Economic Guardian: RESIDUE / P1 BUILD CANDIDATE",b:"The donor proposed an actual economic control system: cost ledger, daily and weekly limits, ROI floor, attributable revenue, CPA, circuit breaker, halt signal, human alert, manual override and resume. Pieces already exist (Policy Gate max_spend, RICHIE economic prioritization), but a common cross-provider CostOutcomeLedger and economic circuit breaker could not be proven to exist. Classified as residue and a P1 build candidate, not as build another Economic Guardian. The mission record should carry mission_id, action_id, provider and tool, cost, budget, attributable outcome, attributable revenue and value, and rolling totals. Governance still decides."},
+d2:{t:"2. Graduated autonomy: P1, high-value true residue",b:"The donor reaches the idea that unproven behavior gets more oversight, and repeated verified success gets lower friction. Not AI is smart now therefore full autonomy. Proposed contract: Evidence Tier to Trust and Reliability Tier to Allowed Autonomy Tier to Fixed Governance Ceiling. Example tiers: T0 UNKNOWN is draft only, T1 TESTED is sandbox actions, T2 REPEATED PASS is bounded low-consequence mutation. Classified P1."},
+d3:{t:"3. Founder overrides can become system learning: P1 build candidate",b:"One of the most valuable information streams in the organism is the founder telling the system it got something wrong. The donor Mirror and tacit-knowledge work points toward formalizing that: system recommendation, founder override, why did you override, captured as evidence that can become a Learning Update Proposal, without the system silently rewriting itself."},
+d4:{t:"4. Meta-cognition was not nonsense: but the modern version is distributed",b:"First-order: do the work. Second-order: observe what happened. Third-order: evaluate whether the observation was sound. The historical transcript describes recursive alignment, reflection state, and coherence scores. No new Consciousness Service is needed. The current safe version is OutcomeRecord plus Calibration plus Learning Update Proposal plus MOTHER plus Observer. Research Swarm runs a convergence audit across those before anything new is created."},
+d5:{t:"5. Foundational Intelligence belongs in Research Swarm",b:"The donor tried to create a multi-domain reasoning layer across business, sales, marketing, entrepreneurship, mathematics and statistics, game theory, psychology, philosophy, ethics, religion and mythic narrative, and physics and system analogies. It should become a Research Swarm Foundational Intelligence Library of primary sources, research, models, theories, and domain playbooks under Vault custody. With the discipline: knowledge library is not truth, model is not fact, physics analogy is not physical law, psychology is not manipulation."},
+d6:{t:"6. The Signal Intelligence Grid: P1 JGI / RICHIE mission",b:"Many signal sources to normalization to entity resolution to cross-domain fusion. That plugs straight into DeedSonar, LandOS, Recipe Engine, Contact Intelligence, Evidence Ledger, Liquidity Engine, and Opportunity Intelligence. Made a P1 JGI and RICHIE convergence mission: find and prove one common signal envelope plus entity identity plus provenance seam. Not build another scraper."},
+d7:{t:"7. Research Swarm is also the bridge to products",b:"Research Swarm to signal, pattern, and insight to verified opportunity to recipe, and onward. That supports the Opportunity Intelligence Dossier, property intelligence, DeedSonar, source-backed investigations, research-as-a-service, internal opportunity hunting, new lead and signal recipes, packaged agent and skill systems, white-label systems, and commercial research products. Research Swarm becomes part of both the R and D loop and the economic discovery loop."},
+d8:{t:"8. The 10,000-worker material: ARCHIVE / LONG-HORIZON RESEARCH",b:"Hierarchical micro-agents, worker registry, capability matching, internal versus external labor, agent reputation, outsourced sub-tasks, economic margin models, 10,000-worker-scale speculation, and an agent labor marketplace. Some of that has modern descendants already (Workers, Capability Registry, Operator fleet, Provider routing, Mission capsules, Receipts). The 10,000-worker scale, marketplace economics, and payment rails are archive and long-horizon research, not a build target while provider continuity and current mission closure are still open."},
+d9:{t:"9. Beast Mode / Predator / Swarm Ascendant: ANTI-PATTERN / RED-TEAM LINEAGE",b:"The later donor turns get increasingly aggressive: human NEVER, automatic money, contact, and contracts, stealth, identity and domain rotation, social infiltration, autonomous mutation, uncontrolled replication, and inflated performance guarantees. Those pages were not thrown away. They are classified as anti-pattern and red-team lineage because they tell us exactly what the modern organism needs to structurally prevent. The safe residue kept is hierarchical decomposition, bounded parallelism, graduated autonomy, circuit breakers, emergency brakes, performance-based calibration, simulation before promotion, and independent verification. The authority shortcuts are rejected."},
+d10:{t:"10. Real estate plugs directly into DeedSonar, not another swarm",b:"The donor final sections contain signal categories that belong in the existing real-estate stack: probate, pre-foreclosure, tax delinquency, vacancy, code violations, forced-sale indicators, and related distress and event signals. Those become candidates for LandOS ingest to signal normalization to Recipe Engine to Evidence to entity and property resolution. Not another Real Estate Predator Bot. The contact and closing layer remains separately governed."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("opBtns","opPanel",{
+o1:{t:"Founder / JERAMIE",b:"The mission, authorization, and priority layer."},
+o2:{t:"MOTHER",b:"The mission compiler and orchestrator."},
+o3:{t:"BOB",b:"The worker compiler and planner."},
+o4:{t:"LARIC",b:"The reasoning, judgment, and system calibration engine."},
+o5:{t:"JGI",b:"The system architect and research reviewer."},
+o6:{t:"HONEY",b:"The artifact custodian and Git authority."},
+o7:{t:"Adaptive / Learner",b:"The learning and improvement loop."},
+o8:{t:"Sentinel",b:"The independent verification and testing authority."},
+o9:{t:"Governance",b:"The policy, approval, and escalation authority."},
+o10:{t:"RICHIE",b:"The economics and monetization evaluator."},
+o11:{t:"IAR",b:"The runtime and provider interface."},
+o12:{t:"Neuruh Workspace",b:"The user interface and orchestration surface."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("missBtns","missPanel",{
+v1:{t:"Cockpit / Spatial Organism: already built",b:"V1 talked about building a visual read model as though one was still needed. Cockpit already has neuruh.spatial-organism.v4, 2D and 3D Spatial Host, L0 to L3 zoom, World filtering, organization, focus, mission, and learning modes, and opportunity overlays. This should be the center of the visual integration."},
+v2:{t:"Operating Model: barely integrated in V1",b:"The existing neuruh.operating-model.v1 already has WORLD, MISSION, ORGAN, OPPORTUNITY, DECISION, APPROVAL, EVIDENCE, OUTCOME, and LEARNING_PROPOSAL. Do not create a new visual truth system."},
+v3:{t:"World Emitter / World Factory: under-specified in V1",b:"World Emitter already has World specs, seed-world, seed-node, refresh, batch seeding, tenantization, themes and white-label, local previews, publish queue, and live links. World Factory is really Galaxy and Vault World Spec to Factory and N-Lab to World Emitter to Client and Public projection to court and promotion. That is much closer to what was already designed."},
+v4:{t:"N-Cell: essentially missing in V1",b:"N-Cell is critical for topology fingerprints, state, authority certificates, provenance, comparison, historical and time-travel visualization, and effective topology."},
+v5:{t:"Effective-state machinery: almost completely absent in V1",b:"Evidence Ledger, Lifecycle Ledger, State Drift, Attestation, Reconciliation, and Revision Receipts and Ledgers were missing from V1."},
+v6:{t:"AutonomousDirector: compressed into MOTHER plus BOB in V1",b:"The donor had a very specific PERCEIVE to DECIDE to EXECUTE to LEARN to ADAPT to REPORT architecture, plus document watchers, hash dedupe, classification, opportunity extraction, and market monitoring. Document ingestion (file and folder watching, hash dedupe, document classification, entity extraction, opportunity extraction) belongs in Estate Office to Research Swarm, not in a new AutonomousDirector."},
+v7:{t:"OutcomeRecord / 017 / 019 learning chain: basically omitted in V1",b:"The correct loop is OutcomeRecord to attribution to Calibration 017 to Learning Update Proposal 019 to Governance to N-Lab to promotion. OutcomeRecord itself is richer than V1 showed: PROCESS, BUSINESS, and WORLD outcomes plus DIRECT, SUPPORTED, ASSOCIATED, and UNKNOWN attribution."},
+v8:{t:"Autonomy Dial / Trust calibration: missing in V1",b:"The donor had a genuine graduated-autonomy model. Modern Neuruh should make autonomy a matrix of actions, and trust calibration is one of the more valuable recovered ideas: autonomy can be earned from evidence and calibration, while Governance remains authority."},
+v9:{t:"Economic Guardian: reduced to cost circuit breaker in V1",b:"It should join actual provider and tool cost, mission budget, attributable outcomes, RICHIE economics, and governance decisions, not just a spend cap."},
+v10:{t:"Real Estate 30 recipes: missing in V1",b:"A major omission. The SREIC visual system should show multi-recipe eligibility, receipts, unknowns, and more. The independent eligibility producer is still an actual P0 and open capability gap; the UI should not imply recipe membership is already solved."},
+v11:{t:"QuerySpec / next-best-evidence: missing in V1",b:"QuerySpec matters enormously: COUNT equals LIST equals MAP equals EXPORT equals SAVED SEARCH and WATCH must all derive from one query contract. Next-best-evidence matters too: Opportunity UI should tell us not only what we know, but what evidence is missing and what acquisition would close the gap."},
+v12:{t:"Dangerous behavior: needed stronger classification in V1",b:"Stealth identity and domain rotation, deceptive infiltration, uncontrolled contracting, and execute-first behavior must be classified REJECTED and red-team lineage, not implementation targets."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("ckBtns","ckPanel",{
+k16:{t:"Cockpit PR #16: SWARM",b:"A read-only adapter over the existing Neuruh Workers ExecutionLedger, into Cockpit SWARM to jobs to steps to capabilities, in both existing 2D and 3D Spatial Organism. It verifies the ledger receipt fields, sequence, prev_sha, receipt SHA-256, and accepted receipt vocabulary. Corruption fails closed. No ledger configured means UNKNOWN, not zero workers and absolutely not 5,150 active agents. The same Workers projection connects to the already-existing neuruh.spatial-organism.v4, so there is one verified read model, not a separate 2D swarm system plus a different 3D swarm system."},
+k17:{t:"Cockpit PR #17: WORLD FACTORY",b:"Existing Vault World specs to World Emitter tenant config to preview receipts to Cockpit WORLD FACTORY. The Vault already contains gate-receipted World specs such as resale.json and vacancy-world.json, and World Emitter already contains tenant configuration, Notion roots, themes, white-labeling, seed-world, seed-node, batch seeding, refresh, publish queue, seed previews, tenant previews, and evidence provenance. The hard invariant in the source is: gate-passed is not tenant configured is not preview built is not deployed is not runtime live, so the World interface will not lie."},
+k18:{t:"Cockpit PR #18: OPPORTUNITY",b:"Recipe Engine eligibility producer to missing runtime caller to DeedSonar membership boundary to real evidence. The Recipe Engine source contains an independent eligibility producer with contracts for eligibility-policy, eligibility-context, and eligibility-receipt, and its source receipt reports proof for MATCH, NO_MATCH, UNKNOWN, multi-recipe matching, order independence, idempotent replay, and withdrawal. But its own runtime receipt says RUNTIME_CALL_PATH = CALLER_ABSENT, and the remaining seams are a live eligibility-context producer, a production eligibility-policy catalog, and receipt and storage binding. DeedSonar's present membership reader is deedsonar_result_set_members_v1, NOT candidate_recipe_membership. PR #18 exposes exactly that truth in Cockpit, so the interface can say: we built this, this piece is source-proven, this connector is missing, this consumer is not yet bound."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+wire("blBtns","blPanel",{
+b0:{t:"P0: Close the three candidate lanes",b:"1. Sentinel court AXON #6. 2. Sentinel court Atomic #1. 3. LARIC and JGI review Vault Research Swarm #8. 4. Rotate any potentially live historical secret."},
+b1:{t:"P1: Build the real missing intelligence seams",b:"1. Economic Circuit Breaker convergence. 2. Graduated Autonomy and Trust Calibration. 3. Founder Override to Learning Update adapter. 4. Cross-domain Signal Grid convergence. 5. Meta-cognition and Observer convergence. 6. Dynamic pricing and offer-outcome calibration."},
+b2:{t:"P2: Research intelligence",b:"Causal and counterfactual reasoning; RICHIE opportunity-cost, Pareto, and regret engine; Foundational Intelligence library; Cloudflare and Zero Trust optional architecture; multimodal capability profile when justified."},
+b3:{t:"P3: Preserve, do not chase yet",b:"10,000-worker topology; external agent labor market; agent franchise economics; network marketplace; opportunity funds and outcome derivative ideas."}
+},function(d){return "<h4>"+d.t+"</h4><p>"+d.b+"</p>";});
+</script>
+</body>
+</html>
