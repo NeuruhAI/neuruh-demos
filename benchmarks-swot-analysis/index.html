@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Benchmarks SWOT Analysis - Neuruh Master Doc</title>
+<style>
+  :root{--bone:#f6f1e6;--paper:#fffdf6;--ink:#1c1710;--muted:#6b6252;--brass:#9a7b2d;--brass-soft:#b8925a;--line:#d8cfb8;--warn:#8a5a00;--warn-bg:#fdf3d7;--bad:#7a2e1d;--bad-bg:#fbe9e2;--ok:#2e5d33;--ok-bg:#e6f0e4}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bone);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+  .page{max-width:920px;margin:0 auto;background:var(--paper);border-left:1px solid var(--line);border-right:1px solid var(--line);padding:0 0 48px}
+  header.doc-control{border-top:6px solid var(--brass);padding:28px 40px 20px;border-bottom:1px solid var(--line)}
+  .kicker{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin:0 0 10px}
+  h1{font-family:Archivo,system-ui,sans-serif;font-size:38px;line-height:1.08;margin:0 0 8px;letter-spacing:-.01em}
+  .subtitle{font-size:18px;color:var(--muted);margin:0 0 20px}
+  .meta{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:0}
+  .meta div{padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px}
+  .meta div:nth-child(odd){border-right:1px solid var(--line)}
+  .meta dt{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 2px}
+  .meta dd{margin:0;font-weight:600}
+  .meta dd span{font-weight:400;color:var(--muted)}
+  main{padding:28px 40px 0}
+  nav.contents{border:1px solid var(--line);background:var(--bone);padding:16px 20px;margin:0 0 28px}
+  nav.contents h2{margin:0 0 8px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-family:"JetBrains Mono",ui-monospace,monospace;color:var(--brass)}
+  nav.contents ol{margin:0;padding-left:22px}
+  nav.contents li{margin:3px 0;font-size:15px}
+  nav.contents a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--brass-soft)}
+  h2{font-family:Archivo,system-ui,sans-serif;font-size:24px;line-height:1.2;margin:36px 0 10px;padding-top:20px;border-top:2px solid var(--ink)}
+  h2 .num{color:var(--brass);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:18px;margin-right:8px}
+  h3{font-family:Archivo,system-ui,sans-serif;font-size:18px;margin:24px 0 8px}
+  p{margin:0 0 14px}
+  ul,ol{margin:0 0 14px;padding-left:24px}
+  li{margin:5px 0}
+  table{width:100%;border-collapse:collapse;margin:14px 0 20px;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--bone);font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  td code, p code, li code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:var(--bone);padding:1px 4px;border:1px solid var(--line)}
+  a{color:#6d5518}
+  .callout{border:1px solid var(--line);border-left:5px solid var(--brass);background:var(--bone);padding:14px 18px;margin:18px 0}
+  .callout.warn{border-left-color:var(--warn);background:var(--warn-bg)}
+  .callout.bad{border-left-color:var(--bad);background:var(--bad-bg)}
+  .callout.ok{border-left-color:var(--ok);background:var(--ok-bg)}
+  .callout p:last-child{margin-bottom:0}
+  .callout strong{font-family:Archivo,system-ui,sans-serif}
+  .tag{display:inline-block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--brass);color:var(--brass);padding:2px 7px;border-radius:2px}
+  .tag.unknown{border-color:var(--bad);color:var(--bad)}
+  .tag.blocked{border-color:var(--warn);color:var(--warn)}
+  .tag.live{border-color:var(--ok);color:var(--ok)}
+  figure{margin:24px 0;border:1px solid var(--line);background:#fff;padding:16px}
+  figure svg{width:100%;height:auto;display:block}
+  figcaption{font-size:13px;color:var(--muted);margin-top:10px;border-top:1px solid var(--line);padding-top:8px}
+  figcaption strong{color:var(--ink)}
+  .quad{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:14px 0 20px}
+  .quad div{padding:16px;border-bottom:1px solid var(--line)}
+  .quad div:nth-child(odd){border-right:1px solid var(--line)}
+  .quad div:nth-child(3),.quad div:nth-child(4){border-bottom:0}
+  .quad h4{margin:0 0 6px;font-family:Archivo,system-ui,sans-serif;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+  .quad p{margin:0;font-size:14px;color:var(--muted)}
+  footer{margin:36px 40px 0;border-top:2px solid var(--ink);padding-top:16px;font-size:13px;color:var(--muted)}
+  footer p{margin:0 0 8px}
+  @media print{
+    body{background:#fff}
+    .page{border:0;max-width:none}
+    header.doc-control,main,footer{padding-left:0;padding-right:0}
+    a{color:var(--ink);text-decoration:none}
+    h2{break-after:avoid}
+    figure,table{break-inside:avoid}
+  }
+  @media (max-width:640px){
+    header.doc-control,main{padding-left:20px;padding-right:20px}
+    h1{font-size:30px}
+    .meta{grid-template-columns:1fr}
+    .meta div:nth-child(odd){border-right:0}
+    .quad{grid-template-columns:1fr}
+    .quad div:nth-child(odd){border-right:0}
+    .quad div:nth-child(3){border-bottom:1px solid var(--line)}
+    footer{margin-left:20px;margin-right:20px}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+<header class="doc-control">
+<p class="kicker">Neuruh Master Doc - Retardio Library - Master Docs Batch 4</p>
+<h1>Benchmarks SWOT Analysis</h1>
+<p class="subtitle">A grounded source register for the Benchmarks/SWOT Analysis Google Doc, its separate Bookeit competitor benchmarking companion, and the live Parcel Reality Bench surface. This page records what was verified, what is unknown, and what is blocked. It does not reconstruct SWOT content that was never read.</p>
+<dl class="meta">
+<div><dt>Slug</dt><dd>benchmarks-swot-analysis</dd></div>
+<div><dt>Audit date</dt><dd>2026-11-18 <span>(America/Detroit)</span></dd></div>
+<div><dt>Document state</dt><dd>IMPLEMENTED <span>- this page is built; source content is UNKNOWN</span></dd></div>
+<div><dt>Anchor source state</dt><dd>UNKNOWN <span>- content never pulled</span></dd></div>
+<div><dt>Live surface</dt><dd>Parcel Reality Bench - LIVE <span>verified 2026-11-18</span></dd></div>
+<div><dt>Commercial state</dt><dd>MRR $0 <span>- no revenue claimed</span></dd></div>
+<div><dt>Source files checked</dt><dd>seed-index.md, inventory.md, doc-summaries.md, raw-inventory.json</dd></div>
+<div><dt>Live URL</dt><dd>https://neuruhai.github.io/neuruh-demos/benchmarks-swot-analysis/</dd></div>
+</dl>
+</header>
+<main>
+<nav class="contents" aria-label="Contents">
+<h2>Contents</h2>
+<ol>
+<li><a href="#grounding">Grounding verdict, read first</a></li>
+<li><a href="#register">Source register: the two Google Docs</a></li>
+<li><a href="#method">Grounding method and search record</a></li>
+<li><a href="#anchor">Anchor doc: Benchmarks/SWOT Analysis</a></li>
+<li><a href="#bookeit">Companion doc: Bookeit competitor benchmarking (separate)</a></li>
+<li><a href="#bench">Live benchmark surface: Parcel Reality Bench</a></li>
+<li><a href="#relation">How SWOT and benchmarking relate in this estate</a></li>
+<li><a href="#states">State ladder for every item</a></li>
+<li><a href="#blocked">Blocked and unknown, with unblock steps</a></li>
+<li><a href="#receipts">Verification checklist and receipts</a></li>
+</ol>
+</nav>
+
+<section id="grounding">
+<h2><span class="num">01</span>Grounding verdict, read first</h2>
+<div class="callout bad">
+<p><strong>Content UNKNOWN for both source Google Docs.</strong> The Benchmarks/SWOT Analysis doc and the Bookeit competitor benchmarking doc were never pulled locally, never summarized in <code>doc-summaries.md</code>, and have no entry in the Retardio Library seed index under their own titles. Only their Drive metadata was verified: title, document ID, type, modified time, size, and link. No strength, weakness, opportunity, threat, competitor, score, price, or finding from either doc is stated anywhere on this page, because none was read.</p>
+</div>
+<p>This page is therefore a master doc about the sources, not a copy of the sources. That distinction is the whole point. A SWOT that is reconstructed from a title would be invented content presented as a source, and this estate does not do that. When either doc is pulled, this page is updated from the pulled text and the UNKNOWN verdicts below are replaced one by one with cited lines.</p>
+<p>Three facts were verified live or from local records on the audit date, 2026-11-18, and only those three carry weight in this document:</p>
+<ul>
+<li><strong>The two Google Docs exist in Drive</strong> with the metadata in Section 02, verified against <code>~/workspace/drive-pull/raw-inventory.json</code>, crawled 2026-11-18T11:16:32Z.</li>
+<li><strong>Parcel Reality Bench is live</strong> at <code>https://bench.neuruh.com</code>, HTTP 200, 13,006 bytes, showing 1,112 signed receipts on the page, verified by curl on 2026-11-18.</li>
+<li><strong>DeedSonar is down</strong> (503 DEPLOYMENT_PAUSED), per standing estate record. It is stated here only so no reader mistakes a benchmark claim for a live product claim.</li>
+</ul>
+<p>Every other claim in this document is labeled with its state. SWOT claims, where the source makes them, are the source document's claims, presented as such, never as verified facts. Anything the SWOT asserts without evidence is marked UNVERIFIED once it is read. No dollar valuation is given anywhere on this page, because there is no recurring revenue to value against. MRR is $0.</p>
+</section>
+
+<section id="register">
+<h2><span class="num">02</span>Source register: the two Google Docs</h2>
+<p>Both docs sit in the Drive root folder (<code>/</code>), both are Google Docs (<code>application/vnd.google-apps.document</code>), both are marked NEW in the Drive inventory, and neither has a local pulled copy. The sizes below are the Drive sizes in bytes, with the inventory kilobyte figures beside them.</p>
+<table>
+<thead><tr><th>Field</th><th>Anchor doc</th><th>Companion doc</th></tr></thead>
+<tbody>
+<tr><th>Title (verbatim)</th><td>Benchmarks/SWOT Analysis (trailing space in Drive name)</td><td>Competitor Benchmarking Analysis for Bookeit: A Comprehensive 2026 Review</td></tr>
+<tr><th>Document ID</th><td><code>1XRFmSzJqcV7_q4BhxlG4UbNIa7ZklExs6pKQlmi1a2k</code></td><td><code>197hTcJtFHwvKIKE5qQnTDfqvy4NtcKVUaKx7FM3NRsw</code></td></tr>
+<tr><th>Link</th><td><a href="https://docs.google.com/document/d/1XRFmSzJqcV7_q4BhxlG4UbNIa7ZklExs6pKQlmi1a2k/edit?usp=drivesdk">Google Doc, anchor</a></td><td><a href="https://docs.google.com/document/d/197hTcJtFHwvKIKE5qQnTDfqvy4NtcKVUaKx7FM3NRsw/edit?usp=drivesdk">Google Doc, companion</a></td></tr>
+<tr><th>Modified</th><td>2025-08-09T16:17:49.978Z</td><td>2026-03-08T17:17:15.558Z</td></tr>
+<tr><th>Size</th><td>14,971 bytes (14.6KB in inventory)</td><td>6,221 bytes (6.1KB in inventory)</td></tr>
+<tr><th>Drive folder</th><td><code>/</code></td><td><code>/</code></td></tr>
+<tr><th>Inventory line</th><td><code>inventory.md</code> line 74</td><td><code>inventory.md</code> line 101</td></tr>
+<tr><th>Inventory status</th><td>NEW</td><td>NEW</td></tr>
+<tr><th>Summary in doc-summaries.md</th><td>None. No entry.</td><td>None. No entry.</td></tr>
+<tr><th>Seed index entry</th><td>None under this title.</td><td>None under this title.</td></tr>
+<tr><th>Local pulled content</th><td>None found.</td><td>None found.</td></tr>
+<tr><th>Content state</th><td><span class="tag unknown">Unknown</span></td><td><span class="tag unknown">Unknown</span></td></tr>
+</tbody>
+</table>
+<p>The two docs are related by topic (benchmarking) and are not the same document. They are kept separate in this register and in the sections below. The Bookeit doc is a competitor benchmarking review for a named product, Bookeit. The SWOT doc is the anchor for this master doc. Nothing in the metadata says the SWOT doc is about Bookeit, and nothing says it is not. That question is UNKNOWN until the SWOT text is read, and it is recorded as such in Section 09.</p>
+<figure>
+<figcaption><strong>Figure 1. Provenance chain, as verified.</strong> Drive inventory (crawled 2026-11-18T11:16:32Z) is the only verified source for the two docs. No pulled text exists between the Drive record and this page, so no content claim can pass through that chain yet. The Bench chain is separate and complete: real parcel records, graded answers, hash-chained receipts, public leaderboard.</figcaption>
+<svg viewBox="0 0 840 190" role="img" aria-label="Provenance chain diagram">
+<rect x="10" y="55" width="150" height="80" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/>
+<text x="85" y="85" text-anchor="middle" font-size="13" font-weight="700" fill="#1c1710">Google Drive</text>
+<text x="85" y="105" text-anchor="middle" font-size="11" fill="#6b6252">2 docs, metadata only</text>
+<text x="85" y="122" text-anchor="middle" font-size="11" fill="#6b6252">crawled 2026-11-18</text>
+<rect x="200" y="55" width="150" height="80" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/>
+<text x="275" y="85" text-anchor="middle" font-size="13" font-weight="700" fill="#1c1710">Drive inventory</text>
+<text x="275" y="105" text-anchor="middle" font-size="11" fill="#6b6252">inventory.md +</text>
+<text x="275" y="122" text-anchor="middle" font-size="11" fill="#6b6252">raw-inventory.json</text>
+<rect x="390" y="55" width="150" height="80" fill="#fbe9e2" stroke="#7a2e1d" stroke-width="2"/>
+<text x="465" y="85" text-anchor="middle" font-size="13" font-weight="700" fill="#7a2e1d">Pull: NOT DONE</text>
+<text x="465" y="105" text-anchor="middle" font-size="11" fill="#6b6252">no local copy,</text>
+<text x="465" y="122" text-anchor="middle" font-size="11" fill="#6b6252">no summary</text>
+<rect x="580" y="55" width="150" height="80" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/>
+<text x="655" y="85" text-anchor="middle" font-size="13" font-weight="700" fill="#1c1710">This master doc</text>
+<text x="655" y="105" text-anchor="middle" font-size="11" fill="#6b6252">register + verdicts,</text>
+<text x="655" y="122" text-anchor="middle" font-size="11" fill="#6b6252">no SWOT content</text>
+<line x1="160" y1="95" x2="200" y2="95" stroke="#9a7b2d" stroke-width="2"/>
+<line x1="350" y1="95" x2="390" y2="95" stroke="#7a2e1d" stroke-width="2"/>
+<line x1="540" y1="95" x2="580" y2="95" stroke="#9a7b2d" stroke-width="2"/>
+<text x="420" y="170" text-anchor="middle" font-size="12" fill="#7a2e1d">Gap: the pull step is missing. Content cannot be verified until it is done.</text>
+</svg>
+</figure>
+</section>
+
+<section id="method">
+<h2><span class="num">03</span>Grounding method and search record</h2>
+<p>Verify before building. The searches below were run in full before this page was written, on 2026-11-18. Each line records what was searched and what it returned, so a later reader can repeat the check instead of trusting it.</p>
+<table>
+<thead><tr><th>Source checked</th><th>Query</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>retardio-library/seed-index.md</code></td><td>"Benchmarks/SWOT" and "Competitor Benchmarking"</td><td>No row for either title. Nearest matches are benchmark-tooling rows: Parcel Reality Bench (lines 557-558) and benchmark mentions in other demos. The SWOT doc has no seed record.</td></tr>
+<tr><td><code>drive-pull/inventory.md</code></td><td>Same titles</td><td>Both found. SWOT at line 74, Bookeit at line 101. Both Google Doc, both NEW, with dates and sizes in Section 02.</td></tr>
+<tr><td><code>drive-pull/doc-summaries.md</code></td><td>Same titles</td><td>No summary for either doc. The only "benchmark" hits are incidental mentions inside other docs (an insurance underwriting agent, a discovery strategy doc). Neither is a summary of these two docs.</td></tr>
+<tr><td><code>drive-pull/raw-inventory.json</code></td><td>Both document IDs</td><td>Both found with full metadata: mime type, modified time, size in bytes, parent folder, webViewLink. SWOT at line 8719, Bookeit at line 5562.</td></tr>
+<tr><td><code>drive-pull/</code> file search</td><td>Files named *benchmark*, *swot*, *bookeit*</td><td>No pulled content file matches either title. No local copy exists under <code>drive-pull/</code>.</td></tr>
+<tr><td><code>drive-pull/lanes/00-unfiled-exhaustion.md</code></td><td>Both titles</td><td>Both listed as unfiled items. SWOT in section 8.3, Investor and commercial (21 items). Bookeit in section 8.5, Bookeit and discovery/SEO/GEO (13 items). Classification only, no content.</td></tr>
+<tr><td><code>bench.neuruh.com</code>, curl</td><td>Live check</td><td>HTTP 200, 13,006 bytes, title "Parcel Reality Bench - Leaderboard", 1,112 signed receipts on the page. See Section 06.</td></tr>
+<tr><td><code>estate-sale/parcel-reality-bench.md</code> and <code>prbench-license/STATUS.md</code></td><td>Local Bench records</td><td>Read in full. Bench description, commercial shapes, and the repo-public flag are taken from these files and dated in Section 06.</td></tr>
+</tbody>
+</table>
+<p>What was not done, and why: the Google Docs themselves were not opened for content, because the Drive pull that would carry their text is blocked. The task brief records 71 Drive files as blocked on the Google Sheets/Slides reconnect, and the Retardio Library audit (<code>00-audit.md</code>) records 71 BLOCKED records in the same count. Treating a title and a file size as content would be reconstruction, which the grounding rules forbid. The docs stay UNKNOWN on content until a real pull lands.</p>
+</section>
+
+<section id="anchor">
+<h2><span class="num">04</span>Anchor doc: Benchmarks/SWOT Analysis</h2>
+<p><span class="tag unknown">Content Unknown</span></p>
+<h3>What is known</h3>
+<ul>
+<li>Title: "Benchmarks/SWOT Analysis", with a trailing space in the Drive name. Document ID <code>1XRFmSzJqcV7_q4BhxlG4UbNIa7ZklExs6pKQlmi1a2k</code>.</li>
+<li>Modified 2025-08-09T16:17:49.978Z. At 14,971 bytes it is the larger of the two docs, about two and a half times the Bookeit doc by size. Size is a file fact, not a content fact: it says nothing about how many findings the doc holds.</li>
+<li>It is the oldest dated item in this register, from August 2025, about seven months before the Bookeit review of March 2026. Age is a provenance fact. Whether its analysis is still current is UNKNOWN until it is read and its claims are dated against later work.</li>
+<li>It is classified in the unfiled-exhaustion lane under "Investor and commercial", alongside investor structure docs, joint venture proposals, and a pre-revenue valuation analysis. That placement is a filing classification, not a statement of what the SWOT covers. The neighboring titles do not prove the SWOT is an investor document.</li>
+<li>It is the anchor for this master doc by assignment, not by verified importance. Anchor means this page is built around it. It does not mean its findings outrank the Bookeit review or the live Bench.</li>
+</ul>
+<h3>What is unknown</h3>
+<ul>
+<li>Subject: which product, company, or market the SWOT covers. UNKNOWN.</li>
+<li>Quadrant content: every strength, weakness, opportunity, and threat. UNKNOWN. None is listed on this page.</li>
+<li>Benchmarks named in the title: which benchmarks, against whom, measured how. UNKNOWN. The title joins "Benchmarks" and "SWOT" with a slash. Whether the doc benchmarks Neuruh against competitors, benchmarks internal systems, or does both, is UNKNOWN.</li>
+<li>Evidence: whether any claim in the doc carries data, dates, or sources. UNKNOWN. Until read, every claim it may contain is UNVERIFIED by default.</li>
+<li>Currency: whether its August 2025 analysis still holds in November 2026. UNKNOWN.</li>
+</ul>
+<div class="callout warn">
+<p><strong>Do not fill the quadrants below from general knowledge.</strong> Section 07 shows the SWOT frame with every cell marked not sourced. The cells stay empty until the pull lands. A plausible SWOT is worse than an empty one, because a plausible one gets quoted as if the source said it.</p>
+</div>
+</section>
+
+<section id="bookeit">
+<h2><span class="num">05</span>Companion doc: Bookeit competitor benchmarking (separate)</h2>
+<p><span class="tag unknown">Content Unknown</span> <span class="tag">Separate, not merged</span></p>
+<p>This doc is recorded here as a separate source, not merged with the SWOT. Merging would imply the two docs share a subject, a method, or findings, and none of that is verified.</p>
+<h3>What is known</h3>
+<ul>
+<li>Title: "Competitor Benchmarking Analysis for Bookeit: A Comprehensive 2026 Review". Document ID <code>197hTcJtFHwvKIKE5qQnTDfqvy4NtcKVUaKx7FM3NRsw</code>.</li>
+<li>Modified 2026-03-08T17:17:15.558Z. Size 6,221 bytes (6.1KB). It is the newer of the two docs by about seven months.</li>
+<li>Subject named in the title: Bookeit, a service booking platform. The title calls it a comprehensive 2026 review of competitor benchmarking. Which competitors, which dimensions, and which verdicts are UNKNOWN, because the text was never read.</li>
+<li>It is classified in the unfiled-exhaustion lane under "Bookeit and discovery/SEO/GEO" (13 items). The neighboring titles in that lane are inventory titles only, listed here so a reader can find related sources to pull next: "Advanced SEO, GEO, and Agentic Strategies to Dominate US Rankings and Make Bookeit the Best Service Booking Platform Nationwide", "BookeIt update build notes from X", "BookeIt.com - Key UCP Manifest Principles (2026 Context)", "Core Principles of Keyword Optimization in 2026", "Detailed GEO Optimization Tactics: A Comprehensive 2026 Guide", and others in the same lane. Listing a title is not summarizing its content. None of those neighbors was read for this page.</li>
+</ul>
+<h3>What is unknown</h3>
+<ul>
+<li>Competitors reviewed, criteria used, scores or rankings, and recommendations. UNKNOWN.</li>
+<li>Whether its findings agree with, contradict, or ignore the SWOT doc. UNKNOWN. The two docs are seven months apart and may cover different subjects entirely.</li>
+<li>Whether Bookeit is a Neuruh product, a client product, or a market studied for another reason. UNKNOWN from this doc alone. The inventory titles around it treat Bookeit as a booking platform with SEO and GEO work attached, but that is context from titles, not a verified fact about the business relationship.</li>
+</ul>
+<p>Unblock step: pull this doc with the SWOT doc in the same pass, then write a short comparison section that cites both texts line by line. Until then, no comparison is attempted.</p>
+</section>
+
+<section id="bench">
+<h2><span class="num">06</span>Live benchmark surface: Parcel Reality Bench</h2>
+<p><span class="tag live">Live</span></p>
+<p>Parcel Reality Bench (prbench) is the estate's live benchmark surface, and it is the only benchmarking item in this document whose state was verified by a live check on the audit date. It is distinct from both Google Docs: it is a running system with a public leaderboard, not a written analysis.</p>
+<h3>Verified live, 2026-11-18</h3>
+<ul>
+<li><strong>URL:</strong> <a href="https://bench.neuruh.com">https://bench.neuruh.com</a>. Curl returned HTTP 200, 13,006 bytes, page title "Parcel Reality Bench - Leaderboard".</li>
+<li><strong>Signed receipts:</strong> 1,112, shown on the live page. This matches the 1,112 figure in the November 16, 2026 segment record. Audit date for this number: 2026-11-18.</li>
+<li><strong>Page strip, as shown live:</strong> Items 60, Trap classes 7, Solvers ranked 3, Signed receipts 1,112.</li>
+<li><strong>Composite score, as shown live:</strong> 30% valuation accuracy, 20% interval calibration (Winkler, 80%), 25% invalid-comp exclusion F1, 15% trap-flag F1, 10% jurisdiction. This formula is quoted from the live page, not from memory.</li>
+<li><strong>Provenance, as shown live:</strong> every scored answer is a hash-chained receipt, editing any past result breaks the chain, and the holdout key is committed before any model is run and revealed afterward.</li>
+</ul>
+<h3>What the Bench is, from local records</h3>
+<p>From <code>~/workspace/estate-sale/parcel-reality-bench.md</code> (estate sale catalog entry, 2026-10-22): a public benchmark grading AI models against real, as-received county parcel records in the Indiana-Michigan region. Models are tested on ground truth that cannot be gamed by training on the test, because the test is the messy reality of county data: inconsistent fields, real distress signals, actual parcel geometry and records. It has an automated daily run. Its strategic role on record is a public proof surface: it demonstrates technical work to outsiders without requiring them to understand every private component, and it produces a running, dated evidence trail of how models scored.</p>
+<p>From <code>~/workspace/prbench-license/STATUS.md</code> (checked 2026-11-04, dated record, not re-verified today): bench.neuruh.com was live at HTTP 200 on 2026-11-04; the daily workflow bench-auto was healthy with 45 total runs, the last 5 all completed success, most recent 2026-11-03T20:07:50Z. Those run counts are carried as a dated record, not as a current claim. The repo is <code>NeuruhAI/prbench</code> (private, per the estate catalog entry).</p>
+<h3>Open flag: repo-public vs bench.yml-private</h3>
+<div class="callout warn">
+<p><strong>Open, Jeramie's call, not settled here.</strong> The STATUS.md record flags that the repo is PUBLIC but <code>.github/workflows/bench.yml</code> says "REPO MUST BE PRIVATE. The public sees only the deployed leaderboard site." Holdout keys are not in the repo (restored from a GitHub secret at run time), so the public exposure is the bench code, public splits, results, and site. Visibility is Jeramie's call. It interacts with the open-source scope decision, still open. This page records the flag and does not settle it.</p>
+</div>
+<h3>Commercial shape, from the catalog entry</h3>
+<p>Three shapes are defined in the catalog entry, with no prices asserted: sponsorship (naming placement, under editorial rules Jeramie controls; sponsorship buys visibility, never scores), data product (graded performance reports, per-model scorecards, evaluation sets or evaluation-as-a-service), and license (harness and methodology licensed to run against other records or regions). No dollar range is asserted for any shape, because the pricing inputs do not exist yet in verified form: audience measurement for sponsorship (30 days minimum of instrumented counts), a defined report product and one buyer conversation for the data product, and a licensee candidate for the license. The catalog entry's own line stands: the Bench's value is accumulation, a daily run produces a time series, and a time series of model performance on fixed ground truth cannot be back-created at any price. That is the catalog's argument for instrumenting it now and selling it later, stated plainly, not a revenue claim. No audience, traffic, or reach figures are verified anywhere in estate records. That absence is the central commercial fact about this asset.</p>
+<figure>
+<figcaption><strong>Figure 2. Parcel Reality Bench measurement loop, as defined by the local records.</strong> Real parcel records go in as received, models are graded against ground truth, each scored answer becomes a hash-chained receipt, and the public leaderboard publishes the result. The loop repeats on the automated daily run. Sponsorship, data product, and license are commercial shapes around the loop, not changes to it.</figcaption>
+<svg viewBox="0 0 840 150" role="img" aria-label="Bench measurement loop diagram">
+<rect x="10" y="35" width="150" height="70" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/>
+<text x="85" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="#1c1710">Real records</text>
+<text x="85" y="80" text-anchor="middle" font-size="11" fill="#6b6252">county parcels,</text>
+<text x="85" y="96" text-anchor="middle" font-size="11" fill="#6b6252">as received</text>
+<rect x="195" y="35" width="150" height="70" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/>
+<text x="270" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="#1c1710">Grade models</text>
+<text x="270" y="80" text-anchor="middle" font-size="11" fill="#6b6252">against ground truth,</text>
+<text x="270" y="96" text-anchor="middle" font-size="11" fill="#6b6252">composite score</text>
+<rect x="380" y="35" width="150" height="70" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/>
+<text x="455" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="#1c1710">Hash-chained</text>
+<text x="455" y="80" text-anchor="middle" font-size="11" fill="#6b6252">receipt per answer,</text>
+<text x="455" y="96" text-anchor="middle" font-size="11" fill="#6b6252">1,112 signed</text>
+<rect x="565" y="35" width="150" height="70" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/>
+<text x="640" y="62" text-anchor="middle" font-size="13" font-weight="700" fill="#1c1710">Public leaderboard</text>
+<text x="640" y="80" text-anchor="middle" font-size="11" fill="#6b6252">bench.neuruh.com,</text>
+<text x="640" y="96" text-anchor="middle" font-size="11" fill="#6b6252">daily run</text>
+<line x1="160" y1="70" x2="195" y2="70" stroke="#9a7b2d" stroke-width="2"/>
+<line x1="345" y1="70" x2="380" y2="70" stroke="#9a7b2d" stroke-width="2"/>
+<line x1="530" y1="70" x2="565" y2="70" stroke="#9a7b2d" stroke-width="2"/>
+<path d="M 640 105 L 640 130 L 85 130 L 85 105" fill="none" stroke="#9a7b2d" stroke-width="2"/>
+<text x="362" y="145" text-anchor="middle" font-size="12" fill="#6b6252">Daily run repeats the loop. Editing a past result breaks the chain.</text>
+</svg>
+</figure>
+</section>
+
+<section id="relation">
+<h2><span class="num">07</span>How SWOT and benchmarking relate in this estate</h2>
+<p>SWOT and benchmarking are different tools, and this section keeps them apart. A SWOT is a 2-by-2 frame: internal strengths and weaknesses against external opportunities and threats. Benchmarking is comparative measurement: the same task, the same ground truth, scored the same way, repeated over time. The Bench does the second. The SWOT doc, whatever it contains, does the first, or claims to. Neither substitutes for the other, and a SWOT quadrant is not evidence that a benchmark score is good or bad.</p>
+<p>The frame below is the standard SWOT frame with no content filled in. Each cell states its sourcing status instead of a finding. This is deliberate: the frame shows the reader exactly what a pulled SWOT would need to supply, and it prevents an empty-looking page from being mistaken for a page with nothing to say.</p>
+<div class="quad" role="table" aria-label="SWOT frame, content not sourced">
+<div><h4>Strengths (internal, positive)</h4><p>Not sourced. No strength from the SWOT doc is recorded here. Fill only from pulled text, with a citation to the doc.</p></div>
+<div><h4>Weaknesses (internal, negative)</h4><p>Not sourced. No weakness from the SWOT doc is recorded here. Fill only from pulled text, with a citation to the doc.</p></div>
+<div><h4>Opportunities (external, positive)</h4><p>Not sourced. No opportunity from the SWOT doc is recorded here. Fill only from pulled text, with a citation to the doc.</p></div>
+<div><h4>Threats (external, negative)</h4><p>Not sourced. No threat from the SWOT doc is recorded here. Fill only from pulled text, with a citation to the doc.</p></div>
+</div>
+<p>What can be said without the SWOT text, from verified records only:</p>
+<ul>
+<li>The estate has one live, receipted benchmark (Parcel Reality Bench, Section 06). That is a measurable strength of the benchmarking practice, not a claim from the SWOT doc. It is stated here as a Bench fact with a live check behind it.</li>
+<li>The estate has two unpulled benchmarking analyses (the SWOT doc and the Bookeit review). Unpulled analysis is a gap in the record, not a weakness of any product. It becomes a weakness only if a decision is made from the gap.</li>
+<li>Benchmarking without audience measurement cannot yet be priced (Section 06). That is a commercial limit recorded in the catalog entry, not a SWOT finding.</li>
+</ul>
+<figure>
+<figcaption><strong>Figure 3. State ladder used across this document.</strong> Each rung is a different claim. A page that is built is IMPLEMENTED. A page that answers at HTTP 200 is LIVE. A claim that has been checked against evidence is PROVEN only for the exact check that was run. Nothing in this document is COMMERCIAL, because MRR is $0 and no checkout exists for any item here.</figcaption>
+<svg viewBox="0 0 840 120" role="img" aria-label="State ladder diagram">
+<rect x="10" y="30" width="110" height="44" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/><text x="65" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1c1710">CONCEPT</text>
+<rect x="130" y="30" width="110" height="44" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/><text x="185" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1c1710">DESIGNED</text>
+<rect x="250" y="30" width="130" height="44" fill="#f6f1e6" stroke="#9a7b2d" stroke-width="2"/><text x="315" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1c1710">IMPLEMENTED</text>
+<rect x="390" y="30" width="100" height="44" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/><text x="440" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1c1710">TESTED</text>
+<rect x="500" y="30" width="110" height="44" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/><text x="555" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1c1710">DEPLOYED</text>
+<rect x="620" y="30" width="90" height="44" fill="#e6f0e4" stroke="#2e5d33" stroke-width="2"/><text x="665" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#2e5d33">LIVE</text>
+<rect x="720" y="30" width="110" height="44" fill="#fffdf6" stroke="#d8cfb8" stroke-width="2"/><text x="775" y="57" text-anchor="middle" font-size="12" font-weight="700" fill="#1c1710">PROVEN</text>
+<text x="420" y="100" text-anchor="middle" font-size="12" fill="#6b6252">DESIGNED is not DEPLOYED is not LIVE is not PROVEN. BLOCKED and UNKNOWN sit outside the ladder.</text>
+</svg>
+</figure>
+</section>
+
+<section id="states">
+<h2><span class="num">08</span>State ladder for every item</h2>
+<table>
+<thead><tr><th>Item</th><th>State</th><th>Basis, audit date 2026-11-18</th></tr></thead>
+<tbody>
+<tr><td>This master doc page</td><td>IMPLEMENTED</td><td>Built as a standalone static page and pushed to GitHub Pages. Live check is in Section 10. It becomes LIVE only when the live MD5 matches local.</td></tr>
+<tr><td>Benchmarks/SWOT Analysis, content</td><td><span class="tag unknown">Unknown</span></td><td>Drive metadata verified. Text never pulled, never summarized, no seed record. See Section 04.</td></tr>
+<tr><td>Bookeit competitor benchmarking, content</td><td><span class="tag unknown">Unknown</span></td><td>Drive metadata verified. Text never pulled, never summarized, no seed record. Separate from the SWOT. See Section 05.</td></tr>
+<tr><td>Parcel Reality Bench surface</td><td>LIVE</td><td>HTTP 200, 13,006 bytes, 1,112 signed receipts on the page, verified by curl 2026-11-18. Automated daily run per estate records.</td></tr>
+<tr><td>Parcel Reality Bench repo <code>NeuruhAI/prbench</code></td><td>IMPLEMENTED</td><td>Private repo per the estate catalog entry. Public surface is the deployed leaderboard. Repo-public vs bench.yml-private flag is OPEN, Jeramie's call.</td></tr>
+<tr><td>Bench commercial shapes (sponsorship, data product, license)</td><td>DESIGNED</td><td>Shapes defined in the catalog entry. No prices asserted, no buyer, no measured audience. Not COMMERCIAL.</td></tr>
+<tr><td>Drive pull for both Google Docs</td><td><span class="tag blocked">Blocked</span></td><td>71 Drive files blocked on the Google Sheets/Slides reconnect. See Section 09.</td></tr>
+<tr><td>DeedSonar</td><td>BLOCKED</td><td>Down, 503 DEPLOYMENT_PAUSED, per standing estate record. Stated so benchmark claims are not read as product claims.</td></tr>
+<tr><td>Any valuation of Neuruh or of these assets</td><td>Not stated</td><td>No dollar valuation before recurring revenue. MRR $0. No valuation figure appears on this page.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="blocked">
+<h2><span class="num">09</span>Blocked and unknown, with unblock steps</h2>
+<ol>
+<li><strong>SWOT doc content: UNKNOWN.</strong> Reason: never pulled locally, no summary, no seed record. Unblock: pull Google Doc <code>1XRFmSzJqcV7_q4BhxlG4UbNIa7ZklExs6pKQlmi1a2k</code> as text, file it verbatim, then replace Section 04 and the Section 07 quadrants with cited lines. Mark each SWOT claim UNVERIFIED until its evidence is checked.</li>
+<li><strong>Bookeit doc content: UNKNOWN.</strong> Reason: same as above, for doc <code>197hTcJtFHwvKIKE5qQnTDfqvy4NtcKVUaKx7FM3NRsw</code>. Unblock: pull in the same pass as the SWOT doc, file verbatim, then add the comparison section. Do not merge the two docs.</li>
+<li><strong>Drive pull: BLOCKED.</strong> Reason: 71 Drive files are blocked on the Google Sheets/Slides reconnect. That is the stated reason for the missing pull, and it is the reason items 1 and 2 above cannot be closed from this VM today. Unblock: reconnect Google Sheets/Slides, then re-run the pull for both document IDs.</li>
+<li><strong>SWOT subject and scope: UNKNOWN.</strong> Reason: the title alone does not say which product or market it covers, and the "Investor and commercial" lane placement is a filing classification, not a content statement. Unblock: read the pulled text (item 1).</li>
+<li><strong>SWOT currency: UNKNOWN.</strong> Reason: modified 2025-08-09, about fifteen months before this audit. Whether its analysis still holds is not determinable from metadata. Unblock: read the pulled text and date each claim against November 2026 state, including the live Bench and the down state of DeedSonar.</li>
+<li><strong>Bench repo visibility: OPEN, Jeramie's call.</strong> Reason: repo is PUBLIC while <code>bench.yml</code> says it must be private. Holdout keys are not in the repo, per STATUS.md. Unblock: Jeramie decides public vs private and the open-source scope. This page does not settle it.</li>
+<li><strong>Bench audience and reach: UNKNOWN.</strong> Reason: no audience, traffic, or reach figures are verified anywhere in estate records, per the catalog entry. Unblock: instrument the public surface and run 30 days of measured counts before any sponsorship rate is discussed.</li>
+<li><strong>Bench daily run, current status: UNKNOWN beyond the dated record.</strong> Reason: the last verified run record is 2026-11-03T20:07:50Z, from the 2026-11-04 status check. The live page today shows 1,112 signed receipts, which confirms the surface is up, not that the most recent daily run succeeded. Unblock: re-check the bench-auto workflow runs and record the latest run date.</li>
+<li><strong>Bench pricing: not asserted.</strong> Reason: the pricing inputs (measured reach, a defined report product, a licensee candidate) do not exist yet. Unblock: close item 7 first, then define one report product and hold one buyer conversation.</li>
+</ol>
+</section>
+
+<section id="receipts">
+<h2><span class="num">10</span>Verification checklist and receipts</h2>
+<p>Every public number on this page carries the audit date 2026-11-18. The checklist below is what was checked, how, and what it returned. A later reader should be able to repeat each line.</p>
+<table>
+<thead><tr><th>Check</th><th>Method</th><th>Result, 2026-11-18</th></tr></thead>
+<tbody>
+<tr><td>SWOT doc metadata</td><td><code>raw-inventory.json</code>, document ID search</td><td>Found, line 8719. 14,971 bytes, modified 2025-08-09T16:17:49.978Z.</td></tr>
+<tr><td>Bookeit doc metadata</td><td><code>raw-inventory.json</code>, document ID search</td><td>Found, line 5562. 6,221 bytes, modified 2026-03-08T17:17:15.558Z.</td></tr>
+<tr><td>Inventory lines</td><td><code>inventory.md</code> grep</td><td>SWOT line 74, Bookeit line 101. Both NEW.</td></tr>
+<tr><td>Summaries</td><td><code>doc-summaries.md</code> grep</td><td>No summary for either doc.</td></tr>
+<tr><td>Seed index</td><td><code>seed-index.md</code> grep</td><td>No row for either title. prbench rows at lines 557-558.</td></tr>
+<tr><td>Local pulled content</td><td><code>drive-pull/</code> filename search</td><td>No file matching *benchmark*, *swot*, or *bookeit*.</td></tr>
+<tr><td>Bench live</td><td>curl <code>https://bench.neuruh.com</code></td><td>HTTP 200, 13,006 bytes, title "Parcel Reality Bench - Leaderboard".</td></tr>
+<tr><td>Bench receipts</td><td>Live page text</td><td>Signed receipts 1,112; Items 60; Trap classes 7; Solvers ranked 3. Composite formula as quoted in Section 06.</td></tr>
+<tr><td>Bench local records</td><td>Read <code>parcel-reality-bench.md</code> and <code>prbench-license/STATUS.md</code> in full</td><td>Description, commercial shapes, and repo-public flag taken from these files with their dates.</td></tr>
+<tr><td>This page, live</td><td>Push to <code>NeuruhAI/neuruh-demos</code>, then curl live URL and compare MD5</td><td>Push SHA and live MD5 are reported to the coordinator with this delivery. If they do not match after two checks, the page is reported unverified, not live.</td></tr>
+</tbody>
+</table>
+<div class="callout ok">
+<p><strong>Standing honesty lines, carried on this page.</strong> Simulations are labeled simulations. DeedSonar is down (503 DEPLOYMENT_PAUSED). MRR is $0. No dollar valuation before recurring revenue. No client contract, invoice, payment, or cash figures are recorded or restated anywhere here. Nothing was posted to X: the dark order since 2026-11-17 stands. No Stripe, no Mac access, nothing deleted, no new repos, no paid anything in this build.</p>
+</div>
+</section>
+</main>
+<footer>
+<p><strong>Sources.</strong> Drive inventory <code>~/workspace/drive-pull/inventory.md</code> and <code>raw-inventory.json</code> (crawled 2026-11-18T11:16:32Z); <code>~/workspace/drive-pull/doc-summaries.md</code>; <code>~/workspace/retardio-library/seed-index.md</code>; <code>~/workspace/drive-pull/lanes/00-unfiled-exhaustion.md</code>; <code>~/workspace/estate-sale/parcel-reality-bench.md</code>; <code>~/workspace/prbench-license/STATUS.md</code> (checked 2026-11-04); live curl of <code>https://bench.neuruh.com</code> on 2026-11-18.</p>
+<p><strong>Next update.</strong> When the two Google Docs are pulled, replace the UNKNOWN verdicts in Sections 04, 05, and 07 with cited text, add the comparison section, and re-audit every number on this page with a new audit date. Until then, this page is the complete and honest record.</p>
+<p>Neuruh Master Doc - benchmarks-swot-analysis - Audit date 2026-11-18 - MRR $0 - DeedSonar down (503 DEPLOYMENT_PAUSED).</p>
+</footer>
+</div>
+</body>
+</html>
