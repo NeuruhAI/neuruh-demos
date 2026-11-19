@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuruh Prompt Master</title>
+<meta name="description" content="Neuruh Prompt Master: the Prompt Builders register, the Examples Library, prompt patterns, and the Neuruh Prompter. Audit date 2026-11-18.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f3ea; --surface:#fffdf6; --surface2:#f1ebdb; --ink:#1d1a14; --ink2:#4c463a;
+    --muted:#7a7263; --brass:#9a7b2d; --brass-dark:#7c621f; --line:#d8d0bd; --line2:#c4b995;
+    --ok:#2e6b34; --warn:#8a5a00; --bad:#8c2f26; --designed:#6b5d1e;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+  a{color:var(--brass-dark);text-decoration:underline;text-underline-offset:2px}
+  a:hover{color:var(--ink)}
+  code,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 28px 90px}
+  /* document control header */
+  .dochead{border-top:6px solid var(--brass);background:var(--surface);border-bottom:1px solid var(--line2);padding:26px 0 22px;margin-bottom:28px}
+  .dochead .inner{max-width:1060px;margin:0 auto;padding:0 28px}
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-dark);margin:0 0 8px}
+  h1{font-family:Archivo,sans-serif;font-weight:800;font-size:44px;line-height:1.05;letter-spacing:-.01em;margin:0 0 8px}
+  .subtitle{font-size:18px;color:var(--ink2);max-width:760px;margin:0}
+  .control{margin-top:20px;border:1px solid var(--line2);background:var(--surface2)}
+  .control table{width:100%;border-collapse:collapse;font-size:13.5px}
+  .control td{padding:7px 12px;border:1px solid var(--line);vertical-align:top}
+  .control td.k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);width:170px}
+  h2{font-family:Archivo,sans-serif;font-weight:700;font-size:26px;line-height:1.2;margin:52px 0 10px;padding-top:18px;border-top:2px solid var(--ink)}
+  h2 .no{color:var(--brass-dark)}
+  h3{font-family:Archivo,sans-serif;font-weight:700;font-size:19px;margin:30px 0 8px}
+  h4{font-family:Archivo,sans-serif;font-weight:600;font-size:16px;margin:22px 0 6px}
+  p{margin:0 0 12px}
+  ul,ol{margin:0 0 14px;padding-left:24px}
+  li{margin-bottom:5px}
+  .lede{font-size:18px;line-height:1.55;color:var(--ink2)}
+  .honesty{border:2px solid var(--brass);background:var(--surface);padding:16px 20px;margin:24px 0}
+  .honesty h3{margin-top:0}
+  .honesty ul{margin-bottom:0}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line2);border:1px solid var(--line2);margin:20px 0}
+  .meta div{background:var(--surface);padding:14px 16px}
+  .meta .v{font-family:Archivo,sans-serif;font-weight:800;font-size:30px;line-height:1.1}
+  .meta .l{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .toc{background:var(--surface);border:1px solid var(--line2);padding:18px 22px;margin:24px 0}
+  .toc h3{margin:0 0 10px}
+  .toc ol{margin:0}
+  .toc li{margin-bottom:4px}
+  table.data{width:100%;border-collapse:collapse;font-size:13.5px;margin:14px 0 22px;background:var(--surface)}
+  table.data th{font-family:Archivo,sans-serif;font-size:12px;letter-spacing:.04em;text-transform:uppercase;text-align:left;background:var(--ink);color:#f7f3ea;padding:9px 10px}
+  table.data td{padding:8px 10px;border:1px solid var(--line);vertical-align:top}
+  table.data tr:nth-child(even) td{background:#faf6ec}
+  .state{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.05em;padding:2px 8px;border-radius:2px;white-space:nowrap}
+  .st-live{background:#dcead9;color:var(--ok)}
+  .st-designed{background:#f0e8c8;color:var(--designed)}
+  .st-impl{background:#dde8f0;color:#234a63}
+  .st-unknown{background:#ece5d8;color:#6d6350}
+  .st-blocked{background:#f3d9d4;color:var(--bad)}
+  .st-tested{background:#e2e0f2;color:#463a7a}
+  .fig{background:var(--surface);border:1px solid var(--line2);padding:18px 20px 12px;margin:22px 0}
+  .fig svg{width:100%;height:auto;display:block}
+  .figcap{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:12px}
+  .figcap b{color:var(--ink2)}
+  .callout{border-left:4px solid var(--brass);background:var(--surface);padding:14px 18px;margin:18px 0}
+  .callout.warn{border-left-color:var(--bad)}
+  .callout p:last-child{margin-bottom:0}
+  .small{font-size:13.5px;color:var(--ink2)}
+  .pill{font-family:"JetBrains Mono",monospace;font-size:11px;background:var(--surface2);border:1px solid var(--line2);padding:1px 7px;border-radius:2px}
+  footer{border-top:2px solid var(--ink);margin-top:56px;padding-top:18px;font-size:13.5px;color:var(--muted)}
+  @media (max-width:760px){
+    h1{font-size:32px}
+    .meta{grid-template-columns:repeat(2,1fr)}
+    .wrap,.dochead .inner{padding-left:16px;padding-right:16px}
+    table.data{font-size:12.5px}
+  }
+  @media print{
+    body{background:#fff}
+    .dochead{border-top-width:4px}
+    h2{break-after:avoid}
+    table.data, .fig{break-inside:avoid}
+    a{color:var(--ink);text-decoration:none}
+    .wrap{max-width:none;padding:0}
+  }
+</style>
+</head>
+<body>
+<header class="dochead">
+  <div class="inner">
+    <p class="kicker">Neuruh Master Doc &middot; Prompt Systems</p>
+    <h1>Neuruh Prompt Master</h1>
+    <p class="subtitle">The Prompt Builders register, the Examples Library, the prompt patterns, and the Neuruh Prompter. Every entry states what it is, what it does, where it lives, and its state on the ladder. No prompt text is reproduced here. Template presence is reported as a verified character count only.</p>
+    <div class="control">
+      <table>
+        <tr><td class="k">Document</td><td>Neuruh Prompt Master</td><td class="k">Slug</td><td><code>neuruh-prompt-master</code></td></tr>
+        <tr><td class="k">Version</td><td>1.0</td><td class="k">Audit date</td><td>2026-11-18 (all public numbers carry this date)</td></tr>
+        <tr><td class="k">Live URL</td><td><a href="https://neuruhai.github.io/neuruh-demos/neuruh-prompt-master/">neuruhai.github.io/neuruh-demos/neuruh-prompt-master/</a></td><td class="k">Local source</td><td><code>~/workspace/neuruh-prompt-master/index.html</code></td></tr>
+        <tr><td class="k">Primary sources</td><td colspan="3"><code>~/workspace/prompt-builders/builder-spec.json</code> (spec v1.1, 2026-11-18) &middot; <code>~/workspace/prompt-builders/examples-seed-inventory.json</code> (2026-11-18) &middot; <code>~/workspace/prompt-builders/EXAMPLES-LIBRARY.md</code> &middot; live Prompt Builders page &middot; Retardio Library seed index (1,103 records, 2026-11-18) &middot; Drive inventory &middot; segment program docs</td></tr>
+      </table>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="honesty">
+    <h3>Honesty lines, read first</h3>
+    <ul>
+      <li>DESIGNED is not DEPLOYED is not LIVE is not PROVEN. A builder with no prompt text stays DESIGNED, no matter how many fields or examples it has.</li>
+      <li>Simulations are labeled simulations. The PMLA demo and the SAL content pipeline are browser simulations, not production systems.</li>
+      <li>MRR $0. No dollar valuation is stated anywhere in this document, because there is no recurring revenue to value against.</li>
+      <li>DeedSonar is down (503 DEPLOYMENT_PAUSED). Nothing in this document claims otherwise.</li>
+      <li>Two brief items could not be verified from any source and are recorded as UNKNOWN in Section 8, not filled in: the Codex one-shot master prompt, and the Agent Authority Router.</li>
+      <li>The Neuruh Prompter price is UNKNOWN. The segment record does not set a price for it. The $29 figure in the segment record is the Land Intelligence Report price, not a Prompter price. See Section 7.</li>
+    </ul>
+  </div>
+
+  <nav class="toc" aria-label="Contents">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#s1">Scope and grounding method</a></li>
+      <li><a href="#s2">Prompt Builders: the register (26 builders)</a></li>
+      <li><a href="#s3">Builders with no prompt text</a></li>
+      <li><a href="#s4">Examples Library: 125 seeded examples</a></li>
+      <li><a href="#s5">Prompt patterns: PMLA, SAL, Token-Swap, brief builders</a></li>
+      <li><a href="#s6">Unknown patterns: Codex one-shot master prompt, Agent Authority Router</a></li>
+      <li><a href="#s7">Neuruh Prompter</a></li>
+      <li><a href="#s8">Related prompt systems register</a></li>
+      <li><a href="#s9">Blocked, unknown, and open items</a></li>
+      <li><a href="#s10">Sources and verification receipts</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="s1"><span class="no">1.</span> Scope and grounding method</h2>
+  <p class="lede">This document is the master record for Neuruh prompt systems as of 2026-11-18. It covers four things: the Prompt Builders app and its 26 builders, the Examples Library that sits inside it, the named prompt patterns (PMLA, SAL, Token-Swap, and the general brief builders), and the Neuruh Prompter tool. It also records the two brief items that could not be grounded, so they are not silently dropped and not silently invented.</p>
+  <p>Grounding method. Every count in this document was computed from the live source files on 2026-11-18, not copied from memory. Builder counts, field counts, template character counts, states, and example counts were computed directly from <code>builder-spec.json</code> (spec v1.1, generated 2026-11-18) and cross-checked against <code>examples-seed-inventory.json</code> (generated 2026-11-18) and the live Prompt Builders page header, which reads: 26 builders, 298 fields, 16 live, 10 designed, 2 need your call, 125 examples (115 prompts, 10 outputs). All three sources agree. Pattern entries were checked against the Retardio Library seed index (1,103 records, audit date 2026-11-18), the Drive inventory, and the segment program docs. The Neuruh Prompter entry was checked against the segment Tools and Utilities inventory, report, marketing, and demos docs.</p>
+  <p>State ladder used throughout: CONCEPT, DESIGNED, IMPLEMENTED, TESTED, DEPLOYED, LIVE, PROVEN, COMMERCIAL, BLOCKED, UNKNOWN. A state is only claimed when a source states it or the evidence supports it. Where a source is silent, the entry is UNKNOWN with the reason.</p>
+  <p>What this document does not do: it does not reproduce prompt text. Template presence is reported as a verified character count from <code>template_verbatim</code> in the spec. Full prompt text lives in the spec and in the Prompt Builders app, not here. That is deliberate: this is a register, not a second copy of the prompts.</p>
+
+  <h2 id="s2"><span class="no">2.</span> Prompt Builders: the register</h2>
+  <p>The Prompt Builders app is the working surface. A user types values into fields, the builder assembles the full working prompt live, and the result can be copied or handed to an agent as a JSON packet. It was generated from two canons: the Token-Swap Canon v1.1 (1,346 lines) and the AaaS System Canon v1.0 (787 lines), plus the founder-ordered general builders. The spec rule is that every option, default, and template string is copied from the canon text and nothing is invented. A null default means the canon gives no default for that field. A null options list means the canon names the field but enumerates no options.</p>
+
+  <div class="meta">
+    <div><div class="v">26</div><div class="l">Builders in the register</div></div>
+    <div><div class="v">298</div><div class="l">Fields across all builders</div></div>
+    <div><div class="v">16 live / 10 designed</div><div class="l">State split, audit date 2026-11-18</div></div>
+    <div><div class="v">18 / 26</div><div class="l">Builders with real prompt text (template_verbatim)</div></div>
+  </div>
+
+  <p>History, from the record. The builders were rated 2 out of 10 on 2026-11-17: 17 of 26 DESIGNED, 12 with no prompt text, 24 of 26 with no worked example. The rebuild landed the same day, browser-verified WORKING 7 of 7, with 26 builders, 298 fields, 16 live, 18 with real prompt text, and 125 worked examples. The Examples Library was added 2026-11-18. The live app is at <a href="https://neuruhai.github.io/neuruh-demos/prompt-builders/">neuruhai.github.io/neuruh-demos/prompt-builders/</a>. Local source: <code>~/workspace/prompt-builders</code>, app at <code>~/workspace/prompt-builders/app/index.html</code>, spec at <code>~/workspace/prompt-builders/builder-spec.json</code>. State: LIVE.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 980 210" role="img" aria-label="Builder pipeline diagram: canon text, builder spec, app, assembled prompt">
+      <rect x="10" y="60" width="170" height="90" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="95" y="92" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="15" fill="#1d1a14">Canon text</text>
+      <text x="95" y="114" text-anchor="middle" font-size="12" fill="#4c463a">Token-Swap v1.1</text>
+      <text x="95" y="132" text-anchor="middle" font-size="12" fill="#4c463a">AaaS Canon v1.0</text>
+      <rect x="210" y="60" width="170" height="90" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="295" y="92" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="15" fill="#1d1a14">Builder spec</text>
+      <text x="295" y="114" text-anchor="middle" font-size="12" fill="#4c463a">26 builders, 298 fields</text>
+      <text x="295" y="132" text-anchor="middle" font-size="12" fill="#4c463a">spec v1.1, JSON</text>
+      <rect x="410" y="60" width="170" height="90" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="495" y="92" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="15" fill="#1d1a14">App</text>
+      <text x="495" y="114" text-anchor="middle" font-size="12" fill="#4c463a">Type values in fields</text>
+      <text x="495" y="132" text-anchor="middle" font-size="12" fill="#4c463a">Examples Library panel</text>
+      <rect x="610" y="60" width="170" height="90" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="695" y="92" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="15" fill="#1d1a14">Assembled prompt</text>
+      <text x="695" y="114" text-anchor="middle" font-size="12" fill="#4c463a">Built live from fields</text>
+      <text x="695" y="132" text-anchor="middle" font-size="12" fill="#4c463a">Copy, or hand JSON to agent</text>
+      <rect x="810" y="60" width="160" height="90" fill="#f1ebdb" stroke="#1d1a14" stroke-width="2"/>
+      <text x="890" y="92" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="15" fill="#1d1a14">Receipt</text>
+      <text x="890" y="114" text-anchor="middle" font-size="12" fill="#4c463a">Fields, template,</text>
+      <text x="890" y="132" text-anchor="middle" font-size="12" fill="#4c463a">examples all counted</text>
+      <line x1="180" y1="105" x2="210" y2="105" stroke="#1d1a14" stroke-width="2"/>
+      <line x1="380" y1="105" x2="410" y2="105" stroke="#1d1a14" stroke-width="2"/>
+      <line x1="580" y1="105" x2="610" y2="105" stroke="#1d1a14" stroke-width="2"/>
+      <line x1="780" y1="105" x2="810" y2="105" stroke="#1d1a14" stroke-width="2"/>
+      <text x="490" y="30" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="15" fill="#1d1a14">Figure 1. How a builder works</text>
+      <text x="490" y="190" text-anchor="middle" font-size="12" fill="#7a7263">Nothing is invented at any step: options, defaults, and template strings are copied from the canon text.</text>
+    </svg>
+    <p class="figcap"><b>Figure 1.</b> Builder pipeline. Canon text defines the fields and the verbatim template, the spec carries them as JSON, the app assembles the prompt from typed values, and the Examples Library supplies worked examples to pull field values from. The rule at every step is copy from the canon, invent nothing.</p>
+  </div>
+
+  <h3>2.1 The full register</h3>
+  <p>Template characters are the length of <code>template_verbatim</code> in the spec, counted 2026-11-18. Zero means no prompt text exists in the source for that builder. Examples are split as prompts (P) and outputs (O) from the seed inventory. Where it lives is the live app for every builder; the local spec is the same file for all 26.</p>
+
+  <table class="data">
+    <thead><tr><th>Builder</th><th>Source</th><th>Fields</th><th>Template chars</th><th>Examples</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td><b>Estate Master Template</b> (200-acre luxury estate)<br><code>estate-master-template</code></td><td>Token-Swap, Sec 3</td><td>7</td><td>2,381</td><td>8 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Modular House System</b> (17 token banks)<br><code>modular-house-17-banks</code></td><td>Token-Swap, Sec 4</td><td>17</td><td>732</td><td>3 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Advanced House Image Creator</b><br><code>advanced-house-creator</code></td><td>Token-Swap, Sec 5</td><td>10</td><td>606</td><td>3 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>TECH Block</b> (technical direction anchor)<br><code>tech-block</code></td><td>Token-Swap, Sec 6</td><td>7</td><td>263</td><td>1 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Negatives, ENHANCE, Conditional Tokens, Micro-Modifiers</b><br><code>negatives-enhance-conditionals</code></td><td>Token-Swap, Sec 7</td><td>10</td><td>247</td><td>3 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Templar Shield Stack v2.0</b><br><code>templar-shield-stack</code></td><td>Token-Swap, Sec 8</td><td>24</td><td>2,606</td><td>13 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Sacred Altar and Hooded Warrior Suites</b><br><code>altar-warrior-suites</code></td><td>Token-Swap, Sec 9</td><td>15</td><td>1,430</td><td>59 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Remodel Vision Pro</b><br><code>remodel-vision-pro</code></td><td>Token-Swap, Sec 10</td><td>4</td><td>814</td><td>11 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Davinci Protocol</b> (programmatic compositing, Just Sold payload)<br><code>davinci-protocol</code></td><td>Token-Swap, Sec 11 + App B</td><td>23</td><td>947</td><td>1 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>AI Resale Listing Engine</b><br><code>resale-listing-engine</code></td><td>Token-Swap, Sec 12</td><td>18</td><td>3,003</td><td>1 P, 4 O</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>AaaS Capsule Frame</b> (CreatorOS commercial packaging)<br><code>aaas-capsule-frame</code></td><td>Token-Swap, Sec 13</td><td>12</td><td>0</td><td>0 P, 4 O</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>Engine Adapters</b> (current as of 2026-11-17)<br><code>engine-adapter</code></td><td>Token-Swap, Sec 14</td><td>13</td><td>0</td><td>0</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>n8n Modular House Image Generator Agent</b><br><code>n8n-modular-house-agent</code></td><td>Token-Swap, Sec 4.6</td><td>5</td><td>1,074</td><td>3 P</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>AaaS Core</b> (AI as a Solution)<br><code>aaas-core</code></td><td>AaaS, Sec 2</td><td>7</td><td>0</td><td>0</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>AAASS</b> (AI as a Solution/Software Service)<br><code>aaass</code></td><td>AaaS, Sec 3</td><td>8</td><td>0</td><td>0</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>Buildstream / CreatorOS</b><br><code>buildstream-creatoros</code></td><td>AaaS, Sec 4</td><td>20</td><td>0</td><td>1 P, 2 O</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>StudioGPT</b> (agency-in-a-box)<br><code>studiogpt</code></td><td>AaaS, Sec 5</td><td>3</td><td>0</td><td>0</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>Mirror Agent / MIRROR-X1</b> (Upload Protocol)<br><code>mirror-agent</code></td><td>AaaS, Sec 6</td><td>4</td><td>999</td><td>7 P</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>Big Growth</b> (discipline prompts)<br><code>big-growth</code></td><td>AaaS, Sec 7</td><td>5</td><td>322</td><td>0</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>Clarity Builder Framework</b> (6 phases)<br><code>clarity-builder</code></td><td>AaaS, Sec 8</td><td>27</td><td>2,605</td><td>0</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Superintelligence Builder</b> (conductor doctrine)<br><code>superintelligence-builder</code></td><td>AaaS, Sec 9</td><td>9</td><td>325</td><td>1 P</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Trailblazer vs Pathwalker</b> (self-diagnostic)<br><code>trailblazer-pathwalker</code></td><td>AaaS, Sec 10</td><td>13</td><td>0</td><td>0</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>Deployment Blueprint</b> (AAASS firm plan)<br><code>deployment-blueprint</code></td><td>AaaS, Sec 11</td><td>9</td><td>0</td><td>0</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+      <tr><td><b>Prompt Creation</b> (general prompt creator)<br><code>prompt-creation</code></td><td>General Prompt Creator</td><td>10</td><td>211</td><td>0</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Building Things</b> (build brief builder)<br><code>building-things</code></td><td>Build Brief Builder</td><td>9</td><td>249</td><td>0</td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Inventing</b> (invention brief builder)<br><code>inventing</code></td><td>Invention Brief Builder</td><td>9</td><td>206</td><td>0</td><td><span class="state st-live">LIVE</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small">Totals check: 26 builders, 298 fields, 16 LIVE, 10 DESIGNED, 18 with a non-empty template, 125 examples (115 prompts, 10 outputs). The live app header states the same numbers. 15 builders have seeded examples; 11 have none (see Section 4).</p>
+  <p class="small">Known limits, from the record. The angle-pull defect found in live click testing of the Examples Library was fixed and re-verified 2026-11-18. Import remains visually unconfirmed in the automated browser. The Engine Adapters current-field note is roundup-sourced with audit date 2026-11-17 and carries its own re-verify-before-spending warning; its model prices are roundup figures, not Neuruh prices.</p>
+
+  <h2 id="s3"><span class="no">3.</span> Builders with no prompt text</h2>
+  <p>Eight builders have no <code>template_verbatim</code> in the spec. Seven of them are DESIGNED and stay DESIGNED for exactly that reason: no prompt text exists in the source. The eighth, Engine Adapters, is LIVE because it is a model-routing table, not a prompt; it has fields and a current-engine note instead of a template. This is the precise form of the brief count: 7 DESIGNED builders without prompt text, plus 1 LIVE builder without a template.</p>
+  <table class="data">
+    <thead><tr><th>Builder</th><th>State</th><th>Why there is no prompt text</th></tr></thead>
+    <tbody>
+      <tr><td>AaaS Capsule Frame</td><td><span class="state st-designed">DESIGNED</span></td><td>No capsule-frame or packaging template text exists anywhere in the source. Buildstream is a 2023 design document, not a live platform. The example persona in the source is fictional.</td></tr>
+      <tr><td>Engine Adapters</td><td><span class="state st-live">LIVE</span></td><td>Not a prompt. A routing table of current image engines with a current-field note (audit date 2026-11-17, roundup-sourced, re-verify before spending) and a negative-prompt conversion note.</td></tr>
+      <tr><td>AaaS Core</td><td><span class="state st-designed">DESIGNED</span></td><td>No prompt text exists in the core idea or the intelligence-amplification source docs. Both are strategy and narrative documents.</td></tr>
+      <tr><td>AAASS</td><td><span class="state st-designed">DESIGNED</span></td><td>No operational prompt text exists in the source. The Deployment Blueprint describes contracts, stacks, and pricing in prose only. Also needs a founder call (see below).</td></tr>
+      <tr><td>Buildstream / CreatorOS</td><td><span class="state st-designed">DESIGNED</span></td><td>No prompt text exists for any of the five layers or supporting systems. Buildstream is a 2023 design document, not a live platform.</td></tr>
+      <tr><td>StudioGPT</td><td><span class="state st-designed">DESIGNED</span></td><td>No prompt text exists anywhere in the source. The source is marketing copy ending in an insert-your-public-GPT-link placeholder. No template, no examples.</td></tr>
+      <tr><td>Trailblazer vs Pathwalker</td><td><span class="state st-designed">DESIGNED</span></td><td>No diagnostic prompt text exists in the source. The chart is reference material.</td></tr>
+      <tr><td>Deployment Blueprint</td><td><span class="state st-designed">DESIGNED</span></td><td>No prompt text exists in the source. The blueprint is a plan, not prompts.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.1 Two builders need a founder call</h3>
+  <p>The live app header states 2 need your call. They are:</p>
+  <ul>
+    <li><b>AAASS</b> (<code>aaass</code>). The spec flags <code>needs_founder_input</code>: AAASS exists as the Deployment Blueprint only. No agency operates under this name and no operational inputs (contracts, stacks, pricing) are defined in the canon. The builder needs founder input on what a first deployment actually contains.</li>
+    <li><b>Mirror Agent</b> (<code>mirror-agent</code>). The spec flags <code>needs_founder_input</code>: a custody decision is required before any run, covering what goes in, where it lives, what is deleted after, and whose data is in the vault. Running the protocol means placing unfiltered personal history, including other people's messages, into a third-party model. The canon documents the protocol and does not run it.</li>
+  </ul>
+  <p>Adding examples never changes a builder's state. A DESIGNED builder with examples added stays DESIGNED, and user-added examples never promote a builder to LIVE. That rule is stated in <code>EXAMPLES-LIBRARY.md</code> and is enforced by the app.</p>
+
+  <h2 id="s4"><span class="no">4.</span> Examples Library: 125 seeded examples</h2>
+  <p>The Examples Library is the worked-examples layer of the Prompt Builders app (spec v1.1, 2026-11-18). Every builder has an Examples Library panel with its seeded examples from the canon, plus any examples added in the browser. Nothing in the library changes a builder's fields, template, state, or notes.</p>
+  <div class="meta">
+    <div><div class="v">125</div><div class="l">Seeded examples, total</div></div>
+    <div><div class="v">115 / 10</div><div class="l">Example prompts / example outputs</div></div>
+    <div><div class="v">125 / 125</div><div class="l">Entries carrying a text_sha256 hash</div></div>
+    <div><div class="v">0</div><div class="l">Hash mismatches at migration</div></div>
+  </div>
+  <h3>4.1 What the two kinds are</h3>
+  <ul>
+    <li><b>Example prompt:</b> a full prompt text. "Use this example" pulls field values from it, or it can be opened with "View full text".</li>
+    <li><b>Example output:</b> a finished artifact produced by a prompt. It can be opened with "View" or copied with "Copy".</li>
+  </ul>
+  <h3>4.2 Hash verification</h3>
+  <p>All 125 examples were seeded from the Token-Swap Canon v1.1 and the AaaS System Canon v1.0, via the 2026-11-17 extractions under <code>~/workspace/prompt-builders/extractions/</code>. The extraction <code>.txt</code> files remain the verbatim sources of truth and were not touched by the migration. The inventory is <code>~/workspace/prompt-builders/examples-seed-inventory.json</code>, with one <code>text_sha256</code> per entry. Every migrated text was hash-checked against it before writing, with 0 mismatches. That is the hash verification this document claims: seeded text matches its inventory hash, 125 of 125.</p>
+  <h3>4.3 The 3 ambiguous entries, kept as classified</h3>
+  <p>Three entries were marked ambiguous in the inventory and kept under their assigned kind, all kind prompt:</p>
+  <ul>
+    <li><code>seed-altar-warrior-suites-10</code>: JavaScript builder code, not a prompt string itself. The returned template literal is a prompt, so kept as prompt.</li>
+    <li><code>seed-resale-listing-engine-02</code>: composite of an example voice note, a system prompt update, and a sample output. Bulk is model instruction, so kept as prompt.</li>
+    <li><code>seed-n8n-modular-house-agent-02</code>: Docker and shell setup steps for n8n, not a model instruction and not a finished artifact. No output class fits, so kept as prompt.</li>
+  </ul>
+  <h3>4.4 Rules the library enforces</h3>
+  <ul>
+    <li><b>Dedup:</b> the key is builder id plus kind plus normalized text (trimmed, whitespace collapsed, lowercased). Adding a duplicate is refused with "Already in this builder's library." Import merges with the same rule. Seeded examples are never duplicated by import.</li>
+    <li><b>Use counts:</b> "Use this example" adds 1 to that example's count. Viewing an output example adds 1. Viewing a prompt example's full text does not add to its count. Examples sort by use count descending, then label ascending. Every entry shows its count as "Used N times", including 0.</li>
+    <li><b>Pull rule:</b> for each field of the builder, if the field's non-empty default, or one of its select options, appears as a substring in the example text (case-insensitive), that field is set to the matched value and saved. The status line states exactly how many fields matched and names them. If none match, the status says so plainly. A fill is never claimed when it did not happen.</li>
+    <li><b>Export and import:</b> export downloads <code>neuruh-prompt-builder-examples.json</code> (format <code>neuruh-prompt-builder-examples</code>, version 1) with every example in the library, seeded plus user-added, with use counts. Import merges valid entries and reports added, skipped duplicates, and rejected invalid counts. A bad file never crashes the page. There is no backend. User-added examples live in the browser only until exported.</li>
+  </ul>
+  <h3>4.5 Examples per builder</h3>
+  <table class="data">
+    <thead><tr><th>Builder</th><th>Prompts</th><th>Outputs</th><th>Total</th></tr></thead>
+    <tbody>
+      <tr><td>Sacred Altar and Hooded Warrior Suites</td><td>59</td><td>0</td><td>59</td></tr>
+      <tr><td>Templar Shield Stack v2.0</td><td>13</td><td>0</td><td>13</td></tr>
+      <tr><td>Remodel Vision Pro</td><td>11</td><td>0</td><td>11</td></tr>
+      <tr><td>Estate Master Template</td><td>8</td><td>0</td><td>8</td></tr>
+      <tr><td>Mirror Agent / MIRROR-X1</td><td>7</td><td>0</td><td>7</td></tr>
+      <tr><td>AI Resale Listing Engine</td><td>1</td><td>4</td><td>5</td></tr>
+      <tr><td>AaaS Capsule Frame</td><td>0</td><td>4</td><td>4</td></tr>
+      <tr><td>Modular House System</td><td>3</td><td>0</td><td>3</td></tr>
+      <tr><td>Advanced House Image Creator</td><td>3</td><td>0</td><td>3</td></tr>
+      <tr><td>Negatives, ENHANCE, Conditional Tokens, Micro-Modifiers</td><td>3</td><td>0</td><td>3</td></tr>
+      <tr><td>n8n Modular House Image Generator Agent</td><td>3</td><td>0</td><td>3</td></tr>
+      <tr><td>Buildstream / CreatorOS</td><td>1</td><td>2</td><td>3</td></tr>
+      <tr><td>TECH Block</td><td>1</td><td>0</td><td>1</td></tr>
+      <tr><td>Davinci Protocol</td><td>1</td><td>0</td><td>1</td></tr>
+      <tr><td>Superintelligence Builder</td><td>1</td><td>0</td><td>1</td></tr>
+    </tbody>
+  </table>
+  <p class="small">15 builders have seeded examples. 11 have none: Engine Adapters, AaaS Core, AAASS, StudioGPT, Big Growth, Clarity Builder, Trailblazer vs Pathwalker, Deployment Blueprint, Prompt Creation, Building Things, Inventing. The three founder-ordered builders (Prompt Creation, Building Things, Inventing) have no seeded examples, so they show the empty state "No examples yet for this builder. Add one below." with the add form. Their fields, templates, and assembly behavior are unchanged.</p>
+
+  <h2 id="s5"><span class="no">5.</span> Prompt patterns: PMLA, SAL, Token-Swap, brief builders</h2>
+  <p>Every prompt pattern in this section states what it is, what it does, its state, and its source. The first three are named patterns from the canon. The fourth is the general pattern the three founder-ordered builders implement.</p>
+
+  <h3>5.1 PMLA: Prompt-as-Memory Loop Architecture</h3>
+  <p><b>What it is:</b> a framework in which a prompt is treated as memory. A 5-block prompt runs through a memory write gate into a session store, is recalled on the next turn, and is refined and run again.</p>
+  <p><b>What it does:</b> the working demo runs that loop in the browser, with a hash-chained receipt v1.0 trace (Web Crypto verify per receipt) and a step-by-step F(t) = 2^(-t/h) decay calculator.</p>
+  <p><b>State:</b> LIVE as a demo, and the demo is a <b>simulation</b> (Tier B working demo). The loop runs in the browser against a session store. It is not a production memory system.</p>
+  <p><b>Where it lives:</b> live demo <a href="https://neuruhai.github.io/neuruh-demos/pmla-memory-loop/">neuruhai.github.io/neuruh-demos/pmla-memory-loop/</a>; local <code>~/workspace/pmla-memory-loop</code>. Seed index record <code>pmla-memory-loop</code>, state LIVE.</p>
+
+  <div class="fig">
+    <svg viewBox="0 0 980 220" role="img" aria-label="PMLA loop diagram: prompt, write gate, session store, recall, refine">
+      <text x="490" y="28" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="15" fill="#1d1a14">Figure 2. PMLA: the prompt-as-memory loop</text>
+      <rect x="30" y="60" width="160" height="70" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="110" y="90" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="14" fill="#1d1a14">5-block prompt</text>
+      <text x="110" y="110" text-anchor="middle" font-size="12" fill="#4c463a">Runs this turn</text>
+      <rect x="230" y="60" width="160" height="70" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="310" y="90" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="14" fill="#1d1a14">Memory write gate</text>
+      <text x="310" y="110" text-anchor="middle" font-size="12" fill="#4c463a">Illustrative gate</text>
+      <rect x="430" y="60" width="160" height="70" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="510" y="90" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="14" fill="#1d1a14">Session store</text>
+      <text x="510" y="110" text-anchor="middle" font-size="12" fill="#4c463a">Prompt kept as memory</text>
+      <rect x="630" y="60" width="160" height="70" fill="#fffdf6" stroke="#9a7b2d" stroke-width="2"/>
+      <text x="710" y="90" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="14" fill="#1d1a14">Recall, next turn</text>
+      <text x="710" y="110" text-anchor="middle" font-size="12" fill="#4c463a">Decay F(t) = 2^(-t/h)</text>
+      <rect x="830" y="60" width="130" height="70" fill="#f1ebdb" stroke="#1d1a14" stroke-width="2"/>
+      <text x="895" y="90" text-anchor="middle" font-family="Archivo,sans-serif" font-weight="700" font-size="14" fill="#1d1a14">Refine, run again</text>
+      <text x="895" y="110" text-anchor="middle" font-size="12" fill="#4c463a">Receipt per step</text>
+      <line x1="190" y1="95" x2="230" y2="95" stroke="#1d1a14" stroke-width="2"/>
+      <line x1="390" y1="95" x2="430" y2="95" stroke="#1d1a14" stroke-width="2"/>
+      <line x1="590" y1="95" x2="630" y2="95" stroke="#1d1a14" stroke-width="2"/>
+      <line x1="790" y1="95" x2="830" y2="95" stroke="#1d1a14" stroke-width="2"/>
+      <path d="M 895 130 L 895 175 L 110 175 L 110 130" fill="none" stroke="#9a7b2d" stroke-width="2" stroke-dasharray="5 4"/>
+      <text x="490" y="200" text-anchor="middle" font-size="12" fill="#7a7263">Loop closes when the refined prompt runs again. Hash-chained receipt v1.0 trace, Web Crypto verify per receipt.</text>
+    </svg>
+    <p class="figcap"><b>Figure 2.</b> PMLA loop. The demo is a browser simulation: the memory write gate is illustrative, the store is a session store, and the decay calculator is a step-by-step illustration of F(t) = 2^(-t/h). It proves the loop shape, not a production memory system.</p>
+  </div>
+
+  <h3>5.2 SAL: Stacked Agent Logic</h3>
+  <p><b>What it is:</b> a prompt engineering framework for stacked agent logic. One bank item runs through six stacked stages into one platform draft.</p>
+  <p><b>What it does:</b> the six stages are ingest, stack, transform, verify, queue, receipt. The implementation applies it to the 30-item content bank, with a repurpose queue view, cursor control, and a hash-chained receipt v1.0 panel. Drafts only. Nothing publishes.</p>
+  <p><b>State:</b> framework IMPLEMENTED. Its demo is LIVE and is a <b>simulation</b>.</p>
+  <p><b>Where it lives:</b> live demo <a href="https://neuruhai.github.io/neuruh-demos/sal-content-pipeline/">neuruhai.github.io/neuruh-demos/sal-content-pipeline/</a>; local <code>~/workspace/sal-content-pipeline</code>. Seed index records <code>sal</code> (IMPLEMENTED) and <code>sal-content-pipeline</code> (LIVE, simulation).</p>
+
+  <h3>5.3 Token-Swap: the master mechanic behind the builders</h3>
+  <p><b>What it is:</b> the Token-Swap Image System. A master template carries token slots (angle, tech, enhance, negative, and more). The user copies the master template, swaps tokens or entire lines, pastes the expanded prompt into the preferred model, and iterates. That mechanic is what the Token-Swap builders implement as fields: each field is a token bank, each option is a token.</p>
+  <p><b>What it does:</b> it turns one canonical image prompt into a family of variants by substitution, without rewriting the prompt each time. The Modular House System (17 token banks) is the fullest expression of it in the register. The TECH Block standardizes on 16-bit color depth in the canon; the Token-Swap PDF says 12-bit RAW, and the spec keeps the canon 16-bit standard and records the inconsistency rather than hiding it.</p>
+  <p><b>State:</b> LIVE, as implemented by the 13 Token-Swap builders in the register (12 LIVE, 1 DESIGNED for the capsule frame, plus the n8n agent builder DESIGNED). Source: Neuruh Token-Swap Image System, The Canonical Document, v1.1, 1,346 lines, local <code>~/workspace/token-swap-canonical/TOKEN-SWAP-CANONICAL.md</code>. Live canon page: <a href="https://neuruhai.github.io/neuruh-demos/token-swap-canon/">neuruhai.github.io/neuruh-demos/token-swap-canon/</a>.</p>
+
+  <h3>5.4 General brief builders: Prompt Creation, Building Things, Inventing</h3>
+  <p><b>What they are:</b> three founder-ordered general builders that sit outside the two canons. Prompt Creation is a general-purpose prompt creator. Building Things is a build brief builder whose structure follows the Validation Loop v1.1 (criteria first). Inventing is an invention brief builder whose structure follows the Clarity Builder phases (origin, and following phases).</p>
+  <p><b>What they do:</b> each assembles a structured brief from typed fields, the same way the canon builders assemble prompts. All three have real template text (211, 249, and 206 characters) and are LIVE. None has seeded examples; they show the empty library state with the add form.</p>
+  <p><b>State:</b> LIVE. <b>Where they live:</b> the Prompt Builders app, same live URL and local spec as the rest of the register.</p>
+
+  <h2 id="s6"><span class="no">6.</span> Unknown patterns: Codex one-shot master prompt, Agent Authority Router</h2>
+  <p>Two items from the brief could not be verified from any source checked. They are recorded here as UNKNOWN with the exact gap and the nearest verified neighbours, not filled with a plausible default and not dropped.</p>
+
+  <div class="callout warn">
+    <p><b>Codex one-shot master prompt: UNKNOWN.</b> No document, spec, seed record, segment doc, or Drive inventory entry under this name was found in the sources checked (Retardio Library seed index, Drive inventory, segment docs, Prompt Builders spec, conflict resolutions). No prompt text is reproduced for it, because none was verified. Do not treat any neighbouring item below as this prompt.</p>
+  </div>
+  <p>Nearest verified neighbours, each a different thing:</p>
+  <ul>
+    <li><b>Grok 4.5 one-shot build prompt</b>, inside the filing "8-Bit System Archive" (ChatGPT, Jul 24), live at <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/8-bit-system-archive/">neuruhai.github.io/neuruh-demos/drive-pull/8-bit-system-archive/</a>, local <code>~/workspace/drive-pull/8-bit-system-archive.md</code> (194,662 bytes, 8,585 lines). It is a one-shot build prompt for the N-Cell byte layout, not a Codex master prompt.</li>
+    <li><b>"One-Shot, Modular, Regenerative App Generator"</b>, a Google Doc dated 2025-08-01, 42.4KB, listed in the Drive inventory. Contents not verified locally. State UNKNOWN.</li>
+    <li><b>"Master Prompt"</b> on the Notion page "greg", live Notion link in the seed index, beginning "I am uploading raw data that represents my thoughts, voice, decisions, and failures. Begin real-time ingestion." A founder ingestion prompt, not a Codex one-shot master prompt.</li>
+    <li><b>Neuruh Codex, Operator Manual</b>, the master codex dossier itself (12 sections, 77 subsections, 22,696 words, 10 diagrams), live at <a href="https://neuruhai.github.io/neuruh-demos/neuruh-codex/">neuruhai.github.io/neuruh-demos/neuruh-codex/</a>, local <code>~/workspace/neuruh-codex</code>. The codex exists. A one-shot master prompt for it does not appear in any source checked.</li>
+  </ul>
+
+  <div class="callout warn">
+    <p><b>Agent Authority Router: UNKNOWN.</b> No document, spec, seed record, segment doc, or Drive inventory entry under this name was found in the sources checked. No description, no routing table, no prompt text, and no live URL were verified. Do not treat the neighbour below as this router.</p>
+  </div>
+  <p>Nearest verified neighbour: the phrase "agent authority model" appears in the Tibo Daybreak reply drafts (4-post reply about OpenAI Daybreak, covering a published proof/verification protocol, an agent authority model, an exportable trace per vulnerability, a scoped Red path, and a Daybreak Blue application). That is a draft reply set, delivered in chat 2026-11-15, not published, no live URL, state IMPLEMENTED. It is not a router, and it does not define one.</p>
+  <p>Related authority material that does exist: N-Cell organ manifests (10 manifest files, schema and validator, state TESTED, live at <a href="https://neuruhai.github.io/neuruh-demos/ncell-organ-manifest/">neuruhai.github.io/neuruh-demos/ncell-organ-manifest/</a>), including manifests for <code>pmla-vault.json</code> and <code>sal.json</code>. Authority headers are part of the Neuruh Source design, but no live N-Cell header proof exists yet (the proof packet was authorized by the legacy founder token, not a live N-Cell header). None of this is the Agent Authority Router.</p>
+
+  <h2 id="s7"><span class="no">7.</span> Neuruh Prompter</h2>
+  <p><b>What it is:</b> a voice-following teleprompter PWA. It follows the speaker's voice word by word so the speaker never loses their place on camera. It saves scripts, persists them across reloads, supports remote control from a phone, and ingests hub takes with a SHA-256 receipt.</p>
+  <p><b>What it does:</b> word-level tracking with a 14-word lookahead. Voice mode degrades on iPhone while recording (VAD degradation on iPhone is a known, stated limit, not delivered). Save flow fixed and re-verified in a live browser: Save names the script from its first line, confirms in a status line, and the entry persists across reloads. A service-worker cache trap was found and fixed: <code>sw.js</code> bumped to np-v3.1.0 with network-first navigation, so a fix can no longer hide behind a cached page.</p>
+  <p><b>State:</b> LIVE. Version 3, 65,610 B, verified live 2026-11-10. Live MD5 of <code>index.html</code> at that verification: <code>a1738142b079c9217072dd7f213cb011</code>. Static build runs standalone; hub features need <code>serve.py</code> on the local machine.</p>
+  <p><b>Where it lives:</b> live <a href="https://neuruhai.github.io/neuruh-demos/neuruh-prompter/">neuruhai.github.io/neuruh-demos/neuruh-prompter/</a>; local <code>~/workspace/your_files/neuruh-prompter</code>. Seed index record <code>neuruh-prompter</code>, state LIVE. Segment record: Tools and Utilities inventory item 24, and the only tool in the segment with a daily-use shape.</p>
+  <div class="callout warn">
+    <p><b>Price: UNKNOWN.</b> The segment record does not set a price for the Neuruh Prompter. The Tools marketing doc states "no prices or checkout". The demos doc lists the open item as "A price and a checkout, or a decision it stays free as the lead magnet." The brief claim of $29 one-time "per the segment record" could not be verified: the $29 figure in the segment record is the Land Intelligence Report price (Report $29, 3-pack $69, verified Dossier $295, per the 2026-11-10 reprice), not a Prompter price. Until a founder decision is recorded, this document states the price as UNKNOWN and does not repeat $29 as a Prompter price.</p>
+  </div>
+
+  <h2 id="s8"><span class="no">8.</span> Related prompt systems register</h2>
+  <p>Prompt systems that sit outside the 26-builder register but belong in the master record. Each entry states where it lives and its state.</p>
+  <table class="data">
+    <thead><tr><th>System</th><th>What it is / what it does</th><th>Where it lives</th><th>State</th></tr></thead>
+    <tbody>
+      <tr><td><b>Advanced AI Agent Prompt Template</b></td><td>Three versions (v1, v2, v3) with switcher and comparison. Prompt builder, Wizard of Agents (12 templates, 10 questions), decision tree, MCDA, lead scoring tester (max 165).</td><td><a href="https://advanced-agent-template.pages.dev/">advanced-agent-template.pages.dev</a><br>Local: <code>~/workspace/advanced-agent-template-site</code></td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>DaVinci Generator</b></td><td>The DaVinci Protocol generator: Invention Engine, Mirror Writer, Vitruvian Analysis, and Codex, in a Studio Notebook. Open item, paused.</td><td><a href="https://neuruhai.github.io/neuruh-demos/davinci-generator/">neuruhai.github.io/neuruh-demos/davinci-generator/</a><br>Local: <code>~/workspace/davinci-generator-site</code></td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>DaVinci family</b> (Notion CH44)</td><td>Correction recorded in the canon: "DaVinci" is not one prompt. It is a versioned family spanning a Command protocol, React generator, Codex archive, visual tokenization, text-stability pipeline, VGI/CAD concepts, and blueprint/materialization methods.</td><td>Notion CH44, live Notion link in seed index<br>Local: <code>~/workspace/neuruh-obsidian-vault/11-Notion/Topology-Notebook/CH44-davinci-family.md</code></td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Drive folder: Neuruh Prompts Master</b></td><td>Drive folder holding 23 files (modified 2025-07-31). Contents not verified locally. Key files listed below.</td><td><a href="https://drive.google.com/drive/folders/1w8r18PrgGZ4nVVpTsiykAa-2U9uLqlyz">Drive folder 1w8r18PrgGZ4nVVpTsiykAa-2U9uLqlyz</a></td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>Master - 500 Prompts For AI Agents</b></td><td>Google Doc, 2025-06-04, 266.7KB. In the Drive Prompts Master folder. Contents not verified locally.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>GPT Prompt Instructions</b></td><td>Google Doc, 2025-04-17, 851.7KB. In the Drive Prompts Master folder. Contents not verified locally.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>Public Prompts v.01</b></td><td>Google Doc, 2025-05-10, 252.1KB. In the Drive Prompts Master folder. Contents not verified locally.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>CLASSIFIED INTEL // NEURUH OPS // MIRROR AGENT PROGRAM</b></td><td>Google Doc, 2025-05-05, 12.9KB. In the Drive Prompts Master folder. Contents not verified locally. Title is the source title, not a classification this document asserts.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>ChatGPT Template Creator Framework Prompt, Enterprise Configuration</b></td><td>Google Doc, 2025-04-18, 8.9KB. In the Drive Prompts Master folder. Contents not verified locally.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>Content Creation Prompts, Social Media Platforms</b></td><td>Google Doc, 2025-04-08, 85.2KB. In the Drive Prompts Master folder. Contents not verified locally.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>Prompt Like A House</b></td><td>Google Doc, 2025-04-25, 6.0KB. In the Drive Prompts Master folder. Contents not verified locally.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>Neural DepthScan Prompt System</b></td><td>Google Doc, 2025-12-29, 94.6KB. In the Drive Prompts Master folder. Contents not verified locally.</td><td>Google Doc, Drive inventory</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+      <tr><td><b>Framework Atlas</b></td><td>Interactive atlas of the Ecosystem Codex 31 named IP frameworks: search, tier and domain filters, name sort, detail view, stated-dependencies-only graph. 20 of 31 sourced from the codex page; the other 11 are unnamed in the source and not invented. Status: SIMULATION.</td><td><a href="https://neuruhai.github.io/neuruh-demos/framework-atlas/">neuruhai.github.io/neuruh-demos/framework-atlas/</a><br>Local: <code>~/workspace/framework-atlas</code></td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Neuruh Codex, Operator Manual</b></td><td>Master codex dossier of the whole estate: 12 sections, 77 subsections, 22,696 words, 10 diagrams, 3 PDFs (master INT, external brief PUB, defense volume GATE), CRUCIBLE-stamped.</td><td><a href="https://neuruhai.github.io/neuruh-demos/neuruh-codex/">neuruhai.github.io/neuruh-demos/neuruh-codex/</a><br>Local: <code>~/workspace/neuruh-codex</code></td><td><span class="state st-live">LIVE</span></td></tr>
+      <tr><td><b>Master Design System v1.0</b></td><td>Brand law for Neuruh: brass single accent, obsidian/bone co-equal spines, Archivo/Inter/JetBrains Mono. Forbids generic terminal aesthetics, AI gradients, glass cards, decorative 3D, KPI tile walls, fake live activity. This document follows it.</td><td>Seed index record <code>master-design-system-v1</code>, no live link</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+    </tbody>
+  </table>
+  <p class="small">The Drive Prompts Master folder holds 23 files in total. The table lists the largest and most load-bearing ones. The remaining files (Custom Segmentation Prompt, Customer Segmentation Chart Prompt, Family Tree Visualization Prompt, GPT Prompt Template for the Daily AI Cartoon Series, Input Prompt, Manus Prompts/Inputs, My Prompt List - Neuruh Built, Niche ChatGPT Prompt Bundles, Prompt Process Template Flow Sequence, Research Plan Document Prompt, Sales Pipeline Visualization Prompt, Ultimate Prompt to Trigger the Template Editing Feature in ChatGPT, Ultra-Granular Breakdown of "Master AI Agent Prompts (3)", Yearbook Prompt, and Copy of The Next Phase of Prompting: Thinking in Systems) are all Google Docs in the same folder, all dated March to June 2025, all contents unverified locally, all state UNKNOWN. They are listed here so the folder is fully accounted for, not cherry-picked.</p>
+
+  <h2 id="s9"><span class="no">9.</span> Blocked, unknown, and open items</h2>
+  <p>Everything in this document that is not settled, in one place, with the reason and what would close it.</p>
+  <table class="data">
+    <thead><tr><th>Item</th><th>State</th><th>Reason</th><th>What closes it</th></tr></thead>
+    <tbody>
+      <tr><td>Codex one-shot master prompt</td><td><span class="state st-unknown">UNKNOWN</span></td><td>No source under this name in the seed index, Drive inventory, segment docs, builder spec, or conflict resolutions.</td><td>A source doc, spec, or founder statement naming it and giving its text or location.</td></tr>
+      <tr><td>Agent Authority Router</td><td><span class="state st-unknown">UNKNOWN</span></td><td>No source under this name in any source checked. Only neighbour is the "agent authority model" phrase in the Tibo Daybreak drafts.</td><td>A source doc or spec defining the router, its inputs, and its routing table.</td></tr>
+      <tr><td>Neuruh Prompter price</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Segment record sets no price. Open item is price-and-checkout or stays-free-as-lead-magnet. The $29 figure belongs to the Land Intelligence Report.</td><td>Founder decision: price and checkout, or stays free.</td></tr>
+      <tr><td>7 DESIGNED builders without prompt text</td><td><span class="state st-designed">DESIGNED</span></td><td>No prompt text exists in their sources. Listed in Section 3 with reasons per builder.</td><td>Source prompt text, or a founder-written template per builder.</td></tr>
+      <tr><td>AAASS first deployment contents</td><td><span class="state st-designed">DESIGNED</span></td><td>Needs founder input: what a first deployment actually contains (contracts, stacks, pricing undefined in canon).</td><td>Founder call.</td></tr>
+      <tr><td>Mirror Agent custody decision</td><td><span class="state st-designed">DESIGNED</span></td><td>Needs founder input: what goes in, where it lives, what is deleted after, whose data is in the vault.</td><td>Founder call.</td></tr>
+      <tr><td>Drive Prompts Master folder contents (23 files)</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Google Docs listed in the Drive inventory only. Contents not verified locally, not filed verbatim.</td><td>Read and file each doc, or a founder triage call on which ones matter.</td></tr>
+      <tr><td>Examples Library Import control</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Visually unconfirmed in the automated browser as of 2026-11-18.</td><td>Live-browser visual confirmation of Import.</td></tr>
+      <tr><td>Engine Adapters model prices</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Roundup-sourced, audit date 2026-11-17, carries its own re-verify-before-spending warning.</td><td>Fresh roundup re-verification before any spending.</td></tr>
+      <tr><td>Prompt Builders: 7 builders with no prompt text (brief wording)</td><td><span class="state st-live">LIVE</span></td><td>Precision note, not a blocker: the verified count is 8 builders with no template, of which 7 are DESIGNED and 1 (Engine Adapters) is LIVE as a routing table. The brief wording is correct when scoped to DESIGNED builders.</td><td>None. Recorded here so the count is not misread.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="s10"><span class="no">10.</span> Sources and verification receipts</h2>
+  <p>Every source read before building, and what was taken from it. Audit date for all checks: 2026-11-18.</p>
+  <table class="data">
+    <thead><tr><th>Source</th><th>What was verified from it</th></tr></thead>
+    <tbody>
+      <tr><td><code>~/workspace/prompt-builders/builder-spec.json</code> (spec v1.1, generated 2026-11-18)</td><td>26 builders, 298 fields, 16 LIVE, 10 DESIGNED, 18 with non-empty <code>template_verbatim</code>, 8 without. Per-builder names, source doc and section, template character counts, example counts, states, founder-input flags and reasons. Sources: Token-Swap Canon v1.1 (1,346 lines), AaaS System Canon v1.0 (787 lines), founder-ordered builders.</td></tr>
+      <tr><td><code>~/workspace/prompt-builders/examples-seed-inventory.json</code> (generated 2026-11-18)</td><td>125 examples total, 115 prompt, 10 output. One <code>text_sha256</code> per entry (125 of 125). 3 ambiguous entries, kept as classified. Per-builder prompt and output counts.</td></tr>
+      <tr><td><code>~/workspace/prompt-builders/EXAMPLES-LIBRARY.md</code> (168 lines)</td><td>Two kinds, JSON export/import format, dedup rule, use-count rule, pull rule, seed provenance (0 hash mismatches), DESIGNED-stays-DESIGNED rule, empty-state wording.</td></tr>
+      <tr><td><code>~/workspace/prompt-builders/app/index.html</code> (893 lines)</td><td>Live app source exists locally. Counts in the app match the spec.</td></tr>
+      <tr><td>Live Prompt Builders page, <a href="https://neuruhai.github.io/neuruh-demos/prompt-builders/">neuruhai.github.io/neuruh-demos/prompt-builders/</a></td><td>Header fetched 2026-11-18: "26 builders, 298 fields, 16 live, 10 designed, 2 need your call, 125 examples (115 prompts, 10 outputs)". Agrees with the spec exactly.</td></tr>
+      <tr><td>Live hub, <a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a></td><td>Fetched 2026-11-18, HTTP 200, version string v2.97 observed. Hub not updated by this document; the coordinator owns hub updates.</td></tr>
+      <tr><td><code>~/workspace/retardio-library/seed-index.md</code> (1,103 records, audit date 2026-11-18)</td><td>Seed records for prompt-builders, neuruh-prompter, pmla-memory-loop, sal, sal-content-pipeline, advanced-agent-template, davinci-generator, framework-atlas, neuruh-codex, master-design-system-v1, drive-folder-neuruh-prompts-master, filing-8-bit-system-archive, n-cell-organ-manifests, notion-page-greg. Absence checks for "Codex one-shot master prompt" and "Agent Authority Router" (no matching record).</td></tr>
+      <tr><td><code>~/workspace/drive-pull/inventory.md</code></td><td>Drive folder /Neuruh Prompts Master: 23 files, 0 subfolders, with dates and sizes. "One-Shot, Modular, Regenerative App Generator" Google Doc, 2025-08-01, 42.4KB.</td></tr>
+      <tr><td><code>~/workspace/drive-pull/conflict-resolutions.md</code></td><td>Read. No prompt-master content. No conflict with this document.</td></tr>
+      <tr><td><code>~/workspace/segments/08-tools-utilities-inventory.md</code></td><td>Neuruh Prompter entry: v3, 65,610 B, verified live 2026-11-10, sw.js np-v3.1.0, index.html MD5 a1738142b079c9217072dd7f213cb011, Save fix verified, iPhone VAD degradation stated.</td></tr>
+      <tr><td><code>~/workspace/segments/marketing-08-tools-utilities.md</code>, <code>demos-videos-08-tools-utilities.md</code></td><td>Prompter marketing and demo docs. Marketing: "no prices or checkout". Demos: open item "A price and a checkout, or a decision it stays free as the lead magnet". No $29 Prompter price in either.</td></tr>
+      <tr><td><code>~/workspace/segments/04-commercial-store-inventory.md</code></td><td>The $29 figure in the segment record: Land Intelligence Report $29, 3-pack $69, verified Dossier $295, per the 2026-11-10 reprice. This is the source of the $29 figure, and it is not a Prompter price.</td></tr>
+      <tr><td><code>~/workspace/segments/07-social-community-inventory.md</code></td><td>Tibo Daybreak reply drafts: IMPLEMENTED, delivered in chat 2026-11-15, not published, no live URL. Source of the "agent authority model" neighbour phrase.</td></tr>
+      <tr><td><code>~/workspace/goals/prompt-builders-audit-and-rebuild/GOAL.md</code></td><td>Goal record for the builders audit and rebuild (goal_b4a99b038fcb).</td></tr>
+    </tbody>
+  </table>
+  <p class="small">Verification method for counts: computed from the spec and inventory JSON files with a script on 2026-11-18, then cross-checked against the live page header. Template character counts are lengths of <code>template_verbatim</code> strings. No prompt text was copied into this document. No number in this document comes from memory alone; every number traces to a row above.</p>
+
+  <footer>
+    <p>Neuruh Prompt Master v1.0. Audit date 2026-11-18. Slug <code>neuruh-prompt-master</code>. Live at <a href="https://neuruhai.github.io/neuruh-demos/neuruh-prompt-master/">neuruhai.github.io/neuruh-demos/neuruh-prompt-master/</a>. Local source <code>~/workspace/neuruh-prompt-master/index.html</code>. MRR $0. DeedSonar is down (503 DEPLOYMENT_PAUSED). Simulations are labeled simulations. No dollar valuation is stated in this document. Nothing in this document was posted to X.</p>
+  </footer>
+</div>
+</body>
+</html>
