@@ -2,7 +2,7 @@
 
 Audit date 2026-11-16. Word counts are wc -w counts from the manifest, not estimates. One line per piece: series | title | words | status | live URL.
 
-Total: 83 pieces, 129,129 words. Published 6 / ready 3 / draft 74.
+Total: 84 pieces, 130,124 words. Published 6 / ready 3 / draft 75. (83 audited 2026-11-16; 1 added 2026-11-19.)
 
 Articles (2025 papers, late-2026 interpretations) | Your AI Isn't Slow. It's Expensive. | 821 | Draft | https://neuruhai.github.io/neuruh-demos/distribution-library/articles/01-attention-is-the-unit-economics-jgi.html
 Articles (2025 papers, late-2026 interpretations) | Stop Selling Agents. Sell Receipts. | 738 | Draft | https://neuruhai.github.io/neuruh-demos/distribution-library/articles/02-the-org-chart-is-the-product-ncell.html
@@ -87,3 +87,4 @@ UIF Series (industry pieces) | Defense  -  Every "Shall" Is a Pin. Map Them All 
 UIF Series (industry pieces) | Agriculture  -  An AI That Fills In a Missing Harvest Log Is Falsifying Records for You | 422 | Draft | https://neuruhai.github.io/neuruh-demos/distribution-library/uif-series/10-agriculture.html
 UIF Series (industry pieces) | Resale  -  The AI Said It Was Rookwood. It Was Not Rookwood. | 404 | Draft | https://neuruhai.github.io/neuruh-demos/distribution-library/uif-series/11-resale.html
 UIF Series (industry pieces) | X posts for UIF series  -  @jeramiehicks | 395 | Draft | https://neuruhai.github.io/neuruh-demos/distribution-library/uif-series/x-posts-draft.html
+Profiles and Frameworks | Beyond IQ: The Applied Intelligence Profile and GIA | 995 | Draft | https://neuruhai.github.io/neuruh-demos/distribution-library/profiles/applied-intelligence-profile-gia.html
