@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal OS Canonical Architecture and Registry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --ink-soft:#4a463d;
+  --brass:#9a7b2d; --brass-light:#c9a227; --line:#d8d2c4; --code-bg:#efece3;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bone);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.65}
+a{color:var(--brass);text-decoration:none}
+a:hover{text-decoration:underline}
+.topbar{position:sticky;top:0;z-index:10;background:var(--bone);
+  border-bottom:1px solid var(--line)}
+.topbar .inner{max-width:880px;margin:0 auto;padding:10px 24px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.topbar .t{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink)}
+.topbar .v{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink-soft);white-space:nowrap}
+.doc-control{border-bottom:3px solid var(--brass);padding:28px 0 18px;margin-bottom:8px}
+.doc-control .kicker{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--brass);margin:0 0 8px}
+.doc-control h1{font-family:Archivo,sans-serif;font-size:34px;line-height:1.15;margin:0 0 10px;letter-spacing:-.01em}
+.doc-control .meta{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-soft);
+  display:flex;flex-wrap:wrap;gap:6px 22px}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px 80px}
+.toc{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--brass);
+  padding:18px 22px;margin:26px 0 34px}
+.toc h2{margin:0 0 10px;padding-top:0;border-top:none;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.toc ul{margin:0;padding-left:20px}
+.toc li{margin:3px 0;font-size:13.5px;line-height:1.45;break-inside:avoid}
+.toc a{color:var(--ink)}
+h1,h2,h3{font-family:Archivo,sans-serif}
+h2{font-size:24px;margin:52px 0 12px;padding-top:20px;border-top:1px solid var(--line);line-height:1.25}
+h3{font-size:18px;margin:34px 0 8px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:24px}
+li{margin:4px 0}
+table{border-collapse:collapse;width:100%;margin:16px 0 20px;font-size:14px}
+tbody tr:nth-child(even){background:#f6f3ec}
+th{text-align:left;font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--brass);border-bottom:2px solid var(--brass);padding:8px 10px}
+td{border-bottom:1px solid var(--line);padding:8px 10px;vertical-align:top}
+code{font-family:"JetBrains Mono",monospace;font-size:13px;background:var(--code-bg);
+  padding:1px 5px;border-radius:3px}
+blockquote{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--brass);
+  margin:18px 0;padding:14px 18px;color:var(--ink)}
+blockquote p{margin:0 0 8px}
+blockquote p:last-child{margin-bottom:0}
+figure.fig{margin:28px 0;border:1px solid var(--line);background:var(--paper);padding:20px 18px 14px}
+figure.fig svg{display:block;margin:0 auto;max-width:820px;width:100%;height:auto}
+figure.fig figcaption{margin-top:14px;padding-top:10px;border-top:1px solid var(--line);
+  font-family:"JetBrains Mono",monospace;font-size:12px;line-height:1.5;color:var(--ink-soft)}
+figure.fig figcaption b{color:var(--brass);font-weight:600}
+.callout{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--brass);
+  padding:14px 18px;margin:18px 0}
+.callout p{margin:0 0 8px}
+.callout p:last-child{margin-bottom:0}
+.state{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:600;letter-spacing:.06em;
+  padding:2px 7px;border:1px solid var(--brass);border-radius:3px;white-space:nowrap;color:var(--brass)}
+strong{font-weight:700}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+.footer{margin-top:60px;padding-top:18px;border-top:3px solid var(--brass);
+  font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--ink-soft)}
+@media (max-width:640px){
+  .wrap{padding:0 16px 60px}
+  .topbar .inner{padding:8px 16px}
+  .topbar .v{display:none}
+  .doc-control h1{font-size:26px}
+  h2{font-size:21px}
+  table{display:block;overflow-x:auto}
+  th,td{padding:6px 8px}
+  figure.fig{padding:14px 10px 10px}
+}
+@media print{
+  body{background:#fff;font-size:12px}
+  .topbar{display:none}
+  .toc{break-after:page}
+  h2{break-before:auto}
+  figure.fig{break-inside:avoid}
+  a{color:var(--ink);text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="inner"><span class="t">Personal OS Canonical Architecture and Registry</span><span class="v">v1.0 &middot; 2026-11-18 &middot; <a href="#contents">Contents</a></span></div></div>
+<div class="wrap">
+<header class="doc-control">
+<p class="kicker">Neuruh - Canonical Reference - Document Control</p>
+<h1>PERSONAL OS CANONICAL ARCHITECTURE AND REGISTRY</h1>
+<p class="meta"><span>Version 1.0</span><span>Date 2026-11-18</span><span>Audit date 2026-11-18</span><span>Owner Jeramie Hicks / Neuruh</span><span>Status LIVING</span></p>
+</header>
+
+<nav class="toc" id="contents"><h2>Contents</h2>
+<ul>
+<li><a href="#read-first">Read first: the open conflict, the honesty lines, and the state ladder</a></li>
+<li><a href="#s1-scope">1. Scope: what this document is, and what it is not</a></li>
+<li><a href="#s2-spine">2. The spine in one page</a></li>
+<li><a href="#s3-nrh">3. NRH Registry: the canonical addressing spine</a></li>
+<li><a href="#s4-ip-registry">4. Neuruh IP Registry (Notion)</a></li>
+<li><a href="#s5-dev-log">5. Neuruh Dev Log: Master Project Registry (Notion)</a></li>
+<li><a href="#s6-atomic">6. Atomic Node Registry</a></li>
+<li><a href="#s7-organ-registry">7. Master Organ and Capability Registry</a></li>
+<li><a href="#s8-ncell">8. N-Cell, effective state, and the capability registry</a></li>
+<li><a href="#s9-other-registries">9. The other registries: one line each, no duplicates</a></li>
+<li><a href="#s10-topology">10. Organism topology: Mother, Axon, conductors, workers, Sentinel, governance, custody, promotion, deployment</a></li>
+<li><a href="#s11-loop">11. The execution loop: DATA to LEARNING</a></li>
+<li><a href="#s12-convergence">12. The convergence graph</a></li>
+<li><a href="#s13-master-map">13. The Master Map: 1,103 records</a></li>
+<li><a href="#s14-hub">14. The Hub: the live front door to the registry</a></li>
+<li><a href="#s15-drive-source">15. The Drive source folder: what was actually read</a></li>
+<li><a href="#s16-blocked">16. Blocked and Unknown register</a></li>
+<li><a href="#s17-sources">17. Sources, update rule, and how to use this document</a></li>
+</ul>
+</nav>
+
+<section id="read-first">
+<h2>Read first: the open conflict, the honesty lines, and the state ladder</h2>
+<div class="callout">
+<p><strong>Open conflict, in one line.</strong> Jeramie's Nov 18 stated premise is that Neuruh is sovereign intelligence, NOT an operating system, and the OS label is an open conflict (Link 23 section 61, investor draft Slide 1).</p>
+<p>The title of this document uses his words, Personal OS. The body keeps the premise and the conflict visible, and does not settle it. The founder decides it.</p>
+</div>
+<p><strong>Honesty lines, audit date 2026-11-18.</strong> MRR $0. No dollar valuation before recurring revenue. DeedSonar is down (503 DEPLOYMENT_PAUSED). Simulations are labeled simulations. DESIGNED is not DEPLOYED is not LIVE is not PROVEN. Every public number in this document carries the audit date 2026-11-18. What cannot be verified from a source is marked UNKNOWN or BLOCKED with the reason, never filled with a plausible default. No client contract, invoice, payment, or cash figures appear in this document.</p>
+<p><strong>State ladder.</strong> CONCEPT, DESIGNED, IMPLEMENTED, TESTED, DEPLOYED, LIVE, PROVEN, COMMERCIAL, BLOCKED, STALE, UNKNOWN. A state in this document is the state recorded in the cited source on 2026-11-18, not a fresh re-verification of the underlying system. Where the source state and a live page disagree, both are shown and the disagreement is flagged.</p>
+</section>
+
+<section id="s1-scope">
+<h2>1. Scope: what this document is, and what it is not</h2>
+<p>This document is the canonical architecture and registry spine. It answers three questions: what the architecture is, what each registry records, and where each thing lives. For each entry it gives what it is, what it does or records, where it lives (live URL or local path), and its state on the ladder.</p>
+<p><strong>Dedup, by design.</strong> Frameworks are covered elsewhere and are not repeated here. What each framework does lives in doc 7, <a href="https://neuruhai.github.io/neuruh-demos/frameworks-neuruh-master/">Frameworks: Neuruh Master</a>. Who the agents are lives in doc 10, <a href="https://neuruhai.github.io/neuruh-demos/ai-agents-neuruh-master/">AI Agents: Neuruh Master</a>. This document covers the architecture and the registry itself, and cross-links both. Where a framework or an agent is named here, it is named only as a node in the architecture or a row in a registry, with the detail left to those two documents.</p>
+<p><strong>What counts as the registry spine.</strong> The NRH Registry (addressing), the Neuruh IP Registry (Notion), the Dev Log Master Project Registry (Notion), the Atomic Node Registry, the Master Organ and Capability Registry, the N-Cell capability registry, and the Master Map that renders all of them together. Section 9 lists the smaller registries in one line each so they are findable without being duplicated.</p>
+</section>
+
+<section id="s2-spine">
+<h2>2. The spine in one page</h2>
+<table>
+<thead><tr><th>Layer</th><th>What it records</th><th>Where it lives</th><th>State</th></tr></thead>
+<tbody>
+<tr><td><strong>NRH Registry</strong></td><td>Universal addressing for every Neuruh entity: NRH-[DD]-[ENT]-[TTT]-[NNN]</td><td><a href="https://neuruhai.github.io/neuruh-demos/nrh-registry/">nrh-registry</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>Neuruh IP Registry</strong></td><td>IP inventory: title, Asset ID, vertical, type, revenue model, resale readiness</td><td>Notion, see section 4</td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>Dev Log: Master Project Registry</strong></td><td>Project log: every build, its status, blocker, next action</td><td>Notion, see section 5</td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>Atomic Node Registry</strong></td><td>Atomic node architecture as a deploy-ready code pack</td><td>Notion, see section 6</td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>Master Organ and Capability Registry</strong></td><td>Organ and capability nodes, 90 plus nodes, exact count scopes</td><td>Notion Chapter 11, see section 7</td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>N-Cell capability registry</strong></td><td>Effective state, capability registry, canonical revision (B08)</td><td>Notion Chapter 17, see section 8</td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>Master Map</strong></td><td>All 1,103 Retardio Library records, searchable and filterable</td><td><a href="https://neuruhai.github.io/neuruh-demos/master-map/">master-map</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>Hub</strong></td><td>Live front door: every live site in one place</td><td><a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a></td><td><span class="state">LIVE</span></td></tr>
+</tbody>
+</table>
+<p>The spine is a set of registries, not a single database. No one registry holds the whole estate. The Master Map is the only place that renders all 1,103 records together, and it renders them from the Retardio Library seed index, not from the registries themselves. That is a known seam: a record can be live in one registry and absent from another, and the Master Map is the check for that.</p>
+</section>
+
+<section id="s3-nrh">
+<h2>3. NRH Registry: the canonical addressing spine</h2>
+<p><strong>What it is.</strong> The NRH Registry is the universal addressing system for the Neuruh estate. Every entity gets an NRH address in the form NRH-[DD]-[ENT]-[TTT]-[NNN]. It is the canonical IP inventory and addressing spine, covering the repo estate of about 140 to 215 repos. The exact repo count is UNKNOWN: the NeuruhAI organization listing shows about 100 visible repositories, plus a larger personal repository estate, and no single count has been verified against both. The 140 to 215 range is the working range in the brief for this document, audit date 2026-11-18.</p>
+<p><strong>What it does.</strong> It gives every thing one address, so a framework, a repo, a demo, a receipt, and a filing can be cited the same way. The live page renders it as a Three.js visual with a hash-chained transition log.</p>
+<p><strong>Where it lives.</strong> Live: <a href="https://neuruhai.github.io/neuruh-demos/nrh-registry/">https://neuruhai.github.io/neuruh-demos/nrh-registry/</a>. Local: <code>~/workspace/your_files/nrh-registry</code>. Seed record: <code>nrh-registry</code> in the Retardio Library seed index.</p>
+<p><strong>State: <span class="state">LIVE</span>.</strong> The page returned HTTP 200 in the 2026-11-18 audit. Browser verification of the live page is recorded in the seed index. The addressing scheme itself is a convention, not a running service: there is no verified live service that resolves an NRH address to a repo or a page. That gap is recorded, not closed by this document.</p>
+<p><strong>Related.</strong> The GitHub estate topology, which separates canonical NeuruhAI repos from legacy and donor Jeramie-Hicks repos, is Notion Chapter 19, <a href="https://app.notion.com/p/3d3a981d75b681068c60d89e91fdd971?pvs=204">CHAPTER 19, GitHub Estate Topology</a>, state LIVE. The Ecosystem Codex (NRH-DOC-CODEX-001 rev A), which also carries the 31-framework and worlds model, is a separate demo at <a href="https://ecosystem-codex.pages.dev/">ecosystem-codex.pages.dev</a>, state LIVE, source stale (audit 2026-06-30).</p>
+</section>
+
+<section id="s4-ip-registry">
+<h2>4. Neuruh IP Registry (Notion)</h2>
+<p><strong>What it is.</strong> The Neuruh IP Registry is the Notion database that holds the IP inventory. It is the registry agents are told to read before touching the registry, and the registry the Sprint Debrief prompt queries for every entry where Status is In Progress or Not Started, reporting Asset ID, title, current status, blocker, and next action.</p>
+<p><strong>What it records.</strong> Per the IP Entry Creator prompt, each entry asks for: IP Title, Asset ID, Vertical, Sub-Category, Type, Description (one sentence), Revenue Model, and Resale Ready status. The tagging standard that governs every entry is the Notion page <a href="https://app.notion.com/p/336a981d75b681eca1dadfad1f06ea39?pvs=204">IP Registry, Tagging Standard and Filing Guide</a>, state LIVE: it defines exactly how every IP Registry entry must be tagged, for any agent, any AI, and any human.</p>
+<p><strong>Where it lives.</strong> Notion: <a href="https://app.notion.com/p/3c48ca3132574937a3f3d729a93eb578?pvs=204">Neuruh IP Registry</a>. Local mirror: <code>~/workspace/neuruh-obsidian-vault/11-Notion/Databases/db-neuruh-ip-registry.md</code>. Seed record: <code>notion-db-neuruh-ip-registry</code>.</p>
+<p><strong>State: <span class="state">LIVE</span>, entry count <span class="state">UNKNOWN</span>.</strong> The page is live in Notion. The entry count is UNKNOWN because the Query Data Source hit its usage limit on 2026-11-18 and was not retried. Do not cite a count for this registry until it is re-queried.</p>
+<p><strong>Related code packs.</strong> CODE PACKS Batch 1 (AI Platform Core Spine, 2026-04-20) are copy-pasteable code packs for the first 5 IP Registry items (Option A), each a standalone repo scaffold with full files, run commands, and a verification checklist. Notion: <a href="https://app.notion.com/p/c7b44376ef9546819cead258b3e67c30?pvs=204">CODE PACKS, Batch 1</a>, state LIVE.</p>
+</section>
+
+<section id="s5-dev-log">
+<h2>5. Neuruh Dev Log: Master Project Registry (Notion)</h2>
+<p><strong>What it is.</strong> The Neuruh Dev Log, Master Project Registry is the Notion database that logs every project: what was built, where it stands, what blocks it, and what happens next. It is the build log side of the spine, where the IP Registry is the inventory side.</p>
+<p><strong>What it records.</strong> Project entries with status, blocker, and next action. The Notion custom-agent guardrail that governs it reads: agents may create new pages and update database rows (Dev Log, Session Log, IP Registry), and may update the HQ operational tables (Active Projects, GitHub Repos, Local File Paths, checklists) to keep them current.</p>
+<p><strong>Where it lives.</strong> Notion: <a href="https://app.notion.com/p/7bba647a67ac4cfc9b95c775b7905548?pvs=204">Neuruh Dev Log, Master Project Registry</a>. Local mirror: <code>~/workspace/neuruh-obsidian-vault/11-Notion/Databases/db-neuruh-dev-log-master-project-registry.md</code>. Seed record: <code>notion-db-neuruh-dev-log-master-project-registry</code>.</p>
+<p><strong>State: <span class="state">LIVE</span>, entry count <span class="state">UNKNOWN</span>.</strong> The page is live in Notion. The entry count is UNKNOWN for the same reason as the IP Registry: the Query Data Source hit its usage limit on 2026-11-18 and was not retried.</p>
+<p><strong>Related.</strong> The Neuruh Live Remainder, Master Punchlist (Notion, LIVE) is the open-items list that sits beside the Dev Log. The Build Punch List (Notion, LIVE) is the per-file checklist: download, place, install, verify. The April 6, 2026 Session Scribe 48-hour rollup (Notion, LIVE) shows the Dev Log in use: REI-X blitz, MOTHER v1 digest, and a system health audit captured from Dev Log queries.</p>
+</section>
+
+<section id="s6-atomic">
+<h2>6. Atomic Node Registry</h2>
+<p><strong>What it is.</strong> The Atomic Node Registry is the code pack for the Atomic Node Architecture. It is the registry of the smallest units the architecture is built from, published as a deploy-ready code page rather than as a running database.</p>
+<p><strong>What it does or records.</strong> It is built from the IP Registry entry Atomic Node Architecture. Its build pack status is recorded as deploy-ready code page. The contents of the code pack itself were not read in full for this document; the page title, the IP Registry lineage, and the deploy-ready status are what the seed index records.</p>
+<p><strong>Where it lives.</strong> Notion: <a href="https://app.notion.com/p/9abe45bc3b27413eb57fafa357139f2c?pvs=204">CODE PACK, Atomic Node Registry</a>. No local mirror path is recorded in the seed index. Seed record: <code>notion-page-code-pack-atomic-node-registry</code>.</p>
+<p><strong>State: <span class="state">LIVE</span>.</strong> The Notion page is live. Whether the code pack has ever been deployed from the page is UNKNOWN: no deployment, repo, or live URL for a deployed Atomic Node Registry is recorded in the sources read for this document.</p>
+</section>
+
+<section id="s7-organ-registry">
+<h2>7. Master Organ and Capability Registry</h2>
+<p><strong>What it is.</strong> The Master Organ and Capability Registry is Notion Chapter 11 of the Topology Notebook. It is the registry of organs (functional systems) and their capabilities, with exact count scopes. Its critical correction, recorded in the chapter, is that there is not one defensible number called the 60 live organs: the estate contains several different counted universes that were historically blurred together, and the chapter preserves each scope and then enumerates the combined topology.</p>
+<p><strong>What it records.</strong> Organ nodes and capability nodes, 90 plus nodes in the combined topology, with the count scope stated per universe rather than as a single headline number. The related count court is Chapter 38, <a href="https://app.notion.com/p/3d3a981d75b6815eb9e5e32f794c215e9df?pvs=204">CHAPTER 38, The 60 Organs Count Court</a>, state LIVE: what is actually 60 plus, what is runtime, what is downstream.</p>
+<p><strong>Where it lives.</strong> Notion: <a href="https://app.notion.com/p/3d3a981d75b681119ef5e11f0c338006?pvs=204">CHAPTER 11, Master Organ and Capability Registry, 90 plus Nodes, Exact Count Scopes</a>. Local mirror: <code>~/workspace/neuruh-obsidian-vault/11-Notion/Topology-Notebook/CH11-master-organ-capability-registry.md</code>. Seed record: <code>notion-page-chapter-11-master-organ-capability-registry-90-nodes-exact-c</code>.</p>
+<p><strong>State: <span class="state">LIVE</span>.</strong> The Notion page is live. The organ count is a scope, not a single number: cite the scope, never a bare 60.</p>
+<p><strong>Related counts, same rule.</strong> SWARM is 5,150 as a historical logical-agent design target across 7 legions, never 5,150 live sessions. The Unified Swarm demo renders 179 working systems in 7 legions (SENSORS 7, ANALYSTS 62, ADJUDICATORS 14, OPERATORS 44, PROOF 20, MEMORY 10, COMMAND 22), state LIVE as a demo. DESIGNED, DEPLOYED, LIVE, and PROVEN are distinct states, and the legion counts are demo counts, not live sessions.</p>
+</section>
+
+<section id="s8-ncell">
+<h2>8. N-Cell, effective state, and the capability registry</h2>
+<p><strong>What it is.</strong> N-Cell is the deterministic protocol around runtime state, authority, topology, provenance, outcomes, and governed computational organizations. Chapter 17 of the Topology Notebook (B08) is its registry home: N-Cell, Effective State, Capability Registry, and Canonical Revision. Its B08 conclusion is recorded verbatim in the seed index: NEW ORGAN REQUIRED equals NO. The state architecture exists.</p>
+<p><strong>What it records.</strong> Effective state per capability, the capability registry itself, and canonical revision history. The N-Cell authority header is the enforcement piece: authorizer, scope, expiry, and token that gate every export, alert, and promotion. It lives as real code in <code>~/workspace/neuruh-source/src/authority.py</code>, state IMPLEMENTED, and as a buried process in the Retardio Library governance chapter.</p>
+<p><strong>Where it lives.</strong> Notion: <a href="https://app.notion.com/p/3d3a981d75b681a1bc29ecb5b34c1abd?pvs=204">CHAPTER 17, N-Cell, Effective State, Capability Registry and Canonical Revision, B08</a>. Local mirror: <code>~/workspace/neuruh-obsidian-vault/11-Notion/Topology-Notebook/CH17-n-cell-effective-state-capability-registry-and-canonical-revision-b08.md</code>. Seed record: <code>notion-page-chapter-17-n-cell-effective-state-capability-registry-canoni</code>.</p>
+<p><strong>State: <span class="state">LIVE</span> (chapter), <span class="state">IMPLEMENTED</span> (authority header code), <span class="state">TESTED</span> (organ manifests).</strong> The N-Cell organ manifests are a demo at <a href="https://neuruhai.github.io/neuruh-demos/ncell-organ-manifest/">ncell-organ-manifest</a>, state TESTED. The N-Cell Runtime Adapter is a demo at <a href="https://neuruhai.github.io/neuruh-demos/ncell-runtime-adapter/">ncell-runtime-adapter</a>, state LIVE, labeled a simulation. The N-Cell/64 header is IMPLEMENTED in <code>~/workspace/governance-loop/</code>. The N-Cell position paper live URL is not verified, and the N-Cell evidence dossier and verification claim contract exist as Drive docs from 2026-07-18, not as verified live pages.</p>
+<p><strong>Open item.</strong> The proof packet in Neuruh Source was authorized by the legacy founder token, not a live N-Cell header. The policy v2 decision on that is open. This document records it as open, it does not resolve it.</p>
+</section>
+
+<section id="s9-other-registries">
+<h2>9. The other registries: one line each, no duplicates</h2>
+<p>These registries are part of the estate and are findable here. Each is one line: what it records, where it lives, state on 2026-11-18. Detail lives in the cited source, not here.</p>
+<table>
+<thead><tr><th>Registry</th><th>What it records</th><th>Where it lives</th><th>State</th></tr></thead>
+<tbody>
+<tr><td>Neuruh GPT + Agent Registry</td><td>59 entries, counted 2026-11-18</td><td><a href="https://app.notion.com/p/d96ac75d3f2147e680f988beb6bca068?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Merge-First Mission Registry</td><td>6 entries, counted 2026-11-18</td><td><a href="https://app.notion.com/p/c469872876874e8a96f916d9e0b7703b?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Lead Recipe OS registry</td><td>36 live registry rows including variants, 30 canonical recipe families R1 to R30, 4 active hunt recipes</td><td>Supabase, repo <code>NeuruhAI/lead-recipe-os</code></td><td><span class="state">BLOCKED</span></td></tr>
+<tr><td>LandOS Signal Registry</td><td>49-signal clean registry, four family clusters, extractor status per signal, amber tier parked unscored</td><td><a href="https://neuruhai.github.io/neuruh-demos/landos-signals/">landos-signals</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Recipe Ingredient Registry</td><td>49 ingredients, 34 families; the 49-ingredient inventory is UNVERIFIED and is a different object from the 49-signal LandOS model; 49 vs 50 count dispute stated</td><td><a href="https://neuruhai.github.io/neuruh-demos/recipe-ingredient-registry/">recipe-ingredient-registry</a> (simulation)</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>System Registry + Subscription Map, 2026-06-20</td><td>System registry and subscription map, including the AXON Emergence Loop lock-in of 2026-06-21</td><td><a href="https://app.notion.com/p/385a981d75b681cca9f7f58f292805cf?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>R14B Six-Source Master Census, Anti-Loss Registry</td><td>Master anti-loss census; inclusion does not mean production-ready, current, safe to merge, or canonical</td><td><a href="https://app.notion.com/p/3d2a981d75b681f0b990c9ba58bd8b9a?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Master Evidence Corpus (Chapter 30)</td><td>Canonical source classes and anti-loss index; no single PDF, Notion page, repo, or chat is the whole truth</td><td><a href="https://app.notion.com/p/3d3a981d75b681bc958dfaf3995ee9df?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Missing Evidence Registry (Chapter 49)</td><td>What is still actually unrecovered, each item with a bounded recovery predicate</td><td><a href="https://app.notion.com/p/3d3a981d75b68117a4bddf0845a8c0bd?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Visual Genome Registry (Chapter 42)</td><td>Mermaid, SVG, DOT, React Flow, atlas plates, generated graphs</td><td><a href="https://app.notion.com/p/3d3a981d75b6813b8dc0ea4d1309ec68?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Prospect Command Registry</td><td>Notion database, entry count UNKNOWN (query limit, 2026-11-18)</td><td><a href="https://app.notion.com/p/a2ef1a2e0897474fa1d3c53e843de22d?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>Payment Rails Registry</td><td>Notion database, entry count UNKNOWN (query limit, 2026-11-18)</td><td><a href="https://app.notion.com/p/773a282d51f8483abbd607994d1a83c1?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>NEURUH_UNIFIED_MASTER_INVENTORY</td><td>Unified master inventory page, Notion</td><td><a href="https://app.notion.com/p/2f1a981d75b680ea8971eaa266ecfcbb?pvs=204">Notion</a></td><td><span class="state">LIVE</span></td></tr>
+<tr><td>CRUCIBLE implementations</td><td>Three implementations, never merged; which one is canonical is not settled in the sources read</td><td><code>~/workspace/user/files/files__50_extracted/crucible.py</code></td><td><span class="state">UNKNOWN</span></td></tr>
+<tr><td>Production Supabase database</td><td>Primary database for DeedSonar and the recipe registry (Pro); holds the 36-row recipe registry and lead data</td><td>Supabase project, owner unconfirmed</td><td><span class="state">BLOCKED</span></td></tr>
+</tbody>
+</table>
+<p><strong>Count dispute, stated plainly.</strong> LandOS is recorded as 50 signals in the engine description and 49 signals in the clean registry visual. The recipe ingredient registry is a different 49. Do not merge the three numbers. The 49 vs 50 LandOS dispute is open in the seed index.</p>
+</section>
+
+<section id="s10-topology">
+<h2>10. Organism topology: Mother, Axon, conductors, workers, Sentinel, governance, custody, promotion, deployment</h2>
+<p><strong>What the topology is.</strong> The organism is the control chain from mission to result, with receipts at every step. The intended chain is: MISSION, CONDUCTOR, WORKER, ACTION, RECEIPT, SENTINEL, GOVERNANCE, CUSTODY, PROMOTION, DEPLOYMENT, RESULT, INGEST, NEXT MISSION. The honest current language for the whole organism is governed, supervised execution with receipts. Full continuous autonomous production execution has not been proven.</p>
+<table>
+<thead><tr><th>Node</th><th>What it is</th><th>Where it lives</th><th>State</th></tr></thead>
+<tbody>
+<tr><td><strong>Mother</strong></td><td>Organism resilience and monitoring layer: semantic health checking and alerting; process supervision daemon</td><td>Vault notes <code>~/workspace/neurh-obsidian-vault/01-Core-Architecture</code>; organ manifest <code>mother-governance.json</code></td><td><span class="state">DESIGNED</span></td></tr>
+<tr><td><strong>Axon</strong></td><td>Signal and nervous-system side; agent gateway</td><td>Vault notes, same path; organ manifest <code>axon.json</code>; demos <a href="https://neuruhai.github.io/neuruh-demos/axon-lattice-substrate/">axon-lattice-substrate</a> and <a href="https://neuruhai.github.io/neuruh-demos/axon-lattice-code-map/">axon-lattice-code-map</a></td><td><span class="state">DESIGNED</span></td></tr>
+<tr><td><strong>Conductor (BOB)</strong></td><td>Conductor role: mission to worker routing. BOB exists in code as a role, not a service</td><td>No live service recorded</td><td><span class="state">DESIGNED</span></td></tr>
+<tr><td><strong>Workers</strong></td><td>Bounded execution units that act under a conductor and leave receipts; who the agents are is doc 10, and no single state is recorded for workers as one node</td><td><a href="https://neuruhai.github.io/neuruh-demos/ai-agents-neuruh-master/">ai-agents-neuruh-master</a></td><td><span class="state">UNKNOWN</span></td></tr>
+<tr><td><strong>Sentinel</strong></td><td>The verdict organ. Strongest receipt in the 2026-09-25 audit: neuruh-sentinel-court honey_pot E2E_RECEIPT.json, sealed 2026-09-21T14:53:36Z, status LIVE_PROVEN for the plumbing, but the organ verdict path is not proven end to end</td><td><code>~/workspace/organism-autonomy/audit-2026-09-25.md</code>; workbench <a href="https://jgi-sentinel-court.pages.dev/">jgi-sentinel-court</a> (simulation)</td><td><span class="state">BLOCKED</span></td></tr>
+<tr><td><strong>Governance</strong></td><td>Policy gate (DENY / ESCALATE), seven-lens review, N-Cell authority header; founder authorization is the boundary: assistant generates, Jeramie authorizes, system executes</td><td><code>~/workspace/convergence-100/</code>; <code>~/workspace/neuruh-source/src/review.py</code>; demo <a href="https://neuruhai.github.io/neuruh-demos/governance-loop/">governance-loop</a> (simulation)</td><td><span class="state">TESTED</span></td></tr>
+<tr><td><strong>Custody</strong></td><td>Where a promoted thing is held and who owns it; part of the P0 seam handoff (receipt watcher, Sentinel invocation, result ingest, custody, promotion)</td><td>P0 seam reference loop, see section 11</td><td><span class="state">TESTED</span></td></tr>
+<tr><td><strong>Promotion</strong></td><td>Promotion gate: allows a promotion only when rule, evidence, and authority all check out, and receipts every decision</td><td><code>~/workspace/convergence-100/promotion.py</code></td><td><span class="state">TESTED</span></td></tr>
+<tr><td><strong>Deployment</strong></td><td>Deployment executor: the step that takes a promoted thing live</td><td><code>~/workspace/organism-autonomy/audit-2026-09-25.md</code></td><td><span class="state">BLOCKED</span></td></tr>
+<tr><td><strong>Armed scheduler</strong></td><td>The scheduled trigger for continuous loops</td><td>No live service recorded</td><td><span class="state">BLOCKED</span></td></tr>
+<tr><td><strong>CRUCIBLE gate</strong></td><td>Hash-chained receipt and publication gate</td><td>Page <a href="https://neuruhai.github.io/neuruh-demos/crucible-gate/">crucible-gate</a>; chain anchor v2 root afd56cea, 235 leaves, live 2026-11-15; chain write blocked pending the founder chain and wallet choice</td><td><span class="state">LIVE</span></td></tr>
+<tr><td><strong>Kill switch</strong></td><td>Halt and re-arm switch that stops new forecasts without deleting history; tested live in the Retardio loop</td><td><code>~/workspace/retardio-loop/state.json</code></td><td><span class="state">TESTED</span></td></tr>
+</tbody>
+</table>
+<p><strong>Topology sources.</strong> The Execution Topology Canon (2026-09-06) and the Live Operations Canon are Notion pages, both LIVE. The Master Dependency DAG is Notion Chapter 35, LIVE. The Neuruh Topology demo is live at <a href="https://neuruhai.github.io/neuruh-demos/neuruh-topology/">neuruh-topology</a>. The Organism Codex (Doc 3) is a design document, state DESIGNED, not a live system. The REI-X lineage is harvest and retire, superseded by the DeedSonar stack, per conflict resolution 2 (2026-11-18).</p>
+</section>
+
+<section id="s11-loop">
+<h2>11. The execution loop: DATA to LEARNING</h2>
+<p><strong>The loop.</strong> The Neuruh pattern, in order, is: DATA, INGEST, NORMALIZE, IDENTITY, SIGNALS, CANDIDATES, RECIPES, RANKING, DECISION, GOVERNED ACTION, RECEIPT, VERIFICATION, OUTCOME, LEARNING, NEXT MISSION. It is a pattern, not a running pipeline. Parts of it run as real code, parts run as demos, parts are blocked. The table below says which, stage by stage, as far as the sources allow. Where a stage has no named running implementation in the sources, it is marked UNKNOWN, not assigned one.</p>
+<figure class="fig">
+<svg viewBox="0 0 820 260" role="img" aria-label="Execution loop diagram, DATA to LEARNING">
+<rect x="10" y="10" width="800" height="240" fill="#fbfaf6" stroke="#d8d2c4"/>
+<text x="410" y="36" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#1c1a16">FIGURE 1. THE EXECUTION LOOP</text>
+<text x="410" y="58" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4a463d">DATA to INGEST to NORMALIZE to IDENTITY to SIGNALS</text>
+<text x="410" y="78" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4a463d">to CANDIDATES to RECIPES to RANKING to DECISION</text>
+<text x="410" y="98" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4a463d">to GOVERNED ACTION to RECEIPT to VERIFICATION</text>
+<text x="410" y="118" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4a463d">to OUTCOME to LEARNING to NEXT MISSION</text>
+<line x1="60" y1="140" x2="760" y2="140" stroke="#9a7b2d" stroke-width="2"/>
+<text x="60" y="170" font-family="JetBrains Mono, monospace" font-size="11" fill="#9a7b2d">INGEST</text>
+<text x="250" y="170" font-family="JetBrains Mono, monospace" font-size="11" fill="#9a7b2d">DECIDE</text>
+<text x="430" y="170" font-family="JetBrains Mono, monospace" font-size="11" fill="#9a7b2d">ACT, GOVERNED</text>
+<text x="620" y="170" font-family="JetBrains Mono, monospace" font-size="11" fill="#9a7b2d">PROVE, LEARN</text>
+<text x="410" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#4a463d">Every governed action leaves a receipt. A receipt with no</text>
+<text x="410" y="223" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#4a463d">verification is a claim, not proof. NEXT MISSION feeds back to DATA.</text>
+</svg>
+<figcaption><b>Figure 1.</b> The execution loop as stated in the Neuruh model. The loop is the pattern every spine is judged against. It is not a claim that the loop runs end to end in production: the P0 seam between receipt and Sentinel is the known break, see below.</figcaption>
+</figure>
+<table>
+<thead><tr><th>Stage</th><th>What happens</th><th>Named implementation in the sources</th><th>State</th></tr></thead>
+<tbody>
+<tr><td>DATA</td><td>Raw source material enters</td><td>LANDOS ingest, county parcel records; Retardio loop pulls St. Joseph County IN parcel records from public ArcGIS daily</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>INGEST</td><td>Acquisition with provenance</td><td><code>NeuruhAI/landos-ingest</code>; free-first acquisition, paid vendors behind engine-controlled logic</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>NORMALIZE</td><td>Raw data put into a common shape</td><td>No named running implementation in the sources read</td><td><span class="state">UNKNOWN</span></td></tr>
+<tr><td>IDENTITY</td><td>Owner, estate, and entity identity resolved</td><td>Estate-identity layer in DeedSonar (estate, human, deceased-owner, documented case states)</td><td><span class="state">BLOCKED</span></td></tr>
+<tr><td>SIGNALS</td><td>Distress and opportunity signals extracted</td><td>LANDOS engine, 50 signals; LandOS Signal Registry, 49-signal clean registry</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>CANDIDATES</td><td>Signal matches become candidates</td><td>LANDOS engine scoring; 153 leads scored and synchronized in the documented 2026-09-16 hunt job 6071b7ad</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>RECIPES</td><td>Repeatable acquisition patterns applied</td><td>Lead Recipe OS, 30 canonical families, 36 registry rows, 4 active hunt recipes</td><td><span class="state">BLOCKED</span></td></tr>
+<tr><td>RANKING</td><td>Candidates ranked with receipts</td><td>LANDOS engine ranking; Brier scoring for forecast rules, state TESTED</td><td><span class="state">TESTED</span></td></tr>
+<tr><td>DECISION</td><td>A decision is taken under authority</td><td>N-Cell authority header; policy gate DENY / ESCALATE</td><td><span class="state">TESTED</span></td></tr>
+<tr><td>GOVERNED ACTION</td><td>Action executes inside its authority boundary</td><td>Retardio loop daily run; Neuruh Source promotion gate</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>RECEIPT</td><td>Evidence of who, what, when, why, input, output, authority, source, provenance, result, next state</td><td>CRUCIBLE hash chain; canonical receipt schema v1.1, state TESTED; Retardio loop hash-chained v1.1 receipts</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>VERIFICATION</td><td>Receipts checked, chain verified</td><td>Receipt chain verifier in unified-chain; on-chain anchor v2, root afd56cea, 235 leaves, chain VALID</td><td><span class="state">LIVE</span></td></tr>
+<tr><td>OUTCOME</td><td>Result observed in the world</td><td>Retardio loop forecasts: 25 observations, 20 rapid-flip forecasts, all UNRESOLVED on 2026-11-18; Brier not yet computable</td><td><span class="state">UNKNOWN</span></td></tr>
+<tr><td>LEARNING</td><td>Outcome feeds back into rules</td><td>Learning loop inside the Retardio loop: propose a rule change, score it against resolved forecasts, accept or reject it, receipt the decision; state IMPLEMENTED; no resolved forecasts yet, so no rule change has been scored</td><td><span class="state">IMPLEMENTED</span></td></tr>
+</tbody>
+</table>
+<p><strong>The P0 seam.</strong> The known break in the loop is the automatic handoff at receipt watcher, Sentinel invocation, and result ingest. The reference implementation is the P0 seam reference loop, demo at <a href="https://neuruhai.github.io/neuruh-demos/p0-seam-loop/">p0-seam-loop</a>, state TESTED, 33 of 33 Node tests passing. The production Mac loop (launchd ticks, always-running Switchboard, loopback Sentinel organ at 127.0.0.1:18731) is BLOCKED: it cannot be reached from this VM, and a prepared work order exists for execution on Jeramie's Mac. The Unified Chain is the 9-stage flagship demo of the loop in one page (ingest, N-Cell/64 header, governance intersection, memory write-gate, CRUCIBLE verdict, SHA-256 receipt, and more), live at <a href="https://neuruhai.github.io/neuruh-demos/unified-chain/">unified-chain</a>, state LIVE, browser-verified. It is a demo of the loop, not the production loop.</p>
+<p><strong>What runs for real, on 2026-11-18.</strong> The Retardio loop is real Python at <code>~/workspace/retardio-loop/</code>, state LIVE, cron <code>retardio-loop-daily</code> daily at 07:23 America/Detroit. It reads live ArcGIS data, issues forecasts, dedups against prior state, runs the promotion gate and kill switch, and writes hash-chained canonical v1.1 receipts. The lead pull, by contrast, has failed 33 straight nights as of the 2026-11-17 evening log, and the pipeline is 8 of 50. Both facts are recorded; neither cancels the other.</p>
+</section>
+
+<section id="s12-convergence">
+<h2>12. The convergence graph</h2>
+<p><strong>What it is.</strong> The convergence graph connects the organ registry, current gates, DeedSonar, commercial proof, runtime promotion, and learning into one dependency system. It is the graph view of the architecture: entities with relationships, dependencies, state, authority, provenance, consumers, outputs, receipts, and outcomes. The canonical statement is Notion Chapter 35, <a href="https://app.notion.com/p/3d3a981d75b6813b8dc0ea4d1309ec68?pvs=204">CHAPTER 35, Master Dependency DAG, How the Whole Organism Moves From Intent to Outcome</a>, state LIVE.</p>
+<figure class="fig">
+<svg viewBox="0 0 820 200" role="img" aria-label="Convergence graph diagram">
+<rect x="10" y="10" width="800" height="180" fill="#fbfaf6" stroke="#d8d2c4"/>
+<text x="410" y="36" text-anchor="middle" font-family="Archivo, sans-serif" font-size="14" font-weight="700" fill="#1c1a16">FIGURE 2. THE CONVERGENCE GRAPH</text>
+<text x="410" y="62" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4a463d">ORGAN REGISTRY --&gt; GATES --&gt; DEEDSONAR --&gt; COMMERCIAL PROOF</text>
+<text x="410" y="82" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#4a463d">RUNTIME PROMOTION --&gt; LEARNING --&gt; ORGAN REGISTRY</text>
+<text x="410" y="112" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#4a463d">One graph, every system connected. A node with no edge is a</text>
+<text x="410" y="130" text-anchor="middle" font-family="Inter, sans-serif" font-size="12" fill="#4a463d">buried process or a duplicate. A gate with no receipt is a claim.</text>
+<text x="410" y="160" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#9a7b2d">CONVERGENCE-100: DONE 83, BLOCKED 10, NOT IMPLEMENTED 7</text>
+</svg>
+<figcaption><b>Figure 2.</b> The convergence graph as defined by Chapter 35 and rendered by the Convergence Graph Visuals demo. Totals are Convergence-100 totals, audit date 2026-11-18.</figcaption>
+</figure>
+<p><strong>Where it lives.</strong> Demo: <a href="https://neuruhai.github.io/neuruh-demos/convergence-graph-visuals/">convergence-graph-visuals</a>, state LIVE. Also: <a href="https://neuruhai.github.io/neuruh-demos/dag-live-demo/">dag-live-demo</a>, state LIVE, thirteen DAGs wired into one dependency system. Notion Chapter 35, LIVE, local mirror <code>~/workspace/neuruh-obsidian-vault/11-Notion/Topology-Notebook/CH35-master-dependency-dag.md</code>.</p>
+<p><strong>Convergence-100.</strong> The hardening program is 100 sequenced items in seven groups (1 to 15 base, 16 to 30 observation, 31 to 45 forecasts and Brier, 46 to 60 authority and gates, 61 to 75 learning and promotion, 76 to 90 receipts and Merkle, 91 to 100 convergence). Totals after the audit, 2026-11-18: DONE 83, BLOCKED 10, NOT IMPLEMENTED 7. Real code finished 30 of the 43 formerly not-implemented items in <code>~/workspace/convergence-100/</code>, state TESTED, test suite <code>run_tests.py</code> 91 of 91 passing. The 10 blocked items include the founder chain pick, 30 days of stable receipts until about Dec 15, a frozen manifest-v2 parent decision, a source lacking formation dates and cash status, and a first real Brier months away.</p>
+<p><strong>What convergence means here.</strong> Recover before rebuilding, reconcile before duplicating, repair before replacing. A convergence item is DONE only when the code, the test, the receipt, and the registry entry all exist. The Master Convergence Diagram (36 cards on the canon, Notion, LIVE) and the Merge-First Convergence chapter (Chapter 47, Notion, LIVE) state the same rule from the canon side: what must close before new build expansion.</p>
+</section>
+
+<section id="s13-master-map">
+<h2>13. The Master Map: 1,103 records</h2>
+<p><strong>What it is.</strong> The Neuruh Master Map is one live interactive page where everything built can be seen. It renders client-side from <code>master-map.json</code>, a copy of the Retardio Library <code>seed-index.json</code> deployed alongside the page. Search across titles and summaries; filters by chapter, by state, and by has-live-link or no-live-link; 19 collapsible chapter sections. The counter always shows how many records are displayed out of the total.</p>
+<p><strong>Where it lives.</strong> Live: <a href="https://neuruhai.github.io/neuruh-demos/master-map/">https://neuruhai.github.io/neuruh-demos/master-map/</a>. Local: <code>~/workspace/master-map/index.html</code> and <code>~/workspace/master-map/master-map.json</code>. Version: Master Map v1.1, 2026-11-18. Seed record: <code>master-map</code>.</p>
+<p><strong>State: <span class="state">LIVE</span>.</strong> The page returned HTTP 200 in the 2026-11-18 audit. The live-browser click test over the Master Map itself is still owed, as recorded on the page.</p>
+<h3>13.1 State counts, verified from the source file</h3>
+<p>Counts below were computed from <code>~/workspace/retardio-library/seed-index.json</code> (1,103 records) for this document, and match the Master Map state table of 2026-11-18. Live links: 663 records have a live URL, 440 do not.</p>
+<table>
+<thead><tr><th>State</th><th>Records</th></tr></thead>
+<tbody>
+<tr><td>LIVE</td><td>550</td></tr>
+<tr><td>IMPLEMENTED</td><td>174</td></tr>
+<tr><td>UNKNOWN</td><td>161</td></tr>
+<tr><td>BLOCKED</td><td>71</td></tr>
+<tr><td>STALE</td><td>56</td></tr>
+<tr><td>DESIGNED</td><td>40</td></tr>
+<tr><td>CONCEPT</td><td>18</td></tr>
+<tr><td>TESTED</td><td>17</td></tr>
+<tr><td>DEPLOYED</td><td>9</td></tr>
+<tr><td>PROVEN</td><td>7</td></tr>
+<tr><td>COMMERCIAL</td><td>0</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>1,103</strong></td></tr>
+</tbody>
+</table>
+<h3>13.2 Records by chapter</h3>
+<table>
+<thead><tr><th>Chapter</th><th>Records</th></tr></thead>
+<tbody>
+<tr><td>11-commercial</td><td>205</td></tr>
+<tr><td>12-defense-research</td><td>137</td></tr>
+<tr><td>06-tools</td><td>107</td></tr>
+<tr><td>17-systems-organism</td><td>105</td></tr>
+<tr><td>19-drive-estate</td><td>88</td></tr>
+<tr><td>13-content-media</td><td>83</td></tr>
+<tr><td>05-build</td><td>65</td></tr>
+<tr><td>07-agentic</td><td>56</td></tr>
+<tr><td>14-social-community</td><td>46</td></tr>
+<tr><td>18-notion-canon</td><td>46</td></tr>
+<tr><td>10-frameworks</td><td>39</td></tr>
+<tr><td>09-memory</td><td>38</td></tr>
+<tr><td>15-proof-receipts</td><td>22</td></tr>
+<tr><td>02-marketing</td><td>20</td></tr>
+<tr><td>16-governance</td><td>19</td></tr>
+<tr><td>08-communication</td><td>10</td></tr>
+<tr><td>04-processes</td><td>7</td></tr>
+<tr><td>01-design</td><td>5</td></tr>
+<tr><td>03-advertising</td><td>5</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>1,103</strong></td></tr>
+</tbody>
+</table>
+<p><strong>Reading the counts.</strong> LIVE is the largest state at 550, and most of those LIVE records are browser demos and simulations, not production services. COMMERCIAL is 0. That is the money spine in one line: much is live as a page, nothing is commercial as a sale. The 440 records with no live link are the findability gap: they exist in the library and in Notion or Drive, but not as a page Jeramie can open.</p>
+</section>
+
+<section id="s14-hub">
+<h2>14. The Hub: the live front door to the registry</h2>
+<p><strong>What it is.</strong> The Neuruh Hub is the master map of the whole estate as live sites: every live Neuruh site in one place, with the deal stack, the workbenches, the research series, and the method tools. It is the front door to the registry, not the registry itself.</p>
+<p><strong>Where it lives.</strong> Live: <a href="https://neuruh-hub.pages.dev/">https://neuruh-hub.pages.dev/</a>. Cloudflare project <code>neuruh-hub</code> (with the u). The project <code>neurh-hub</code> (no u) is a stray empty duplicate from a 2026-11-03 deploy to the misrecorded name; it stays until Jeramie calls for its deletion. Local: <code>~/workspace/neuruh-hub-site</code>.</p>
+<p><strong>State: <span class="state">LIVE</span>.</strong> Hub v2.97, 2026-11-18, 301 total sites, verified 2026-11-18 with all 258 unique hub links HTTP 200, card counts re-audited by element count (264 site cards; Section A 74, Section E 82). The hub is updated by the coordinator; this document does not update it.</p>
+<div class="callout">
+<p><strong>Discrepancy, flagged not hidden.</strong> The Master Map page (v1.1, 2026-11-18) still says the hub is v2.85 and holds 238 site cards. The live hub, read for this document, is v2.97 with 301 total sites. The Master Map page text is stale on the hub version; the live hub is the current figure. The seed index entry for the hub also records v2.85. All three should be re-synced on the next hub and Master Map refresh.</p>
+</div>
+</section>
+
+<section id="s15-drive-source">
+<h2>15. The Drive source folder: what was actually read</h2>
+<p>The Drive folder that names this document is <a href="https://drive.google.com/drive/folders/1hq6QB5wEwTeshcZOQo5HzA-yWmnVe-sn">Personal OS, Canonical Architecture and Registry</a>, modified 2026-08-30. It holds 2 files, 0 subfolders, per the Drive inventory (<code>~/workspace/drive-pull/inventory.md</code>, section for that folder).</p>
+<table>
+<thead><tr><th>File</th><th>Type</th><th>Date</th><th>Size</th><th>What was read</th></tr></thead>
+<tbody>
+<tr><td><a href="https://docs.google.com/document/d/140oISY3vr34LrOxe8TLTGdtkqUv0AbexV0oBTmpkABc/edit?usp=drivesdk">Personal OS: Canonical Architecture, Schema and System Index</a></td><td>Google Doc</td><td>2026-08-30</td><td>7.0KB</td><td>Inventory listing only; contents NOT read in full</td></tr>
+<tr><td><a href="https://docs.google.com/spreadsheets/d/14gZhJW_Vt6rFyAx5oP9yhTTW9Am0YAiJHyrKFtlEW-o/edit?usp=drivesdk">Personal OS: Master Asset and Manifest Registry</a></td><td>Google Sheet</td><td>2026-08-30</td><td>4.1KB</td><td>Inventory listing only; contents NOT read in full</td></tr>
+</tbody>
+</table>
+<p><strong>State: <span class="state">BLOCKED</span>.</strong> The two source files were inventoried and summarized, not read in full. Drive docs in the 2026-11-18 pull were inventoried, not read in full, and these two were not among the 11 docs read in full. Nothing in this document is claimed from their contents. If either file holds an architecture or a registry that contradicts this document, that contradiction is open until the file is read. The Google Sheets and Slides reconnect is also blocked on Jeramie for 71 blocked Drive files, and may affect access to the sheet.</p>
+<p><strong>What this document is grounded on instead.</strong> The Retardio Library seed index (1,103 records, read in full as the index and verified by count from the JSON), the library chapters for systems-organism, governance, Notion canon, memory, proof and receipts, frameworks, and agentic, the Drive inventory and the conflict resolutions (read in full), the live hub, and the live Master Map page. The architecture in sections 10 to 12 is grounded on the Neuruh model and the Topology Notebook chapters cited there, not on the two unread Drive files.</p>
+</section>
+
+<section id="s16-blocked">
+<h2>16. Blocked and Unknown register</h2>
+<p>Every item this document could not ground, with the reason. Nothing here is filled with a plausible default.</p>
+<table>
+<thead><tr><th>Item</th><th>State</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td>Contents of the two Personal OS Drive source files</td><td><span class="state">BLOCKED</span></td><td>Inventoried only, not read in full; see section 15</td></tr>
+<tr><td>OS label: sovereign intelligence vs operating system</td><td><span class="state">BLOCKED</span></td><td>Open conflict, founder decision owed; see Read first</td></tr>
+<tr><td>Exact repo count for the NRH estate</td><td><span class="state">UNKNOWN</span></td><td>About 100 visible in the NeuruhAI org plus a larger personal estate; no verified single count; working range 140 to 215</td></tr>
+<tr><td>IP Registry entry count</td><td><span class="state">UNKNOWN</span></td><td>Query Data Source hit its usage limit 2026-11-18, not retried</td></tr>
+<tr><td>Dev Log Master Project Registry entry count</td><td><span class="state">UNKNOWN</span></td><td>Same query limit, 2026-11-18, not retried</td></tr>
+<tr><td>Atomic Node Registry deployment</td><td><span class="state">UNKNOWN</span></td><td>Code pack is deploy-ready on a live Notion page; no deployment, repo, or live URL recorded</td></tr>
+<tr><td>Sentinel production verdict system</td><td><span class="state">BLOCKED</span></td><td>Per the 2026-09-25 organism autonomy audit; verdict closure not proven</td></tr>
+<tr><td>Deployment executor</td><td><span class="state">BLOCKED</span></td><td>Per the 2026-09-25 audit</td></tr>
+<tr><td>Armed scheduler</td><td><span class="state">BLOCKED</span></td><td>No live service recorded</td></tr>
+<tr><td>Production Mac loop (P0 seam, live)</td><td><span class="state">BLOCKED</span></td><td>On Jeramie's Mac, unreachable from this VM; prepared work order exists</td></tr>
+<tr><td>CRUCIBLE canonical implementation</td><td><span class="state">UNKNOWN</span></td><td>Three implementations, never merged; no canonical one settled in the sources read</td></tr>
+<tr><td>Chain write (on-chain anchor)</td><td><span class="state">BLOCKED</span></td><td>Pending the founder chain and wallet choice; anchor v2 root afd56cea, 235 leaves, chain VALID</td></tr>
+<tr><td>Lead Recipe OS registry</td><td><span class="state">BLOCKED</span></td><td>Production Supabase blocked; lead pull failed 33 straight nights as of the 2026-11-17 evening log</td></tr>
+<tr><td>Retardio loop outcomes (Brier)</td><td><span class="state">UNKNOWN</span></td><td>25 observations, 20 forecasts, all UNRESOLVED on 2026-11-18; Brier not yet computable</td></tr>
+<tr><td>LandOS signal count</td><td><span class="state">UNKNOWN</span></td><td>49 vs 50 dispute, open in the seed index</td></tr>
+<tr><td>N-Cell position paper live URL</td><td><span class="state">UNKNOWN</span></td><td>Not verified in the sources read</td></tr>
+<tr><td>N-Cell header on the Neuruh Source proof packet</td><td><span class="state">BLOCKED</span></td><td>Packet authorized by the legacy founder token, not a live N-Cell header; policy v2 decision open</td></tr>
+<tr><td>Live-browser click test on the Master Map</td><td><span class="state">BLOCKED</span></td><td>Still owed, as recorded on the Master Map page itself</td></tr>
+<tr><td>Hub vs Master Map version sync</td><td><span class="state">BLOCKED</span></td><td>Master Map page says hub v2.85, 238 cards; live hub is v2.97, 301 total; re-sync owed</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="s17-sources">
+<h2>17. Sources, update rule, and how to use this document</h2>
+<h3>Sources read in full for this document</h3>
+<ul>
+<li>Retardio Library seed index, <code>~/workspace/retardio-library/seed-index.md</code> and <code>seed-index.json</code>, 1,103 records, audit date 2026-11-18. State and chapter counts in section 13 were computed from the JSON for this document.</li>
+<li>Retardio Library chapters: 17-systems-organism, 16-governance, 18-notion-canon, 09-memory, 15-proof-receipts, 10-frameworks, 07-agentic, 19-drive-estate, 00-audit.</li>
+<li>Drive inventory, <code>~/workspace/drive-pull/inventory.md</code>, including the Personal OS folder section (2 files, 2026-08-30).</li>
+<li>Drive conflict resolutions, <code>~/workspace/drive-pull/conflict-resolutions.md</code>, 9 rulings, 2026-11-18.</li>
+<li>Live hub, <a href="https://neuruh-hub.pages.dev/">https://neuruh-hub.pages.dev/</a>, v2.97, read 2026-11-19 00:11 UTC, version dated 2026-11-18.</li>
+<li>Live Master Map, <a href="https://neuruhai.github.io/neuruh-demos/master-map/">https://neuruhai.github.io/neuruh-demos/master-map/</a>, v1.1, 2026-11-18.</li>
+<li>Neuruh model, organism topology, and execution loop as stated in the Neuruh identity and operating doctrine (DATA to LEARNING; mission to deployment control chain).</li>
+</ul>
+<h3>Sources not read in full</h3>
+<ul>
+<li>The two Personal OS Drive source files (section 15). Their contents are not cited anywhere in this document.</li>
+<li>Drive docs generally: inventoried and summarized in the 2026-11-18 pull, not read in full, except the 11 docs read in full for that pull. No claim in this document rests on an unread Drive doc.</li>
+</ul>
+<h3>Update rule</h3>
+<p>Update the canonical source first, then this document. The canonical sources are the Retardio Library seed index, the Notion Topology Notebook and Mission Registry, and the registries themselves. When a registry entry count is re-queried, when a BLOCKED item clears, or when Jeramie decides the OS label conflict, update the state in this document with the new audit date and the evidence (URL, commit, receipt, or query result). Do not update a state from memory. Do not create a duplicate master document: this is the one architecture and registry spine document, and the frameworks document and the agents document are its siblings, not its copies.</p>
+<h3>How to use this document</h3>
+<p>Find a thing by its registry in sections 3 to 9, follow the live link or the local path, and check its state before using it. Find a process by the loop in section 11, and check the P0 seam before assuming the loop runs end to end. Find everything at once in the Master Map (section 13) and the Hub (section 14). If a number has no audit date, treat it as ungrounded.</p>
+</section>
+
+<hr>
+<footer class="footer">
+<p>PERSONAL OS CANONICAL ARCHITECTURE AND REGISTRY v1.0 &middot; Audit date 2026-11-18 &middot; Owner Jeramie Hicks / Neuruh &middot; Local source ~/workspace/personal-os-canonical-architecture-registry/index.html</p>
+<p>Cross-links: Frameworks, doc 7, https://neuruhai.github.io/neuruh-demos/frameworks-neuruh-master/ &middot; Agents, doc 10, https://neuruhai.github.io/neuruh-demos/ai-agents-neuruh-master/ &middot; Master Map, https://neuruhai.github.io/neuruh-demos/master-map/ &middot; Hub, https://neuruh-hub.pages.dev/</p>
+<p>Honesty lines: MRR $0. COMMERCIAL 0. DeedSonar down (503 DEPLOYMENT_PAUSED). Simulations labeled simulations. DESIGNED is not DEPLOYED is not LIVE is not PROVEN.</p>
+</footer>
+</div>
+</body>
+</html>
