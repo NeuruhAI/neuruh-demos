@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frameworks Neuruh Master</title>
+<meta name="description" content="The Neuruh frameworks master: the framework catalog, QECA, Lead Recipe OS, and the Neuruh execution loop, each entry broken down by what it is, what it does, where it lives, and its state on the ladder. Audit date 2026-11-18.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f6f2e8;--surface:#fffdf6;--surface2:#efe9d8;--ink:#1a1712;--muted:#6b6355;--brass:#8f6f1f;--brass-soft:#b08d2e;--border:#d8d0bd;--red:#9c2b1e;--green:#3d6b35;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15.5px;line-height:1.62;}
+a{color:var(--brass);text-decoration:underline;text-underline-offset:2px}
+a:hover{color:#6d5515}
+h1,h2,h3,h4{font-family:Archivo,Inter,sans-serif;line-height:1.2;margin:0}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.86em}
+.wrap{max-width:1020px;margin:0 auto;padding:0 22px 80px}
+.topbar{border-bottom:3px solid var(--ink);padding:14px 0 10px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.topbar b{color:var(--ink)}
+header.doc{padding:34px 0 8px;border-bottom:1px solid var(--border)}
+.kicker{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin-bottom:10px}
+h1{font-size:44px;font-weight:800;letter-spacing:-.01em}
+.subtitle{font-size:18px;color:var(--muted);max-width:760px;margin-top:12px}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin:26px 0}
+.meta div{background:var(--surface);padding:12px 14px}
+.meta dt{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.meta dd{margin:0;font-size:14px;font-weight:600}
+.honesty{background:var(--surface2);border-left:4px solid var(--brass);padding:16px 18px;margin:22px 0;font-size:14.5px}
+.honesty b{font-family:Archivo,sans-serif}
+nav.contents{background:var(--surface);border:1px solid var(--border);padding:20px 24px;margin:26px 0}
+nav.contents h2{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:12px}
+nav.contents ol{margin:0;padding-left:22px;columns:2;column-gap:40px}
+nav.contents li{margin-bottom:6px;font-size:14.5px}
+section{margin-top:52px}
+.secnum{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.16em;color:var(--brass);text-transform:uppercase}
+h2.sec{font-size:28px;margin:8px 0 12px;padding-bottom:10px;border-bottom:2px solid var(--ink)}
+h3.entry{font-size:20px;margin:34px 0 4px}
+h3.entry .tag{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;vertical-align:middle;margin-left:8px;padding:2px 8px;border:1px solid currentColor;border-radius:2px}
+.lede{font-size:16.5px;color:#33302a;max-width:820px}
+p{margin:0 0 12px}
+ul,ol{margin:0 0 14px;padding-left:24px}
+li{margin-bottom:5px}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;background:var(--surface)}
+th,td{border:1px solid var(--border);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:var(--surface2);font-family:Archivo,sans-serif;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+.state{font-family:"JetBrains Mono",monospace;font-size:11.5px;font-weight:600;white-space:nowrap}
+.st-live{color:var(--green)} .st-blocked{color:var(--red)} .st-designed{color:#7a5c00} .st-impl{color:#2c4f86} .st-unknown{color:var(--muted)}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:0;border:1px solid var(--border);background:var(--surface);margin:12px 0 6px}
+.kv dt{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.kv dd{margin:0;padding:10px 14px;border-bottom:1px solid var(--border);font-size:14.5px}
+.kv dt:last-of-type,.kv dd:last-of-type{border-bottom:0}
+figure{margin:22px 0;background:var(--surface);border:1px solid var(--border);padding:18px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
+figcaption b{color:var(--ink)}
+.callout{border:1px solid var(--border);border-left:4px solid var(--red);background:var(--surface);padding:14px 18px;margin:18px 0}
+.callout.blue{border-left-color:#2c4f86}
+.small{font-size:13.5px;color:var(--muted)}
+footer{margin-top:60px;border-top:2px solid var(--ink);padding-top:16px;font-size:13.5px;color:var(--muted)}
+@media(max-width:640px){h1{font-size:32px}.meta{grid-template-columns:repeat(2,1fr)}nav.contents ol{columns:1}.kv{grid-template-columns:1fr}.kv dt{border-bottom:0;padding-bottom:0}}
+@media print{body{background:#fff}nav.contents{break-inside:avoid}section{break-inside:avoid-page}figure{break-inside:avoid}a{color:#000}.wrap{max-width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar"><span><b>Neuruh</b> / Master Documents</span><span>Doc. No. NRH-DOC-FW-MASTER-001</span><span>Rev. 1.0</span><span>Audit date 2026-11-18</span></div>
+<header class="doc">
+<div class="kicker">Neuruh Master Document</div>
+<h1>Frameworks Neuruh Master</h1>
+<p class="subtitle">The frameworks catalog, QECA, Lead Recipe OS, and the Neuruh execution loop. Every entry is broken down by what it is, what it does, where it lives, and its state on the ladder. Coverage is audited, never assumed. Where the estate has no code, test, or receipt for a framework, this document says so plainly.</p>
+<dl class="meta">
+<div><dt>Slug</dt><dd>frameworks-neuruh-master</dd></div>
+<div><dt>Audit date</dt><dd>2026-11-18</dd></div>
+<div><dt>Entries covered</dt><dd>43</dd></div>
+<div><dt>Owner</dt><dd>Jeramie Hicks</dd></div>
+<div><dt>Catalog claim</dt><dd>31 frameworks</dd></div>
+<div><dt>Atlas named</dt><dd>20 of 31</dd></div>
+<div><dt>Unnamed in source</dt><dd>11, not invented</dd></div>
+<div><dt>Commercial items</dt><dd>0</dd></div>
+</dl>
+<div class="honesty"><b>Honesty lines, read first.</b> DESIGNED is not DEPLOYED is not LIVE is not PROVEN. A browser page that runs only in the browser is labeled SIMULATION, never a running production system. MRR is $0. DeedSonar is down (503 DEPLOYMENT_PAUSED, last verified 2026-11-04). No dollar valuation appears in this document, because there is no recurring revenue. Every public number in this document carries the audit date 2026-11-18. Anything that could not be verified from a source read for this document is marked UNKNOWN or BLOCKED with the reason, never filled with a plausible default.</div>
+</header>
+<nav class="contents" aria-label="Contents">
+<h2>Contents</h2>
+<ol>
+<li><a href="#s1">How to read this document</a></li>
+<li><a href="#s2">Coverage audit: the 31-framework claim</a></li>
+<li><a href="#s3">The Neuruh execution loop</a></li>
+<li><a href="#s4">The organism control chain</a></li>
+<li><a href="#s5">The named frameworks and organism roles</a></li>
+<li><a href="#s6">QECA</a></li>
+<li><a href="#s7">Lead Recipe OS and the recipe system</a></li>
+<li><a href="#s8">Further frameworks from the atlas and codex</a></li>
+<li><a href="#s9">State tally, audit date 2026-11-18</a></li>
+<li><a href="#s10">Blocked and Unknown register</a></li>
+<li><a href="#s11">Sources</a></li>
+</ol>
+</nav>
+<section id="s1">
+<div class="secnum">Section 1</div>
+<h2 class="sec">How to read this document</h2>
+<p class="lede">This is a master document, not a pitch. Its job is to state, for each framework, what is known, where the evidence lives, and what is still missing. A framework is covered by four questions, in the same order, every time.</p>
+<dl class="kv">
+<dt>What it is</dt><dd>The definition as the source states it. If the source is a one-line name only, the entry says so.</dd>
+<dt>What it does</dt><dd>The function as the source states it. If no function is stated anywhere in the sources read, the entry says UNKNOWN, not a guess.</dd>
+<dt>Where it lives</dt><dd>A live URL, a local path, a repo name, or a named document. If none exists on record, the entry says so.</dd>
+<dt>State</dt><dd>One rung on the ladder below, as of the audit date 2026-11-18.</dd>
+</dl>
+<h3>State ladder</h3>
+<table>
+<tr><th>State</th><th>Meaning in this document</th></tr>
+<tr><td><span class="state">CONCEPT</span></td><td>Named idea only, no design written.</td></tr>
+<tr><td><span class="state st-designed">DESIGNED</span></td><td>A design, paper, or specification exists. No running code is evidenced.</td></tr>
+<tr><td><span class="state st-impl">IMPLEMENTED</span></td><td>Code or a working local build exists. Not deployed as a service, not live.</td></tr>
+<tr><td><span class="state st-impl">TESTED</span></td><td>Code exists and a test suite or check has been run against it, with the result on record.</td></tr>
+<tr><td><span class="state st-live">LIVE</span></td><td>Reachable at a live URL or running on a schedule. A browser-only page is marked LIVE (simulation).</td></tr>
+<tr><td><span class="state st-live">PROVEN</span></td><td>Live operation demonstrated with receipts. Only one historical run in this document reaches PROVEN, and it is historical, not current.</td></tr>
+<tr><td><span class="state">COMMERCIAL</span></td><td>Taking money. Zero entries in this document reach COMMERCIAL.</td></tr>
+<tr><td><span class="state st-blocked">BLOCKED</span></td><td>Known, named blocker stops it. The reason and what would unblock it are stated.</td></tr>
+<tr><td><span class="state st-unknown">UNKNOWN</span></td><td>No source read for this document states a function or a state. Named only.</td></tr>
+</table>
+<p class="small">Rules applied throughout: implemented is not deployed is not live is not proven. A simulation is labeled a simulation. SWARM 5,150 is a historical logical-agent design target across 7 legions, never 5,150 live sessions. Full continuous autonomous production execution has not been proven anywhere in the estate; the honest framing is governed, supervised execution with receipts.</p>
+</section>
+
+<section id="s2">
+<div class="secnum">Section 2</div>
+<h2 class="sec">Coverage audit: the 31-framework claim</h2>
+<p>The catalog claim comes from the Neuruh Ecosystem Codex (NRH-DOC-CODEX-001 rev A): 31 named IP frameworks. The Framework Atlas, built 2026-11-14 from the codex Volume VI IP Framework Register, maps <b>20 of the 31</b>. The other <b>11 are unnamed in the source and are not invented</b> in the atlas or in this document. The codex source itself is stale (audit 2026-06-30), so the 31 count is a source claim, not an independently verified count.</p>
+<p>The Retardio Library chapter 10-frameworks, audit date 2026-11-18, holds 39 records with states BLOCKED 1, DESIGNED 6, IMPLEMENTED 3, LIVE 19, STALE 1, UNKNOWN 9. That chapter mixes frameworks, demos, filings, and folders, so its 39 is not a framework count.</p>
+<p>This document covers <b>43 entries</b>: the 17 frameworks and organism roles named in the brief, QECA, Lead Recipe OS, and 24 further frameworks and framework tools from the atlas, chapter 10, and the segment inventories. The 43 exceeds 31 because this document also covers organism roles (BOB, Richie, Vibin, Laric, Prime, Switch, Sentinel, Honey, Tinka) and adjacent framework documents (Doc 7, Doc 3, Tree-Logic) that the codex count does not necessarily include. The gap is stated, not hidden: 11 of the 31 claimed frameworks remain unnamed in every source read, and this document does not pretend to name them.</p>
+<table>
+<tr><th>Coverage</th><th>Count</th><th>Note</th></tr>
+<tr><td>Frameworks claimed by the Ecosystem Codex</td><td>31</td><td>Source claim, codex audit 2026-06-30, stale</td></tr>
+<tr><td>Named and mapped in the Framework Atlas</td><td>20</td><td>Live at framework-atlas, built 2026-11-14, SIMULATION</td></tr>
+<tr><td>Claimed but unnamed in the source</td><td>11</td><td>Not invented in the atlas or here</td></tr>
+<tr><td>Entries in this document</td><td>43</td><td>17 brief items plus QECA, Lead Recipe OS, and 24 further entries</td></tr>
+<tr><td>Chapter 10-frameworks records</td><td>39</td><td>Frameworks plus demos, filings, and folders</td></tr>
+<tr><td>Seed records in the Retardio Library index</td><td>1,041</td><td>Across 19 chapters, audit date 2026-11-18</td></tr>
+</table>
+</section>
+
+<section id="s3">
+<div class="secnum">Section 3</div>
+<h2 class="sec">The Neuruh execution loop</h2>
+<p class="lede">The loop is the spine every framework in this document serves. It is stated in the Neuruh identity record as a fourteen-stage flow from data to learning. Figure 1 shows it as the source defines it. Figure 1 is a definition, not a claim that the loop runs end to end today. The handoff that would close it automatically is the P0 seam, and the P0 seam is BLOCKED (Section 10).</p>
+<figure>
+<svg viewBox="0 0 960 240" role="img" aria-label="Neuruh execution loop diagram, fourteen stages in two rows with a return arrow from Learning to Data">
+<defs><style>.b{fill:#fffdf6;stroke:#8f6f1f;stroke-width:1.5}.t{font:600 12px Inter,sans-serif;fill:#1a1712;text-anchor:middle}.n{font:600 10px JetBrains Mono,monospace;fill:#8f6f1f;text-anchor:middle}.a{stroke:#8f6f1f;stroke-width:1.5;fill:none;marker-end:url(#ah)}text{font-family:Inter,sans-serif}</style><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#8f6f1f" stroke-width="1.2"/></marker></defs>
+<g><rect class="b" x="8" y="20" width="122" height="52" rx="3"/><text class="n" x="69" y="40">01</text><text class="t" x="69" y="58">DATA</text></g>
+<g><rect class="b" x="142" y="20" width="122" height="52" rx="3"/><text class="n" x="203" y="40">02</text><text class="t" x="203" y="58">INGEST</text></g>
+<g><rect class="b" x="276" y="20" width="122" height="52" rx="3"/><text class="n" x="337" y="40">03</text><text class="t" x="337" y="58">NORMALIZE</text></g>
+<g><rect class="b" x="410" y="20" width="122" height="52" rx="3"/><text class="n" x="471" y="40">04</text><text class="t" x="471" y="58">IDENTITY</text></g>
+<g><rect class="b" x="544" y="20" width="122" height="52" rx="3"/><text class="n" x="605" y="40">05</text><text class="t" x="605" y="58">SIGNALS</text></g>
+<g><rect class="b" x="678" y="20" width="122" height="52" rx="3"/><text class="n" x="739" y="40">06</text><text class="t" x="739" y="58">CANDIDATES</text></g>
+<g><rect class="b" x="812" y="20" width="122" height="52" rx="3"/><text class="n" x="873" y="40">07</text><text class="t" x="873" y="58">RECIPES</text></g>
+<g><rect class="b" x="8" y="120" width="122" height="52" rx="3"/><text class="n" x="69" y="140">08</text><text class="t" x="69" y="158">RANKING</text></g>
+<g><rect class="b" x="142" y="120" width="122" height="52" rx="3"/><text class="n" x="203" y="140">09</text><text class="t" x="203" y="158">DECISION</text></g>
+<g><rect class="b" x="276" y="120" width="122" height="52" rx="3"/><text class="n" x="337" y="140">10</text><text class="t" x="337" y="158">GOVERNED ACTION</text></g>
+<g><rect class="b" x="410" y="120" width="122" height="52" rx="3"/><text class="n" x="471" y="140">11</text><text class="t" x="471" y="158">RECEIPT</text></g>
+<g><rect class="b" x="544" y="120" width="122" height="52" rx="3"/><text class="n" x="605" y="140">12</text><text class="t" x="605" y="158">VERIFICATION</text></g>
+<g><rect class="b" x="678" y="120" width="122" height="52" rx="3"/><text class="n" x="739" y="140">13</text><text class="t" x="739" y="158">OUTCOME</text></g>
+<g><rect class="b" x="812" y="120" width="122" height="52" rx="3"/><text class="n" x="873" y="140">14</text><text class="t" x="873" y="158">LEARNING</text></g>
+<path class="a" d="M130,46 H142 M264,46 H276 M398,46 H410 M532,46 H544 M666,46 H678 M800,46 H812 M873,72 V120 M812,146 H800 M678,146 H666 M544,146 H532 M410,146 H398 M276,146 H264 M142,146 H130 M69,120 V72 M69,72 H8 M8,72 V46" />
+</svg>
+<figcaption><b>Figure 1. The Neuruh execution loop.</b> Fourteen stages as defined in the Neuruh identity record: DATA, INGEST, NORMALIZE, IDENTITY, SIGNALS, CANDIDATES, RECIPES, RANKING, DECISION, GOVERNED ACTION, RECEIPT, VERIFICATION, OUTCOME, LEARNING, returning to DATA. The loop is a definition. The automatic handoff between RECEIPT and VERIFICATION (the P0 seam) is BLOCKED, so today the loop closes only through supervised, human-carried steps, not on its own.</figcaption>
+</figure>
+<table>
+<tr><th>Stage</th><th>What happens</th><th>Framework that carries it</th><th>Stage state</th></tr>
+<tr><td>01 DATA</td><td>Raw source material is acquired.</td><td>LANDOS ingest</td><td><span class="state st-impl">IMPLEMENTED</span></td></tr>
+<tr><td>02 INGEST</td><td>Sources are pulled and held with provenance.</td><td>LANDOS ingest, LANDOS National Ingest</td><td><span class="state st-impl">IMPLEMENTED</span></td></tr>
+<tr><td>03 NORMALIZE</td><td>Records are put into a canonical schema.</td><td>LANDOS National Ingest</td><td><span class="state st-impl">IMPLEMENTED</span></td></tr>
+<tr><td>04 IDENTITY</td><td>Owner, estate, human, and deceased-owner states are distinguished.</td><td>Estate-identity layer</td><td><span class="state st-impl">IMPLEMENTED</span></td></tr>
+<tr><td>05 SIGNALS</td><td>Distress and opportunity signals are extracted.</td><td>LANDOS engine (50 signals)</td><td><span class="state st-blocked">BLOCKED</span></td></tr>
+<tr><td>06 CANDIDATES</td><td>Signals become candidate opportunities.</td><td>LANDOS engine</td><td><span class="state st-blocked">BLOCKED</span></td></tr>
+<tr><td>07 RECIPES</td><td>Repeatable acquisition patterns turn signals into qualified opportunities.</td><td>Lead Recipe OS</td><td><span class="state st-blocked">BLOCKED</span></td></tr>
+<tr><td>08 RANKING</td><td>Candidates are scored and ranked with receipts.</td><td>LANDOS engine, recipe engine</td><td><span class="state st-blocked">BLOCKED</span></td></tr>
+<tr><td>09 DECISION</td><td>A ranked candidate is chosen for action.</td><td>Recipe engine, founder approval (G-1)</td><td><span class="state st-impl">IMPLEMENTED</span></td></tr>
+<tr><td>10 GOVERNED ACTION</td><td>Action runs only inside governance gates.</td><td>N-Cell, CRUCIBLE, policy gate</td><td><span class="state st-impl">IMPLEMENTED</span></td></tr>
+<tr><td>11 RECEIPT</td><td>Every important action leaves hash-chained evidence.</td><td>Canonical receipt schema v1.1</td><td><span class="state st-impl">TESTED</span></td></tr>
+<tr><td>12 VERIFICATION</td><td>Receipts are checked; verdicts are issued.</td><td>Sentinel</td><td><span class="state st-blocked">BLOCKED</span></td></tr>
+<tr><td>13 OUTCOME</td><td>Results are recorded against the forecast.</td><td>Retardio loop, Done Ledger</td><td><span class="state st-live">LIVE</span></td></tr>
+<tr><td>14 LEARNING</td><td>Outcomes feed calibration and canon updates.</td><td>LARIC, learning loop</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+</table>
+<p class="small">Stage states are the state of the framework that carries the stage, not a claim about the stage in isolation. The one PROVEN run in the estate sits inside this loop: LANDOS hunt job 6071b7ad, 2026-09-16, scored 153 leads and synchronized 153 to CRM. That is historical run evidence only; it does not prove current live operation, because the lead pull has since failed 33 straight nights as of the 2026-11-17 evening log.</p>
+</section>
+
+<section id="s4">
+<div class="secnum">Section 4</div>
+<h2 class="sec">The organism control chain</h2>
+<p class="lede">The organism chain is the governance view of the same loop: who acts, who checks, and who may promote. The separation that must never be collapsed is stated in the identity record as: AI CAN GENERATE is not AI CAN AUTHORIZE is not AI CAN EXECUTE.</p>
+<figure>
+<svg viewBox="0 0 960 120" role="img" aria-label="Organism control chain diagram">
+<defs><style>.b{fill:#fffdf6;stroke:#8f6f1f;stroke-width:1.5}.t{font:600 11.5px Inter,sans-serif;fill:#1a1712;text-anchor:middle}.a{stroke:#8f6f1f;stroke-width:1.5;fill:none;marker-end:url(#ah2)}text{font-family:Inter,sans-serif}</style><marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#8f6f1f" stroke-width="1.2"/></marker></defs>
+<g><rect class="b" x="6" y="34" width="86" height="46" rx="3"/><text class="t" x="49" y="61">MISSION</text></g>
+<g><rect class="b" x="100" y="34" width="86" height="46" rx="3"/><text class="t" x="143" y="61">CONDUCTOR</text></g>
+<g><rect class="b" x="194" y="34" width="86" height="46" rx="3"/><text class="t" x="237" y="61">WORKER</text></g>
+<g><rect class="b" x="288" y="34" width="86" height="46" rx="3"/><text class="t" x="331" y="61">ACTION</text></g>
+<g><rect class="b" x="382" y="34" width="86" height="46" rx="3"/><text class="t" x="425" y="61">RECEIPT</text></g>
+<g><rect class="b" x="476" y="34" width="86" height="46" rx="3"/><text class="t" x="519" y="61">SENTINEL</text></g>
+<g><rect class="b" x="570" y="34" width="86" height="46" rx="3"/><text class="t" x="613" y="61">GOVERNANCE</text></g>
+<g><rect class="b" x="664" y="34" width="86" height="46" rx="3"/><text class="t" x="707" y="61">CUSTODY</text></g>
+<g><rect class="b" x="758" y="34" width="86" height="46" rx="3"/><text class="t" x="801" y="61">PROMOTION</text></g>
+<g><rect class="b" x="852" y="34" width="102" height="46" rx="3"/><text class="t" x="903" y="61">DEPLOYMENT</text></g>
+<path class="a" d="M92,57 H100 M186,57 H194 M280,57 H288 M374,57 H382 M468,57 H476 M562,57 H570 M656,57 H664 M750,57 H758 M844,57 H852" />
+</svg>
+<figcaption><b>Figure 2. The organism control chain.</b> MISSION, CONDUCTOR, WORKER, ACTION, RECEIPT, SENTINEL, GOVERNANCE, CUSTODY, PROMOTION, DEPLOYMENT, then RESULT, INGEST, and NEXT MISSION. Per the 2026-09-25 autonomy audit: mission STAGED, BOB (conductor) STAGED as a role only, worker PROVEN in harness, receipt PROVEN in harness, event routing PROVEN in-process and MISSING as a bus, Sentinel PROVEN as a seam and BLOCKED on verdicts, governance STAGED, custody PROVEN in harness, promotion PROVEN in tests and STAGED live, deployment MISSING.</figcaption>
+</figure>
+<div class="callout"><b>The P0 seam.</b> The automatic handoff at receipt watcher, Sentinel invocation, and result ingest is the single most important open seam in the estate (P0, 2026-10-18). A reference implementation exists and is TESTED (33 of 33 Node tests pass, p0-seam-loop). The production loop on Jeramie's Mac is BLOCKED: no live-loop proof, launchd ticks and a loopback Sentinel organ at 127.0.0.1:18731 cannot be reached from this VM, and a prepared work order awaits execution on his Mac. The reference loop is explicitly a simulation, not the production loop.</div>
+</section>
+<section id="s5">
+<div class="secnum">Section 5</div>
+<h2 class="sec">The named frameworks and organism roles</h2>
+<p class="lede">The seventeen frameworks and roles named in the brief, in the order given. Roles are included because the brief names them alongside the frameworks; a role is not a framework, and the entry says which it is.</p>
+
+<h3 class="entry">5.1 A.G.E.N.T. Framework <span class="tag state st-designed">DESIGNED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An agent framework whose letters expand to Auto-bundled, Generative, Execution-ready, Niche, Tools. Modular agent composition. It is not listed in the Framework Atlas (20 of 31 frameworks named; 11 gaps unnamed) and is not named in Volume VI of the Ecosystem Codex.</dd>
+<dt>What it does</dt><dd>Defines a five-letter structure for composing agents, a seven-part deployable stack, and three registry rows. The exact content of the seven parts is stated in the lab page, not in a canon document on record here.</dd>
+<dt>Where it lives</dt><dd>Vault note: <code>~/workspace/neurh-obsidian-vault/09-Methods-Frameworks/A.G.E.N.T. Framework.md</code>. Working lab (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/agent-framework-lab/">agent-framework-lab</a>, local source <code>~/workspace/agent-framework-lab/</code> with <code>app.js</code>, <code>index.html</code>, and <code>test-agent-lab.js</code>.</dd>
+<dt>State</dt><dd><span class="state st-designed">DESIGNED</span>. Known from a vault note only. No repo exists for A.G.E.N.T. The lab page states it simulates the stated mechanics and is not the framework running, and is not a port of running code. Two expansions collide in the lab (Auto-bundled vs Auto, per the seed record); the collision is flagged, not resolved.</dd>
+</dl>
+
+<h3 class="entry">5.2 SAL, Stacked Agent Logic <span class="tag state st-impl">IMPLEMENTED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A prompt engineering framework for stacked agent logic. One of the named catalog frameworks. The atlas records its tier as UNKNOWN: no tier is stated in Volume VI, and no matching entry exists in the 28-entry master asset register.</dd>
+<dt>What it does</dt><dd>Stacks agents in layers so each layer's output becomes the next layer's input, as a prompt engineering pattern. It is the framework behind the SAL content pipeline site.</dd>
+<dt>Where it lives</dt><dd>Local implementation: <code>~/workspace/sal-content-pipeline/</code>. N-Cell organ manifest <code>sal.json</code> exists among the ten organ manifests. No live URL for the SAL pipeline was verified in the sources read for this document.</dd>
+<dt>State</dt><dd><span class="state st-impl">IMPLEMENTED</span>. Code and a local site exist. No deployed service and no live URL on record. SAL aliases were narrowed to Stacked Agent Logic in the 2026-11-09 vault court pass.</dd>
+</dl>
+
+<h3 class="entry">5.3 PMLA, Prompt-as-Memory Loop Architecture <span class="tag state st-live">LIVE (simulation)</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A prompt engineering framework in which a prompt runs through a memory write gate into a session store, is recalled on the next turn, and is refined and run again. Source document is a Google Doc dated 2025-09-04, 18.7 KB, plus a companion sheet of PMLA v1 and v2 core memory nodes and advanced agents dated 2025-12-25.</dd>
+<dt>What it does</dt><dd>Runs a 5-block prompt through an illustrative memory write gate, recalls it next turn, refines it, and re-runs it, with a hash-chained receipt v1.0 trace and a step-by-step F(t) = 2^(-t/h) decay calculator. The memory gate package (v1.0.0) behind it is TESTED: 26 of 26 tests recorded after the Section 39 build. All numeric thresholds in the gate are illustrative; the JGI paper sets no numeric thresholds.</dd>
+<dt>Where it lives</dt><dd>Live demo (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/pmla-memory-loop/">pmla-memory-loop</a>. Local source: <code>~/workspace/pmla-memory-loop/</code> with <code>README.md</code>, <code>index.html</code>, <code>pmla-loop.js</code>, and <code>test.js</code>.</dd>
+<dt>State</dt><dd><span class="state st-live">LIVE (simulation)</span>. The demo is a working browser loop, not a production memory system. The atlas records its tier as UNKNOWN.</dd>
+</dl>
+
+<h3 class="entry">5.4 N-Cell <span class="tag state st-impl">IMPLEMENTED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A deterministic protocol around runtime state, authority, topology, provenance, outcomes, and governed computational organizations. The atlas lists it as Tier A, a TypeScript protocol library. The full position paper is N-Cell: A Governed Adaptive Topology Protocol, v0.1, Sections 1 to 13.</dd>
+<dt>What it does</dt><dd>Defines the N-Cell/64 header, an 8-byte header (routeMask, organMask, lifecycleMask, authorityMask, memoryMask, confidence, risk, outputMask) from paper Section 3.3. The paper defines the layout only and sets no numeric defaults; demo defaults are confidence 128, other bytes 0, organMask 0x07. It governs organ manifests, authority headers, and the promotion gate.</dd>
+<dt>Where it lives</dt><dd>Organ manifests and validator: <code>~/workspace/ncell-organ-manifest/</code>, ten manifests (axon, founder-os, hkrs, mother-governance, n-lab, n-observer, pmla-vault, qcm, sal, world-emitter). Position paper (SIMULATION): <a href="https://ncell-position-paper.pages.dev/">ncell-position-paper.pages.dev</a>. Worked example: <a href="https://ncell-worked-example.pages.dev/">ncell-worked-example.pages.dev</a> (claim OPP-2026-RE-0042, header 1f0701070fa52d01). Runtime adapter demo (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/ncell-runtime-adapter/">ncell-runtime-adapter</a>. Organ manifest demo: <a href="https://neuruhai.github.io/neuruh-demos/ncell-organ-manifest/">ncell-organ-manifest</a>.</dd>
+<dt>State</dt><dd><span class="state st-impl">IMPLEMENTED</span>. The organ manifest demo records 18 of 18 checks with 0 fully grounded by design, so grounding is DESIGNED, not proven. The runtime adapter uses FNV-1a 32-bit hashing, demo-only, and is not used in the receipt chain. A live N-Cell header authorizing a proof packet is still an open policy decision (Neuruh Source proof used the legacy founder token, not a live N-Cell header).</dd>
+</dl>
+
+<h3 class="entry">5.5 Master Command Protocol <span class="tag state st-impl">IMPLEMENTED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A command protocol built as a hub-and-spoke router with four sourced pattern rules, plus Context MUX and Semantic Parity Checker concepts. The atlas records its tier as NOT STATED; the demo assigns no tier.</dd>
+<dt>What it does</dt><dd>Parses commands, routes them through the hub-and-spoke router, and simulates failover and role-switching, with an execution fabric walkthrough covering retry and rollback, and a receipt v1.0 chain.</dd>
+<dt>Where it lives</dt><dd>Lab (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/master-command-lab/">master-command-lab</a>. Local source: <code>~/workspace/master-command-lab/</code> with <code>app.js</code>, <code>index.html</code>, and <code>test-master-command-lab.js</code>.</dd>
+<dt>State</dt><dd><span class="state st-impl">IMPLEMENTED</span>. A lab with a browser demo and test file exists. No deployed service and no production command traffic on record.</dd>
+</dl>
+
+<h3 class="entry">5.6 DIMEA 2.0 <span class="tag state st-designed">DESIGNED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A personal operating system and decision framework. The atlas records its tier as UNKNOWN and its posture as personal and non-commercial: Volume VI calls DIMEA 2.0 personal, which is a posture, not a tier.</dd>
+<dt>What it does</dt><dd>Provides a decision check for personal positioning and operating decisions. A DIMEA scorer appears in the Intent Preservation Protocol demo, which runs seven phases, seven frameworks, and seven gates with a DIMEA scorer, Constraint Block builder, Kill Switch simulator, drift dashboard, quality gate checker, and 9-week timeline.</dd>
+<dt>Where it lives</dt><dd>Atlas entry only: <code>~/workspace/framework-atlas</code>. No canon text exists locally, per the seed record. No live URL, no local source file, no repo on record.</dd>
+<dt>State</dt><dd><span class="state st-designed">DESIGNED</span>. Known only from the codex atlas entry. No code, no test, no receipt. Any DIMEA decision check drafted from the atlas function note must be flagged as ungrounded in canon text.</dd>
+</dl>
+
+<h3 class="entry">5.7 Mother / Axon <span class="tag state st-designed">DESIGNED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>The two halves of the organism nervous system. Mother is the process supervision daemon: the organism resilience and monitoring layer, doing semantic health checking and alerting. Axon is the agent gateway: the signal and nervous-system side. The atlas lists MOTHER and AXON as Tier B.</dd>
+<dt>What it does</dt><dd>Mother watches runtime and emits incidents. Axon routes signals and events between agents. Together they are the conductor side of the organism, with BOB as the conductor role.</dd>
+<dt>Where it lives</dt><dd>Vault notes: <code>~/workspace/neurh-obsidian-vault/01-Core-Architecture</code>. Organ manifests <code>mother-governance.json</code> and <code>axon.json</code> in <code>~/workspace/ncell-organ-manifest/manifests/</code>. Axon demos (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/axon-lattice-substrate/">axon-lattice-substrate</a> and <a href="https://neuruhai.github.io/neuruh-demos/axon-lattice-code-map/">axon-lattice-code-map</a>, each with a regression check on disk. A Google Doc, Neuruh Axon, 511.2 KB, dated 2026-05-16, exists in Drive. A model-router verification filing (2026-11-18) verified against the live NeuruhAI/neuruh-axon repo that model-router.ts on main carries 5 strategies, adapter registration, health checks, and automatic fallback, and that route() ignores the selected strategy and calls orderByFallback.</dd>
+<dt>State</dt><dd><span class="state st-designed">DESIGNED</span> as a conductor system. Per the 2026-09-25 autonomy audit, the Mother/Axon conductor is STAGED as a role only: BOB exists in code as a role, not a service, and orchestration is switchboard event emission plus the human founder. No autonomous conductor service is evidenced. The Modular AI Research Agent Architecture blueprint (2027) also names Mother/Axon conductor as part of its design, and its armed scheduler and conductor are the same blocked items listed elsewhere.</dd>
+</dl>
+
+<h3 class="entry">5.8 BOB <span class="tag state st-designed">DESIGNED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An organism role, not a framework and not a service: the conductor and fleet role in the organism loop. BOB owns queue, dependency, and continuation. Richie's output is evidence for Bob's queue.</dd>
+<dt>What it does</dt><dd>Conducts the fleet: holds the mission queue, resolves dependencies, and continues missions across steps. Workers execute bounded contracts; BOB does not itself execute work.</dd>
+<dt>Where it lives</dt><dd>Vault note: <code>~/workspace/neurh-obsidian-vault/10-Additional-Systems/BOB Fleet.md</code>. Referenced in <code>NeuruhAI/neuruh_workers/switchboard.py</code> and the Modular AI Research Agent Architecture. No repo named bob exists; neuruh-fleet is the only fleet candidate and is UNCONFIRMED as the BOB Fleet home.</dd>
+<dt>State</dt><dd><span class="state st-designed">DESIGNED</span>, STAGED as a role per the 2026-09-25 audit. BOB exists in code as a role, not a service. No autonomous BOB agent, no BOB repo, no live service evidenced. A Grok Operator Fleet V6 report claimed six standing routines live, but the provider verdict was PARTIALLY AUTONOMOUS / ROUTINES LIVE / E2E CONTINUATION UNPROVEN, and independently selected runnable missions and automatic dispatch without founder transport were not proven.</dd>
+</dl>
+
+<h3 class="entry">5.9 Richie <span class="tag state st-designed">DESIGNED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An organism role: the Neuruh economic reasoning specialist. Named in the standing record of personas and roles, and in the Notion canon as the RICHIE ROLE.</dd>
+<dt>What it does</dt><dd>Produces economic reasoning as evidence for Bob's queue. It reasons about value, cost, and economic merit; it does not authorize spending or make financial commitments.</dd>
+<dt>Where it lives</dt><dd>Notion role page: <a href="https://app.notion.com/p/3cfa981d75b681d5bea8f663c442a53b">RICHIE ROLE</a>. No local code, repo, or live URL on record.</dd>
+<dt>State</dt><dd><span class="state st-designed">DESIGNED</span>. Role definition only. No code, test, or receipt on record. Richie appears in the Offer Foundry inside the Organism Live Demo (SIMULATION) and in the Sep 7 demand learning loop (MISSING_INGREDIENT chain through Richie and Laric/JGI court), both as specification, not live telemetry.</dd>
+</dl>
+
+<h3 class="entry">5.10 Vibin <span class="tag state st-designed">DESIGNED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An organism role: the founder-facing synthesis and status channel for Neuruh, recorded in Notion as the WE VIBIN ROLE.</dd>
+<dt>What it does</dt><dd>Translates durable system state for Jeramie, so the founder sees synthesis and status rather than raw system output.</dd>
+<dt>Where it lives</dt><dd>Notion role page: <a href="https://app.notion.com/p/3cfa981d75b6810abdddf86d02e9b6b8">WE VIBIN ROLE</a>. Vault note: <code>~/workspace/neuruh-obsidian-vault/11-Notion/Pool-Only/No-Path/pool-np-we-vibin-role.md</code>. No local code, repo, or live URL on record.</dd>
+<dt>State</dt><dd><span class="state st-designed">DESIGNED</span>. Role definition only. No code, test, or receipt on record.</dd>
+</dl>
+
+<h3 class="entry">5.11 Laric <span class="tag state st-impl">IMPLEMENTED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An organism role and a mission runtime: the conversational layer of the operator assistant (not a chatbot), the Laric operator surface in neuruh-cockpit, and the role that closes canon deltas in the recursive learning loop. Changes become versioned candidates with tests and independent review; Laric closes the delta.</dd>
+<dt>What it does</dt><dd>Runs missions (capability registry, mission compiler, mission store), operates as the conversational layer over the Presence/LARIC runtime, and closes canon deltas so outcome records feed recipe and routing calibration, episodic evidence promotes through semantic memory into reviewed canon, and silent mutation of governance, authority, or canon is forbidden.</dd>
+<dt>Where it lives</dt><dd>Mac-side runtime in <code>NeuruhAI/neuruh-cockpit</code>: Laric surface on port 8520, confirmed live 2026-10-04 (200 at the port, alongside galaxy-live 8400, adaptive 8510, and client-galaxy 8600). Cross-repo pin evidence: neuruh-cockpit PR #25 (2026-10-01) pins Laric to 33f77f43, exactly recipe-engine HEAD 33f77f430c95a7dcfd50ed82076be6f4ceda181c (2026-09-22). Owner hunt resolved 2026-11-09: Chief of Staff, owner <code>NeuruhAI/neuruh-cockpit</code>, the Laric operator surface.</dd>
+<dt>State</dt><dd><span class="state st-impl">IMPLEMENTED</span>. Mac-side runtime only. It cannot be reached or verified from this VM, and no live-loop proof from the Mac is on record here. LARIC preservation receipt was listed among the unproven items in the 2026-09-25 Grok provider verdict.</dd>
+</dl>
+
+<h3 class="entry">5.12 Prime <span class="tag state st-unknown">UNKNOWN</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A named organism role. PRIME is listed among the canonical surfaces (BOB, PRIME, SWITCH, SENTINEL, HONEY, RICHIE, MOTHER, JGI, VIBIN, LARIC, COMMONS, TINKA) and is event-driven, not a standing routine.</dd>
+<dt>What it does</dt><dd>UNKNOWN. No source read for this document states Prime's function. Nothing is inferred here.</dd>
+<dt>Where it lives</dt><dd>No live URL, local path, repo, or role page was found in the sources read.</dd>
+<dt>State</dt><dd><span class="state st-unknown">UNKNOWN</span>. Named only. What would verify it: a role page, vault note, or repo naming Prime's function.</dd>
+</dl>
+
+<h3 class="entry">5.13 Switch (Switcharoo) <span class="tag state st-impl">IMPLEMENTED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An organism role and a service seam: the deterministic receipt and event switchboard. Recorded in Notion as the SWITCHAROO ROLE, with a seeder and build contract v1 dated 2026-08-27. It is a service seam, not a judge, scheduler, Git custodian, model, or authority system.</dd>
+<dt>What it does</dt><dd>Validates and routes receipts and events. Canonical agent interaction is typed-event and mission-envelope driven, not free-form agent chat: BOB owns queue, dependency, and continuation; workers execute bounded contracts; SWITCH validates and routes receipts and events; SENTINEL independently judges; HONEY handles branch and PR custody; MOTHER watches runtime and emits incidents; JGI reconnects existing organs rather than creating duplicates.</dd>
+<dt>Where it lives</dt><dd>Notion role and contract: <a href="https://app.notion.com/p/3cfa981d75b681609e4bc33b7a986397">SWITCHAROO ROLE</a> and <a href="https://app.notion.com/p/3caa981d75b68156bfe8e1ed82b3cd72">Switchboard seeder and build contract v1, 2026-08-27</a>. Switchboard event emission exists in <code>NeuruhAI/neuruh_workers/switchboard.py</code>.</dd>
+<dt>State</dt><dd><span class="state st-impl">IMPLEMENTED</span> as in-process switchboard event emission, proven in harness per the 2026-09-25 audit. The persistent cross-process event bus does not exist: the ether-layer-event-bus repo is a single commit from 2026-04-27, untouched since, and is STALE. The complete receipt-watch to SWITCH to SENTINEL to HONEY chain was not proven in the 2026-09-25 provider verdict.</dd>
+</dl>
+
+<h3 class="entry">5.14 Sentinel <span class="tag state st-blocked">BLOCKED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An organism role and the verdict organ: the independent judge in the organism loop. JGI Sentinel V6 is the workbench form of it. Sentinel independently judges; it does not execute work and does not route events.</dd>
+<dt>What it does</dt><dd>Issues verdicts on claims, receipts, and promotions. The strongest receipt on record is the neuruh-sentinel-court honey_pot E2E_RECEIPT.json, sealed 2026-09-21T14:53:36Z, status LIVE_PROVEN for the plumbing, but organ_verdict FAIL, ingest_verdict FAIL, and sentinel_model_execution BLOCKED.</dd>
+<dt>Where it lives</dt><dd>Repos <code>NeuruhAI/neuruh-sentinel-court</code> and <code>neuruh_workers</code>, per the 2026-09-25 audit. Workbench (SIMULATION): <a href="https://jgi-sentinel-court.pages.dev/">jgi-sentinel-court.pages.dev</a>, an attack surface simulator with 12 surfaces, a severity ladder, correction without reopening, blast radius, and reversibility score.</dd>
+<dt>State</dt><dd><span class="state st-blocked">BLOCKED</span> by design, not by bug. SENTINEL_MODEL_EXECUTION is hardcoded BLOCKED in workers at commit 0425973, a deliberate design lock. Unblocking it is a founder decision with safety review. No model-executed PASS has ever happened. Plumbing is live-proven in harness; verdicts are blocked.</dd>
+</dl>
+
+<h3 class="entry">5.15 Honey <span class="tag state st-impl">IMPLEMENTED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>An organism role: branch and PR custody, the Git Custodian / Honey Pot. Event-driven, not a standing routine. It is the custody step in the organism control chain.</dd>
+<dt>What it does</dt><dd>Handles branch and pull-request custody: holds code changes, guards the merge path, and keeps the honey-pot receipt trail that Sentinel's end-to-end receipt sealed on 2026-09-21.</dd>
+<dt>Where it lives</dt><dd>Evidence is the neuruh-sentinel-court honey_pot E2E_RECEIPT.json, sealed 2026-09-21T14:53:36Z, in <code>NeuruhAI/neuruh-sentinel-court</code>. No standalone Honey repo, role page, or live URL was found in the sources read.</dd>
+<dt>State</dt><dd><span class="state st-impl">IMPLEMENTED</span> in harness. Per the 2026-09-25 audit, custody is PROVEN in harness. No live custody service is evidenced, and the full receipt-watch to SWITCH to SENTINEL to HONEY chain was not proven in the 2026-09-25 provider verdict.</dd>
+</dl>
+
+<h3 class="entry">5.16 JGI, Jeramie General Intelligence <span class="tag state st-live">LIVE (simulation)</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A full paper, Sections 0 to 203 plus Sentinel V6, as a runnable site, and the organism role that reconnects existing organs rather than creating duplicates. JGI is the general-intelligence paper for the organism, not a model.</dd>
+<dt>What it does</dt><dd>Defines Task Utility, Capability Ladder L0 to L12, VOI, memory decay, skill reliability, and Brier calculators, plus the memory gate (memory-gate package v1.0.0, TESTED, 26 of 26 tests). The paper is broken out into ten workbenches: Founder Economics, Calibration Lab (forecast ledger with live calibration curve and Brier score), Memory Workbench, Organization Compiler, Sentinel Court, Founder Interface, Autonomy Lab, Ops Console, Opportunity Workbench, and Command Language. Each is a runnable browser tool, not a live system.</dd>
+<dt>Where it lives</dt><dd>Paper site (SIMULATION): <a href="https://jeramie-general-intelligence.pages.dev/">jeramie-general-intelligence.pages.dev</a>. Workbenches (SIMULATION): <a href="https://jgi-economics-workbench.pages.dev/">jgi-economics-workbench</a>, <a href="https://jgi-calibration-lab.pages.dev/">jgi-calibration-lab</a>, <a href="https://jgi-memory-workbench.pages.dev/">jgi-memory-workbench</a>, <a href="https://jgi-organization-compiler.pages.dev/">jgi-organization-compiler</a>, <a href="https://jgi-sentinel-court.pages.dev/">jgi-sentinel-court</a>, <a href="https://jgi-founder-interface.pages.dev/">jgi-founder-interface</a>, <a href="https://jgi-autonomy-lab.pages.dev/">jgi-autonomy-lab</a>, <a href="https://jgi-ops-console.pages.dev/">jgi-ops-console</a>, <a href="https://jgi-opportunity-workbench.pages.dev/">jgi-opportunity-workbench</a>, <a href="https://jgi-command-language.pages.dev/">jgi-command-language</a>. Memory gate demo: <a href="https://neuruhai.github.io/neuruh-demos/memory-gate/">memory-gate</a>, package <code>~/workspace/memory-gate/</code>.</dd>
+<dt>State</dt><dd><span class="state st-live">LIVE (simulation)</span> as a paper and tool set. Not a running intelligence system. All numeric thresholds in the memory gate are illustrative: the JGI paper sets no numeric thresholds.</dd>
+</dl>
+
+<h3 class="entry">5.17 Tinka <span class="tag state st-unknown">UNKNOWN</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>A named organism role. TINKA is listed among the canonical surfaces (BOB, PRIME, SWITCH, SENTINEL, HONEY, RICHIE, MOTHER, JGI, VIBIN, LARIC, COMMONS, TINKA) and is event-driven, not a standing routine. It also appears in the SREIC execution role topology (BOB, PRIME, SENTINEL, JGI, TINKA).</dd>
+<dt>What it does</dt><dd>UNKNOWN. No source read for this document states Tinka's function. Nothing is inferred here.</dd>
+<dt>Where it lives</dt><dd>No live URL, local path, repo, or role page was found in the sources read.</dd>
+<dt>State</dt><dd><span class="state st-unknown">UNKNOWN</span>. Named only. What would verify it: a role page, vault note, or repo naming Tinka's function.</dd>
+</dl>
+</section>
+<section id="s6">
+<div class="secnum">Section 6</div>
+<h2 class="sec">QECA</h2>
+<h3 class="entry">6.1 QECA, Quantum Emergent Consciousness AI <span class="tag state st-designed">DESIGNED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>QECA is a product overview with three pillars, seven equation calculators with a Claim Check table, a roadmap, and defense impact with a DARPA ask. Source is a QECA product description and equations pasted 2026-11-03. The Drive source is the Neuruh QECA Core document, dated 2026-01-22, 1.4 KB.</dd>
+<dt>What it does</dt><dd>As designed, it proposes quantum emergent consciousness AI. As built, the QECA Equation Check process tests the document, not a running system: seven calculator cards, one per equation, each with a verdict, run in the browser against the pasted equations.</dd>
+<dt>Where it lives</dt><dd>Equation Check demo (SIMULATION): <a href="https://qeca.pages.dev/">qeca.pages.dev</a>, local source <code>~/workspace/qeca-site/index.html</code> (436 lines, 39,375 bytes, 21 functions; live MD5 matches local exactly, per the chapter 10 record). Drive folder: /Neuruh Master/QECA. The QECA Equation Check process has its own home in Retardio Library chapter 10-frameworks, file <code>qeca.md</code>, because it lived buried inside the QECA page.</dd>
+<dt>State</dt><dd><span class="state st-designed">DESIGNED</span>. QECA itself has no code, weights, or receipts on record, per the AaaS System Canon v1.0. The demo page is LIVE as a page; the framework is DESIGNED. The page copy claims a $20M QBI pilot in 2025; that claim is UNVERIFIED in the chapter 10 audit and is not repeated here as fact. The AaaS canon also records QECA as DESIGNED with no code, weights, or receipts.</dd>
+</dl>
+<div class="callout"><b>Do not confuse the checker with the system.</b> The QECA Equation Check demo verifies arithmetic and claims inside a pasted document. It does not run QECA, because there is no QECA code to run. Any claim that QECA is live, proven, or deployed is false on the current record.</div>
+</section>
+
+<section id="s7">
+<div class="secnum">Section 7</div>
+<h2 class="sec">Lead Recipe OS and the recipe system</h2>
+<h3 class="entry">7.1 Lead Recipe OS <span class="tag state st-blocked">BLOCKED</span></h3>
+<dl class="kv">
+<dt>What it is</dt><dd>The signal-to-opportunity kernel. The most important work in the stack, per the segment 1 inventory. A recipe is a repeatable, machine-readable acquisition pattern that turns evidence and signals into a qualified opportunity. It is not prompt templates. The kernel is domain-neutral by constitution and must not be contaminated with customer-specific DeedSonar logic.</dd>
+<dt>What it does</dt><dd>Defines 30 canonical recipe families, R1 to R30, and runs them against LANDOS signals to produce ranked, receipted leads. Four hunt recipes are active: Berrien90+, LIVE_PROVEN tax lien, FLOW_C multi-territory taxsale, and FLOW_C probate/estate. The recipe system is protected by the recipe engine, with founder approval (G-1) as the governance mechanism.</dd>
+<dt>Where it lives</dt><dd>Repo <code>NeuruhAI/lead-recipe-os</code>. Live registry: 36 rows including aliases and variants, in production Supabase. No local source copy exists in this workspace, per the seed record. Interactive demo (SIMULATION): <a href="https://recipe-system-demo.pages.dev/">recipe-system-demo.pages.dev</a>.</dd>
+<dt>State</dt><dd><span class="state st-blocked">BLOCKED</span>. Code exists, but the production Supabase registry is unreachable, so no live lead work flows through it. The lead pull has failed 33 straight nights as of the 2026-11-17 evening log. What would verify recovery: a successful live Supabase query returning the 36 registry rows, plus one successful nightly lead pull and a fresh lead set inside TTL.</dd>
+</dl>
+<h3>7.2 Recipe family coverage: audited, not assumed</h3>
+<p>Recipe families named in the canon as concepts include tax, probate, estate, heir, lien, code, and absentee, among others. The Recipe System Demo documents and scores R1 to R7; R8 to R30 are listed as Not documented, not invented. No source on disk enumerates all 30 families, per the hub Known Limits note. This document therefore does not list R1 to R30 by name. The coverage audit is:</p>
+<table>
+<tr><th>Item</th><th>Count</th><th>State</th></tr>
+<tr><td>Canonical recipe families</td><td>30 (R1 to R30)</td><td>Claimed in canon and in the repo; R8 to R30 undocumented in any source read</td></tr>
+<tr><td>Live registry rows</td><td>36, including aliases and variants</td><td>BLOCKED, Supabase unreachable</td></tr>
+<tr><td>Active hunt recipes</td><td>4</td><td>Berrien90+, LIVE_PROVEN tax lien, FLOW_C multi-territory taxsale, FLOW_C probate/estate</td></tr>
+<tr><td>Families documented and scored in the demo</td><td>7 (R1 to R7)</td><td>LIVE (simulation) in the Recipe System Demo</td></tr>
+<tr><td>Families not documented anywhere read</td><td>23 (R8 to R30)</td><td>UNKNOWN, listed as Not documented, not invented</td></tr>
+<tr><td>Recipe Engine 49: ingredient registry</td><td>49 ingredients, 34 families; hunter counts EXISTS 14, PARTIAL 11, MISSING 22; PROVEN 40, PROBABLE 9</td><td>LIVE (simulation) at recipe-engine-49.pages.dev; counts as stated on the page, not re-verified</td></tr>
+<tr><td>Ingredient set verification</td><td>49-ingredient set UNVERIFIED</td><td>Per the Two 49s registry: Q-SWEEP-4, two Aug 1 documents; a different object from the 49-signal LANDOS model</td></tr>
+</table>
+<figure>
+<svg viewBox="0 0 960 150" role="img" aria-label="Recipe kernel diagram: signals feed recipes, recipes feed ranking, ranking feeds decision, decision feeds governed action with a receipt">
+<defs><style>.b{fill:#fffdf6;stroke:#8f6f1f;stroke-width:1.5}.t{font:600 12px Inter,sans-serif;fill:#1a1712;text-anchor:middle}.s{font:11px Inter,sans-serif;fill:#6b6355;text-anchor:middle}.a{stroke:#8f6f1f;stroke-width:1.5;fill:none;marker-end:url(#ah3)}text{font-family:Inter,sans-serif}</style><marker id="ah3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#8f6f1f" stroke-width="1.2"/></marker></defs>
+<g><rect class="b" x="10" y="40" width="150" height="60" rx="3"/><text class="t" x="85" y="66">SIGNALS</text><text class="s" x="85" y="86">LANDOS, 50 signals</text></g>
+<g><rect class="b" x="200" y="40" width="170" height="60" rx="3"/><text class="t" x="285" y="66">RECIPES</text><text class="s" x="285" y="86">30 families, 36 rows</text></g>
+<g><rect class="b" x="410" y="40" width="150" height="60" rx="3"/><text class="t" x="485" y="66">RANKING</text><text class="s" x="485" y="86">scored, receipted</text></g>
+<g><rect class="b" x="600" y="40" width="150" height="60" rx="3"/><text class="t" x="675" y="66">DECISION</text><text class="s" x="675" y="86">founder approval G-1</text></g>
+<g><rect class="b" x="790" y="40" width="160" height="60" rx="3"/><text class="t" x="870" y="66">GOVERNED ACTION</text><text class="s" x="870" y="86">receipt v1.1</text></g>
+<path class="a" d="M160,70 H200 M370,70 H410 M560,70 H600 M750,70 H790" />
+</svg>
+<figcaption><b>Figure 3. The recipe kernel.</b> SIGNALS feed RECIPES, RECIPES feed RANKING, RANKING feeds DECISION under founder approval (G-1), DECISION feeds GOVERNED ACTION with a receipt. The kernel is BLOCKED today because the registry in production Supabase is unreachable, even though the code exists and the 2026-09-16 hunt job proved the shape of the run once, with 153 leads scored and 153 synchronized to CRM.</figcaption>
+</figure>
+<h3>7.3 Recipe engine and territory engine</h3>
+<dl class="kv">
+<dt>Recipe engine</dt><dd>Governance and execution protection for recipe logic, including founder approval (G-1). AI can generate, not authorize, not execute. Repo <code>NeuruhAI/recipe-engine</code>. State: IMPLEMENTED. No live execution evidence on record in the segment 1 inventory.</dd>
+<dt>Territory engine</dt><dd>Tier C territory scoring concept as a Tier B working demo. Territory table for Berrien, St. Joseph IN, LaPorte, Elkhart, plus the Davidson NC production estate; stated facts only, UNKNOWN where unstated. Interactive scorer with formula shown. Live (SIMULATION) at <a href="https://neuruhai.github.io/neuruh-demos/territory-engine/">territory-engine</a>. Local source <code>~/workspace/territory-engine/index.html</code>.</dd>
+<dt>Lead geography</dt><dd>Davidson County NC is the production estate (largest). Michiana (Berrien, St. Joseph IN, LaPorte, Elkhart) is the doctrine territory.</dd>
+</dl>
+</section>
+
+<section id="s8">
+<div class="secnum">Section 8</div>
+<h2 class="sec">Further frameworks from the atlas and codex</h2>
+<p class="lede">Twenty-four further entries, so the coverage audit in Section 2 is complete against the sources read. Each entry carries the same four questions. Where the atlas gives a tier, the tier is stated; where it does not, the entry says UNKNOWN rather than assigning one.</p>
+<table>
+<tr><th>Framework</th><th>What it is / what it does</th><th>Where it lives</th><th>State</th></tr>
+<tr><td>CRUCIBLE</td><td>Hash-chained receipt and publication gate. Score equals max(0, emergence minus objections) times a multiplier (revenue or signed contract 1.00, paid pilot 0.50, one real lead 0.30, nothing 0.15). KILL below 20, ITERATE 20 to 49, SHIP-CANDIDATE at or above 50 only with a real external signal. Three implementations exist (crucible.py, crucible_service.py, NeuruhAI/crucible repo) and must never be merged, per the task brief.</td><td>Gate demo (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/crucible-gate/">crucible-gate</a>. Local files <code>~/workspace/user/files/files__50_extracted/crucible.py</code> and <code>~/workspace/user/files/crucible_service.py</code>. Atlas Tier A.</td><td><span class="state st-live">LIVE (simulation)</span></td></tr>
+<tr><td>NCP, Neuruh Cognitive Platform</td><td>Agentic infrastructure framework, listed in the atlas. No function text beyond the atlas listing was found in the sources read. An NCP Lab is hub-listed.</td><td>Atlas entry only. No live URL verified here.</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+<tr><td>L4 Engine</td><td>Ten-layer autonomous synthesis engine. Atlas Tier B. The eta Transform framework is applied in L4 synthesis. No implementation state on record in the sources read.</td><td>Atlas entry only. No live URL verified here.</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+<tr><td>NRH Registry</td><td>Universal addressing and inventory registry (NRH-[DD]-[ENT]-[TTT]-[NNN]) with a hash-chained transition log. 9 domains, 35 seeded entities in the November visual. The July codex states 10 domains and 48 entities; the discrepancy is unresolved. Six open decisions block completion. No repo under the registry name exists in the org.</td><td>Demo (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/nrh-registry/">nrh-registry</a>. Atlas Tier B.</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+<tr><td>Token-Swap Prompting</td><td>Prompting technique (atlas: Prompt and cognition). Six sourced prompt templates, a token-swap simulator with before and after highlight, a deterministic drift check, and a v1.0 hash-chained receipt panel with in-browser verify. Static HTML and JS, no backend, no data leaves the page.</td><td>Lab (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/token-swap-lab/">token-swap-lab</a>. Atlas tier UNKNOWN; the demo does not promote it.</td><td><span class="state st-live">LIVE (simulation)</span></td></tr>
+<tr><td>eta Transform</td><td>Transformation framework applied in L4 synthesis. The eta Transform Lab is a working demo of the eta doctrine gate: eta calculator with step-by-step working, STRONG vs FABRICATED seed walkthrough, stub codebook view, qubit builder, and receipt v1.0 chain.</td><td>Lab (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/eta-transform-lab/">eta-transform-lab</a>. Atlas tier UNKNOWN; the demo assigns no tier.</td><td><span class="state st-live">LIVE (simulation)</span></td></tr>
+<tr><td>Holy Grail v2.0</td><td>Neuruh 3D Quantum Fibrated Agency Simulator, toroidal geometry, 1,980 nodes. Theoretical framework. Atlas Tier C.</td><td>Atlas entry only. No live URL, code, or test on record.</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+<tr><td>LANDOS</td><td>Real estate scoring substrate. LANDOS ingest: county parcel ingestion, distress-signal acquisition, raw data acquisition, source handling, provenance; free-first acquisition, free ArcGIS ingest for St. Joseph County IN and LaPorte County IN. LANDOS engine: scoring, lead generation, opportunity ranking, provenance, downstream sync to CRM; 50 signals.</td><td>Repos <code>NeuruhAI/landos-ingest</code> and <code>NeuruhAI/landos-engine</code>. National ingest code: <code>~/workspace/landos-national-ingest/</code>. Atlas Tier A.</td><td><span class="state st-impl">IMPLEMENTED</span> (ingest); engine <span class="state st-blocked">BLOCKED</span>, not hosted, landos-engine.fly.dev down</td></tr>
+<tr><td>DeedSonar</td><td>Flagship all-in-one real-estate CRM and lead app (Next.js, Supabase Pro, Vercel), solely Jeramie Hicks; Bryan Franklin never signed and there is no partner consent gate. Commercial shell around the intelligence stack: customer, property, LANDOS evidence, recipes, scan, dossier, action, outcome, learning.</td><td><a href="https://deedsonar.com/">deedsonar.com</a>. Repo <code>NeuruhAI/deedsonar</code>. Atlas Tier A.</td><td><span class="state st-blocked">BLOCKED</span> (503 DEPLOYMENT_PAUSED, last verified 2026-11-04)</td></tr>
+<tr><td>BuildOS</td><td>Build orchestration, v1 void, v2 sealed. Atlas Tier A. No function text beyond the atlas listing was found in the sources read.</td><td>Atlas entry only. No live URL verified here.</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+<tr><td>DISPATCH-IQ</td><td>Dispatch intelligence. Atlas Tier C. No function text beyond the atlas listing was found in the sources read.</td><td>Atlas entry only. No live URL verified here.</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+<tr><td>Sovereign Conglomerate</td><td>Operating model: scale via agent swarms rather than hiring. Atlas posture: personal and positioning. No implementation on record.</td><td>Atlas entry only. No live URL verified here.</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+<tr><td>ROOF-OPS</td><td>Roofing operations automation. Atlas Tier A. A service client (Indy Roof and Restoration) uses a ROOF-OPS build; no framework-level function text was found in the sources read.</td><td>Atlas entry only. No live URL verified here.</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+<tr><td>BUILD THE SYSTEM (Doc 7)</td><td>The master implementation directive for one canonical national opportunity and lead-generation intelligence system. Largest doc in the Drive pull: 256 sections, about 93 KB, with ingredient, signal, recipe, and next-best-evidence contracts and a 500-recipe target against 30 existing recipes.</td><td>Google Doc: <a href="https://docs.google.com/document/d/1EGSo7W4HMKD-vxZ2stru-G0blkQISDdMw1RhcsRsP58/edit?usp=drivesdk">Doc 7</a>. Summary in <code>~/workspace/drive-pull/doc-summaries.md</code>.</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+<tr><td>Organism Codex OS, MASTER (Doc 3)</td><td>Dated July 15, 2026, v1.0, 17 sections plus 3 appendices. The single most authoritative design document in the Drive pull, specifying the organism layer model, a 16-organ real estate pack, 19 data contracts, the AXON event taxonomy, and governance kill-switches.</td><td>Google Doc: <a href="https://docs.google.com/document/d/17Cd73V6lrDvJg09pL3kV_JJ8IU2fJYAR2kaVJn14JiA/edit?usp=drivesdk">Doc 3</a>. Summary in <code>~/workspace/drive-pull/doc-summaries.md</code>.</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+<tr><td>Tree-Logic Operating System</td><td>Operating system document found in Drive at /Neuruh Builds/Systems. Build is gated: no build from the ChatGPT summary alone; Jeramie must drop in the actual Tree-Logic PDF or confirm the summary is accurate first. The Drive doc is the verification path for lifting the gate (conflict resolution 7, 2026-11-18).</td><td>Google Doc: <a href="https://docs.google.com/document/d/1XJSa_VBYuZ5wtDt28WJmoQHye7X767ar0zaBuddhepE/edit?usp=drivesdk">Tree-Logic doc</a>. Summary in <code>~/workspace/drive-pull/doc-summaries.md</code>.</td><td><span class="state st-designed">DESIGNED</span> (gated)</td></tr>
+<tr><td>MIRROR-X1</td><td>Psycho-spiritual self-reflection system named in the imported ChatGPT context. Named concept only.</td><td>No live URL, local path, or repo on record. Registry URLs for MIRROR-X1 were corrected 2026-11-09 to the OMNIA-6 blueprint doc.</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+<tr><td>Tier 6-8 Ascension Stack</td><td>Multi-tier self-development framework named in the imported ChatGPT context. Named concept only.</td><td>No live URL, local path, or repo on record.</td><td><span class="state st-unknown">UNKNOWN</span></td></tr>
+<tr><td>SLM Compositional AGI</td><td>AGI approached as a compositional architecture built from small, modular, context-rich information units (SLMs, small modular nuanced data qubits), not by making one model infinitely larger. An SLM carries identity, observation, attributes, context, relationships, provenance, confidence, temporal state, transformations, constraints, available operations, and observed outcomes. Closed loop: PERCEIVE, REPRESENT, RELATE, REASON, PLAN, ACT, OBSERVE RESULT, VERIFY, UPDATE WORLD MODEL, RECOMPOSE, ACT AGAIN. Data qubit is an analogy only; no quantum-information mechanism is claimed. LCDE is a formal hypothesis, NOT validated; Case Zero is designed but NOT run.</td><td>Filing (LIVE): <a href="https://neuruhai.github.io/neuruh-demos/drive-pull/slm-compositional-agi/">slm-compositional-agi filing</a>, local <code>~/workspace/drive-pull/slm-compositional-agi.md</code>. Demo (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/slm-compositional-agi/">slm-compositional-agi</a>.</td><td><span class="state st-designed">DESIGNED</span> (hypothesis, not validated)</td></tr>
+<tr><td>Universal Interfacing Framework</td><td>Cognitive Systems Engineering framework, presented as written: explorer for its four models (nine chapters each), seven-organ Biological Blueprint, and LLM-8088 cognitive process. A 12-piece article series was published to LinkedIn; LinkedIn's daily article cap stopped the run.</td><td>Live demo: <a href="https://universal-interfacing-framework.pages.dev/">universal-interfacing-framework.pages.dev</a>. Source: <code>~/workspace/universal-interfacing-framework/source.txt</code>. Drive source doc, 89.7 KB, dated 2026-01-18.</td><td><span class="state st-impl">IMPLEMENTED</span></td></tr>
+<tr><td>NKF, Superintelligence Knowledge Framework v1.0</td><td>The Neural Core for precision-guided agent execution, as an interactive demo.</td><td>Live demo: <a href="https://super-intelligence-knowledge-framework.pages.dev/">super-intelligence-knowledge-framework.pages.dev</a>. Local: <code>~/workspace/your_files/super-intelligence-knowledge-framework</code>. Drive source doc, 11.8 KB, dated 2025-09-04.</td><td><span class="state st-live">LIVE (simulation)</span></td></tr>
+<tr><td>Threat Deterrence Framework</td><td>Notebook Codex extension dated 2026-11-15, mapping codex layers to seven threat domains (scammers, child trafficking, drugs, stolen money, targeting, harassment, bot farms) from the defender side only: detection, deterrence, disruption, resolution, reporting.</td><td>Document: <code>~/workspace/research-drift-2026-11-15/threat-deterrence-framework.md</code> (13,044 bytes). Console (SIMULATION): <a href="https://neuruhai.github.io/neuruh-demos/threat-deterrence-console/">threat-deterrence-console</a>.</td><td><span class="state st-designed">DESIGNED</span></td></tr>
+<tr><td>Clarity Builder</td><td>Six-phase walkthrough: Origin Analysis, Outcome Definition, Constraint Mapping, Architecture Before Action, Atomic Decomposition, Recursive Refinement. Answer each phase's prompts and get a Clarity Pack. Master framework for process intelligence. Drive source doc, 8.4 KB, dated 2026-04-02.</td><td>Live demo: <a href="https://clarity-builder.pages.dev/">clarity-builder.pages.dev</a>. Local: <code>workspace/clarity-builder-site</code>.</td><td><span class="state st-live">LIVE (simulation)</span></td></tr>
+<tr><td>Intent Preservation Protocol</td><td>Seven phases, seven frameworks, seven gates. DIMEA scorer, Constraint Block builder, Kill Switch simulator, drift dashboard, quality gate checker, 9-week timeline.</td><td>Live demo: <a href="https://intent-preservation-protocol.pages.dev/">intent-preservation-protocol.pages.dev</a>. Local: <code>workspace/intent-preservation-protocol-site</code>.</td><td><span class="state st-live">LIVE (simulation)</span></td></tr>
+</table>
+<p class="small">Not covered as frameworks, by design: the Drive folder /Frameworks - Neuruh Master and its subfolders (Agent Frameworks, Book, The Hard Truth) are folders holding 22, 0, 2, 1, and 3 direct files respectively, listed in the inventory, not frameworks. REI-X / REI-OS / UnderwriteX lineage is harvest/retire and is foundation material only, per conflict resolution 2. The Agent Readiness Protocol delivery claim (two files, 100/100 vs 0/100 dry run) is UNVERIFIED; neither file exists in this workspace.</p>
+</section>
+
+<section id="s9">
+<div class="secnum">Section 9</div>
+<h2 class="sec">State tally, audit date 2026-11-18</h2>
+<p>Forty-three entries, counted from the sections above. LIVE here means a page or tool is live on the web; six of the eight LIVE entries are browser simulations, and none is PROVEN as a production system. Zero entries reach PROVEN or COMMERCIAL.</p>
+<table>
+<tr><th>State</th><th>Count</th><th>Entries</th></tr>
+<tr><td><span class="state st-live">LIVE (simulation)</span></td><td>8</td><td>PMLA, JGI, CRUCIBLE, Token-Swap Prompting, eta Transform, NKF, Clarity Builder, Intent Preservation Protocol</td></tr>
+<tr><td><span class="state st-impl">IMPLEMENTED</span></td><td>8</td><td>SAL, N-Cell, Master Command Protocol, Laric, Switch, Honey, LANDOS (ingest), Universal Interfacing Framework</td></tr>
+<tr><td><span class="state st-designed">DESIGNED</span></td><td>15</td><td>A.G.E.N.T., DIMEA 2.0, Mother/Axon, BOB, Richie, Vibin, QECA, NRH Registry, Holy Grail v2.0, Sovereign Conglomerate, BUILD THE SYSTEM (Doc 7), Organism Codex OS (Doc 3), Tree-Logic, SLM Compositional AGI, Threat Deterrence Framework</td></tr>
+<tr><td><span class="state st-blocked">BLOCKED</span></td><td>3</td><td>Sentinel, Lead Recipe OS, DeedSonar</td></tr>
+<tr><td><span class="state st-unknown">UNKNOWN</span></td><td>9</td><td>Prime, Tinka, NCP, L4 Engine, BuildOS, DISPATCH-IQ, ROOF-OPS, MIRROR-X1, Tier 6-8 Ascension Stack</td></tr>
+<tr><td><span class="state">Total</span></td><td><b>43</b></td><td>15 DESIGNED, 9 UNKNOWN, 8 LIVE (simulation), 8 IMPLEMENTED, 3 BLOCKED, 0 PROVEN, 0 COMMERCIAL</td></tr>
+</table>
+<p>The shape of the estate, in one line: the catalog is mostly designed or named, the working pieces are mostly browser simulations or local code, the three load-bearing production pieces (Sentinel verdicts, the recipe registry, DeedSonar) are blocked, and nothing in this document takes money.</p>
+</section>
+
+<section id="s10">
+<div class="secnum">Section 10</div>
+<h2 class="sec">Blocked and Unknown register</h2>
+<p>Every BLOCKED and UNKNOWN entry in this document, with its reason and what would verify or unblock it. Nothing here is a guess about what the missing piece contains.</p>
+<table>
+<tr><th>Entry</th><th>State</th><th>Reason</th><th>What would verify or unblock it</th></tr>
+<tr><td>Sentinel</td><td><span class="state st-blocked">BLOCKED</span></td><td>SENTINEL_MODEL_EXECUTION hardcoded BLOCKED in workers at commit 0425973, deliberate design lock.</td><td>Founder decision with safety review, then one model-executed PASS receipt.</td></tr>
+<tr><td>Lead Recipe OS</td><td><span class="state st-blocked">BLOCKED</span></td><td>Production Supabase registry unreachable; lead pull failed 33 straight nights as of 2026-11-17.</td><td>One successful live Supabase query returning the 36 registry rows, plus one successful nightly lead pull.</td></tr>
+<tr><td>DeedSonar</td><td><span class="state st-blocked">BLOCKED</span></td><td>503 DEPLOYMENT_PAUSED, last verified 2026-11-04. Ownership and access unresolved (Bryan Franklin owns the anchorpointpg Vercel team; Jeramie asserts the accounts are his and Bryan locked him out).</td><td>Deployment restored and verified live, or the ordered workaround executed.</td></tr>
+<tr><td>LANDOS engine</td><td><span class="state st-blocked">BLOCKED</span></td><td>Engine not hosted; landos-engine.fly.dev down.</td><td>A hosted, reachable engine endpoint, or a new hosting decision.</td></tr>
+<tr><td>P0 seam, production Mac loop</td><td><span class="state st-blocked">BLOCKED</span></td><td>Reference loop TESTED (33/33); production loop on the Mac has no live-loop proof and cannot be reached from this VM.</td><td>Execution of the prepared work order on Jeramie's Mac, with a live-loop receipt.</td></tr>
+<tr><td>Prime</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Named role only; no function stated in any source read.</td><td>A role page, vault note, or repo naming Prime's function.</td></tr>
+<tr><td>Tinka</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Named role only; no function stated in any source read.</td><td>A role page, vault note, or repo naming Tinka's function.</td></tr>
+<tr><td>NCP, L4 Engine, BuildOS, DISPATCH-IQ, ROOF-OPS</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Atlas listings only; no function text or implementation state in any source read.</td><td>Codex Volume VI text, a repo, or a demo for each.</td></tr>
+<tr><td>MIRROR-X1, Tier 6-8 Ascension Stack</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Named concepts only, from imported ChatGPT context.</td><td>A source document or repo for each.</td></tr>
+<tr><td>11 of the 31 claimed frameworks</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Unnamed in the Ecosystem Codex Volume VI as the atlas read it.</td><td>The codex naming all 31, or a fresh codex audit.</td></tr>
+<tr><td>R8 to R30 recipe families</td><td><span class="state st-unknown">UNKNOWN</span></td><td>Listed as Not documented, not invented in the Recipe System Demo; no source on disk enumerates all 30 families.</td><td>A source enumerating R8 to R30, or a live registry read.</td></tr>
+<tr><td>QECA</td><td><span class="state st-designed">DESIGNED</span></td><td>No code, weights, or receipts on record; the $20M QBI pilot claim is UNVERIFIED.</td><td>Code, weights, or receipts, or a retraction of the pilot claim.</td></tr>
+<tr><td>Tree-Logic</td><td><span class="state st-designed">DESIGNED</span></td><td>Gated: no build from the ChatGPT summary alone.</td><td>Verification of the Drive doc against the gated summary claims; if it is the source, the gate lifts.</td></tr>
+<tr><td>Mother/Axon conductor, BOB</td><td><span class="state st-designed">DESIGNED</span></td><td>Roles only; no live conductor service evidenced; orchestration is switchboard event emission plus the human founder.</td><td>A running conductor service with receipts, or a founder ruling that the role stays human-carried.</td></tr>
+<tr><td>Deployment executor, armed scheduler</td><td><span class="state st-blocked">BLOCKED</span></td><td>No consumer of deploy.requested exists outside workers contracts and tests; promotion.py emits it with the note "no deploy performed here". Full continuous autonomous production execution has not been proven.</td><td>A deployed executor with a receipted deploy, and a founder decision arming the scheduler.</td></tr>
+</table>
+</section>
+
+<section id="s11">
+<div class="secnum">Section 11</div>
+<h2 class="sec">Sources</h2>
+<p>Every source read in full before building, audit date 2026-11-18 unless stated otherwise.</p>
+<ul>
+<li>Retardio Library seed index: <code>~/workspace/retardio-library/seed-index.md</code> (1,041 seed records, 1,203 lines) and <code>seed-index.json</code>.</li>
+<li>Retardio Library chapter 10-frameworks: <code>~/workspace/retardio-library/10-frameworks/index.md</code> (39 records) and <code>10-frameworks/qeca.md</code>.</li>
+<li>Drive inventory: <code>~/workspace/drive-pull/inventory.md</code> (2,458 lines), including the /Frameworks - Neuruh Master folder listing and the Doc 3, Doc 7, and Tree-Logic entries.</li>
+<li>Conflict resolutions: <code>~/workspace/drive-pull/conflict-resolutions.md</code> (2026-11-18, 9 resolutions).</li>
+<li>Segment inventories: <code>~/workspace/segments/01-real-estate-inventory.md</code> (audit date 2026-11-16) and <code>~/workspace/segments/02-ai-systems-organism-inventory.md</code> (audit date 2026-11-16, 79 items).</li>
+<li>Framework Atlas: <code>~/workspace/framework-atlas/frameworks.json</code> and live page <a href="https://neuruhai.github.io/neuruh-demos/framework-atlas/">framework-atlas</a>, fetched live 2026-11-18, built 2026-11-14 from Ecosystem Codex NRH-DOC-CODEX-001 rev A.</li>
+<li>Neuruh identity and doctrine record (execution loop, organism chain, authority separation, state model), and the 2026-09-25 organism autonomy audit (<code>~/workspace/organism-autonomy/audit-2026-09-25.md</code>).</li>
+<li>Memory record of the canonical organism roles (BOB, PRIME, SWITCH, SENTINEL, HONEY, RICHIE, MOTHER, JGI, VIBIN, LARIC, COMMONS, TINKA) and the 2026-09-25 provider verdict (PARTIALLY AUTONOMOUS / ROUTINES LIVE / E2E CONTINUATION UNPROVEN).</li>
+<li>AaaS System Canon v1.0 (QECA DESIGNED, no code, weights, or receipts) and the Retardio Loop state (7 runs, 20 receipts as of 2026-11-18, chain VALID, 25 observations, 20 forecasts all UNRESOLVED, Brier not yet computable).</li>
+<li>Live hub: <a href="https://neuruh-hub.pages.dev/">neuruh-hub.pages.dev</a> (v2.87, 244 cards as of 2026-11-18). The hub was not updated by this document; the coordinator updates it.</li>
+</ul>
+<p class="small">Standing rules honored in this document: no posts to X (dark order since 2026-11-17, until Jeramie lifts it). No Stripe, no Mac access, nothing deleted, no new repos, no paid anything. No client contract, invoice, payment, or cash figures are recorded or restated anywhere in this document.</p>
+</section>
+
+<footer>
+<p><b>Frameworks Neuruh Master</b>, Rev. 1.0, audit date 2026-11-18. Owner: Jeramie Hicks, Neuruh. Slug: frameworks-neuruh-master. This document is a state record, not a product claim. Where it says UNKNOWN or BLOCKED, that is the finding, and the next step is the verification listed in Section 10, not a rewrite of the finding.</p>
+<p class="small">Document control: NRH-DOC-FW-MASTER-001. Sources are listed in Section 11. Counts in this document are tallied from the entries above, not from memory.</p>
+</footer>
+</div>
+</body>
+</html>
