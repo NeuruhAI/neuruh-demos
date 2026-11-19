@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Agents Neuruh Master</title>
+<style>
+:root{--paper:#f7f3ea;--bone:#efe9db;--ink:#1c1a16;--muted:#6b6455;--brass:#9a7b2d;--brass-soft:#c8a94a;--line:#d8d0bd;--card:#fffdf6;--red:#8a2f23;--green:#3d5a3a}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.6}
+h1,h2,h3,h4{font-family:Archivo,Inter,system-ui,sans-serif;line-height:1.2;margin:0 0 .5em}
+h1{font-size:2.1rem;letter-spacing:-.01em}
+h2{font-size:1.45rem;border-top:2px solid var(--ink);padding-top:.6em;margin-top:2.2em}
+h3{font-size:1.15rem;margin-top:1.6em}
+p{margin:.5em 0 .9em}
+a{color:var(--brass);text-decoration:underline;text-underline-offset:2px}
+a:hover{color:#6f581d}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.86em}
+.wrap{max-width:1020px;margin:0 auto;padding:0 22px 80px}
+.topbar{background:var(--ink);color:#f7f3ea;padding:10px 22px;font-family:"JetBrains Mono",monospace;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.topbar span b{color:var(--brass-soft)}
+.doc-head{border-bottom:3px solid var(--brass);padding:28px 0 18px}
+.kicker{font-family:"JetBrains Mono",monospace;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-bottom:10px}
+.lede{font-size:1.12rem;max-width:72ch}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:22px 0}
+.meta div{background:var(--card);padding:12px 14px}
+.meta dt{font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.meta dd{margin:0;font-size:.95rem}
+.callout{border:1px solid var(--brass);border-left:6px solid var(--brass);background:var(--card);padding:16px 20px;margin:20px 0}
+.callout.red{border-color:var(--red);border-left-color:var(--red)}
+.callout h3{margin-top:0}
+.toc{background:var(--bone);border:1px solid var(--line);padding:18px 22px;margin:20px 0}
+.toc ol{margin:0;padding-left:22px;columns:2;column-gap:40px}
+.toc li{margin:4px 0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+th{background:var(--ink);color:#f7f3ea;font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase}
+tr:nth-child(even) td{background:var(--card)}
+.badge{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.05em;padding:2px 8px;border-radius:2px;white-space:nowrap}
+.st-live{background:#e3ecdd;color:var(--green);border:1px solid var(--green)}
+.st-tested{background:#e6eef5;color:#234a63;border:1px solid #234a63}
+.st-impl{background:#f0ead6;color:#6f581d;border:1px solid var(--brass)}
+.st-des{background:#ece7da;color:var(--muted);border:1px solid var(--muted)}
+.st-blocked{background:#f6e3de;color:var(--red);border:1px solid var(--red)}
+.st-unk{background:#eee;color:#555;border:1px dashed #888}
+figure{margin:26px 0;border:1px solid var(--line);background:var(--card);padding:18px}
+figcaption{font-size:.9rem;color:var(--muted);margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+figcaption b{color:var(--ink)}
+.flow{display:flex;flex-wrap:wrap;align-items:stretch;gap:0}
+.step{flex:1 1 120px;min-width:110px;border:1px solid var(--ink);background:var(--paper);padding:10px 8px;text-align:center;font-family:"JetBrains Mono",monospace;font-size:.72rem;line-height:1.4}
+.step b{display:block;font-size:.78rem;margin-bottom:4px}
+.step.gap{border-color:var(--red);background:#f6e3de;color:var(--red)}
+.arrow{align-self:center;padding:0 4px;color:var(--brass);font-weight:700}
+.bar-row{display:grid;grid-template-columns:170px 1fr 90px;gap:10px;align-items:center;margin:7px 0;font-size:.92rem}
+.bar{height:18px;background:var(--brass);min-width:2px}
+.bar-track{background:var(--bone);border:1px solid var(--line)}
+ul,ol{margin:.4em 0 .9em;padding-left:24px}
+li{margin:4px 0}
+.small{font-size:.88rem;color:var(--muted)}
+.foot{border-top:2px solid var(--ink);margin-top:40px;padding-top:16px;font-size:.9rem}
+@media(max-width:700px){.meta{grid-template-columns:1fr 1fr}.toc ol{columns:1}.bar-row{grid-template-columns:120px 1fr 70px}h1{font-size:1.6rem}}
+@media print{body{background:#fff}.topbar{background:#fff;color:#000;border-bottom:2px solid #000}.wrap{max-width:none}h2{break-before:auto}a{color:#000}figure{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="topbar"><span>Neuruh <b>Master Document</b></span><span>AI Agents Neuruh Master</span><span>Audit date 2026-11-18</span></div>
+<div class="wrap">
+<header class="doc-head">
+<div class="kicker">Neuruh Master Doc &middot; Agent Catalog &middot; Governed Execution</div>
+<h1>AI Agents Neuruh Master</h1>
+<p class="lede">The agent catalog for Neuruh: Mother and Axon, BOB, workers, conductors, Sentinel, N-Cell, the governed worker fleet, the agent-receipt infrastructure, CRUCIBLE, and SWARM. Each entry states what it is, what it does, and its state on the ladder. The honest framing throughout is governed, supervised execution with receipts.</p>
+</header>
+
+<dl class="meta">
+<div><dt>Document</dt><dd>AI Agents Neuruh Master</dd></div>
+<div><dt>Slug</dt><dd class="mono">ai-agents-neuruh-master</dd></div>
+<div><dt>Audit date</dt><dd>2026-11-18</dd></div>
+<div><dt>Owner</dt><dd>Jeramie Hicks, Neuruh</dd></div>
+<div><dt>Version</dt><dd>v1.0, 2026-11-18</dd></div>
+<div><dt>Sources read</dt><dd>Retardio Library seed index (1,103 records), chapters 07, 15, 16, 17; Drive inventory; conflict resolutions; swarm and founder execution layer filings</dd></div>
+<div><dt>Hub</dt><dd>Hub v2.97, 301 total sites, verified 2026-11-18</dd></div>
+<div><dt>Commercial state</dt><dd>MRR $0. No dollar valuation before recurring revenue.</dd></div>
+</dl>
+
+<div class="callout red">
+<h3>Read first: the honest framing</h3>
+<p>Neuruh runs <strong>governed, supervised execution with receipts</strong>. It is not fully autonomous and not continuously autonomous in production. The Organism Autonomy Audit of 2026-09-25 is explicit: the loop is real as tested machinery through result, ingest, and continuation, and three hard gaps block continuous unattended operation. Model adjudication is BLOCKED by design, governance was never deployed live, and no deploy executor exists. The scheduler itself is UNARMED. Nothing in this document claims otherwise. Any number in this document carries the audit date 2026-11-18.</p>
+<p>SWARM's 5,150 is a historical logical-agent design target across 7 legions. It was never 5,150 live sessions, and it is not 5,150 live sessions now. DeedSonar is down (503 DEPLOYMENT_PAUSED, audit date 2026-11-18). Simulations are labeled simulations.</p>
+</div>
+
+<nav class="toc" aria-label="Contents">
+<strong>Contents</strong>
+<ol>
+<li><a href="#ladder">How to read the state ladder</a></li>
+<li><a href="#chain">Figure 1: The control chain</a></li>
+<li><a href="#catalog">The agent catalog</a></li>
+<li><a href="#mother">Mother and Axon</a></li>
+<li><a href="#bob">BOB and the conductors</a></li>
+<li><a href="#executives">The five executive agents, FATHER, and dual cores</a></li>
+<li><a href="#fleet">Workers, the fleet, and named roles</a></li>
+<li><a href="#sentinel">Sentinel and the court</a></li>
+<li><a href="#governance">Governance, custody, and promotion</a></li>
+<li><a href="#ncell">N-Cell</a></li>
+<li><a href="#receipts">Receipts and CRUCIBLE</a></li>
+<li><a href="#swarm">SWARM and the seven legions</a></li>
+<li><a href="#running">What runs today</a></li>
+<li><a href="#blocked">Blocked and unknown register</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
+
+<h2 id="ladder">1. How to read the state ladder</h2>
+<p>The ladder is CONCEPT, DESIGNED, IMPLEMENTED, TESTED, DEPLOYED, LIVE, PROVEN, COMMERCIAL, BLOCKED. Each rung means something different, and this document never upgrades a rung without evidence.</p>
+<table>
+<tr><th>State</th><th>Meaning in this document</th></tr>
+<tr><td><span class="badge st-des">DESIGNED</span></td><td>Architecture, doctrine, or prompts exist on paper. No running code is evidenced.</td></tr>
+<tr><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Code, prompts, or a documented role exists. It has not passed a recorded test run.</td></tr>
+<tr><td><span class="badge st-tested">TESTED</span></td><td>A recorded test, harness run, or proof run passed. Production use is not claimed.</td></tr>
+<tr><td><span class="badge st-live">LIVE</span></td><td>Running on a schedule or serving a live page, with a receipt or a verified check dated 2026-11-18.</td></tr>
+<tr><td><span class="badge st-blocked">BLOCKED</span></td><td>A named gap stops it. The reason is given, not smoothed over.</td></tr>
+<tr><td><span class="badge st-unk">UNKNOWN</span></td><td>No source read for this document establishes the state. Nothing is filled in by guess.</td></tr>
+</table>
+<p>PROVEN is used only where a source records a passed verification with a receipt. COMMERCIAL applies to nothing in this catalog, audit date 2026-11-18. MRR is $0.</p>
+
+<h2 id="chain">2. Figure 1: The control chain</h2>
+<p>The intended control chain, as stated in the organism canon and verified stage by stage in the Organism Autonomy Audit of 2026-09-25, is:</p>
+<figure>
+<div class="flow">
+<div class="step"><b>MISSION</b>Founder Runtime</div><span class="arrow">&rarr;</span>
+<div class="step"><b>CONDUCTOR</b>BOB / Axon</div><span class="arrow">&rarr;</span>
+<div class="step"><b>WORKER</b>Runner + workflows</div><span class="arrow">&rarr;</span>
+<div class="step"><b>ACTION</b>Governed call</div><span class="arrow">&rarr;</span>
+<div class="step"><b>RECEIPT</b>Hash-chained</div><span class="arrow">&rarr;</span>
+<div class="step"><b>SENTINEL</b>Court verdict</div><span class="arrow">&rarr;</span>
+<div class="step"><b>GOVERNANCE</b>Allow / deny</div><span class="arrow">&rarr;</span>
+<div class="step"><b>CUSTODY</b>Honey Pot</div><span class="arrow">&rarr;</span>
+<div class="step"><b>PROMOTION</b>Merge gate</div><span class="arrow">&rarr;</span>
+<div class="step gap"><b>DEPLOYMENT</b>MISSING</div><span class="arrow">&rarr;</span>
+<div class="step"><b>RESULT</b>Ingested</div><span class="arrow">&rarr;</span>
+<div class="step"><b>INGEST</b>Ledger</div><span class="arrow">&rarr;</span>
+<div class="step"><b>NEXT MISSION</b>Continuation</div>
+</div>
+<figcaption><b>Figure 1.</b> The organism control chain. Source: Organism Autonomy Audit 2026-09-25 and the swarm architecture filing. The chain is real as tested machinery from MISSION through PROMOTION, then it breaks: DEPLOYMENT is MISSING, because <code>deploy.requested</code> is emitted and no consumer exists. RESULT, INGEST, and NEXT MISSION are proven in the harness only, one parent-to-child level, with no founder transport on that path. The nine-stage Unified Chain demo (a simulation, audit date 2026-11-18) compresses the same loop into ingest, N-Cell/64 header, governance intersection, memory write-gate, CRUCIBLE verdict, SHA-256 receipt, promotion, outcome, next mission.</figcaption>
+</figure>
+<p>Stage verdicts from the audit of 2026-09-25: mission STAGED, BOB/conductor STAGED as a role only, worker PROVEN in harness, receipt PROVEN in harness, event routing PROVEN in process and MISSING as a bus, Sentinel PROVEN as a seam and BLOCKED as a verdict, governance STAGED, custody PROVEN in harness, promotion PROVEN in tests and STAGED live, deployment MISSING, result PROVEN in harness, ingest PROVEN in harness, continuation PROVEN in harness at one level, outcome-to-recipe recalibration STAGED, continuous unattended operation MISSING.</p>
+
+<h2 id="catalog">3. The agent catalog</h2>
+<p>Every agent and role in scope, one row each. State is on the ladder as of the audit date 2026-11-18. Evidence is the source that supports the row; where no source supports a state, the row says UNKNOWN.</p>
+<table>
+<tr><th>Agent / role</th><th>What it is</th><th>What it does</th><th>State</th><th>Evidence</th></tr>
+<tr><td>MOTHER v1, System Monitor</td><td>The autonomous heartbeat and immune system of the business infrastructure. Observer, not operator.</td><td>Monitors live status, detects drift, gaps, conflicts, and failures across GitHub, Notion, and local sessions. Ingests sessions into structured operational memory. Flags, never silently resolves.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Full system prompt recovered in the design-autonomous-agents filing, 2026-11-18. Live continuous operation not evidenced.</td></tr>
+<tr><td>AXON, MOTHER v2 Coordinator</td><td>The brain that routes work. Coordinator, not worker.</td><td>Receives objectives, classifies BUILD / RESEARCH / DESIGN / SALES / OPS / RECOVERY, decides who does the work, in what order, and how success is measured. Model routing, permission guard, tool interface, logging, gateway heartbeat.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Coordinator prompt and architecture in the design filing; AXON Lattice Substrate and Verified Code Map demos live on the hub, audit date 2026-11-18; model router verification filing live.</td></tr>
+<tr><td>MOTHER v3, control plane</td><td>The control-plane layer above MOTHER v2, in the rebuilt design.</td><td>Owns the control plane for the five executive agents. Scope as designed, not as run.</td><td><span class="badge st-des">DESIGNED</span></td><td>Design filing section 4; Retardio Library chapter 17 lists Mother/Axon conductor as DESIGNED, audit date 2026-11-18.</td></tr>
+<tr><td>Poised Guardian</td><td>Chief of Staff for Jeramie and Neuruh. Primary persona, with a Constitutional Governor shadow.</td><td>Owns priorities, daily command, unfinished work, handoffs, decisions needed, and operational status. Enforces finish before expanding. Shadow attacks false completion, stale status, fake canon, scope creep, and autonomous overreach.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Doctrine and prompts in the design filing; chain of command Jeramie to Poised Guardian to specialists. No live run evidence in sources read.</td></tr>
+<tr><td>AXIOM</td><td>Senior Developer and Build Governance Officer. Primary: senior builder. Shadow: adversarial senior reviewer.</td><td>Builds API-first, enforces architecture and SOPs, governs builds. Shadow breaks what the primary builds.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Full deployment-ready system prompt exists, per the design filing recovery table, audit date 2026-11-18.</td></tr>
+<tr><td>Da Vinci</td><td>Creative Technologist and Master Experience Designer. Shadow: Visual Systems Engineer / Taste Prosecutor.</td><td>Design and experience builds on the render contract: mathematically grounded perspective, volumetric lighting, PBR, HDR, atmospheric depth.</td><td><span class="badge st-des">DESIGNED</span></td><td>Rebuilt executive agent 03 in the design filing. No separate run evidence in sources read.</td></tr>
+<tr><td>Capital</td><td>Opportunity Hunter and Capital Allocator. Shadow: Underwriter / Skeptical Closer.</td><td>Combines the money agent with FinOps, sales, asset intelligence, and FATHER-style strategic reasoning.</td><td><span class="badge st-des">DESIGNED</span></td><td>Rebuilt executive agent 04 in the design filing. No separate run evidence in sources read.</td></tr>
+<tr><td>Forensic</td><td>Root-Cause Investigator. Shadow: Recovery Surgeon.</td><td>Investigates failures and recovers systems. Exists because AXIOM is not permitted to explain away its own failures. Does not build features while an incident is open.</td><td><span class="badge st-des">DESIGNED</span></td><td>Rebuilt executive agent 05 in the design filing. No separate run evidence in sources read.</td></tr>
+<tr><td>FATHER, Strategic Planner</td><td>Strategic planner for Neuruh.</td><td>Reads operational information and generates weekly intelligence briefings, strategic priorities, market analysis, opportunity assessments, and risk assessments. Base every claim on evidence; never present a projection as a fact.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Role and code existed, per the design filing recovery table, audit date 2026-11-18.</td></tr>
+<tr><td>BOB, mission scheduler</td><td>Mission control and continuity. A role label in code, not an agent service.</td><td>Receives a MissionCapsule, resolves objective, priority, dependencies, evidence, capabilities, authority class, budget, SLA, and completion contract, and produces a SwarmPlan.</td><td><span class="badge st-des">DESIGNED</span></td><td>Swarm filing: BOB becomes the mission scheduler. Audit 2026-09-25: BOB exists in code as a role, not a service; no autonomous BOB agent, no BOB repo.</td></tr>
+<tr><td>PRIME, builder</td><td>Builder role in the current static chain: BOB to PRIME to SENTINEL to HONEY to JGI.</td><td>Builds new capabilities, per the swarm filing role map.</td><td><span class="badge st-unk">UNKNOWN</span></td><td>Named as a role in the swarm filing. No separate implementation or test evidence in sources read.</td></tr>
+<tr><td>HONEY, Git Custodian</td><td>Custody layer, called the Honey Pot. Binds custody to the court verdict.</td><td>Holds merges and pushes until Sentinel PASS, governance ALLOW, and head unchanged are all satisfied. Custody flow proven in tests; production custody of a real merge not evidenced.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Audit 2026-09-25: custody PROVEN in harness. E2E run had <code>git_push: BLOCKED</code>.</td></tr>
+<tr><td>Sentinel, independent court</td><td>Independent adjudicator. Immune and adversarial evaluation.</td><td>Receives court requests, adjudicates, seals a verdict receipt. A model-executed PASS has never happened.</td><td><span class="badge st-blocked">BLOCKED</span></td><td>Audit 2026-09-25: seam PROVEN, verdict BLOCKED. <code>SENTINEL_MODEL_EXECUTION</code> hardcoded BLOCKED. See section 8.</td></tr>
+<tr><td>JGI, Jeramie General Intelligence</td><td>The general-intelligence layer: JGI Core solution swarm, JGI Sentinel Court, JGI workbenches.</td><td>Integration seams, solution swarm, sentinel court workbench, economics workbench, and 9 further workbenches as demo surfaces.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>JGI Core, JGI Sentinel Court, and 10 JGI workbench sites live on the hub, audit date 2026-11-18. Live production role UNKNOWN.</td></tr>
+<tr><td>Workers (runner + workflows)</td><td>The execution layer: <code>neuruh_workers/runner.py</code>, workflow catalog, worker scripts.</td><td>Execute jobs, acknowledge events, create child jobs, ingest results. Exercised in unit tests and the E2E harness. Not observed doing production work unattended.</td><td><span class="badge st-tested">TESTED</span></td><td>Audit 2026-09-25: worker PROVEN in harness. Tick 1 shows jobs created and acknowledged, zero deadletters.</td></tr>
+<tr><td>N-Cell</td><td>Deterministic protocol for runtime state, authority, topology, provenance, outcomes, and governed organizations.</td><td>Authority headers gate every export, alert, and promotion. Organ manifests declare effective state and capability. Runtime adapter is a simulation.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Authority header IMPLEMENTED in Neuruh Source; organ manifests TESTED 18 of 18, 0 fully grounded, audit date 2026-11-18. See section 10.</td></tr>
+<tr><td>Receipt infrastructure</td><td>Hash-chained ExecutionLedger, receipt sealing, chain verification, Merkle anchor.</td><td>Every important action leaves a receipt answering who, what, when, why, input, output, authority, source, provenance, result, and next state. On-chain anchor v2: root afd56cea, 235 leaves, audit date 2026-11-18.</td><td><span class="badge st-tested">TESTED</span></td><td>Audit 2026-09-25: receipt PROVEN in harness. Neuruh Source live chain 97 receipts, VALID. Chain write BLOCKED pending chain and wallet choice.</td></tr>
+<tr><td>CRUCIBLE</td><td>Hash-chained receipt and publication gate.</td><td>Seals a verdict before promotion. Stage 5 verdict gate in Neuruh Source. Same receipt discipline in Unified Chain stage 5 and in every v1.1 receipt.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>CRUCIBLE receipt chaining IMPLEMENTED in Neuruh Source; CRUCIBLE Gate page live on the hub. Three implementations exist and were never merged: merge state UNKNOWN.</td></tr>
+<tr><td>SWARM fabric</td><td>Dynamic swarm execution fabric: mission plane, swarm fabric, authority plane, receipts, learning.</td><td>Decomposes a mission, selects recipes and capabilities, allocates workers, runs parallel execution, synthesizes, challenges, governs, acts, measures, learns.</td><td><span class="badge st-des">DESIGNED</span></td><td>Swarm architecture filing, 2026-11-18. Demos (Unified Swarm, Swarm Mission DAG, LEGION Replay, Swarm Visuals) are simulations. See section 12.</td></tr>
+<tr><td>REA A2A</td><td>Agent-to-agent protocol: orchestrator plus 4 specialists.</td><td>Real-estate agent-to-agent handoffs with Agent Card, RAIA card, and Poppy stub. Built and tested, held from offer.</td><td><span class="badge st-tested">TESTED</span></td><td>30 of 30 tests pass, audit date 2026-11-18. HARD HOLD: no offer without Jeramie. Static surface live on the hub.</td></tr>
+<tr><td>Retardio loop</td><td>Real recursive measurement loop, Python, scheduled daily.</td><td>Pulls St. Joseph County, Indiana parcel observations from the county ArcGIS endpoint, issues rapid-flip forecasts, receipts every run, scores rules against resolved forecasts.</td><td><span class="badge st-live">LIVE</span></td><td>State file, audit date 2026-11-18: 8 runs, 23 receipts, chain VALID, last run 2026-11-18T12:23:19Z status OK. 25 observations, 20 forecasts, all UNRESOLVED, 0 resolved. Brier NOT YET COMPUTABLE.</td></tr>
+<tr><td>Neuruh Source</td><td>Agent-first source control, real core on one real local repo.</td><td>Changes arrive as machine-readable packets, not PR comment threads. N-Cell authority headers replace credential juggling. CRUCIBLE plus seven-lens review runs over the real diff with real test runs as evidence.</td><td><span class="badge st-live">LIVE</span></td><td>Proof run 2026-11-17 complete: good packet NS-20261117-0001 merged as commit 5780917; bad packet NS-20261117-0002 BLOCKED at stage 7; reused token DENIED. Live chain 97 receipts, VALID.</td></tr>
+<tr><td>Governance Core V2</td><td>Autonomous governance core, full V2 source.</td><td>Authorize and evaluate promotions. Rehearsed in isolation: 20 of 20 acceptance rows PASS on an alternate port.</td><td><span class="badge st-blocked">BLOCKED</span></td><td>Audit 2026-09-25: STAGED. <code>GOVERNANCE_V2_DEPLOY.sh</code> never executed. Live deployment BLOCKED, not a code gap.</td></tr>
+<tr><td>Kill switch</td><td>Halt and re-arm switch for the Retardio loop.</td><td>Stops new forecasts without deleting history. Re-arm is a Jeramie action.</td><td><span class="badge st-tested">TESTED</span></td><td>Retardio Library chapter 16: halt_count 1, run 4 HALTED, run 5 RE-ARMED, both receipted, audit date 2026-11-18.</td></tr>
+<tr><td>Seven-lens review</td><td>Multi-lens packet review in Neuruh Source, stage 5.</td><td>Scores a packet per lens and seals one verdict receipt per lens before promotion.</td><td><span class="badge st-impl">IMPLEMENTED</span></td><td>Retardio Library chapter 16, audit date 2026-11-18. Exact lens names UNKNOWN: PROOF.md does not enumerate them.</td></tr>
+<tr><td>Promotion gate</td><td>Gate that allows a promotion only when rule, evidence, and authority all check out.</td><td>Receipts every decision. Rule v1.0 in Neuruh Source; gate v1.0.0 in convergence-100 with 17 chained receipts.</td><td><span class="badge st-tested">TESTED</span></td><td>Good packet merged under rule v1.0; bad packet blocked. Baseline v2 REJECTED at 0 resolved against a 200 threshold, audit date 2026-11-18.</td></tr>
+<tr><td>Memory gate v1.0.0</td><td>Write-gate for memory: evidence thresholds, contradiction quarantine, decay.</td><td>Decides WRITE, QUARANTINE, or REJECT for each memory write in the Unified Chain demo.</td><td><span class="badge st-tested">TESTED</span></td><td>21 of 21 tests pass, audit date 2026-11-18. Thresholds in the demo are illustrative; the paper sets none.</td></tr>
+<tr><td>P0 seam reference loop</td><td>Reference implementation of the receipt watcher to Sentinel invocation to result ingest seam.</td><td>Proves the seam in 33 of 33 tests. The production Mac loop is a separate, blocked item.</td><td><span class="badge st-tested">TESTED</span></td><td>33 of 33 tests, audit date 2026-11-18. Production Mac loop BLOCKED: needs Jeramie's Mac and local repo work.</td></tr>
+<tr><td>Agent Readiness Protocol</td><td>Nine-phase checklist for public pages, from Doc 10.</td><td>Acceptance bar adopted across Docs 8, 9, and 10. The claimed delivery files do not exist.</td><td><span class="badge st-unk">UNKNOWN</span></td><td>Conflict resolutions 2026-11-18: delivery claim UNVERIFIED. Files <code>agent-readiness.spec.ts</code> and <code>agent_readiness_analyzer.py</code> not found in the workspace. Rebuild is a queue item.</td></tr>
+<tr><td>TINKA, Richie, Vibin, Laric, Switch</td><td>Named execution and persona roles in the organism.</td><td>Richie carries economics. Vibin carries the founder and operator brief. Laric carries canon. Switch is the Switcharoo role. TINKA remains an execution role in the swarm filing. Exact duties beyond those lines are not defined in sources read.</td><td><span class="badge st-unk">UNKNOWN</span></td><td>Named in the swarm filing and in the standing record. No implementation, test, or run evidence in sources read for this document.</td></tr>
+</table>
+
+<h2 id="mother">4. Mother and Axon</h2>
+<p>MOTHER is the monitoring and coordination spine. Three versions are on record, and they are not the same thing.</p>
+<h3>MOTHER v1: System Monitor</h3>
+<p>MOTHER v1 is the System Monitor and Autonomous Agent for Neuruh. Its single responsibility is to observe the system, detect what is wrong, and make it impossible to miss. It is not a general assistant and not an idea machine. It is the autonomous heartbeat and immune system of the business infrastructure. Its rules, from the recovered prompt in the design filing: truth over comfort, evidence over memory, no silent drift, no false completion, one action at a time, session discipline, conflict first. A task is DONE only when code is committed, deployment is live, a test passes, Notion reflects it, and a receipt exists.</p>
+<p>Permissions are narrow by design. MOTHER v1 MAY read Notion pages and databases, GitHub repos, commits, branches, and PRs, local files and session logs, compare states across systems, generate reports and alerts, and propose next actions. It MAY NOT deploy to production without explicit approval, delete data, files, or records, modify canonical documents without approval, contact clients or external parties, or spend money or commit resources. It is the observer, not the operator. Its power is visibility, not control.</p>
+<h3>MOTHER v2: AXON Coordinator</h3>
+<p>AXON is the MOTHER v2 Coordinator. It is the brain that routes work and does not do the work itself. It decides who does it, in what order, and how success is measured. Task intake classifies work as BUILD, RESEARCH, DESIGN, SALES, OPS, or RECOVERY, then coordinates specialist agents without collisions. The AXON/MCP execution chain is ROUTER to Coordinator to parallel workers to memory to prompt composition to model routing to Session Scribe to Receipt. AXON also carries the model router, the permission guard, the tool interface standard, logging, and the gateway heartbeat. The AXON Lattice Substrate and AXON Lattice Verified Code Map demos are live on the hub, audit date 2026-11-18, and the model router verification filing is live.</p>
+<h3>MOTHER v3: control plane</h3>
+<p>MOTHER v3 is the control plane in the rebuilt design, sitting above MOTHER v2 and the five executive agents. State DESIGNED, audit date 2026-11-18. The Retardio Library chapter 17 lists the Mother/Axon conductor as DESIGNED. No run evidence for v3 is in the sources read.</p>
+<p>MOTHER v3 is also described in the standing record as an organism-resilience and monitoring layer with semantic health checking and alerting. That description is a design claim, not a live observation, and is recorded here as such.</p>
+
+<h2 id="bob">5. BOB and the conductors</h2>
+<p>BOB is the mission scheduler and orchestrator. The swarm filing is explicit that BOB should not become another giant agent that does everything. BOB receives a MissionCapsule and produces a SwarmPlan: objective, priority, dependencies, required evidence, required capabilities, authority class, budget, SLA, and completion contract. The filing gives the example mission "Find highest-value real estate opportunities in Berrien County", decomposed into 4 source hunters, 2 identity resolvers, 3 signal assemblers, 2 valuation workers, 1 title investigator, 1 zoning investigator, 1 contradiction hunter, 1 economic evaluator, and 1 independent court, then parallel execution, evidence graph, candidates, rank, underwriting swarm, and Sentinel.</p>
+<p>The audit corrects the record: BOB exists in code as a role, not a service. The switchboard emits <code>promotion.requested</code> and the Honey Pot promotion executor consumes it. There is no autonomous BOB agent and no BOB repo. Any claim of "BOB decided" should read "switchboard emitted; founder approved". State DESIGNED, audit date 2026-11-18.</p>
+<p>The current operating chain, as the swarm filing records it, is a human-configured static swarm: BOB to PRIME to SENTINEL to HONEY to JGI, then the next dependency. The swarm architecture gives a path toward making that runtime-generated instead of hand-configured. That path is DESIGNED, not built.</p>
+<p>Conductors in the wider record include the Neuruh Command Protocol, the Master Command Protocol Lab (live on the hub, audit date 2026-11-18), and the A.G.E.N.T. Framework Lab (live on the hub, audit date 2026-11-18). Conductor behavior in production is UNKNOWN beyond the harness evidence in the audit.</p>
+
+<h2 id="executives">6. The five executive agents, FATHER, and dual cores</h2>
+<p>The rebuilt design is MOTHER plus five executive Grok agents with dual cores, plus MOTHER as the autonomous operating layer. Every constructive capability has an adversarial counterpart. Shadow is not decoration. The old 14-agent estate does not disappear; its functions become callable skills inside these five agents. That is the difference, in the filing's words, between an agent zoo and an operating system.</p>
+<table>
+<tr><th>Executive</th><th>Primary</th><th>Shadow</th><th>Absorbed skills (as designed)</th></tr>
+<tr><td>01 Poised Guardian</td><td>Chief of Staff</td><td>Constitutional Governor / Contrarian Auditor</td><td>Governance, LaunchOps, ClientOps, IPLibrarian, Session Scribe, ContentOps planning, ROUTER execution</td></tr>
+<tr><td>02 AXIOM</td><td>Senior Builder / Principal Engineer</td><td>Breaker / Adversarial Senior Reviewer</td><td>Build governance, API-first engineering, SOP creation</td></tr>
+<tr><td>03 Da Vinci</td><td>Creative Technologist / Master Experience Designer</td><td>Visual Systems Engineer / Taste Prosecutor</td><td>Three.js and high-tier design stack, render contract</td></tr>
+<tr><td>04 Capital</td><td>Opportunity Hunter / Capital Allocator</td><td>Underwriter / Skeptical Closer</td><td>Money agent, FinOps, sales, asset intelligence, FATHER-style strategy</td></tr>
+<tr><td>05 Forensic</td><td>Root-Cause Investigator</td><td>Recovery Surgeon</td><td>Incident investigation and recovery; no feature building while an incident is open</td></tr>
+</table>
+<p>FATHER sits beside the five as Strategic Planner, generating weekly intelligence briefings, strategic priorities, market analysis, opportunity assessments, and risk assessments. The design filing's recovery table classifies Poised Guardian, Autonomous Builder 2.0, MOTHER v1, MOTHER v2, AXIOM, Sovereign Dev, FATHER, the ROUTER plus old specialist swarm, the AXON/MCP execution chain, the Neuruh Design Standard, AI Sales Closer, and FindSellProfit/ResellOS intelligence as recovered from the archive. Those classifications are the source's own evidence labels, and this document records them as IMPLEMENTED as documented material, not as live production runs. The exact names of the earlier dual personalities are NOT PROVEN in the filing, and the dual-core assignments are the rebuilt, named V3 assignments.</p>
+<p>The old specialist swarm named in the filing is ROUTER, BuildOps, RepoRescue, KeyGuard, LaunchOps, ContentOps, IPLibrarian, SalesOps, ClientOps, DataOps, FinOps, ResearchOps, QAGate, RepoHygiene, Governance, Session Scribe, MOTHER, FATHER, AXIOM, and Builders. FindSellProfit / ResellOS was explicitly structured as a seven-agent resale intelligence pipeline. The nine-phase Agent Readiness checklist is the acceptance bar for this material, and its delivery claim is UNVERIFIED (see section 14).</p>
+
+<h2 id="fleet">7. Workers, the fleet, and named roles</h2>
+<p>The governed worker fleet is the execution layer. The audit records the worker harness as PROVEN: <code>neuruh_workers/runner.py</code>, a workflows catalog, and worker scripts, exercised in unit tests and the E2E harness, with tick 1 showing jobs created and acknowledged and zero deadletters. Not observed doing production work unattended. State TESTED, audit date 2026-11-18.</p>
+<p>Fleet scale in the record is historical and structural, not live. Topology Notebook Chapter 21 records 60 plus historical specs, 15 custom operators, and 32 modern execution roles. Chapter 50 records the Practical Operator Fleet V6: bot canonicals, descriptions, pairing recipes, and provider continuity. The counts are as recorded in the library, audit date 2026-11-18. A live headcount of running workers is UNKNOWN, and this document does not invent one.</p>
+<p>Named persona roles in the standing record are Mother, BOB, Richie, Vibin, Laric, Prime, Switch, Sentinel, Honey, JGI, and Tinka, treated as functional organism roles. The swarm filing adds role mappings: RICHIE to economics, VIBIN to the founder and operator brief, COMMONS to public proof, PRIME to building new capabilities, LARIC to canon. Switch is the Switcharoo role. TINKA remains an execution role in the filing. Beyond those lines, duties for these named roles are UNKNOWN in the sources read for this document, and no live run is attributed to any of them here.</p>
+<p>The Founder Execution Layer filing states the design intent in plain terms: a private AI operating system that runs a founder's work continuously, autonomously, and in context, in five layers, Memory, Context, Execution, Submission, and Reporting. The same filing is explicit that the system does not yet reliably provide that experience: it does not run continuously, it only exists when the founder is in the chat, it does not remember context across sessions, and it does not submit work itself. It is still a copilot, not yet a second operator. The filing is a record, 3 user turns and 3 assistant turns, filed 2026-11-18. The founder-authorization boundary stands over its "do not wait for me" line: assistant generates, Jeramie authorizes, system executes. No sends, posts, spending, or irreversible actions without his call.</p>
+
+<h2 id="sentinel">8. Sentinel and the court</h2>
+<p>Sentinel is the independent court. It is immune and adversarial evaluation, separate from the workers it judges. The chain in the audit is <code>receipt.sealed</code> to <code>court.requested</code> to <code>adjudicator_http</code> to <code>independent_sentinel_court</code> to <code>record_court_outcome</code> to <code>court.failed</code>.</p>
+<p>The strongest receipt in the audit is the Sentinel E2E receipt, sealed 2026-09-21T14:53:36Z, status LIVE_PROVEN, mission NEURUH-SENTINEL-E2E-20260902, workers pin 0425973378e3, organ 7b97560e5ae1. The honest verdicts in that receipt are FAIL: <code>organ_verdict: FAIL</code>, <code>ingest_verdict: FAIL</code>, <code>sentinel_model_execution: BLOCKED</code>. The honest FAIL was <code>CANONICAL_REPO_LOCAL_REFUSED</code> and <code>MODEL_UNAVAILABLE</code>. The plumbing is live-proven; a model-executed PASS has never happened because <code>SENTINEL_MODEL_EXECUTION</code> is hardcoded BLOCKED in workers at 0425973.</p>
+<p>That block is a deliberate design lock, not a bug. Unblocking it is a founder decision with safety review, not a code fix. The JGI Sentinel Court workbench and the JGI workbenches are live demo surfaces on the hub, audit date 2026-11-18. They are workbenches, not the production verdict system. State BLOCKED, audit date 2026-11-18.</p>
+
+<h2 id="governance">9. Governance, custody, and promotion</h2>
+<p>Governance is STAGED. The autonomous-governance-core repository holds full V2 source, including authorize and evaluator modules. Its own precheck document states it is prepared and rehearsed in isolation, live not deployed, and the deploy script has never been executed (parse-checked only). Isolated rehearsal passed 20 of 20 acceptance rows on an alternate port. Workers consume governance only via loopback 127.0.0.1:8848. Whether anything serves that port on live hardware is not observable from the sources read. State BLOCKED for live deployment, audit date 2026-11-18.</p>
+<p>Custody is HONEY, the Honey Pot git custodian. Workers at d5a509d (2026-09-15) consume the court the live Sentinel actually seals and bind custody to it. Custody flow is proven in tests. In the E2E run, <code>honey_pot_jobs</code> was empty and <code>git_push</code> was BLOCKED. Production custody of a real merge is not evidenced.</p>
+<p>Promotion follows the contract: Sentinel PASS plus Governance ALLOW plus Honey Pot custody plus head unchanged yields PROMOTION_MERGE. AUTO_MERGE is forbidden. The promotion executor test suite holds 49 cases, with a full suite of 115 of 115 cited in the contract document. A real PR merged by the promotion executor was not found in the audit. State TESTED in the harness, STAGED live. The promotion gate as built code is TESTED: convergence-100 holds 17 chained gate receipts, and Neuruh Source merged its good packet under promotion rule v1.0 while blocking its bad packet at stage 7.</p>
+<p>Deployment is the break in the chain. <code>deploy.requested</code> is emitted by promotion when <code>deploy_required</code>, with the explicit note "no deploy performed here". No consumer of <code>deploy.requested</code> exists outside workers contracts and tests. The deployment-packager repo was last touched 2026-04-28 and is unrelated to this flow. Nothing performs a deploy. State MISSING, audit date 2026-11-18. This is the current hard stop in the loop.</p>
+<p>The scheduler is UNARMED. The recipe-engine daily launchd plist is explicitly UNARMED until the operator loads it. The daily 06:00 tick on Jeramie's Mac is not loaded. No scheduler, no always-on Founder Runtime, and no unattended end-to-end run is evidenced anywhere in the audit.</p>
+
+<h2 id="ncell">10. N-Cell</h2>
+<p>N-Cell is the deterministic protocol around runtime state, authority, topology, provenance, outcomes, and governed computational organizations. It is not interchangeable with "AI agents". It is a structural piece of the organism.</p>
+<ul>
+<li><strong>Authority header:</strong> IMPLEMENTED. Headers carry authorizer, scope, expiry, token, and gate version, and gate every export, alert, and promotion in Neuruh Source. Export without a header is DENIED, token reuse is DENIED, expired and revoked tokens are DENIED. Open gap: the proof packet was authorized by the legacy founder token, not a live N-Cell header.</li>
+<li><strong>Organ manifests:</strong> TESTED. N-Cell manifests for all 10 organs are live at 18 of 18 checks, with 0 fully grounded, audit date 2026-11-18. The N-Cell Organ Manifests demo is live on the hub.</li>
+<li><strong>N-Cell/64 header:</strong> IMPLEMENTED. The 8-byte header layout is used in the Unified Chain demo; the worked example OPP-2026-RE-0042 stamps to <code>1f0701070fa52d01</code>.</li>
+<li><strong>Runtime adapter:</strong> LIVE as a simulation only. The N-Cell Runtime Adapter demo is a browser-local simulation, labeled as such on the hub, audit date 2026-11-18.</li>
+<li><strong>Convergence-100 authority:</strong> TESTED. 29 of 29 authority plus gate checks pass, audit date 2026-11-18.</li>
+</ul>
+
+<h2 id="receipts">11. Receipts and CRUCIBLE</h2>
+<p>The receipt philosophy is the spine of the whole catalog: important machine actions should leave evidence that answers who, what, when, why, input, output, authority, source, provenance, result, and next state. The hash-chained ExecutionLedger, receipt sealing, and identity binding over 16 fields are PROVEN in the harness, audit date 2026-09-25. The receipt chain verifier recomputes a hash-chained receipt log and rejects tampering.</p>
+<p>Live receipt counts, audit date 2026-11-18: Neuruh Source live chain 97 receipts, chain VALID. Retardio loop 23 receipts, chain VALID, head <code>0f70d23fca454893d49d82cd8f49467f3b8d55c11073ede161da427c967c6829</code>. On-chain anchor v2: one Merkle root over the whole estate, 235 artifacts hashed, root afd56cea, page live on the hub. Chain write is BLOCKED pending Jeramie's chain and wallet choice. Convergence-100 holds 17 chained promotion-gate receipts. The Unified Chain demo verifies receipts in the browser and rejects tampered ones; it is a simulation, and its test suite passes 56 of 56 with jsdom smoke 22 of 22.</p>
+<p>CRUCIBLE is the hash-chained receipt and publication gate. It seals a verdict before promotion and is the stage 5 verdict gate in Neuruh Source. The same receipt discipline is embedded in Unified Chain stage 5 and carried as <code>merkle_root</code> in every v1.1 receipt in the on-chain anchor and convergence-100. Three CRUCIBLE implementations exist and were never merged; their merge state is UNKNOWN. The CRUCIBLE Gate page is live on the hub, audit date 2026-11-18. CRUCIBLE's scoring ladder in the Unified Chain demo is revenue or signed 1.00, paid pilot 0.50, one real lead 0.30, nothing 0.15, with KILL below 20 or at strike 3, ITERATE 20 to 49, and SHIP-CANDIDATE at or above 50 only with a real external signal. Those thresholds are the demo's implementation, not a production verdict.</p>
+
+<h2 id="swarm">12. SWARM and the seven legions</h2>
+<p>SWARM is a dynamic swarm execution fabric, not a headcount of running models. The filing's own correction is the controlling line: "Swarm should not mean 5,150 copies of an LLM running around. That part of the document is theater." The correct Neuruh abstraction is 5,150 logical worker identities and capability slots, backed by elastic execution, instantiated only when work exists. One "agent" might be SQL, Python, a scraper, an API, a deterministic rule, a small model, a large model, a browser worker, or an event consumer.</p>
+<figure>
+<div class="bar-row"><span>Acquisition</span><div class="bar-track"><div class="bar" style="width:100%"></div></div><span>2,550</span></div>
+<div class="bar-row"><span>Exit</span><div class="bar-track"><div class="bar" style="width:63%"></div></div><span>1,600</span></div>
+<div class="bar-row"><span>Capital</span><div class="bar-track"><div class="bar" style="width:15%"></div></div><span>375</span></div>
+<div class="bar-row"><span>Development</span><div class="bar-track"><div class="bar" style="width:14%"></div></div><span>350</span></div>
+<div class="bar-row"><span>Market Intel</span><div class="bar-track"><div class="bar" style="width:7%"></div></div><span>175</span></div>
+<div class="bar-row"><span>Meta-Architects</span><div class="bar-track"><div class="bar" style="width:3%"></div></div><span>65</span></div>
+<div class="bar-row"><span>Ownership</span><div class="bar-track"><div class="bar" style="width:2%"></div></div><span>35</span></div>
+<figcaption><b>Figure 2.</b> The seven-legion design target, 5,150 logical worker identities in total, audit date 2026-11-18. Source: the recovered SREIC blueprint as reported in the swarm architecture filing, turns 8 user and 6 assistant, filed 2026-11-18. Acquisition 2,550 (find, resolve, qualify, pursue property opportunities); Exit 1,600 (buyer matching, disposition, sales, negotiation, closing); Capital 375 (debt and equity sourcing, lender matching, investor packaging); Development 350 (permits, contractors, materials, budgets, project execution); Counter-Intel / Market Intel 175 (competitor and market intelligence); Meta-Architects 65 (optimization, strategy testing, forecasting, swarm evolution); Tokenization / Ownership 35 (fractional ownership, ownership infrastructure, compliance workflows). These are design capacities, not live sessions.</figcaption>
+</figure>
+<p>The legions, as upgraded in the filing, are Acquisition Intelligence (public records: tax delinquency, foreclosure, probate, estate, liens), Capital Formation (capital need resolver, debt marketplace, syndication, hard-money comparison, family-office outreach, deal memos, capital calls, tokenization), Development (feasibility, zoning, entitlements, permit intelligence, design options, commercial, adaptive reuse, assemblage, subdivisions, infill), Exit Orchestration (exit strategy generator, buyer graph, buy box matching), Market Intelligence (competitor inventory, competitor pricing, acquisition behavior, geographic expansion, marketing spend signals, competitor prediction), Asset / Token / Ownership Infrastructure (traditional SPV, partnership, syndication, ownership graph), and Meta-Architects (recipe analytics, strategy analytics, source performance, model performance, market performance, outreach performance, measuring agent ROI, terminating weak strategies, replicating strong strategies, introducing variations, identifying market gaps, inventing new agent types, forecasting markets).</p>
+<p>The swarm fabric has five planes in the filing's topology: Canon / Constitution (shared kernel, role contracts, capability registry), Mission Plane (BOB, mission capsules, queue and priority), Swarm Fabric (recipe to workers, spawn and lease, parallelize, coordinate, collapse, measure), Authority Plane (MOTHER / FATHER, governance core, policy and limits), and the real world (CRM, email, SMS, docs, property, Git, DB, APIs), with receipts flowing to the Vault, event bus, and evidence store, observed by N-Observer, N-Lab, and SENTINEL, and economics and canon carried by RICHIE and LARIC. Learning feeds back into recipes and swarm strategy. The abstraction generalizes beyond real estate: the same mission, decompose, select recipes, select capabilities, allocate workers, parallel execution, synthesize, challenge, govern, act, measure, learn sequence is stated for resale, collectibles, investigative intelligence, and build engineering. Those vertical swarms are DESIGNED, audit date 2026-11-18.</p>
+<p>Swarm demo surfaces live on the hub are simulations: the Unified Swarm, Swarm Mission DAG, LEGION Replay (the governed swarm, 2026-09-28), Swarm Visuals, Agent Swarm Domination / SREIC v2.0 and Real Estate Swarm v3.0, JGI Core: The Solution Swarm, and the Swarm Architecture Blueprint. The swarm command surface at swarm.neuruh.com is listed live on the hub, audit date 2026-11-18; its production behavior was not verified from the sources read for this document.</p>
+
+<h2 id="running">13. What runs today</h2>
+<p>Three things in this catalog run for real, and they are the only three this document calls LIVE without qualification.</p>
+<ul>
+<li><strong>Retardio loop, LIVE.</strong> Real Python at <code>~/workspace/retardio-loop/</code>, cron <code>retardio-loop-daily</code> daily at 07:23 America/Detroit. State file, audit date 2026-11-18: 8 runs, 23 receipts, chain VALID, last run 2026-11-18T12:23:19Z, status OK, 25 observations, 20 forecasts, all UNRESOLVED, 0 resolved, Brier NOT YET COMPUTABLE, rule baseline_v1. The only network call is to the county ArcGIS endpoint. No sends, posts, spending, or chain writes. Kill switch tested: run 4 HALTED, run 5 RE-ARMED, both receipted.</li>
+<li><strong>Neuruh Source, LIVE as a working core.</strong> Proof run 2026-11-17 complete. Good packet NS-20261117-0001 merged through all 11 stages as commit 5780917, promotion gate PROCEED under rule v1.0. Bad packet NS-20261117-0002 BLOCKED at stage 7 (CRUCIBLE FLAG), never merged. Reused token DENIED, never queued. Live chain 97 receipts, VALID. Boundary: working core on one real local repo, not a hosted multi-user service, with no multi-tenancy, hosted auth, or GitHub remote sync yet. Proof packet authorized by the legacy founder token, not a live N-Cell header.</li>
+<li><strong>Convergence-100, TESTED.</strong> 83 DONE, 10 BLOCKED, 7 NOT IMPLEMENTED, 91 of 91 tests passing, audit date 2026-11-18. The 10 blocked items include the chain pick, 30 days of stable receipts until about Dec 15, a frozen manifest-v2 parent decision, a source lacking formation dates and cash status, and a first real Brier months away.</li>
+</ul>
+<p>Everything else that looks live is a demo, a simulation, a harness result, or a document. The Unified Chain is the flagship nine-stage organism loop demo and a simulation: 56 of 56 tests, jsdom 22 of 22, browser-verified as a working page. The Integrated Governance Loop and the Receipt-Chain Explorer are simulations. The P0 seam reference loop passes 33 of 33 tests; the production Mac loop is BLOCKED. The memory gate passes 21 of 21 tests. REA A2A passes 30 of 30 tests and is on HARD HOLD.</p>
+
+<h2 id="blocked">14. Blocked and unknown register</h2>
+<table>
+<tr><th>Item</th><th>State</th><th>Reason and next step</th></tr>
+<tr><td>Sentinel model adjudication</td><td><span class="badge st-blocked">BLOCKED</span></td><td><code>SENTINEL_MODEL_EXECUTION</code> hardcoded BLOCKED. Founder decision with safety review, not a code fix. Done looks like an E2E receipt with <code>ingest_verdict: PASS</code>.</td></tr>
+<tr><td>Governance V2 live deployment</td><td><span class="badge st-blocked">BLOCKED</span></td><td>Deploy script never executed. Done looks like a 20 of 20 acceptance probe against 127.0.0.1:8848 with a real ALLOW or DENY.</td></tr>
+<tr><td>Deploy executor</td><td><span class="badge st-blocked">BLOCKED</span></td><td>No consumer of <code>deploy.requested</code> exists. Build it; done looks like a promotion with <code>deploy_required</code> yielding a verified deployment artifact plus a <code>deploy.verified</code> receipt.</td></tr>
+<tr><td>Armed scheduler</td><td><span class="badge st-blocked">BLOCKED</span></td><td>Daily plist UNARMED on Jeramie's Mac. Needs his Mac and a load of the plist, then one mission traveling FR APPROVED to receipt to court to custody to promotion with zero human clicks.</td></tr>
+<tr><td>Production Mac loop (P0 seam)</td><td><span class="badge st-blocked">BLOCKED</span></td><td>Needs Jeramie's Mac and local repo work. This VM has no Mac access.</td></tr>
+<tr><td>On-chain anchor write</td><td><span class="badge st-blocked">BLOCKED</span></td><td>Chain and wallet choice pending Jeramie. Root afd56cea, 235 leaves, computed and verified, not yet written on chain.</td></tr>
+<tr><td>Outcome to recipe recalibration</td><td><span class="badge st-blocked">BLOCKED</span></td><td>No observed instance of an outcome changing a recipe. Wire the learning-update-proposal call site. The learning half of autonomy is missing.</td></tr>
+<tr><td>Durable event bus</td><td><span class="badge st-blocked">BLOCKED</span></td><td>Ether-layer event bus is a single commit from 2026-04-27, untouched since. No persistent cross-process bus exists; routing is in-process switchboard only.</td></tr>
+<tr><td>Agent Readiness Protocol delivery</td><td><span class="badge st-unk">UNKNOWN</span></td><td>Claim UNVERIFIED. Two claimed files do not exist in the workspace. Nine-phase checklist adopted as the acceptance bar; files are build items.</td></tr>
+<tr><td>Seven-lens review, lens names</td><td><span class="badge st-unk">UNKNOWN</span></td><td>Lens list not enumerated in PROOF.md. Do not guess the seven names.</td></tr>
+<tr><td>PRIME, TINKA, Richie, Vibin, Laric, Switch live state</td><td><span class="badge st-unk">UNKNOWN</span></td><td>Named roles only in sources read. No implementation, test, or run evidence.</td></tr>
+<tr><td>Founder Runtime liveness</td><td><span class="badge st-unk">UNKNOWN</span></td><td>E2E receipt 2026-09-21 says present and consumed at 127.0.0.1:19090; sentinel-court README says probed and absent. Both cannot describe the same moment.</td></tr>
+<tr><td>Swarm command surface behavior</td><td><span class="badge st-unk">UNKNOWN</span></td><td>Listed live on the hub, audit date 2026-11-18. Production behavior not verified from sources read.</td></tr>
+<tr><td>Live worker headcount</td><td><span class="badge st-unk">UNKNOWN</span></td><td>No live headcount in sources read. 5,150 is a design target, not a headcount. Chapter 21 counts are historical specs and roles, not running workers.</td></tr>
+</table>
+
+<h2 id="sources">15. Sources</h2>
+<p>Every claim in this document traces to one of the sources below, all read in full or by targeted extraction from the full text, audit date 2026-11-18. No source not read was used. Where a source is itself a filing of a conversation, the filing is the record, and proposals inside it are recorded as proposals, not as built systems.</p>
+<ul>
+<li>Retardio Library seed index, 1,103 records, audit date 2026-11-18, <code>~/workspace/retardio-library/seed-index.md</code>.</li>
+<li>Retardio Library chapter 07-agentic (56 records), chapter 15-proof-receipts (22 records), chapter 16-governance (19 records), chapter 17-systems-organism (105 records), plus buried-process files for kill switch, N-Cell authority header, promotion gate, seven-lens review, and CRUCIBLE receipt chaining.</li>
+<li>Google Drive inventory, 1,684 files, inventoried 2026-11-18T11:16:32Z, <code>~/workspace/drive-pull/inventory.md</code>. Drive job totals: DONE 1,601, BLOCKED 80, NOT IMPLEMENTED 3, UNATTEMPTED 0.</li>
+<li>Conflict resolutions, 2026-11-18, <code>~/workspace/drive-pull/conflict-resolutions.md</code>. Founder-authorization boundary stands; Agent Readiness delivery claim UNVERIFIED; Doc 9 revenue figures are source claims only.</li>
+<li>Neuruh Swarm Architecture filing, 8 user and 6 assistant turns, source share dated Sep 8, filed 2026-11-18, live at <code>https://neuruhai.github.io/neuruh-demos/drive-pull/neuruh-swarm-architecture/</code>.</li>
+<li>Founder Execution Layer filing, 3 user and 3 assistant turns, filed 2026-11-18, live at <code>https://neuruhai.github.io/neuruh-demos/drive-pull/founder-execution-layer/</code>.</li>
+<li>Design Autonomous Agents filing, 5 user and 5 assistant turns, filed 2026-11-18, live at <code>https://neuruhai.github.io/neuruh-demos/drive-pull/design-autonomous-agents/</code>.</li>
+<li>Building Agent Fleets filing, 15 user and 15 assistant turns, filed 2026-11-18, live at <code>https://neuruhai.github.io/neuruh-demos/drive-pull/building-agent-fleets/</code>.</li>
+<li>Organism Autonomy Audit, 2026-09-25, <code>~/workspace/organism-autonomy/audit-2026-09-25.md</code>. The stage verdicts in section 2 and the blocked register in section 14 come from this audit.</li>
+<li>Neuruh Source proof run, 2026-11-17, <code>~/workspace/neuruh-source/PROOF.md</code>. Good packet NS-20261117-0001, commit 5780917; bad packet NS-20261117-0002; live chain 97 receipts, VALID.</li>
+<li>Retardio loop state, <code>~/workspace/retardio-loop/state.json</code>, last run 2026-11-18T12:23:19Z: 8 runs, 23 receipts, 25 observations, 20 forecasts, 0 resolved.</li>
+<li>Unified Chain README, <code>~/workspace/unified-chain/README.md</code>: nine stages, 56 of 56 tests, jsdom 22 of 22, simulation.</li>
+<li>Live hub, <code>https://neuruh-hub.pages.dev/</code>, Hub v2.97, 301 total sites, verified 2026-11-18, read 2026-11-18.</li>
+</ul>
+<p class="small">Standing honesty lines carried from the segment program, audit date 2026-11-18: simulations are simulations, DeedSonar is down, the lead engine is blocked, the anchor is not yet on-chain, no Brier yet, no checkout until Stripe reconnects, MRR $0, no equity offered, no valuation offered. The Drive folder "AI Agents - Neuruh Master" is the folder this master document belongs to. X is dark by Jeramie's order since 2026-11-17, and nothing in this document was posted anywhere.</p>
+
+<footer class="foot">
+<p><strong>AI Agents Neuruh Master v1.0.</strong> Audit date 2026-11-18. Slug <code>ai-agents-neuruh-master</code>. This is a master document, not a build. It describes the agent catalog as the sources record it, with states on the ladder and gaps named, so the next build starts from ground truth instead of memory.</p>
+</footer>
+</div>
+</body>
+</html>
