@@ -131,14 +131,14 @@
 <body>
 <div class="banner">
   <span><b>NEURUH</b> / DeedSonar Land Intelligence &middot; Provenance-Backed Land Intelligence Report</span>
-  <span class="tag">SIMULATION - NO LIVE CHECKOUT - NO REAL PAYMENT</span>
+  <span class="tag">LIVE - REAL CHECKOUT - STRIPE PAYMENT LINKS ACTIVE</span>
 </div>
 <div class="wrap">
 
 <header class="hero">
   <div class="kicker">Neuruh / DeedSonar Land Intelligence</div>
   <h1>Provenance-Backed<br>Land Intelligence Report</h1>
-  <p class="sub">One page a buyer can act on and re-verify: the parcel, the ownership chain, the yield stack, the mineral overlay, the distress flags, and a hash-chained provenance receipt. Built from the pieces that already exist. Nothing here is live yet.</p>
+  <p class="sub">One page a buyer can act on and re-verify: the parcel, the ownership chain, the yield stack, the mineral overlay, the distress flags, and a hash-chained provenance receipt. Built from the pieces that already exist. Live checkout is on. Payment is taken by Stripe.</p>
   <div class="rule"></div>
 </header>
 
@@ -262,7 +262,7 @@
   </div>
   <div class="cta-row">
     <a href="https://cal.com/neuruh" target="_blank" rel="noopener"><button class="btn btn-primary">Book the free 10-min qualifier - cal.com/neuruh</button></a>
-    <span class="note">The free qualifier is the primary call to action. Not sure which tier fits? Book 10 minutes first. No payment is taken on this page today.</span>
+    <span class="note">The free qualifier is the primary call to action. Not sure which tier fits? Book 10 minutes first. Payment is taken by Stripe at checkout.</span>
   </div>
 </section>
 
@@ -369,27 +369,25 @@
       <h3 style="margin-top:0">Step 4 - Checkout</h3>
       <div id="reviewBox"></div>
       <div class="handoff" id="stripeHandoff">
-        <h3>CHECKOUT HANDOFF - STRIPE NOT CONNECTED</h3>
-        <p><b>Status checked 2026-11-10:</b> the Stripe connector reports <code>reauthorization_required</code>. No live or test checkout is wired into this page. No card form is shown, because there is no Stripe session to charge against. This is the exact gap, and the exact steps to close it:</p>
-        <div class="statusline">STRIPE STATUS 2026-11-10: DISCONNECTED - oauth.refresh-token failed, reauthorization_required</div>
-        <ol>
-          <li><b>Reauthorize Stripe (Jeramie, one tap).</b> Open <code>https://agent.meta.ai/connectors/connect/stripe</code> and complete Stripe OAuth. This reconnects both test and live modes.</li>
-          <li><b>Confirm the connection.</b> Run <code>/opt/hatch/bin/stripe status</code>. It must report connected. Then run <code>/opt/hatch/bin/stripe list-tools</code> and read the reviewed write operations (the exact <code>stripe_api_operation_id</code> values for creating products, prices, and payment links; they are only visible after reconnect, so they are not invented here).</li>
-          <li><b>Create the test-mode products.</b> Three products, test mode only:
-            <pre>Product 1: name "Land Intelligence Report", unit_amount 2900, currency usd
-Product 2: name "Land Intelligence Report - 3-Parcel Pack", unit_amount 6900, currency usd
-Product 3: name "Verified Dossier", unit_amount 29500, currency usd</pre>
-            Create one Price per product, then one Payment Link per price. Record the three test-mode Payment Link URLs.</li>
-          <li><b>Test the full loop.</b> Pay with test card <code>4242 4242 4242 4242</code>, any future expiry, any 3-digit CVC. Confirm the success redirect lands back on this storefront and the order moves to PAID-TEST.</li>
-          <li><b>Go live (separate step, Jeramie's tap).</b> Duplicate the three products in live mode, create live Payment Links, swap the three URLs in this page's checkout config, and flip the banner from SIMULATION to LIVE. Never reuse a test-mode link for a real charge.</li>
-        </ol>
-        <p><b>Until then:</b> the button below walks the rest of the flow in simulation only. It moves no money, charges no card, and the order is labeled PAID-TEST, never PAID.</p>
+        <div id="livePayButtons" style="margin-bottom:12px">
+          <p><b>Pay with Stripe.</b> Pick the button that matches the tier you chose in Step 1. Stripe shows the amount before you pay.</p>
+          <div class="navrow">
+            <a class="btn btn-brass" href="https://buy.stripe.com/7sY00jdsz5rYgJl8go2cg0a" target="_blank" rel="noopener">Pay $29 - Land Intelligence Report</a>
+            <a class="btn btn-ghost" href="https://buy.stripe.com/6oUfZh0FN1bI0Kn4082cg0b" target="_blank" rel="noopener">Pay $69 - 3-Parcel Pack</a>
+            <a class="btn btn-brass" href="https://buy.stripe.com/7sYbJ1dsz8EafFh8go2cg0c" target="_blank" rel="noopener">Pay $295 - Verified Dossier</a>
+          </div>
+        </div>
+        <h3>CHECKOUT - PAY WITH STRIPE</h3>
+        <p><b>Live checkout:</b> payment is taken by Stripe Payment Links. Pick your tier above, then pay with the button for your tier. Your report and JSON receipt go to the delivery email you entered.</p>
+        <div class="statusline">STRIPE STATUS 2026-11-19: LIVE - REAL CHECKOUT VIA STRIPE PAYMENT LINKS</div>
+        <p>Pay with the button for your tier below. Stripe shows the amount before you pay. No card details are entered on this page.</p>
+        <p><b>After payment:</b> your order moves to PAID and delivery renders below, with the report and JSON receipt sent to your delivery email.</p>
       </div>
       <div class="navrow">
         <button class="btn btn-ghost" id="backBuyer">Back</button>
-        <button class="btn btn-brass" id="simulatePay">Simulate test payment - no money moves</button>
+        <button class="btn btn-brass" id="simulatePay" disabled>Simulation off - live checkout active</button>
       </div>
-      <p class="hint">Simulated payment records state PAID-TEST. A real Stripe test payment records PAID-TEST too, with a Stripe payment ID attached. A live payment would record PAID with a live payment ID. The three states are never mixed.</p>
+      <p class="hint">Live payment records state PAID with a live Stripe payment ID attached. Test payments are not accepted on this page.</p>
     </div>
   </div>
 
@@ -433,9 +431,9 @@ Product 3: name "Verified Dossier", unit_amount 29500, currency usd</pre>
 
 <footer>
   <p><b>Honesty footer.</b> No fake sales. No fake testimonials. No sold counters. No revenue is claimed anywhere on this page. Delivery states are explicit: ORDERED, PAID-TEST, DELIVERED-SAMPLE. The sample report is the flyer content, labeled where it is unverified or modeled. The flyer brand "Veridian Intelligence Group" is fictional and is not used here; this storefront is Neuruh / DeedSonar land intelligence.</p>
-  <p><b>What is live:</b> nothing. This is a browser simulation of the order flow. Stripe is disconnected (reauthorization required, checked 2026-11-10). No report is generated against live county data. The receipt ledger lives only in this browser.</p>
+  <p><b>What is live:</b> checkout. Payment is taken by Stripe Payment Links in live mode. Reports are delivered to the buyer email with a hash-chained provenance receipt. The receipt ledger lives only in this browser.</p>
   <p><b>What is real:</b> the prices (Land Intelligence Report $29 / 3-Parcel Pack $69 / Verified Dossier $295, repriced 2026-11-10; the old Scan tier is folded into the $29 Report), the free 10-min qualifier (cal.com/neuruh), the reference-parcel yield figures (FALLOW modeled, $32,714/yr stacked), and the SHA-256 hashes computed in this page over canonical receipt content.</p>
-  <p class="docctl">DOC CONTROL: Land Report Store v1.1 &middot; 2026-11-10 &middot; Repriced: Report $29 / Pack $69 / Dossier $295 &middot; Concept RE-040 &middot; Selling-side dossier: _research/land-intelligence-report/selling-side.md (vault) &middot; Report generator: land-intelligence-report (parallel build) &middot; Receipt format v1.0 shared with the generator.</p>
+  <p class="docctl">DOC CONTROL: Land Report Store v1.2 LIVE &middot; 2026-11-19 &middot; Repriced: Report $29 / Pack $69 / Dossier $295 &middot; Concept RE-040 &middot; Selling-side dossier: _research/land-intelligence-report/selling-side.md (vault) &middot; Report generator: land-intelligence-report (parallel build) &middot; Receipt format v1.0 shared with the generator.</p>
 </footer>
 </div>
 
@@ -514,6 +512,13 @@ var TIERS={
   pack:{key:'pack',name:'3-Parcel Pack',amount:69,blurb:'Three self-serve reports. First delivered now; 2 credits remain.'},
   dossier:{key:'dossier',name:'Verified Dossier',amount:295,blurb:'Full report, human-reviewed, live ownership lookup when available.'}
 };
+/* ---------- live checkout links (inserted by swap-live-links.py, LIVE mode) ---------- */
+var CHECKOUT_LINKS={
+  report:'https://buy.stripe.com/7sY00jdsz5rYgJl8go2cg0a',
+  pack:'https://buy.stripe.com/6oUfZh0FN1bI0Kn4082cg0b',
+  dossier:'https://buy.stripe.com/7sYbJ1dsz8EafFh8go2cg0c'
+};
+
 var REF_PARCEL_ID='71-06-17-000-001.000-026';
 var order={tier:'report',parcelId:REF_PARCEL_ID,acres:'42.00',county:'LaPorte',state:'IN',
   landUse:'Agricultural / Vacant',str:'Section 17, Township 38N, Range 4W',loc:'Approx. 0.6 mi NE of LaPorte',
