@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Six Unsolved | Neuruh</title>
+<style>
+  :root {
+    --paper: #f7f3ea;
+    --paper-2: #fffdf7;
+    --ink: #1c1a16;
+    --ink-soft: #4a463d;
+    --brass: #9a7420;
+    --brass-soft: #c9a227;
+    --line: #d8d2c2;
+    --green: #2e6b34;
+    --amber: #8a6d00;
+    --red: #8c2f26;
+    --grey: #6b675c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 28px 64px; }
+  .doc-control {
+    border-top: 3px solid var(--brass);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 0 14px;
+    margin-bottom: 32px;
+  }
+  .doc-control .kicker {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .doc-control h1 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 42px;
+    line-height: 1.05;
+    margin: 10px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .doc-control .sub { color: var(--ink-soft); font-size: 17px; margin: 0 0 14px; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    font-size: 13px;
+  }
+  .meta-grid div { border-top: 1px solid var(--line); padding-top: 6px; }
+  .meta-grid .label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  h2 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 24px;
+    margin: 44px 0 10px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  h2 .num { color: var(--brass); margin-right: 10px; }
+  h3 { font-size: 18px; margin: 26px 0 6px; }
+  p { margin: 0 0 14px; }
+  blockquote {
+    margin: 18px 0;
+    padding: 16px 20px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--brass);
+    font-size: 17px;
+  }
+  blockquote p { margin: 0 0 10px; }
+  blockquote p:last-child { margin: 0; }
+  blockquote .attr { font-size: 13px; color: var(--ink-soft); }
+  .honesty {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brass);
+    padding: 14px 18px;
+    font-size: 14px;
+    margin: 20px 0;
+  }
+  .honesty strong { color: var(--brass); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
+  th {
+    text-align: left;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 2px solid var(--ink);
+    padding: 8px 10px 8px 0;
+  }
+  td { border-bottom: 1px solid var(--line); padding: 12px 10px 12px 0; vertical-align: top; }
+  td .cat { font-weight: 700; }
+  td .ev { color: var(--ink-soft); font-size: 14px; }
+  .badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .badge.open { color: var(--red); }
+  .badge.claimed { color: var(--amber); }
+  .badge.solved { color: var(--green); }
+  .badge.disputed { color: var(--red); }
+  .badge.unverified { color: var(--amber); }
+  .badge.none { color: var(--grey); }
+  figure { margin: 24px 0; }
+  figcaption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+  }
+  figcaption strong { color: var(--ink); }
+  .figure-note { font-size: 13px; color: var(--ink-soft); }
+  .tally { display: flex; gap: 0; margin: 8px 0 0; border: 1px solid var(--line); }
+  .tally div { padding: 12px 14px; border-right: 1px solid var(--line); flex: 1; }
+  .tally div:last-child { border-right: none; }
+  .tally .n { font-family: "Archivo", sans-serif; font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .tally .t { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.08em; }
+  .conn {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brass);
+    padding: 14px 18px;
+    font-size: 15px;
+    margin: 18px 0;
+  }
+  .conn strong { color: var(--brass); }
+  .stmt {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 14px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 14px 18px;
+    margin: 16px 0;
+    line-height: 1.7;
+  }
+  ul { margin: 0 0 14px; padding-left: 20px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--brass); }
+  .footer {
+    margin-top: 48px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .footer a { margin-right: 16px; }
+  @media (max-width: 640px) {
+    .doc-control h1 { font-size: 32px; }
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+    .tally { flex-wrap: wrap; }
+    .tally div { flex: 1 1 40%; border-bottom: 1px solid var(--line); }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { padding: 0; }
+    a { color: var(--ink); text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="doc-control">
+    <div class="kicker">Neuruh &middot; Millennium Problems Program</div>
+    <h1>The Six Unsolved</h1>
+    <p class="sub">The six open Clay Millennium Prize Problems, stated precisely, with the honest state of each and the computable ground Neuruh is mounting an attempt on. The atlas is build one of the program. The lab comes next.</p>
+    <div class="meta-grid">
+      <div><div class="label">Date</div>November 20, 2026</div>
+      <div><div class="label">Audit date</div>November 20, 2026</div>
+      <div><div class="label">Prize</div>$1,000,000 per problem</div>
+      <div><div class="label">Status</div>6 open, 1 solved</div>
+    </div>
+  </header>
+
+  <div class="honesty"><strong>Honesty block.</strong> Nothing on this page claims a solution. A problem is open until the Clay Mathematics Institute says otherwise, and this page follows that rule even when a 2026 claim looks strong. Claims are labeled CLAIMED, DISPUTED, or UNVERIFIED, with dates. Every number on this page was checked against a live source on November 20, 2026. A figure that could not be verified was left out. The Neuruh connections are real capabilities and real plans, not solutions.</div>
+
+  <h2><span class="num">01</span>The prize</h2>
+  <p>On May 24, 2000, at the Millennium Meeting at the College de France in Paris, the Clay Mathematics Institute named seven problems and pledged $1,000,000 for the first correct solution to each. John Tate and Michael Atiyah announced them. The seven span number theory, algebraic geometry, topology, partial differential equations, theoretical computer science, and mathematical physics. The Institute modeled the prize on David Hilbert's 23 problems of 1900, which drove a century of mathematics.</p>
+  <p>One of the seven is solved. Grigori Perelman proved the Poincare conjecture, completing Richard Hamilton's program, in papers released in 2002 and 2003. The Clay Institute awarded him the prize in 2010. He declined it, because it was not also offered to Hamilton, whose work the proof built on. He had already declined the Fields Medal in 2006. Six problems remain, and $6,000,000 of prize money is still unclaimed.</p>
+  <p>The Clay rule that matters most for this page: the Institute only considers a proposed solution after at least two years have passed since its publication. A claim made in 2026 cannot be an official solution in 2026, no matter how strong it looks. Verification is deliberately unhurried.</p>
+
+  <h2><span class="num">02</span>The 2026 claim landscape</h2>
+  <p>2026 is the year machine-assisted claims arrived in earnest. In September, OpenAI posted a claimed Navier-Stokes blowup with a Lean formalization. In October, OpenAI announced a claimed Yang-Mills existence proof, also formalized in Lean. In August, a report said an Anthropic research model raised the proven proportion of Riemann zeros on the critical line from about 41 percent to about 67 percent. A company called AIX Global claims its quantum system resolved all six problems in July 2026. None of these is an official solution. Each one is sorted where it belongs, in its own section and again in section 09.</p>
+
+  <figure>
+    <div class="tally">
+      <div><div class="n">6</div><div class="t">Open problems</div></div>
+      <div><div class="n">1</div><div class="t">Solved (Poincare)</div></div>
+      <div><div class="n">2</div><div class="t">2026 claims with Lean formalizations</div></div>
+      <div><div class="n">0</div><div class="t">Officially solved in 2026</div></div>
+    </div>
+    <figcaption><strong>Figure 1.</strong> The state of the seven as of November 20, 2026. Two 2026 claims carry Lean formalizations. Zero have passed independent verification and the Clay two-year window.</figcaption>
+  </figure>
+
+  <table>
+    <thead>
+      <tr><th>Problem</th><th>Posed</th><th>Status</th><th>2026 claim</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="cat">Birch and Swinnerton-Dyer</span></td>
+        <td>Early 1960s</td>
+        <td><span class="badge open">OPEN</span></td>
+        <td><span class="ev">Formula proposal, Oct 7, 2026. Proposed, not accepted.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Hodge</span></td>
+        <td>1950</td>
+        <td><span class="badge open">OPEN</span></td>
+        <td><span class="ev">No credible 2026 claim.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Navier-Stokes</span></td>
+        <td>2000 (equations 1822)</td>
+        <td><span class="badge claimed">CLAIMED</span></td>
+        <td><span class="ev">OpenAI blowup claim, Sep 8, 2026. Lean formalization. Awaiting independent validation.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">P versus NP</span></td>
+        <td>1971</td>
+        <td><span class="badge open">OPEN</span></td>
+        <td><span class="ev">Unreviewed preprint, Jan 2026. Not accepted.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Riemann Hypothesis</span></td>
+        <td>1859</td>
+        <td><span class="badge open">OPEN</span></td>
+        <td><span class="ev">Proportion claim, Aug 2026, about 67 percent. Manuscript unreleased. Unverified.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Yang-Mills</span></td>
+        <td>2000 (theory 1954)</td>
+        <td><span class="badge disputed">DISPUTED</span></td>
+        <td><span class="ev">Existence claimed Oct 26, 2026. Assessed Nov 10, disputed in November. Mass gap not claimed.</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">03</span>Birch and Swinnerton-Dyer</h2>
+  <div class="stmt">For an elliptic curve E over the rational numbers, the rank of the group of rational points E(Q) equals the order of vanishing of the L-function L(E, s) at s = 1.</div>
+  <h3>In plain words</h3>
+  <p>An elliptic curve is a cubic equation with a group law on its solutions. The rank counts how many independent rational points the curve has. The L-function is an analytic object built from counting the curve's points modulo every prime. The conjecture says the algebra and the analysis agree exactly: the number of independent rational points is read off from how the L-function vanishes at s = 1. The stronger form of the conjecture also predicts the leading coefficient of the L-function at s = 1, in terms of the regulator, the Tate-Shafarevich group, the real period, the Tamagawa numbers, and the torsion.</p>
+  <h3>What a solution unlocks</h3>
+  <p>A complete bridge between the arithmetic of rational points and the analysis of L-functions. It would settle the oldest question about elliptic curves, which are the same objects that carry modern elliptic-curve cryptography, and it would complete the model case for the general Langlands program, which expects L-functions to control arithmetic everywhere.</p>
+  <h3>Best-known results</h3>
+  <ul>
+    <li>Rank equality is proved at analytic rank 0 (Kolyvagin, 1990) and analytic rank 1 (Gross-Zagier, 1986, plus Kolyvagin). In those cases the Tate-Shafarevich group is also finite.</li>
+    <li>All elliptic curves over the rationals are modular (Breuil and others, 2001, extending Wiles), so the rank 0 and rank 1 results apply to every elliptic curve over Q, and every such L-function is defined at s = 1.</li>
+    <li>Rank 2 and above are open in general. No proof exists for any curve of analytic rank 2 or higher.</li>
+    <li>Bhargava and Shankar proved the average rank of an elliptic curve over Q is bounded above by 7/6, and a positive proportion of curves satisfy the conjecture.</li>
+    <li>Numerical evidence is extensive: the LMFDB database carries rank and L-value data for hundreds of thousands of curves, and the conjecture has held in every computed case.</li>
+  </ul>
+  <h3>Claim status</h3>
+  <p>October 7, 2026: OpenAI proposed a full BSD formula at low Selmer corank. Proposed, not independently accepted. It is a proposal, not a verification.</p>
+  <div class="conn"><strong>The Neuruh connection.</strong> Elliptic curves are crypto-relevant, and rank computation is a computable frontier. The rank of a curve, the order of vanishing of its L-function, and the leading coefficient are all computable for any given curve. The Millennium Lab starts here: compute ranks and verify L-values for a chosen family of curves, with every computation receipted in the runtime's hash chain, so anyone can re-run it and check it.</div>
+
+  <h2><span class="num">04</span>Hodge</h2>
+  <div class="stmt">On a smooth complex projective variety, every rational cohomology class of type (p, p) is a rational linear combination of the classes of algebraic subvarieties of codimension p.</div>
+  <h3>In plain words</h3>
+  <p>A variety is a geometric shape cut out by polynomial equations. Its topology has holes, and cohomology counts them. Some cohomology classes look like they could come from real geometric pieces sitting inside the shape. Those are the Hodge classes. The conjecture says every candidate is real: every Hodge class is built out of actual subvarieties. It is a claim that the topology of a variety is controlled by its geometry.</p>
+  <h3>What a solution unlocks</h3>
+  <p>The unification of algebraic topology and algebraic geometry. A proof would say that the continuous, topological description of a shape and the discrete, equation-based description agree at every level, and it would give a machine for turning topological information into geometric objects.</p>
+  <h3>Best-known results</h3>
+  <ul>
+    <li>The case p = 1 was proved by Lefschetz in 1924, before Hodge even posed the conjecture in 1950. Every rational class of type (1, 1) is the class of a divisor.</li>
+    <li>The case p = n - 1 follows from p = 1 by Hard Lefschetz duality.</li>
+    <li>The conjecture is known for many abelian varieties and for special families such as cubic fourfolds and large families of Fermat varieties.</li>
+    <li>The boundaries are sharp and known. The version with whole-number coefficients instead of rational coefficients is false (Atiyah and Hirzebruch, 1962). The natural extension to compact Kahler manifolds, which have complex structure but are not cut out by equations, is false (Voisin, 2002). The conjecture survives only in exactly the form Hodge stated it.</li>
+    <li>Everything above p = 1 is open in general. No general machinery exists for turning a Hodge class into an algebraic cycle.</li>
+  </ul>
+  <h3>Claim status</h3>
+  <p>No credible 2026 claim. Preprint servers carry unreviewed papers claiming proofs; none has been peer-reviewed or accepted.</p>
+  <div class="conn"><strong>The Neuruh connection.</strong> Formalization target. Hodge is the problem on this list where the machine-checkable statement is the cleanest: the cycle class map is surjective, or it is not. Lean 4 and its math library are the arena where that statement will eventually be tested, and the lab's formalization work starts with statements that can be written down exactly and checked by a kernel.</div>
+
+  <h2><span class="num">05</span>Navier-Stokes existence and smoothness</h2>
+  <div class="stmt">In three dimensions, do smooth solutions to the incompressible Navier-Stokes equations, starting from smooth initial data, exist for all time and stay smooth? Or can a solution develop a finite-time singularity, a blowup?</div>
+  <h3>In plain words</h3>
+  <p>The Navier-Stokes equations describe how fluids move: water, air, blood. They are Newton's second law applied to a fluid. The question is whether a perfectly smooth flow can break down. Can the velocity at some point grow without bound in finite time, so the equations stop making sense? Or does every smooth start stay smooth forever?</p>
+  <h3>What a solution unlocks</h3>
+  <p>The mathematics of turbulence, weather, flight, and blood flow. A proof of global regularity would certify the equations that every simulation already trusts. A proof of blowup would show the equations themselves can fail, and would say exactly how a fluid breaks.</p>
+  <h3>Best-known results</h3>
+  <ul>
+    <li>Leray proved in 1934 that weak solutions exist for all time. Weak solutions are allowed to be rough; the question is whether they stay smooth.</li>
+    <li>Caffarelli, Kohn, and Nirenberg proved partial regularity in 1982: if a singularity exists, the singular set has one-dimensional Hausdorff measure zero. A blowup, if it happens, is confined to a very thin set.</li>
+    <li>Before 2026, no proof of global regularity and no proof of blowup existed for the three-dimensional incompressible equations.</li>
+  </ul>
+  <h3>Claim status</h3>
+  <p>September 8, 2026: OpenAI posted a claimed solution. The claim is a finite-time singularity, a blowup, with a smooth applied force. The fluid starts at rest, the force is smooth, the total energy stays finite, and the velocity grows without bound in finite time. The claim establishes statements (C) and (D) of the official Clay formulation, the blowup alternatives. The writeup is 166 pages with a Lean formalization, produced by about 10,000 coordinating agents in about 88 hours, reaching the resolution on September 5. OpenAI says it will not claim the million-dollar prize.</p>
+  <p>A priority dispute followed. Tristan Buckmaster and Levent Alpoge announced related forced-Euler results on September 7, 2026, and the question of who did the mathematics first is unresolved. The Clay Institute only considers proposed solutions after at least two years from publication, so the clock has not started. The Institute has said the problem has apparently been settled, but its review is deliberately unhurried. As of November 20, 2026, no independent verification of the OpenAI claim has been established.</p>
+  <p>What the claim does not do: prove that smooth solutions exist for all time. It claims the opposite direction, blowup, under a smooth applied force. The Clay problem is stated as a choice between those two outcomes, so a verified blowup would settle it. Verification is the open step.</p>
+  <div class="conn"><strong>The Neuruh connection.</strong> Blowup search is the organism pattern at scale. About 10,000 agents, 88 hours, a Lean receipt at the end: that is workers, verification, and a receipt chain, just bigger than ours. The sovereign runtime already does the same shape of work at small scale: generate candidates, check them, keep the receipt. The lab's first simulation target is a Navier-Stokes blowup search on a small grid, with every run receipted.</div>
+
+  <h2><span class="num">06</span>P versus NP</h2>
+  <div class="stmt">Is P equal to NP? Does every problem whose solution can be verified in polynomial time also admit a solution in polynomial time?</div>
+  <h3>In plain words</h3>
+  <p>P is the set of problems a computer can solve quickly. NP is the set of problems whose solutions a computer can check quickly, given the answer. Every problem in P is in NP, because solving it is a way of checking it. The question is whether the reverse holds. Is finding an answer as easy as checking one? Every lock you can test a key in quickly: can you also find the key quickly?</p>
+  <h3>What a solution unlocks</h3>
+  <p>Either answer remakes computing. If P = NP, modern cryptography collapses, because every code that is easy to verify and hard to break becomes easy to break, and optimization, search, and design become routine. If P is not NP, the fact the whole security economy already bets on is certified: verification is fundamentally cheaper than discovery. That gap is the foundation of every password, every signature, and every encrypted message.</p>
+
+  <figure>
+    <svg width="100%" height="180" viewBox="0 0 760 180" role="img" aria-label="Verify versus solve diagram">
+      <rect x="10" y="70" width="150" height="44" fill="#fffdf7" stroke="#1c1a16" stroke-width="1.5"/>
+      <text x="85" y="97" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#1c1a16">A problem</text>
+      <line x1="160" y1="92" x2="240" y2="92" stroke="#9a7420" stroke-width="2"/>
+      <rect x="240" y="30" width="240" height="44" fill="#fffdf7" stroke="#1c1a16" stroke-width="1.5"/>
+      <text x="360" y="58" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#1c1a16">VERIFY the answer: cheap</text>
+      <rect x="240" y="106" width="240" height="44" fill="#fffdf7" stroke="#1c1a16" stroke-width="1.5"/>
+      <text x="360" y="134" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#1c1a16">SOLVE from scratch: unknown</text>
+      <line x1="480" y1="52" x2="560" y2="52" stroke="#9a7420" stroke-width="2"/>
+      <line x1="480" y1="128" x2="560" y2="128" stroke="#9a7420" stroke-width="2"/>
+      <rect x="560" y="30" width="190" height="44" fill="#fffdf7" stroke="#2e6b34" stroke-width="1.5"/>
+      <text x="655" y="58" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#2e6b34">Polynomial time</text>
+      <rect x="560" y="106" width="190" height="44" fill="#fffdf7" stroke="#8c2f26" stroke-width="1.5"/>
+      <text x="655" y="134" text-anchor="middle" font-family="Inter, sans-serif" font-size="14" fill="#8c2f26">Polynomial? Open.</text>
+    </svg>
+    <figcaption><strong>Figure 2.</strong> The gap P versus NP names. Checking an answer is cheap. Finding one may not be. The question is whether the two costs are the same.</figcaption>
+  </figure>
+
+  <h3>Best-known results</h3>
+  <p>Three formal barriers have been proved, and each one rules out a whole family of techniques. A proof must evade all three at once.</p>
+  <ul>
+    <li>Relativization (Baker, Gill, and Solovay, 1975): diagonalization alone cannot settle it. There are oracles under which P = NP and oracles under which P is not NP, so any proof that works the same way in every relativized world is impossible.</li>
+    <li>Natural proofs (Razborov and Rudich, 1997): the standard circuit lower-bound methods cannot prove P is not NP, because if they worked, they would also break the cryptographic assumptions that secure pseudorandom generators rest on.</li>
+    <li>Algebrization (Aaronson and Wigderson, 2008): even arithmetization, the technique behind the celebrated IP = PSPACE result, cannot settle it. A proof must be non-algebrizing as well.</li>
+  </ul>
+  <h3>Claim status</h3>
+  <p>No accepted 2026 claim. A January 2026 arXiv preprint claims a technique called semi-relativization that evades all three barriers and separates P from NP. It is unreviewed and not accepted.</p>
+  <div class="conn"><strong>The Neuruh connection.</strong> This is the recipe engine's problem in pure form. Verification is cheap, solving is expensive, and governed execution is the practical answer: generate, authorize, execute, receipt. The recipe engine lives inside the gap P versus NP names. Every recipe is a search procedure whose outputs are cheap to verify and expensive to find, and the governance layer exists because the search cannot be trusted without the receipt. The lab's complexity work starts here: formalize recipe search as a complexity object, with the three barriers as the audit it must pass.</div>
+
+  <h2><span class="num">07</span>Riemann Hypothesis</h2>
+  <div class="stmt">All non-trivial zeros of the Riemann zeta function lie on the critical line Re(s) = 1/2.</div>
+  <h3>In plain words</h3>
+  <p>The zeta function encodes the primes. Its zeros, the points where it equals zero, control how the primes are distributed. Riemann conjectured in 1859 that every interesting zero sits exactly on one vertical line, where the real part equals one half. If true, the primes are distributed as regularly as the analytic structure of zeta permits. If false, a single zero off the line breaks the pattern.</p>
+  <h3>What a solution unlocks</h3>
+  <p>The sharpest possible error term in the prime number theorem, and hundreds of theorems currently proved on the assumption that RH holds would become unconditional. Prime generation, cryptography, and everything built on the distribution of primes rests on the same structure.</p>
+
+  <figure>
+    <svg width="100%" height="300" viewBox="0 0 760 300" role="img" aria-label="Critical strip diagram">
+      <rect x="120" y="20" width="200" height="240" fill="#fffdf7" stroke="#d8d2c2" stroke-width="1"/>
+      <rect x="320" y="20" width="200" height="240" fill="#fffdf7" stroke="#d8d2c2" stroke-width="1"/>
+      <line x1="320" y1="20" x2="320" y2="260" stroke="#9a7420" stroke-width="2" stroke-dasharray="6 4"/>
+      <line x1="120" y1="260" x2="640" y2="260" stroke="#1c1a16" stroke-width="1.5"/>
+      <text x="120" y="282" font-family="JetBrains Mono, monospace" font-size="12" fill="#4a463d">Re(s) = 0</text>
+      <text x="300" y="282" font-family="JetBrains Mono, monospace" font-size="12" fill="#4a463d">Re(s) = 1/2</text>
+      <text x="520" y="282" font-family="JetBrains Mono, monospace" font-size="12" fill="#4a463d">Re(s) = 1</text>
+      <text x="220" y="14" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" fill="#4a463d">critical strip</text>
+      <circle cx="320" cy="230" r="5" fill="#9a7420"/>
+      <circle cx="320" cy="195" r="5" fill="#9a7420"/>
+      <circle cx="320" cy="160" r="5" fill="#9a7420"/>
+      <circle cx="320" cy="125" r="5" fill="#9a7420"/>
+      <circle cx="320" cy="90" r="5" fill="#9a7420"/>
+      <text x="335" y="234" font-family="JetBrains Mono, monospace" font-size="12" fill="#1c1a16">t = 14.13</text>
+      <text x="335" y="199" font-family="JetBrains Mono, monospace" font-size="12" fill="#1c1a16">t = 21.02</text>
+      <text x="335" y="164" font-family="JetBrains Mono, monospace" font-size="12" fill="#1c1a16">t = 25.01</text>
+      <text x="335" y="129" font-family="JetBrains Mono, monospace" font-size="12" fill="#1c1a16">t = 30.42</text>
+      <text x="335" y="94" font-family="JetBrains Mono, monospace" font-size="12" fill="#1c1a16">t = 32.94</text>
+      <text x="640" y="40" text-anchor="end" font-family="Inter, sans-serif" font-size="13" fill="#4a463d">Every zero found so far</text>
+      <text x="640" y="58" text-anchor="end" font-family="Inter, sans-serif" font-size="13" fill="#4a463d">sits on the dashed line.</text>
+    </svg>
+    <figcaption><strong>Figure 3.</strong> The critical strip, 0 &lt; Re(s) &lt; 1, with the critical line Re(s) = 1/2 dashed in brass. The first five non-trivial zeros, at heights t = 14.13, 21.02, 25.01, 30.42, and 32.94, all sit on the line. The first ten trillion zeros do too. That is evidence, not proof: a single zero off the line, at any height, would end the hypothesis.</figcaption>
+  </figure>
+
+  <h3>Best-known results</h3>
+  <ul>
+    <li>The first ten trillion non-trivial zeros have been computed (Gourdon and Demichel, 2004). All of them lie on the critical line. No counterexample has been found.</li>
+    <li>At least 5/12 of the zeros, about 41.7 percent, are proved to lie on the line (Pratt, Robles, Zaharescu, and Zeindler, 2020). That is up from Conrey's 2/5, about 40.8 percent, in 1989.</li>
+    <li>Hardy proved in 1914 that infinitely many zeros lie on the line. Selberg proved in 1942 that a positive proportion of them do.</li>
+    <li>The function-field analogue, the same statement with polynomials over a finite field in place of the integers, is a theorem (Weil, 1948, for curves; Deligne, 1974, in general). Its proof uses geometry the integers do not have, so it does not transfer.</li>
+    <li>Computation cannot prove it. There are infinitely many zeros, and a counterexample could sit at any height. The prime counting function pi(x) minus li(x) is negative for every x anyone could ever compute, yet it must change sign, with the first crossing near 10^316. A property true for the first ten trillion cases is no proof for an infinite claim.</li>
+  </ul>
+  <h3>Claim status</h3>
+  <p>August 2026: a report says an unreleased Anthropic research model, about 60 coordinated subagents working for about a day and a half, produced a 35-page manuscript proving that at least 67.25 percent of non-trivial zeros lie on the critical line and are simple, and that at least 83.625 percent are distinct. Status: CLAIMED, UNVERIFIED. The manuscript is unreleased and no independent verification has been established as of November 20, 2026. The hypothesis itself is untouched either way.</p>
+  <div class="conn"><strong>The Neuruh connection.</strong> Zeta-zero verification is a computable frontier with provenance, built for the runtime's receipt chain. Verifying zeros to a height is a computation whose result is checkable by anyone who re-runs it, and the receipt chain is exactly the mechanism that makes a re-run trustworthy: who ran it, on what input, with what result, in what order. The lab's first computation is a verified zero count with hash-chained receipts.</div>
+
+  <h2><span class="num">08</span>Yang-Mills existence and mass gap</h2>
+  <div class="stmt">Prove that for any compact simple gauge group G, a non-trivial quantum Yang-Mills theory exists on R4 and has a mass gap Delta &gt; 0.</div>
+  <h3>In plain words</h3>
+  <p>Yang-Mills theory is the mathematics of the strong force, the force that holds atomic nuclei together. The problem asks for two things. First, build the quantum version of the theory rigorously, from the axioms up, in four-dimensional space. Second, prove it has a mass gap: the lightest particle it predicts has positive mass. The mass gap is why the strong force has a finite range and why protons have mass.</p>
+  <h3>What a solution unlocks</h3>
+  <p>The first rigorous interacting quantum field theory in four dimensions. It would put the mathematical foundation of the Standard Model of particle physics on solid ground, and it would explain, from first principles, why the strong force behaves the way it does.</p>
+  <h3>Best-known results</h3>
+  <ul>
+    <li>Lattice gauge theory gives computable approximations. Physicists simulate Yang-Mills on a discrete grid and take the continuum limit. Making that limit rigorous is the hard part.</li>
+    <li>The general problem of determining whether a spectral gap exists in a system is known to be undecidable in the algorithmic sense: no program can decide it in general. The mass gap must be proved by hand, not by search.</li>
+    <li>Before 2026, no rigorous construction of a four-dimensional interacting quantum Yang-Mills theory existed.</li>
+  </ul>
+  <h3>Claim status</h3>
+  <p>October 26, 2026: OpenAI announced an AI-generated existence proof for quantum chromodynamics, including pure Yang-Mills theory as a subproblem. The Lean formalization was submitted on October 28, 2026. The mass gap was explicitly not claimed.</p>
+  <p>November 10, 2026: an independent assessment, prepared by Michael R. Douglas, Arthur Jaffe, Ron Nissim, and Fred Rajasekaran and approved by the Yang-Mills group, with consultative review from David Gross, Igor Klebanov, and Nikita Nekrasov, judged that the submission proves a relativistic quantum field theory satisfying the Wightman axioms can be constructed as a scaling limit of four-dimensional Wilson lattice gauge theory for any simple compact gauge group. The same assessment says the submission does not prove uniqueness of the infinite-volume limit and does not prove a mass gap. Jaffe co-authored the official Clay problem statement with Edward Witten.</p>
+  <p>A November 2026 critique by Jenny Lorraine Nielsen argues the formalization does not establish existence in the Clay sense at all: the non-triviality test does not exclude generalized free fields, the contact terms are uncontrolled, and the identification of the constructed object as Yang-Mills theory, rather than some other lattice-originating theory, has not been verified by a human mathematician. Status: existence contested, mass gap open, Clay problem open.</p>
+  <div class="conn"><strong>The Neuruh connection.</strong> Lattice gauge theory is computable approximation, and formalization is the test. The lab's lattice work starts small: a Wilson lattice computation with receipts, and a reading of the OpenAI formalization against the Clay criteria, so the program knows exactly which gaps remain instead of taking any side's word for it.</div>
+
+  <h2><span class="num">09</span>2026 claims, sorted</h2>
+  <p>Every claim from 2026, with its verdict as of November 20, 2026. The rule for the whole page: officially unsolved until Clay says otherwise. A Lean check proves that the encoded statement follows from its stated assumptions. It does not by itself prove the Clay statement. Independent human verification is the gate.</p>
+  <table>
+    <thead>
+      <tr><th>Claim</th><th>Date</th><th>Verdict</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="cat">OpenAI: Navier-Stokes blowup</span><br><span class="ev">Finite-time singularity with smooth forcing, statements (C) and (D), 166-page writeup, Lean formalization, about 10,000 agents in about 88 hours.</span></td>
+        <td>Sep 8, 2026</td>
+        <td><span class="badge claimed">CLAIMED</span><br><span class="ev">Awaiting independent validation. Priority dispute open. Clay two-year window not started.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">OpenAI: Yang-Mills existence</span><br><span class="ev">Existence of quantum Yang-Mills as a Wightman QFT, Lean formalization submitted Oct 28, 2026. Mass gap not claimed.</span></td>
+        <td>Oct 26, 2026</td>
+        <td><span class="badge disputed">DISPUTED</span><br><span class="ev">Independent assessment Nov 10 judged the Wightman construction proved. A November critique says it fails the Clay criteria. Mass gap open.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Anthropic: Riemann proportion, about 67 percent</span><br><span class="ev">About 60 subagents, about a day and a half, 35-page manuscript, at least 67.25 percent of zeros on the line and simple.</span></td>
+        <td>Aug 2026</td>
+        <td><span class="badge unverified">UNVERIFIED</span><br><span class="ev">Manuscript unreleased. No independent verification established.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">OpenAI: BSD formula at low Selmer corank</span><br><span class="ev">Full BSD formula proposed for curves of low Selmer corank.</span></td>
+        <td>Oct 7, 2026</td>
+        <td><span class="badge unverified">UNVERIFIED</span><br><span class="ev">Proposed, not independently accepted.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">AIX Global: all six solved by quantum computation</span><br><span class="ev">Claims formal resolutions of all six via Seed IQ governed fault-tolerant quantum computation, released Aug 30, 2026.</span></td>
+        <td>Jul to Aug 2026</td>
+        <td><span class="badge unverified">UNVERIFIED</span><br><span class="ev">Self-published on Medium and Zenodo. No independent confirmation. Not presented as solved anywhere on this page.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Preprint: P versus NP by semi-relativization</span><br><span class="ev">Claims a technique evading all three barriers and separating P from NP.</span></td>
+        <td>Jan 2026</td>
+        <td><span class="badge unverified">UNVERIFIED</span><br><span class="ev">Unreviewed preprint. Not accepted.</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><span class="num">10</span>The program</h2>
+  <p>This atlas is build one. It does what an atlas does: it says what is open, what is known, what is claimed, and where the computable ground is. Build two is the Millennium Lab, and it is a real program, not a claim.</p>
+  <p>The lab points the sovereign runtime at the computable frontiers this atlas names. The runtime already exists and is proven: 117 pytest tests passed, 61 receipts in an end-to-end run, hash chain valid after restart, gates that dispatch once and resume on a signed founder token. The lab adds Millennium computations to that runtime.</p>
+  <table>
+    <thead>
+      <tr><th>Problem</th><th>Computable frontier</th><th>Lab first move</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="cat">Riemann</span></td>
+        <td>Verify zeta zeros to a height</td>
+        <td><span class="ev">A verified zero count with hash-chained receipts, re-runnable by anyone.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Birch and Swinnerton-Dyer</span></td>
+        <td>Compute ranks and L-values for a curve family</td>
+        <td><span class="ev">Rank and L-value computation for a chosen family, receipted per curve.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Navier-Stokes</span></td>
+        <td>Numerical blowup search on a small grid</td>
+        <td><span class="ev">A small-grid blowup search with every run receipted, and a reading of the OpenAI formalization against the Clay criteria.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">P versus NP</span></td>
+        <td>Formalize recipe search as a complexity object</td>
+        <td><span class="ev">Recipe search written as a complexity object, audited against the three barriers.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Yang-Mills</span></td>
+        <td>Wilson lattice computation</td>
+        <td><span class="ev">A small Wilson lattice computation with receipts, plus a gap audit of the OpenAI formalization.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Hodge</span></td>
+        <td>Machine-checkable statements in Lean</td>
+        <td><span class="ev">Formalization of the cycle class map statement, starting with the cases already proved.</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>No solution claims. A real program with receipts. The lab page comes next, and it will carry the first computation, not the first promise.</p>
+
+  <div class="footer">
+    <p><strong>Sources and audit.</strong> Every number on this page was checked against a live source on November 20, 2026. Sources: Clay Mathematics Institute, Millennium Prize Problems (Wikipedia, updated November 2026); OpenAI, On the Navier-Stokes Millennium Prize Problem, September 8, 2026; OpenAI Yang-Mills announcement, October 26, 2026, and the independent assessment of the Yang-Mills construction, November 10, 2026; Nielsen, The OpenAI Yang-Mills Formalization Does Not Establish Existence, November 2026; MathLumen, The Riemann Hypothesis: What Is Actually Proven, 2026; Pratt, Robles, Zaharescu, and Zeindler, 2020; Gourdon and Demichel, 2004; Aaronson and Wigderson, Algebrization, 2008; MilleViz, The Hodge Conjecture, drawn. Figures that could not be verified live were left out. This page will be re-audited when any claim changes state.</p>
+    <p>
+      <a href="https://neuruhai.github.io/neuruh-demos/sovereign-runtime/">Sovereign Runtime</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/neuruh-slm/">Neuruh SLM Program</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/unified-chain/">Unified Chain</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/">Neuruh Hub</a>
+    </p>
+    <p>Neuruh, AI That Executes. Contact: <a href="mailto:jeramie@neuruh.com">jeramie@neuruh.com</a> &middot; Scheduling: <a href="https://cal.com/neuruh">cal.com/neuruh</a></p>
+  </div>
+
+</div>
+</body>
+</html>
