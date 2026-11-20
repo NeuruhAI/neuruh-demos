@@ -184,6 +184,145 @@
     updateLive();
   }
 
+  /* ---------- v2: the real job, one parcel end to end ---------- */
+  var EDGE_NAMES = ['ingest', 'score', 'scan', 'contact', 'offer', 'close', 'record', 'publish'];
+  var ALL_EDGES = [0, 1, 2, 3, 4, 5, 6, 7];
+
+  function parcelNum(id, fallback) {
+    var v = parseFloat($(id).value);
+    return isNaN(v) ? fallback : v;
+  }
+  function parcelFields() {
+    return {
+      id: ($('parcelId').value || '').trim(),
+      taxYears: parcelNum('parcelTaxYears', 0),
+      taxOwed: parcelNum('parcelTaxOwed', 0),
+      assessed: parcelNum('parcelAssessed', 0),
+      market: parcelNum('parcelMarket', 0),
+      owner: $('parcelOwner').value,
+      estate: $('parcelEstate').value === 'yes',
+      code: parcelNum('parcelCode', 0),
+      phone: $('parcelPhone').value === 'yes',
+      title: $('parcelTitle').value === 'yes',
+      dnc: $('parcelDNC').value === 'yes'
+    };
+  }
+  /* Scoring table, shown on the page so the number can be checked by hand.
+     Points are this demo's table, not the production LANDOS model (50 signals). */
+  function scoreParcel(f) {
+    var signals = [];
+    var emergence = 0;
+    function add(rule, detail, points, fired) {
+      signals.push({ rule: rule, detail: detail, points: fired ? points : 0, fired: !!fired });
+      if (fired) emergence += points;
+    }
+    add('Tax delinquency, 2+ years', f.taxYears + ' year(s) delinquent, $' + f.taxOwed + ' owed', 35, f.taxYears >= 2);
+    add('Tax delinquency, 1 year', f.taxYears === 1 ? '1 year delinquent' : 'not 1 year', 15, f.taxYears === 1);
+    add('Absentee owner', f.owner === 'absentee' ? 'owner does not live at the parcel' : 'owner-occupied', 15, f.owner === 'absentee');
+    add('Estate-held / probate', f.estate ? 'deceased owner, heirs unknown' : 'no estate flag', 15, f.estate);
+    add('Open code violation', f.code > 0 ? f.code + ' open violation(s)' : 'none open', 10, f.code > 0);
+    var gap = (f.market > 0 && f.assessed >= 0) ? (f.market - f.assessed) / f.market : 0;
+    add('Assessed / market gap 30%+', 'assessed $' + f.assessed + ' vs market $' + f.market + ' (' + Math.round(gap * 100) + '% gap)', 10, gap >= 0.30);
+    if (emergence > 100) emergence = 100;
+    var objections = 0;
+    var objectionRows = [];
+    if (f.title) { objections += 10; objectionRows.push('Title cloud, heirs unknown: -10'); }
+    if (!f.phone) { objections += 5; objectionRows.push('No phone on file: -5'); }
+    var net = Math.max(0, emergence - objections);
+    var c = U.crucibleVerdict({ emergence_raw: emergence, objection_penalty: objections, signal: 'lead', external_signal: true });
+    return { signals: signals, emergence: emergence, objections: objections, objectionRows: objectionRows, net: net, gap: gap, crucible: c };
+  }
+
+  function renderParcel() {
+    var f = parcelFields();
+    var s = scoreParcel(f);
+    var html = '<table class="data"><tr><th>Signal (recipe family)</th><th>What the record shows</th><th style="text-align:right">Points</th></tr>';
+    s.signals.forEach(function (x) {
+      html += '<tr><td>' + esc(x.rule) + '</td><td>' + esc(x.detail) + '</td><td style="text-align:right">' + (x.fired ? x.points : '0') + '</td></tr>';
+    });
+    html += '<tr><td><b>Emergence raw</b></td><td>' + esc(s.objectionRows.join('; ') || 'no objections') + '</td><td style="text-align:right"><b>' + s.emergence + '</b></td></tr></table>';
+    $('signalTable').innerHTML = html;
+    $('parcelEmergence').textContent = String(s.emergence);
+    $('parcelObjections').textContent = String(s.objections);
+    $('parcelNet').textContent = String(s.net);
+    $('parcelScore').textContent = String(s.crucible.score);
+    var pv = $('parcelVerdict');
+    pv.textContent = s.crucible.verdict;
+    pv.className = 'verdict ' + verdictClass(s.crucible.verdict);
+    var note;
+    if (s.crucible.verdict === 'KILL') {
+      note = 'Score below 20. The file stops here: no scan, no promotion. The KILL is receipted.';
+    } else if (f.dnc) {
+      note = 'Promotion will STOP: edge 3 (contact) is refused by policy. The chain scores and scans the parcel but will not contact the owner.';
+    } else {
+      note = 'ITERATE means the scan gets built: the scan is the iterate step. Promotion is PROCEED when the intersection is PROCEED and the write-gate is WRITE.';
+    }
+    $('parcelVerdictNote').textContent = note;
+    return s;
+  }
+
+  /* The parcel drives the nine stages: its score becomes the CRUCIBLE
+     inputs, its DNC flag removes the contact edge from E_allowed, and its
+     record is the evidence the write-gate reads. */
+  function applyParcelToStages() {
+    var f = parcelFields();
+    var s = scoreParcel(f);
+    $('claimInput').value = 'Parcel ' + f.id + ', ' + $('parcelCounty').value + ': tax delinquent ' + f.taxYears + ' year(s), ' + (f.owner === 'absentee' ? 'absentee owner' : 'owner-occupied') + (f.estate ? ', estate-held' : '') + '. Opportunity scan candidate.';
+    $('emergInput').value = String(s.emergence);
+    $('objInput').value = String(s.objections);
+    $('signalSelect').value = 'lead';
+    $('extSignal').value = 'yes';
+    $('interProposed').value = ALL_EDGES.join(',');
+    var allowed = f.dnc ? [0, 1, 2, 4, 5, 6, 7] : ALL_EDGES.slice();
+    $('interAllowed').value = allowed.join(',');
+    $('interAvailable').value = ALL_EDGES.join(',');
+    $('evInput').value = '8';
+    $('memSource').value = 'county record';
+    $('contraSelect').value = 'none';
+    renderParcel();
+    updateLive();
+  }
+
+  function renderScan(r, f, s) {
+    var promo = r.promotion;
+    var fired = s.signals.filter(function (x) { return x.fired; });
+    if (r.crucible.verdict === 'KILL') {
+      $('scanOut').innerHTML = '<div class="scan"><h3>No scan: claim killed</h3>' +
+        '<p>Parcel ' + esc(f.id) + ' scored ' + s.crucible.score + ' (KILL). No signals worth working: ' +
+        esc(fired.map(function (x) { return x.rule; }).join('; ') || 'none fired') + '.</p>' +
+        '<p>The file stops here. The KILL is receipted, seq ' + r.receipt.seq + ', hash <span class="mono">' +
+        esc(r.receipt.provenance.report_hash_sha256.slice(0, 16)) + '...</span>, and the claim does not promote.</p></div>';
+      return;
+    }
+    var next = promo.promote
+      ? 'Next step: build the Property Opportunity Scan ($100) and work the probate angle. Heirs unknown, title cloud noted on the scan.'
+      : 'Contact refused by policy (edge 3, Do Not Contact). The scan below is built, but the chain will not contact the owner. Next step: probate records only, no outreach.';
+    $('scanOut').innerHTML = '<div class="scan"><h3>Property Opportunity Scan, parcel ' + esc(f.id) + '</h3>' +
+      '<p>' + esc($('parcelCounty').value) + ' &middot; ' + esc($('parcelClass').value) + ' &middot; Tax owed $' + esc(String(f.taxOwed)) + ' (' + f.taxYears + ' year(s) delinquent)</p>' +
+      '<p>Signals fired: <b>' + esc(fired.map(function (x) { return x.rule; }).join('; ') || 'none') + '</b></p>' +
+      '<p>Emergence ' + s.emergence + ', objections ' + s.objections + ', CRUCIBLE score <span class="bignum">' + s.crucible.score + '</span> ' + esc(s.crucible.verdict) + '. Promotion: <b>' + (promo.promote ? 'PROCEED' : 'STOP') + '</b>.</p>' +
+      '<p>' + esc(next) + '</p>' +
+      '<p class="note">Receipt seq ' + r.receipt.seq + ', hash <span class="mono">' + esc(r.receipt.provenance.report_hash_sha256) + '</span><br>Verified on seal: ' + (r.receiptValid ? 'VALID' : 'INVALID') + '. Chain the scan to this hash and the scan is provable.</p></div>';
+  }
+
+  function setParcel(values) {
+    if (values.id) $('parcelId').value = values.id;
+    if (values.taxYears !== undefined) $('parcelTaxYears').value = String(values.taxYears);
+    if (values.taxOwed !== undefined) $('parcelTaxOwed').value = String(values.taxOwed);
+    if (values.assessed !== undefined) $('parcelAssessed').value = String(values.assessed);
+    if (values.market !== undefined) $('parcelMarket').value = String(values.market);
+    if (values.owner) $('parcelOwner').value = values.owner;
+    if (values.estate) $('parcelEstate').value = values.estate;
+    if (values.code !== undefined) $('parcelCode').value = String(values.code);
+    if (values.phone) $('parcelPhone').value = values.phone;
+    if (values.title) $('parcelTitle').value = values.title;
+    if (values.dnc) $('parcelDNC').value = values.dnc;
+    applyParcelToStages();
+  }
+  var PARCEL_WORKED = { id: '11-06-0015-0007-04', taxYears: 2, taxOwed: 3840, assessed: 48000, market: 72000, owner: 'absentee', estate: 'yes', code: 1, phone: 'yes', title: 'yes', dnc: 'no' };
+  var PARCEL_WEAK = { id: '11-06-0015-0007-04', taxYears: 0, taxOwed: 0, assessed: 72000, market: 72000, owner: 'occupied', estate: 'no', code: 0, phone: 'yes', title: 'no', dnc: 'no' };
+  var PARCEL_DNC = { id: '11-06-0015-0007-04', taxYears: 2, taxOwed: 3840, assessed: 48000, market: 72000, owner: 'absentee', estate: 'yes', code: 1, phone: 'yes', title: 'yes', dnc: 'yes' };
+
   function init() {
     if (!$('claimIdOut').value) {
       $('claimIdOut').value = U.nextClaimId(new Date().toISOString().slice(0, 10));
@@ -253,6 +392,27 @@
     $('presetPass').addEventListener('click', function () { applyPreset(U.passingPresetInput); });
     $('presetKill').addEventListener('click', function () { applyPreset(U.killPresetInput); });
     $('presetDefault').addEventListener('click', function () { applyPreset(U.defaultPresetInput); });
+    $('parcelRunBtn').addEventListener('click', function () {
+      applyParcelToStages();
+      var f = parcelFields();
+      var s = scoreParcel(f);
+      var r = U.runChain(collectInputs(), state);
+      renderReceipt(r);
+      renderOutcomes();
+      renderScan(r, f, s);
+    });
+    $('presetParcel').addEventListener('click', function () { setParcel(PARCEL_WORKED); });
+    $('presetParcelWeak').addEventListener('click', function () { setParcel(PARCEL_WEAK); });
+    $('presetParcelDNC').addEventListener('click', function () { setParcel(PARCEL_DNC); });
+    var parcelInputs = ['parcelId', 'parcelTaxYears', 'parcelTaxOwed', 'parcelAssessed', 'parcelMarket', 'parcelOwner', 'parcelEstate', 'parcelCode', 'parcelPhone', 'parcelTitle', 'parcelDNC'];
+    parcelInputs.forEach(function (id) {
+      var el = $(id);
+      if (el) {
+        el.addEventListener('input', applyParcelToStages);
+        el.addEventListener('change', applyParcelToStages);
+      }
+    });
+    applyParcelToStages();
     updateLive();
   }
 
