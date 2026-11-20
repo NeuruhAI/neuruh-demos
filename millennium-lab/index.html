@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Millennium Lab</title>
+<style>
+  :root {
+    --paper: #f7f3ea;
+    --paper-2: #fffdf7;
+    --ink: #1c1a16;
+    --ink-soft: #4a463d;
+    --brass: #9a7420;
+    --brass-soft: #c9a227;
+    --line: #d8d2c2;
+    --green: #2e6b34;
+    --amber: #8a6d00;
+    --red: #8c2f26;
+    --grey: #6b675c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 28px 64px; }
+  .doc-control {
+    border-top: 3px solid var(--brass);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 0 14px;
+    margin-bottom: 32px;
+  }
+  .doc-control .kicker {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .doc-control h1 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 42px;
+    line-height: 1.05;
+    margin: 10px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .doc-control .sub { color: var(--ink-soft); font-size: 17px; margin: 0 0 14px; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    font-size: 13px;
+  }
+  .meta-grid div { border-top: 1px solid var(--line); padding-top: 6px; }
+  .meta-grid .label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  h2 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 24px;
+    margin: 44px 0 10px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  h2 .num { color: var(--brass); margin-right: 10px; }
+  h3 { font-size: 18px; margin: 26px 0 6px; }
+  p { margin: 0 0 14px; }
+  blockquote {
+    margin: 18px 0;
+    padding: 16px 20px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--brass);
+    font-size: 17px;
+  }
+  blockquote p { margin: 0 0 10px; }
+  blockquote p:last-child { margin: 0; }
+  blockquote .attr { font-size: 13px; color: var(--ink-soft); }
+  .honesty {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brass);
+    padding: 14px 18px;
+    font-size: 14px;
+    margin: 20px 0;
+  }
+  .honesty strong { color: var(--brass); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
+  th {
+    text-align: left;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 2px solid var(--ink);
+    padding: 8px 10px 8px 0;
+  }
+  td { border-bottom: 1px solid var(--line); padding: 12px 10px 12px 0; vertical-align: top; }
+  td .cat { font-weight: 700; }
+  td .ev { color: var(--ink-soft); font-size: 14px; }
+  .badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .badge.open { color: var(--red); }
+  .badge.claimed { color: var(--amber); }
+  .badge.solved { color: var(--green); }
+  .badge.disputed { color: var(--red); }
+  .badge.unverified { color: var(--amber); }
+  .badge.none { color: var(--grey); }
+  figure { margin: 24px 0; }
+  figcaption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+  }
+  figcaption strong { color: var(--ink); }
+  .figure-note { font-size: 13px; color: var(--ink-soft); }
+  .tally { display: flex; gap: 0; margin: 8px 0 0; border: 1px solid var(--line); }
+  .tally div { padding: 12px 14px; border-right: 1px solid var(--line); flex: 1; }
+  .tally div:last-child { border-right: none; }
+  .tally .n { font-family: "Archivo", sans-serif; font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .tally .t { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.08em; }
+  .conn {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brass);
+    padding: 14px 18px;
+    font-size: 15px;
+    margin: 18px 0;
+  }
+  .conn strong { color: var(--brass); }
+  .stmt {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 14px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 14px 18px;
+    margin: 16px 0;
+    line-height: 1.7;
+  }
+  ul { margin: 0 0 14px; padding-left: 20px; }
+  li { margin-bottom: 8px; }
+  a { color: var(--brass); }
+  .footer {
+    margin-top: 48px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .footer a { margin-right: 16px; }
+  @media (max-width: 640px) {
+    .doc-control h1 { font-size: 32px; }
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+    .tally { flex-wrap: wrap; }
+    .tally div { flex: 1 1 40%; border-bottom: 1px solid var(--line); }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { padding: 0; }
+    a { color: var(--ink); text-decoration: none; }
+  }
+
+table { border-collapse: collapse; width: 100%; margin: 14px 0 22px; font-size: 13px; }
+th, td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: left; vertical-align: top; }
+th { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; }
+.status-run { color: #1a6b3c; font-weight: 700; }
+.status-notrun { color: #8a6d1a; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="doc-control">
+    <div class="kicker">Neuruh &middot; Millennium Problems Program</div>
+    <h1>The Millennium Lab</h1>
+    <p class="sub">Build two of the program. Real computations, run here on November 20, 2026, receipted in the sovereign runtime hash chain. No solution claims.</p>
+    <div class="meta-grid">
+      <div><div class="label">Date</div>November 20, 2026</div>
+      <div><div class="label">Runs</div>2 computed, 4 not run yet</div>
+      <div><div class="label">Receipts</div>30 in chain, valid after restart</div>
+      <div><div class="label">Chain head</div><span class="mono">328969b5d1e89f98...</span></div>
+    </div>
+  </header>
+
+  <div class="honesty"><strong>Honesty block.</strong> Nothing on this page claims a solution to any Millennium Problem. The Riemann run re-verifies known ground: the first 1,000 zeros were already known to lie on the critical line, and this run checks that fact again with an independent implementation. The BSD run computes ranks and L-values for one small curve family, all rank 0, which is also known ground. A computation is reported only with the numbers its own run produced, on the date it ran. The four moves not yet run are labeled NOT RUN YET and carry no numbers at all.</div>
+
+  <h2><span class="num">01</span>What the lab is</h2>
+  <p>The atlas stated the six problems and named six computable first moves. The lab is where those moves get executed. Each move is a real program with a real run, a real result file, and a hash-chained receipt, so anyone can re-run it and check it. Two moves ran on November 20, 2026. Four are named, scoped, and not yet run. The lab grows one move at a time, and a move counts only when its receipts exist.</p>
+  <p>The receipt chain is the sovereign runtime receipt format, direct reuse: the production <span class="mono">SovereignStore</span> class from <span class="mono">~/workspace/sovereign-runtime</span>, canonical JSON, SHA-256, each receipt carrying the hash of the previous one, GENESIS head. The lab ledger is a separate store (<span class="mono">data/lab.db</span>) in the same format. The chain was verified after the store was closed and reopened, which is the restart proof. Full chain head: <span class="mono">328969b5d1e89f981d81023548ef9afc84df08128d0e70ca7128fb4e06ad31f7</span>.</p>
+
+  <h2><span class="num">02</span>Riemann: first 1,000 zeros, re-verified</h2>
+  <p><span class="status-run">RUN</span> November 20, 2026. Method: PARI/GP 2.19.1 lfunzeros locates every zero with imaginary part in [0, 1420] (C implementation, Riemann-Siegel, argument principle). Then, for each located t, an independent mpmath Newton step from 0.5 + i t using zeta and zeta prime, at 30 decimal digits. The Newton step is free to move off the line; the reported real part is where it converges. The two implementations agree: the first zero from PARI matches the mpmath bisection value to 22 digits.</p>
+  <p>Result: <strong>1000 zeros checked</strong>, first at t = 14.13472514173469379045725, last at t = 1419.422480945995686465989. Largest deviation of a zero real part from 1/2: <strong>0.0</strong> at 30-digit precision (no zero deviated: every Newton step returned Re = 1/2 exactly at this precision, so the deviation is below 1e-30). Largest |zeta(1/2 + i t)| at a located zero: 5.6087e-26. Count check against the Riemann-von Mangoldt formula at T: expected 999.42 zeros, found 1,000, so S(T) = 0.582, inside the small range the formula allows. PARI location scan took 44.46 seconds; the mpmath verification pass took 88.73 seconds.</p>
+  <p>This is a re-verification, not a new record. The first 10<sup>13</sup> zeros were already verified on the line by others. This run checks the first 1,000 again, independently, on this machine, with receipts.</p>
+  <table>
+    <tr><th>n</th><th>t (imaginary part)</th><th>Re(s) from Newton</th><th>Re deviation from 1/2</th><th>|zeta(1/2 + i t)|</th></tr>
+<tr><td>1</td><td>14.13472514173469379045725</td><td>0.5</td><td>0.0</td><td>2.9413e-29</td></tr>
+<tr><td>2</td><td>21.02203963877155499262848</td><td>0.5</td><td>0.0</td><td>3.1541e-30</td></tr>
+<tr><td>3</td><td>25.01085758014568876321379</td><td>0.5</td><td>0.0</td><td>4.9169e-29</td></tr>
+<tr><td>4</td><td>30.4248761258595132103119</td><td>0.5</td><td>0.0</td><td>2.1941e-29</td></tr>
+<tr><td>5</td><td>32.93506158773918969066237</td><td>0.5</td><td>0.0</td><td>3.6847e-29</td></tr>
+<tr><td>6</td><td>37.58617815882567125721776</td><td>0.5</td><td>0.0</td><td>1.5343e-29</td></tr>
+<tr><td>7</td><td>40.91871901214749518739813</td><td>0.5</td><td>0.0</td><td>4.5606e-29</td></tr>
+<tr><td>8</td><td>43.32707328091499951949612</td><td>0.5</td><td>0.0</td><td>1.8007e-29</td></tr>
+<tr><td>9</td><td>48.00515088116715972794247</td><td>0.5</td><td>0.0</td><td>4.6155e-29</td></tr>
+<tr><td>10</td><td>49.77383247767230218191678</td><td>0.5</td><td>0.0</td><td>4.7172e-29</td></tr>
+  </table>
+  <p>All 1,000 zeros are listed in the run file, not only the first 10 shown here. Results file SHA-256: <span class="mono">64706c8113b570a98ed770e7d7e1620ff5ad7156cc5594e60aa2312bcee892e9</span>. BSD results file SHA-256: <span class="mono">55a4186f37e70da0354ea3c9f67d81f69cfe35c969118005b02db19448620c2d</span>.</p>
+
+  <h2><span class="num">03</span>Birch and Swinnerton-Dyer: one curve family, computed</h2>
+  <p><span class="status-run">RUN</span> November 20, 2026. Family: every elliptic curve over Q of conductor at most 20, as enumerated by PARI ellsearch. That is <strong>28 curves</strong> in six isogeny classes (conductors 11, 14, 15, 17, 19, 20). There are no curves of conductor 16, and none of conductor 12, 13, or 18. Method: PARI/GP 2.19.1, built from source on this machine, ellanalyticrank at 30 digits of precision. The conductor of every curve was recomputed here with ellglobalred and matches its label. Rank method: analytic rank, the order of vanishing of L(E, s) at s = 1.</p>
+  <p>Result: <strong>every curve has analytic rank 0, and every L(E, 1) is nonzero</strong>. That is exactly what Birch and Swinnerton-Dyer predicts for rank 0 curves: rank 0 if and only if L(E, 1) is nonzero. L-values repeat within an isogeny class, because isogenous curves share an L-function. Torsion orders range from 1 to 8. The smallest conductor carrying a rank 1 curve is 37, which is outside this family, so a rank 0 outcome across the family is the expected result, and the run confirms it rather than discovering it.</p>
+  <table>
+    <tr><th>Label</th><th>Minimal model</th><th>Cond.</th><th>Rank</th><th>L(E, 1)</th><th>Torsion</th></tr>
+<tr><td>11a1</td><td>y^2 + y = x^3 - 1x^2 - 10x - 20</td><td>11</td><td>0</td><td>0.2538418608559107</td><td>5</td></tr>
+<tr><td>11a2</td><td>y^2 + y = x^3 - 1x^2 - 7820x - 263580</td><td>11</td><td>0</td><td>0.2538418608559107</td><td>1</td></tr>
+<tr><td>11a3</td><td>y^2 + y = x^3 - 1x^2</td><td>11</td><td>0</td><td>0.2538418608559107</td><td>5</td></tr>
+<tr><td>14a1</td><td>y^2 + xy + y = x^3 + 4x - 6</td><td>14</td><td>0</td><td>0.33022365934448056</td><td>6</td></tr>
+<tr><td>14a2</td><td>y^2 + xy + y = x^3 - 36x - 70</td><td>14</td><td>0</td><td>0.33022365934448056</td><td>6</td></tr>
+<tr><td>14a3</td><td>y^2 + xy + y = x^3 - 171x - 874</td><td>14</td><td>0</td><td>0.33022365934448056</td><td>2</td></tr>
+<tr><td>14a4</td><td>y^2 + xy + y = x^3 - 1x</td><td>14</td><td>0</td><td>0.33022365934448056</td><td>6</td></tr>
+<tr><td>14a5</td><td>y^2 + xy + y = x^3 - 2731x - 55146</td><td>14</td><td>0</td><td>0.33022365934448056</td><td>2</td></tr>
+<tr><td>14a6</td><td>y^2 + xy + y = x^3 - 11x + 12</td><td>14</td><td>0</td><td>0.33022365934448056</td><td>6</td></tr>
+<tr><td>15a1</td><td>y^2 + xy + y = x^3 + 1x^2 - 10x - 10</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>8</td></tr>
+<tr><td>15a2</td><td>y^2 + xy + y = x^3 + 1x^2 - 135x - 660</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>4</td></tr>
+<tr><td>15a3</td><td>y^2 + xy + y = x^3 + 1x^2 - 5x + 2</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>8</td></tr>
+<tr><td>15a4</td><td>y^2 + xy + y = x^3 + 1x^2 + 35x - 28</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>8</td></tr>
+<tr><td>15a5</td><td>y^2 + xy + y = x^3 + 1x^2 - 2160x - 39540</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>2</td></tr>
+<tr><td>15a6</td><td>y^2 + xy + y = x^3 + 1x^2 - 110x - 880</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>2</td></tr>
+<tr><td>15a7</td><td>y^2 + xy + y = x^3 + 1x^2 - 80x + 242</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>4</td></tr>
+<tr><td>15a8</td><td>y^2 + xy + y = x^3 + 1x^2</td><td>15</td><td>0</td><td>0.35015076058315053</td><td>4</td></tr>
+<tr><td>17a1</td><td>y^2 + xy + y = x^3 - 1x^2 - 1x - 14</td><td>17</td><td>0</td><td>0.38676993838778007</td><td>4</td></tr>
+<tr><td>17a2</td><td>y^2 + xy + y = x^3 - 1x^2 - 6x - 4</td><td>17</td><td>0</td><td>0.38676993838778007</td><td>4</td></tr>
+<tr><td>17a3</td><td>y^2 + xy + y = x^3 - 1x^2 - 91x - 310</td><td>17</td><td>0</td><td>0.38676993838778007</td><td>2</td></tr>
+<tr><td>17a4</td><td>y^2 + xy + y = x^3 - 1x^2 - 1x</td><td>17</td><td>0</td><td>0.38676993838778007</td><td>4</td></tr>
+<tr><td>19a1</td><td>y^2 + y = x^3 + 1x^2 - 9x - 15</td><td>19</td><td>0</td><td>0.4532532444961036</td><td>3</td></tr>
+<tr><td>19a2</td><td>y^2 + y = x^3 + 1x^2 - 769x - 8470</td><td>19</td><td>0</td><td>0.4532532444961036</td><td>1</td></tr>
+<tr><td>19a3</td><td>y^2 + y = x^3 + 1x^2 + 1x</td><td>19</td><td>0</td><td>0.4532532444961036</td><td>3</td></tr>
+<tr><td>20a1</td><td>y^2 = x^3 + 1x^2 + 4x + 4</td><td>20</td><td>0</td><td>0.47072919032651894</td><td>6</td></tr>
+<tr><td>20a2</td><td>y^2 = x^3 + 1x^2 - 1x</td><td>20</td><td>0</td><td>0.47072919032651894</td><td>6</td></tr>
+<tr><td>20a3</td><td>y^2 = x^3 + 1x^2 - 36x - 140</td><td>20</td><td>0</td><td>0.47072919032651894</td><td>2</td></tr>
+<tr><td>20a4</td><td>y^2 = x^3 + 1x^2 - 41x - 116</td><td>20</td><td>0</td><td>0.47072919032651894</td><td>2</td></tr>
+  </table>
+  <p>Curve labels and equations are from the PARI elldata database (Cremona tables). Ranks and L-values were computed here by PARI; no rank in this table is copied from a source. Run time: 0.37 seconds.</p>
+
+  <h2><span class="num">04</span>Receipt chain</h2>
+  <p>30 receipts, one per computation batch plus one per BSD curve plus one chain verification after reopen. Chain valid: <strong>true</strong>. Verification receipt: rcpt_0030. Ledger: <span class="mono">data/lab.db</span>, format: sovereign runtime SovereignStore.</p>
+  <table>
+    <tr><th>Receipt</th><th>Kind</th><th>Detail</th><th>Hash</th></tr>
+<tr><td>rcpt_0001</td><td>COMPUTATION</td><td>Riemann zero verification: first 1000 non-trivial zeros on the critical line</td><td class="mono">5e08a386da7f7cf6...</td></tr>
+<tr><td>rcpt_0002</td><td>COMPUTATION</td><td>BSD curve 11a1: rank and L-value</td><td class="mono">cec763f6e2d22797...</td></tr>
+<tr><td>rcpt_0003</td><td>COMPUTATION</td><td>BSD curve 11a2: rank and L-value</td><td class="mono">af25887ad72d1584...</td></tr>
+<tr><td>rcpt_0004</td><td>COMPUTATION</td><td>BSD curve 11a3: rank and L-value</td><td class="mono">77d33f4ef569d0fd...</td></tr>
+<tr><td>rcpt_0005</td><td>COMPUTATION</td><td>BSD curve 14a1: rank and L-value</td><td class="mono">9338c66c6b1ef65d...</td></tr>
+<tr><td>rcpt_0006</td><td>COMPUTATION</td><td>BSD curve 14a2: rank and L-value</td><td class="mono">9898c4f4373ed092...</td></tr>
+<tr><td>rcpt_0007</td><td>COMPUTATION</td><td>BSD curve 14a3: rank and L-value</td><td class="mono">64dadeb46b9317e5...</td></tr>
+<tr><td>rcpt_0008</td><td>COMPUTATION</td><td>BSD curve 14a4: rank and L-value</td><td class="mono">a9e1c72c85afb4ff...</td></tr>
+<tr><td>rcpt_0009</td><td>COMPUTATION</td><td>BSD curve 14a5: rank and L-value</td><td class="mono">8905ff53a7e0bb46...</td></tr>
+<tr><td>rcpt_0010</td><td>COMPUTATION</td><td>BSD curve 14a6: rank and L-value</td><td class="mono">ce1b8ad41a66dc4c...</td></tr>
+<tr><td>rcpt_0011</td><td>COMPUTATION</td><td>BSD curve 15a1: rank and L-value</td><td class="mono">464e29ea589955d5...</td></tr>
+<tr><td>rcpt_0012</td><td>COMPUTATION</td><td>BSD curve 15a2: rank and L-value</td><td class="mono">dd9c42ba06f26e7c...</td></tr>
+<tr><td>rcpt_0013</td><td>COMPUTATION</td><td>BSD curve 15a3: rank and L-value</td><td class="mono">662d80bb22f4dc7a...</td></tr>
+<tr><td>rcpt_0014</td><td>COMPUTATION</td><td>BSD curve 15a4: rank and L-value</td><td class="mono">246d843c24d97b34...</td></tr>
+<tr><td>rcpt_0015</td><td>COMPUTATION</td><td>BSD curve 15a5: rank and L-value</td><td class="mono">a32799b96ec5d909...</td></tr>
+<tr><td>rcpt_0016</td><td>COMPUTATION</td><td>BSD curve 15a6: rank and L-value</td><td class="mono">9903181fb50d3404...</td></tr>
+<tr><td>rcpt_0017</td><td>COMPUTATION</td><td>BSD curve 15a7: rank and L-value</td><td class="mono">f0ce62dfa66524a2...</td></tr>
+<tr><td>rcpt_0018</td><td>COMPUTATION</td><td>BSD curve 15a8: rank and L-value</td><td class="mono">592bcbc9b176dfca...</td></tr>
+<tr><td>rcpt_0019</td><td>COMPUTATION</td><td>BSD curve 17a1: rank and L-value</td><td class="mono">f27bf60b3dce3bd7...</td></tr>
+<tr><td>rcpt_0020</td><td>COMPUTATION</td><td>BSD curve 17a2: rank and L-value</td><td class="mono">59b21533385a2548...</td></tr>
+<tr><td>rcpt_0021</td><td>COMPUTATION</td><td>BSD curve 17a3: rank and L-value</td><td class="mono">e24ee8df2a7b0d6b...</td></tr>
+<tr><td>rcpt_0022</td><td>COMPUTATION</td><td>BSD curve 17a4: rank and L-value</td><td class="mono">cdef991479c91de0...</td></tr>
+<tr><td>rcpt_0023</td><td>COMPUTATION</td><td>BSD curve 19a1: rank and L-value</td><td class="mono">e15da00aeb8e7c6c...</td></tr>
+<tr><td>rcpt_0024</td><td>COMPUTATION</td><td>BSD curve 19a2: rank and L-value</td><td class="mono">d6a5e200d3d49b5e...</td></tr>
+<tr><td>rcpt_0025</td><td>COMPUTATION</td><td>BSD curve 19a3: rank and L-value</td><td class="mono">21c05c1e0964dfcc...</td></tr>
+<tr><td>rcpt_0026</td><td>COMPUTATION</td><td>BSD curve 20a1: rank and L-value</td><td class="mono">1bda09f19c9eff0b...</td></tr>
+<tr><td>rcpt_0027</td><td>COMPUTATION</td><td>BSD curve 20a2: rank and L-value</td><td class="mono">0743d1b4bb0ca9e1...</td></tr>
+<tr><td>rcpt_0028</td><td>COMPUTATION</td><td>BSD curve 20a3: rank and L-value</td><td class="mono">dbbb70cbc3901569...</td></tr>
+<tr><td>rcpt_0029</td><td>COMPUTATION</td><td>BSD curve 20a4: rank and L-value</td><td class="mono">10c0a8405f9436c5...</td></tr>
+<tr><td>rcpt_0030</td><td>VERIFICATION</td><td>Receipt chain verified after store reopen (restart proof)</td><td class="mono">328969b5d1e89f98...</td></tr>
+  </table>
+
+  <h2><span class="num">05</span>The four moves not yet run</h2>
+  <p><span class="status-notrun">NOT RUN YET</span> <strong>Navier-Stokes: small-grid blowup search.</strong> A numerical search for finite-time blowup on a small grid, every run receipted, plus a reading of the OpenAI formalization against the Clay criteria. No numbers exist for this move until it runs.</p>
+  <p><span class="status-notrun">NOT RUN YET</span> <strong>P versus NP: recipe search as a complexity object.</strong> The lead recipe search written as a formal complexity object, audited against the three barriers (relativization, natural proofs, algebrization). This is a formalization and audit, not a proof attempt.</p>
+  <p><span class="status-notrun">NOT RUN YET</span> <strong>Yang-Mills: Wilson lattice computation.</strong> A small Wilson lattice computation with receipts, plus a gap audit of the OpenAI formalization. The atlas records the October 26, 2026 existence claim and the November 10, 2026 independent assessment; the lab audit has not been written.</p>
+  <p><span class="status-notrun">NOT RUN YET</span> <strong>Hodge: Lean formalization.</strong> Formalization of the cycle class map statement in Lean 4, starting with the cases already proved. No Lean code exists for this move yet.</p>
+
+  <h2><span class="num">06</span>How to re-run</h2>
+  <p>Everything is in <span class="mono">~/workspace/millennium-lab/</span>. Riemann: <span class="mono">./pari/bin/gp -q &lt; compute/riemann_scan.gp &gt; data/riemann_t.txt</span> (PARI/GP 2.19.1, built from source, installed under <span class="mono">pari/</span> in this folder), then <span class="mono">python3 compute/riemann_verify.py</span> (mpmath 1.2.1, system Python 3.12.3). BSD: <span class="mono">./pari/bin/gp -q &lt; compute/bsd_curves.gp</span>, then <span class="mono">python3 compute/bsd_curves.py</span>. Receipts: <span class="mono">~/workspace/sovereign-runtime/.venv/bin/python compute/receipts.py</span> (uses the production SovereignStore class; writes <span class="mono">data/lab.db</span> and <span class="mono">data/receipts.json</span>). Page: <span class="mono">python3 compute/build_page.py</span>. The earlier pure-mpmath scan scripts (riemann_zeros.py, riemann_zeros_v2.py) are kept in compute/ as the record of the slow path: the mpmath Z-function scan costs about 10 ms per evaluation at 30 digits in pure Python, which made 108,400 evaluations too slow, so location moved to PARI and mpmath kept only the independent real-part check.</p>
+
+  <h2><span class="num">07</span>Sources and audit</h2>
+  <p>Atlas: <a href="https://neuruhai.github.io/neuruh-demos/six-unsolved/">The Six Unsolved</a>, which names the six first moves this lab executes. Problem statements and prize rules: Clay Mathematics Institute. Riemann verification background: the first 10<sup>13</sup> zeros verified, about 41 percent of zeros proved on the line (atlas sources). PARI/GP 2.19.1 source and elldata from pari.math.u-bordeaux.fr. mpmath 1.2.1. Every number on this page comes from a run on November 20, 2026, or is labeled NOT RUN YET. Audit date: November 20, 2026.</p>
+
+  <div class="foot">Neuruh, AI That Executes. Contact: <a href="mailto:jeramie@neuruh.com">jeramie@neuruh.com</a> &middot; Scheduling: <a href="https://cal.com/neuruh">cal.com/neuruh</a><br>Every number on this page carries its run date. A stat without a date is a rumor with better formatting.<br>Millennium Lab v1.0, 2026-11-20. Two moves run, four named and not yet run. Companion page: <a href="https://neuruhai.github.io/neuruh-demos/six-unsolved/">The Six Unsolved</a>.</div>
+
+</div>
+</body>
+</html>
