@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neuruh SLM Program: Our Own Small Language Model</title>
+<style>
+:root{--bone:#f4f1ea;--paper:#fffdf7;--ink:#1a1815;--muted:#6b655a;--brass:#9a7b2d;--line:#d8d2c4;--good:#2e6b34;--warn:#8a5a00}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bone);color:var(--ink);font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+.wrap{max-width:880px;margin:0 auto;padding:28px 22px 64px}
+.docctrl{border:1px solid var(--line);background:var(--paper);padding:14px 18px;display:flex;flex-wrap:wrap;gap:6px 22px;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--muted)}
+.docctrl b{color:var(--ink)}
+h1{font-family:"Archivo",system-ui,sans-serif;font-size:34px;line-height:1.12;margin:26px 0 6px;letter-spacing:-.5px}
+.dline{font-size:19px;font-weight:600;border-left:4px solid var(--brass);padding:6px 0 6px 14px;margin:18px 0 8px}
+.state{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12px;color:var(--warn);font-weight:700;letter-spacing:.5px}
+h2{font-family:"Archivo",system-ui,sans-serif;font-size:22px;margin:38px 0 8px;border-top:2px solid var(--ink);padding-top:12px}
+h3{font-size:16px;margin:22px 0 6px}
+p{margin:10px 0}
+ul,ol{margin:8px 0 8px 20px;padding:0}
+li{margin:4px 0}
+code{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:13px;background:#efece2;padding:1px 5px;border-radius:3px}
+pre{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:12.5px;background:#17150f;color:#f0ead8;padding:16px 18px;overflow-x:auto;border-radius:4px;line-height:1.5}
+pre .c{color:#a99f83}
+figure{margin:20px 0;border:1px solid var(--line);background:var(--paper)}
+figcaption{font-size:12px;color:var(--muted);padding:8px 14px;border-top:1px solid var(--line);font-family:"JetBrains Mono",ui-monospace,monospace}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:none}
+.pass{color:var(--good);font-weight:700}
+.note{font-size:13px;color:var(--muted)}
+.callout{border:1px solid var(--brass);background:#fbf6e8;padding:14px 18px;margin:18px 0}
+.callout b{color:var(--brass)}
+a{color:var(--brass)}
+@media print{body{background:#fff}.wrap{max-width:100%}pre{background:#fff;color:#000;border:1px solid #999}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="docctrl">
+<span>DOC <b>NEURUH-SLM-1.0</b></span>
+<span>DATE <b>2026-11-20</b></span>
+<span>STATE <b>PROGRAM BUILDING</b></span>
+<span>OWNER <b>JERAMIE HICKS</b></span>
+<span>REVIEW <b>UNVERIFIED BY FOUNDER</b></span>
+</div>
+
+<h1>Neuruh SLM Program: Our Own Small Language Model</h1>
+<p class="dline">Neuruh now has a real path to its own weights: a proven corpus, a working retrieval system, and a training pipeline that executes on real hardware.</p>
+<p class="state">NO TRAINED MODEL EXISTS YET. NO WEIGHTS EXIST YET. THIS PAGE DOCUMENTS THE PROGRAM, NOT A FINISHED MODEL.</p>
+
+<p>On 2026-11-20 Jeramie ordered: "we need to build our own small language model." This is the correction to a misread. The open-weight inventory page links out to his other pages because no real weights exist yet. The weights are the missing piece. This program creates them, and Obsidian utilization is all of it: ask questions, browse the graph, capture the day, agent ingestion, all powered by the SLM running on the vault and library corpus.</p>
+
+<h2>1. The correction: what the inventory actually showed</h2>
+<p>The open-weight inventory (<a href="https://neuruhai.github.io/neuruh-demos/open-weight-systems/">live page</a>) has 8 entries and 4 live links, and its substance is thin: no confirmed weights on disk anywhere.</p>
+<table>
+<tr><th>Entry</th><th>State</th><th>What it really is</th></tr>
+<tr><td>Neuruh Core v1.0</td><td>BLOCKED</td><td>Ollama Modelfile tutorial; base model UNKNOWN; never built, Mac access is the block</td></tr>
+<tr><td>Bonsai</td><td>UNCONFIRMED</td><td>PrismML plus Qwen2.5-3B local stack; Mac-local, never verified from this VM</td></tr>
+<tr><td>SAL Content Pipeline</td><td>SIMULATION</td><td>Ollama llama3 as a simulated pipeline, not a trained model</td></tr>
+<tr><td>Qwen 2.5 Coder 7B</td><td>ABANDONED</td><td>Experiment abandoned August 2026</td></tr>
+<tr><td>CRUCIBLE IAR</td><td>EXPERIMENT</td><td>14-row seed experiment, not a model</td></tr>
+<tr><td>SLMs and Compositional AGI</td><td>DOCUMENT</td><td>Paper, not weights</td></tr>
+<tr><td>Drive lane doc</td><td>DOCUMENT</td><td>Inventory note, not weights</td></tr>
+</table>
+<p class="note">That is why the links felt wrong. The inventory links out because there is nothing to link to. This program is the fix.</p>
+
+<h2>2. The corpus: the asset</h2>
+<p>Built by <code>build_corpus.py</code> from the 1,117-record library (Nov 20 refresh), the Obsidian vault, and full text behind local paths. Re-runnable: re-run it after any vault re-seed and it rebuilds from the current index. Exact counts, counted by the Qwen2.5 tokenizer, not estimated.</p>
+<figure>
+<table>
+<tr><th>Measure</th><th>Count</th></tr>
+<tr><td>Seed records in index</td><td>1,117</td></tr>
+<tr><td>Seed docs in corpus</td><td>1,111</td></tr>
+<tr><td>Vault files read</td><td>1,356</td></tr>
+<tr><td>Vault docs in corpus</td><td>1,191</td></tr>
+<tr><td>Total docs</td><td>2,302</td></tr>
+<tr><td>Train docs / eval docs</td><td>2,180 / 122</td></tr>
+<tr><td>Chunks (about 4,000 chars each)</td><td>40,919 (train 38,966 / eval 1,953)</td></tr>
+<tr><td>Characters / words</td><td>42,225,243 / 4,616,187</td></tr>
+<tr><td>Tokens (exact Qwen2.5 count)</td><td><b>16,084,968</b></td></tr>
+<tr><td>SFT pairs (templated + canon)</td><td>2,012 (2,000 + 12)</td></tr>
+</table>
+<figcaption>Figure 1. Corpus statistics, counted 2026-11-20. The words-times-1.33 estimate said 6.14M tokens; the exact tokenizer count is 16.08M. The corpus is heavy with code, URLs, and file listings. Trust the tokenizer, not the estimate.</figcaption>
+</figure>
+<h3>What was excluded, and why</h3>
+<ul>
+<li><b>6 duplicate seed records</b>: same record id appearing twice in the index.</li>
+<li><b>1 vault doc excluded for a secret pattern</b>: a session archive note matching the secret scan (name only: <code>11-Notion/HQ-Hub/Session-Archive/hq-sa-claude-brain-dump-april-4-2026-full-system-audit-execution-structure-code-delivery.md</code>). The secret scan runs before the per-doc cap; the exclusion is recorded in <code>corpus_exclusions.json</code>.</li>
+<li><b>147 vault files skipped as seed local-path targets</b>: vault files that are the local full-text source for a seed record, already covered by the seed doc (dedup, not loss).</li>
+<li><b>16 duplicate vault docs</b>: same content hash, different path.</li>
+<li><b>1 vault doc too short</b>: under 200 characters after cleaning.</li>
+<li><b>Per-doc cap 200,000 characters</b>: applied after the secret scan, so no long doc is silently truncated into the corpus.</li>
+</ul>
+<p class="note">Known cleaning limitation: some doc text includes coordinator annotation notes (e.g. "No slice located the file"). Those are true record content, not errors, but they are noise in training text. A future corpus pass should strip annotation lines. It does not block the smoke run or the RAG sidecar.</p>
+
+<h2>3. The model choice: Qwen2.5-0.5B, with the memory math</h2>
+<p>The training target is <b>Qwen/Qwen2.5-0.5B</b> (494,573,440 parameters as loaded). The stretch goal is Qwen2.5-1.5B. Bonsai used Qwen2.5-3B; that choice does not fit fine-tuning on 8 GB of RAM, which is why this program does not use it.</p>
+<figure>
+<table>
+<tr><th>Model</th><th>Params</th><th>Weights bf16</th><th>Full fine-tune (AdamW, 16 B/param)</th><th>LoRA r=8 (base + adapter + activations)</th><th>Verdict on M1 8 GB</th></tr>
+<tr><td>Qwen2.5-0.5B</td><td>494.6M</td><td>0.99 GB</td><td>7.9 GB optimizer alone, about 9-10 GB total</td><td>about 2-3 GB</td><td><b>LoRA: YES. Full FT: NO.</b></td></tr>
+<tr><td>Qwen2.5-1.5B</td><td>1,543.6M</td><td>3.09 GB</td><td>24.7 GB</td><td>about 4-5 GB</td><td><b>LoRA: YES, tight. Full FT: NO.</b></td></tr>
+<tr><td>Qwen2.5-3B</td><td>3,088.5M</td><td>6.18 GB</td><td>49.4 GB</td><td>about 8+ GB</td><td><b>LoRA: NO. Inference 4-bit (about 2 GB): YES.</b></td></tr>
+<tr><td>Qwen2.5-7B</td><td>7,615.5M</td><td>15.2 GB</td><td>121.8 GB</td><td>about 16+ GB</td><td><b>NO on 8 GB, any method.</b></td></tr>
+</table>
+<figcaption>Figure 2. Memory math. AdamW at 16 bytes per parameter: fp32 master weights 4, fp32 gradients 4, Adam m 4, Adam v 4. The 0.5B full fine-tune needs about 8 GB of optimizer state alone, before activations and the OS. LoRA trains 0.11 percent of parameters, so the optimizer state collapses to megabytes.</figcaption>
+</figure>
+<p>Why transformers plus peft, not Unsloth: Unsloth is CUDA-optimized. It buys nothing on Apple Silicon or CPU, and it adds a dependency that does not run on the target machine. Transformers plus peft is the portable standard and it runs on both this VM and the Mac. Why LoRA, not full fine-tuning: full fine-tuning of even the 0.5B model does not fit 8 GB. Why not full pretraining: impossible on $0 compute. The corpus is 16M tokens; a real pretraining run needs billions. LoRA on the 0.5B is the only method that fits the hardware that exists.</p>
+
+<h2>4. The RAG sidecar: the usable system, proven here</h2>
+<p>The retrieval sidecar is built and proven on this VM. It is a FastAPI service over a SQLite FTS5 full-text index of the 40,919 corpus chunks. No GPU, no language model, no spend. It answers questions grounded in the corpus with a citation per answer. This is the system that powers Obsidian "ask questions" right now, while the trained model is still ahead of us.</p>
+<figure>
+<table>
+<tr><th>Question</th><th>Top answer</th><th>Result</th></tr>
+<tr><td>What is Master Design System v1.0?</td><td>Master Design System v1.0 (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is DeedSonar and what is the production app?</td><td>DeedSonar (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>How much does the Verified Dossier cost?</td><td>Land Intelligence Report and Store (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is Neuruh Source?</td><td>Neuruh Source (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is the Unified Chain?</td><td>Unified Chain v2 (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is Lead Recipe OS?</td><td>Lead Recipe OS (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is the Retardio loop?</td><td>Retardio Loop (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is the BiggerPockets cold draft?</td><td>BiggerPockets cold draft (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is the Ontology Runtime?</td><td>Ontology Runtime (seed, doc)</td><td class="pass">PASS</td></tr>
+<tr><td>What is the free stack?</td><td>Free Stack Topology (seed, doc)</td><td class="pass">PASS</td></tr>
+</table>
+<figcaption>Figure 3. RAG ground-truth set: 10 of 10 questions return the expected record in the top 3 with a citation. Full test suite: 13 tests passed, 0 failed (pytest, 2026-11-20). The 11th test is the ablation: the same question answered from a corpus with the target record removed returns a different answer, proving retrieval, not base-model memory. Two more tests cover health and stats endpoints.</figcaption>
+</figure>
+<p>Ranking uses title boosting (all question terms in the title, or the longest term in the title) plus per-document dedup, so the best source wins instead of the most-mentioned one. Lesson recorded from testing: vague questions return the most-mentioned docs; precise questions return the definition. The API: <code>POST /ask</code> with <code>{"question": "..."}</code> returns the answer text and its source record. Run it: <code>uvicorn app:app --port 8472</code> from the program folder.</p>
+
+<h2>5. The fine-tune pipeline: built here, smoke-proven, run on the Mac</h2>
+<p>The pipeline is four scripts: <code>format_sft.py</code> (2,012 pairs from the corpus plus 12 hand-written canon pairs), <code>train_lora.py</code> (transformers plus peft, LoRA r=8 alpha=16 on q_proj and v_proj), <code>eval.py</code> (held-out Q and A from eval docs, keyword-recall proxy metric), <code>merge_and_export.py</code> (merge adapter into base, save for GGUF conversion).</p>
+<h3>Smoke run, 2026-11-20, this VM (CPU, 1.5 cores, 6 GB RAM)</h3>
+<ul>
+<li>Model loaded: Qwen/Qwen2.5-0.5B, from the Hugging Face Hub, unauthenticated download.</li>
+<li>Trainable parameters: <b>540,672 of 494,573,440 (0.109 percent)</b>. The count matches the hand calculation exactly (24 layers, r=8, q_proj plus v_proj).</li>
+<li>Steps: 3, on 16 examples, sequence length 128. Runtime 85.3 seconds, about 28.5 seconds per step.</li>
+<li>Loss: 5.296, then 4.710, then 4.735. Train loss 4.914. Loss moved, but 3 steps on 16 examples teaches nothing. That is the point of a smoke run: it proves the pipeline executes end to end, not that the model learned anything.</li>
+<li>Adapter saved to <code>runs/smoke</code>. Receipt: <code>runs/smoke/train_receipt.json</code>.</li>
+</ul>
+<p class="note">This is a smoke run, not a training run. Do not read learning into it. The real run is 2 epochs over 2,012 pairs on the Mac, per the run-book.</p>
+
+<h2>6. The eval harness: base versus adapter</h2>
+<p><code>eval.py</code> generates answers from held-out eval docs and scores keyword recall against the source text. It runs in two modes: base-only and with an adapter. The comparison is the proof that the adapter learned from the corpus instead of the base model's memory.</p>
+<ul>
+<li>Base model (Qwen2.5-0.5B, no adapter), 10 held-out questions: mean keyword recall <b>0.056 (5.6%)</b></li>
+<li>Smoke adapter (3 steps, 16 examples), same 10 questions: mean keyword recall <b>0.053 (5.3%)</b></li>
+</ul>
+<p class="note">The smoke adapter is expected to score near the base model. Three steps cannot teach a model. The harness exists so the real Mac run can be scored honestly: if the adapter score is not clearly above the base score after 2 epochs, the adapter did not learn and the run-book says to check the training loss first.</p>
+
+<h2>7. Neuruh Core v2 Modelfile</h2>
+<p>An Ollama Modelfile encoding the organism and canon as the system prompt, built on the v1.0 tutorial, not duplicating it. v1 taught editing one SYSTEM block and rebuilding <code>neurah/v1.0</code>; its base model was UNKNOWN and no build was ever verified. v2 names the base (Qwen2.5-0.5B plus the LoRA adapter, merged and quantized to GGUF) and carries real canon content. Same three-part SYSTEM anatomy as v1:</p>
+<ul>
+<li><b>OPERATING DOCTRINE</b>: Neuruh is sovereign AI execution infrastructure, not a chatbot. Answer from evidence, say UNKNOWN when you do not know, state follows the CONCEPT to COMMERCIAL ladder, important actions leave receipts, the loop is mission to action to result to receipt to verification to state update to next mission.</li>
+<li><b>TRIGGER LEXICON</b>: SAL (a signal becomes a lead only when evidence, recipe, and rank agree), PMLA (a claim needs provenance, measurement, lineage, and authority), RECEIPT (a consequential claim carries its receipt or is marked UNVERIFIED), D-LINE (lead with one line stating what the deliverable does now).</li>
+<li><b>OUTPUT POLICY</b>: blunt, direct, execution-first. No emojis, no fluff, no apologies, no hedging. Checklists, command lines, file paths, expected outputs. Copy-paste ready code, no placeholders.</li>
+</ul>
+<pre><span class="c"># Build on the Mac, after the run-book train + merge + quantize steps:</span>
+ollama create neuruh/v2.0 -f Modelfile
+ollama run neuruh/v2.0</pre>
+
+<h2>8. The Mac run-book (condensed)</h2>
+<p>Full run-book: <code>RUNBOOK.md</code> in the program folder, also published with this page. The short version, on the M1 Mac with 8 GB RAM:</p>
+<pre><span class="c"># 1. Install</span>
+brew install ollama python@3.12 git
+python3.12 -m venv ~/neuruh-slm-venv
+source ~/neuruh-slm-venv/bin/activate
+pip install torch transformers peft accelerate
+
+<span class="c"># 2. Get the program folder (zip it from the build machine, same as the vault)</span>
+<span class="c"># 3. Build SFT data</span>
+python3 format_sft.py --corpus corpus/corpus_docs.jsonl --out sft_train.jsonl
+
+<span class="c"># 4. Train (the real run: 2 epochs, 2,012 pairs, about 1-3 hours on an M1)</span>
+python3 train_lora.py --sft sft_train.jsonl --out runs/v1 --epochs 2 --max-len 512
+
+<span class="c"># 5. Evaluate adapter against base</span>
+python3 eval.py --base Qwen/Qwen2.5-0.5B --adapter runs/v1 --limit 20 --out eval_adapter.json
+python3 eval.py --base Qwen/Qwen2.5-0.5B --base-only --limit 20 --out eval_base.json
+
+<span class="c"># 6. Merge, quantize, run in Ollama</span>
+python3 merge_and_export.py --base Qwen/Qwen2.5-0.5B --adapter runs/v1 --out merged/neuruh-v2
+<span class="c"># llama.cpp: convert to GGUF, quantize Q4_K_M, then:</span>
+ollama create neuruh/v2.0 -f Modelfile
+ollama run neuruh/v2.0
+
+<span class="c"># 7. Publish (only after it runs correctly in Ollama)</span>
+huggingface-cli repo create NeuruhAI/neuruh-core-v2 --type model
+huggingface-cli upload NeuruhAI/neuruh-core-v2 runs/v1 ./adapter
+huggingface-cli upload NeuruhAI/neuruh-core-v2 ./neuruh-v2-q4_k_m.gguf .</pre>
+<p class="note">The corpus is not published to a public URL. It contains the full text of internal vault notes, and publishing it is Jeramie's call, not a default. The program folder travels to the Mac the same way the vault does.</p>
+
+<h2>9. Honest limits</h2>
+<ul>
+<li>No trained model exists. No weights exist. Nothing has been published to Hugging Face or GitHub as weights.</li>
+<li>Full pretraining is impossible on $0 compute. The corpus is 16M tokens; pretraining needs billions.</li>
+<li>Full fine-tuning of any model does not fit 8 GB of RAM. LoRA is the method, not a preference.</li>
+<li>The 3B model (Bonsai's choice) does not fit LoRA training on 8 GB. The 7B model fits nothing on 8 GB.</li>
+<li>The smoke run proves the pipeline executes. It proves nothing about learning.</li>
+<li>The RAG sidecar is retrieval, not a language model. It quotes the corpus; it does not reason about it.</li>
+<li>The eval metric is keyword recall, a proxy. It measures whether the answer mentions the right terms, not whether the answer is correct.</li>
+<li>Open-source publication happens after weights exist on the Mac and pass the Ollama check. Not before.</li>
+</ul>
+
+<h2>10. Files and receipts</h2>
+<p>Program folder: <code>~/workspace/neuruh-slm/</code>. Published alongside this page: <code>build_corpus.py</code>, <code>build_rag_db.py</code>, <code>app.py</code>, <code>test_rag.py</code>, <code>format_sft.py</code>, <code>train_lora.py</code>, <code>eval.py</code>, <code>merge_and_export.py</code>, <code>canon_qa.json</code>, <code>corpus_stats.json</code>, <code>Modelfile</code>, <code>RUNBOOK.md</code>, <code>README.md</code>.</p>
+<ul>
+<li>Corpus stats: <code>corpus/corpus_stats.json</code> (2,302 docs, 40,919 chunks, 16,084,968 tokens)</li>
+<li>RAG tests: 13 passed, 0 failed, pytest, 2026-11-20</li>
+<li>Smoke run receipt: <code>runs/smoke/train_receipt.json</code> (loss 4.914, 3 steps, 85.3 s)</li>
+<li>Eval receipts: <code>eval_base.json</code>, <code>eval_smoke.json</code></li>
+<li>Inventory page this corrects: <a href="https://neuruhai.github.io/neuruh-demos/open-weight-systems/">open-weight-systems</a></li>
+</ul>
+<p class="note">Audit date for every number on this page: 2026-11-20. Corpus source: library seed index 1,117 records (Nov 20 refresh) plus Obsidian vault 1,356 files. Re-run <code>build_corpus.py</code> after any vault re-seed.</p>
+
+</div>
+</body>
+</html>
