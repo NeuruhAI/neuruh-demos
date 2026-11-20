@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Moat Map | Neuruh</title>
+<style>
+  :root {
+    --paper: #f7f3ea;
+    --paper-2: #fffdf7;
+    --ink: #1c1a16;
+    --ink-soft: #4a463d;
+    --brass: #9a7420;
+    --brass-soft: #c9a227;
+    --line: #d8d2c2;
+    --green: #2e6b34;
+    --amber: #8a6d00;
+    --red: #8c2f26;
+    --grey: #6b675c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 28px 64px; }
+  .doc-control {
+    border-top: 3px solid var(--brass);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 0 14px;
+    margin-bottom: 32px;
+  }
+  .doc-control .kicker {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .doc-control h1 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 42px;
+    line-height: 1.05;
+    margin: 10px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .doc-control .sub { color: var(--ink-soft); font-size: 17px; margin: 0 0 14px; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    font-size: 13px;
+  }
+  .meta-grid div { border-top: 1px solid var(--line); padding-top: 6px; }
+  .meta-grid .label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  h2 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 24px;
+    margin: 44px 0 10px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  h2 .num { color: var(--brass); margin-right: 10px; }
+  h3 { font-size: 18px; margin: 26px 0 6px; }
+  p { margin: 0 0 14px; }
+  blockquote {
+    margin: 18px 0;
+    padding: 16px 20px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--brass);
+    font-size: 17px;
+  }
+  blockquote p { margin: 0 0 10px; }
+  blockquote p:last-child { margin: 0; }
+  blockquote .attr { font-size: 13px; color: var(--ink-soft); }
+  .honesty {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brass);
+    padding: 14px 18px;
+    font-size: 14px;
+    margin: 20px 0;
+  }
+  .honesty strong { color: var(--brass); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
+  th {
+    text-align: left;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 2px solid var(--ink);
+    padding: 8px 10px 8px 0;
+  }
+  td { border-bottom: 1px solid var(--line); padding: 12px 10px 12px 0; vertical-align: top; }
+  td .cat { font-weight: 700; }
+  td .ev { color: var(--ink-soft); font-size: 14px; }
+  .badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .badge.have { color: var(--green); }
+  .badge.partial { color: var(--amber); }
+  .badge.early { color: var(--amber); }
+  .badge.none { color: var(--red); }
+  .badge.weakest { color: var(--red); }
+  figure { margin: 24px 0; }
+  figcaption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+  }
+  figcaption strong { color: var(--ink); }
+  .figure-note { font-size: 13px; color: var(--ink-soft); }
+  .tally { display: flex; gap: 0; margin: 8px 0 0; border: 1px solid var(--line); }
+  .tally div { padding: 12px 14px; border-right: 1px solid var(--line); flex: 1; }
+  .tally div:last-child { border-right: none; }
+  .tally .n { font-family: "Archivo", sans-serif; font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .tally .t { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.08em; }
+  .gate-list { margin: 0 0 14px; padding-left: 20px; }
+  .gate-list li { margin-bottom: 8px; }
+  a { color: var(--brass); }
+  .footer {
+    margin-top: 48px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .footer a { margin-right: 16px; }
+  @media (max-width: 640px) {
+    .doc-control h1 { font-size: 32px; }
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+    .tally { flex-wrap: wrap; }
+    .tally div { flex: 1 1 40%; border-bottom: 1px solid var(--line); }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { padding: 0; }
+    a { color: var(--ink); text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="doc-control">
+    <div class="kicker">Neuruh &middot; Strategy Document</div>
+    <h1>The Moat Map</h1>
+    <p class="sub">Ten places a moat can live, scored against what Neuruh actually has. The thesis is the founder's. The scores are the evidence.</p>
+    <div class="meta-grid">
+      <div><div class="label">Date</div>November 20, 2026</div>
+      <div><div class="label">Source</div>Founder statement, in reply to Raul</div>
+      <div><div class="label">Audit date</div>November 20, 2026</div>
+      <div><div class="label">Status</div>Assessment, not a plan</div>
+    </div>
+  </header>
+
+  <div class="honesty"><strong>Honesty block.</strong> States used on this page: HAVE means the thing exists and can be shown live. PARTIAL means material exists but no product. EARLY means started, not proven. DON'T HAVE means nothing built. WEAKEST means the gap is named and measured. MRR is $0. DeedSonar is down. Most demos are labeled simulations. Nothing on this page is a promise of revenue.</div>
+
+  <h2><span class="num">01</span>The thesis</h2>
+  <blockquote>
+    <p>Deep art (especially through entertainment / memorable IP like characters, stories, etc), in-person experiences / events, commodities (the entire supply chain pretty much), land in future high-demand areas, any sort of high-quality services you can sell as high-ticket to people/companies who make money (most of them have way more money than time), anything with real scarcity, products/services sold through emotion, personalized goods, and one of my favorites: really good &amp; well-polished software.</p>
+    <p>Imo there&rsquo;s moat for everyone, but to Raul&rsquo;s point it will take some agency &amp; thinking + action to truly take advantage of those moats. Most people fall to fear, uncertainty and doubt, not to a lack of available opportunities.</p>
+    <p class="attr">Jeramie Hicks, November 20, 2026. Quoted in full, lightly punctuated for print.</p>
+  </blockquote>
+  <p>The claim has two parts. First, moats are widely available, not rare. Second, the binding constraint is not opportunity, it is agency: thinking plus action, against fear, uncertainty, and doubt. This page tests the first part against Neuruh and the second part against Neuruh's own current bottleneck.</p>
+
+  <h2><span class="num">02</span>The map</h2>
+  <p>Each category is scored on evidence as of November 20, 2026. Four are HAVE. Two are PARTIAL. One is EARLY. One is DON'T HAVE. One is WEAKEST. The tenth item, fear, uncertainty, and doubt, is not a category. It is the gate in front of all nine.</p>
+
+  <figure>
+    <div class="tally">
+      <div><div class="n">4</div><div class="t">Have</div></div>
+      <div><div class="n">2</div><div class="t">Partial</div></div>
+      <div><div class="n">1</div><div class="t">Early</div></div>
+      <div><div class="n">1</div><div class="t">Don&rsquo;t have</div></div>
+      <div><div class="n">1</div><div class="t">Weakest</div></div>
+    </div>
+    <figcaption><strong>Figure 1.</strong> The nine moat categories by state, November 20, 2026. Fear, uncertainty, and doubt are excluded from the count. They are the gate, not a category.</figcaption>
+  </figure>
+
+  <table>
+    <thead>
+      <tr><th>Moat</th><th>State</th><th>Evidence</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="cat">Land in future high-demand areas</span></td>
+        <td><span class="badge have">HAVE</span></td>
+        <td><span class="ev">LANDOS signals, Lead Recipe OS recipes, a 22,343 row lead estate. Every parcel is unique and the data is not replicable. The catch: the engine is down. Both Supabase projects are unreachable, DeedSonar returns 503, and the lead pull has failed 35 straight nights. The moat exists but it is not producing.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">High-ticket services to people with more money than time</span></td>
+        <td><span class="badge have">HAVE</span></td>
+        <td><span class="ev">Offers exist and checkout is live: Workflow Replacement Sprint from $3,500, Forensic System Audit $950, Data Rescue from $750, Verified Dossier $295 in Stripe since November 19. No buyers yet. MRR $0.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Real scarcity</span></td>
+        <td><span class="badge have">HAVE</span></td>
+        <td><span class="ev">Same foundation as land. Every parcel, every estate, every lead is one of one. The lead estate cannot be rebuilt from public sources without the same years of accumulation.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Personalized goods</span></td>
+        <td><span class="badge have">HAVE</span></td>
+        <td><span class="ev">In miniature. Every Property Opportunity Scan and every Property Intelligence Dossier is a personalized deliverable built for one property and one buyer. Personalization is the product here, not a feature.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Deep art and memorable IP</span></td>
+        <td><span class="badge partial">PARTIAL</span></td>
+        <td><span class="ev">Organism lore, Ananias and CROATOAN, the Stands and the Arena note, 1,314 finished memes. Characters and story exist as material. None of it is a product anyone can buy.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Sold through emotion</span></td>
+        <td><span class="badge partial">PARTIAL</span></td>
+        <td><span class="ev">The founder story and provenance carry it, but emotion is not productized into any offer. The story is told; it is not sold.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Commodities, the entire supply chain</span></td>
+        <td><span class="badge early">EARLY</span></td>
+        <td><span class="ev">First Pick produce with Sommerfeldt Farms as anchor grower. The sell sheet is live. A supply chain in name only so far: one grower, one sheet, no volume.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">In-person experiences and events</span></td>
+        <td><span class="badge none">DON&rsquo;T HAVE</span></td>
+        <td><span class="ev">Nothing built. No event, no gathering, no in-person product.</span></td>
+      </tr>
+      <tr>
+        <td><span class="cat">Well-polished software</span></td>
+        <td><span class="badge weakest">WEAKEST</span></td>
+        <td><span class="ev">The gap the thesis names and the estate does not have yet. DeedSonar is down. Most demos are labeled simulations. Unified Chain v2 is the one polished exception: nine stages, browser verified, live. One exception does not make a moat.</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="figure-note">Links to the live proof behind the scores are in the footer. Where the evidence is a live page, the link is live. Where the evidence is down, the page says so.</p>
+
+  <h2><span class="num">03</span>The gate</h2>
+  <p>The second half of the thesis is the diagnosis that matters most to Neuruh right now. The opportunities are inventoried: 595 segment items, 1,104 Master Map records, 336 live sites, three products with live checkout. What is missing is not opportunity. It is decisions.</p>
+  <p>As of November 20, 2026, 41 items sit on the founder's knock-out list, unanswered. Among them: the refund policy wording for the live store, the kernel fork for the estate sale, the chain and wallet pick that gates the on-chain anchor, the Stripe reconnect follow-through, the LLC filing, and the four paid buyers waiting on ship-or-refund answers. Each one is small. Together they are the gate. Fear, uncertainty, and doubt do not arrive as a single dramatic moment. They arrive as 41 small unanswered questions.</p>
+  <p>The thesis says a moat takes agency, thinking, and action. The map says Neuruh already holds four moats and two partial ones. The gate says the distance between holding a moat and taking advantage of it is measured in answered decisions, not in new opportunities.</p>
+
+  <h2><span class="num">04</span>What closes the gaps</h2>
+  <p>Each gap has a next action that already exists. None of them needs a new opportunity.</p>
+  <ul class="gate-list">
+    <li><strong>Land moat not producing:</strong> restore DeedSonar on free platforms. A new Vercel account and a new free Supabase project, migrations applied, three environment variables set, deploy, verify live. The lead estate starts empty because both old Supabase projects are dead. Say so plainly when it ships.</li>
+    <li><strong>High-ticket services at $0:</strong> the offers are live and checkout works. What is missing is buyers, and the buyer path is the free 10-minute qualifier at cal.com/neuruh. The store takes real money now. The next sale is the proof.</li>
+    <li><strong>Well-polished software, the weakest moat:</strong> polish is a sequence, not a wish. Unified Chain v2 is the template: real logic, real tests, browser verified, live. The next candidate is the store and the Scan flow, then DeedSonar itself once it is restored.</li>
+    <li><strong>IP and emotion as products:</strong> the material exists. What is missing is a product shape: a character, a story, or a dossier that a buyer can pay for. The Ananias writing and the Arena note are the raw material, not the product.</li>
+    <li><strong>Commodities beyond early:</strong> one grower and one sell sheet become a supply chain only with volume and repeat buyers. First Pick needs its second grower and its first repeat order.</li>
+    <li><strong>In-person experiences:</strong> nothing built, nothing owed. This is the one category where the honest answer is to leave it empty until a real opportunity appears, not to invent one.</li>
+    <li><strong>The gate itself:</strong> answer the knock-out list by number, or say go through them. The list is the work.</li>
+  </ul>
+
+  <div class="honesty"><strong>Reading this page.</strong> This is an assessment dated November 20, 2026. States change when evidence changes. If DeedSonar comes back live, the land row changes. If the first Dossier sells, the high-ticket row changes. Until then, the scores above are the scores.</div>
+
+  <footer class="footer">
+    <div>Live proof:
+      <a href="https://neuruhai.github.io/neuruh-demos/land-report-store/">Land Report Store</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/unified-chain/">Unified Chain v2</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/estate-fire-sale/">Estate Fire Sale</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/master-map/">Master Map</a>
+      <a href="https://neuruh-hub.pages.dev/">Neuruh Hub</a>
+    </div>
+    <div style="margin-top: 8px;">Neuruh. AI That Executes. Assessment, not a promise. MRR $0 as of November 20, 2026.</div>
+  </footer>
+
+</div>
+</body>
+</html>
