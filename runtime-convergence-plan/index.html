@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Runtime Convergence Plan | Neuruh</title>
+<style>
+  :root {
+    --paper: #f7f3ea;
+    --paper-2: #fffdf7;
+    --ink: #1c1a16;
+    --ink-soft: #4a463d;
+    --brass: #9a7420;
+    --brass-soft: #c9a227;
+    --line: #d8d2c2;
+    --green: #2e6b34;
+    --amber: #8a6d00;
+    --red: #8c2f26;
+    --grey: #6b675c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 28px 64px; }
+  .doc-control {
+    border-top: 3px solid var(--brass);
+    border-bottom: 1px solid var(--line);
+    padding: 18px 0 14px;
+    margin-bottom: 32px;
+  }
+  .doc-control .kicker {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .doc-control h1 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 42px;
+    line-height: 1.05;
+    margin: 10px 0 8px;
+    letter-spacing: -0.01em;
+  }
+  .doc-control .sub { color: var(--ink-soft); font-size: 17px; margin: 0 0 14px; }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    font-size: 13px;
+  }
+  .meta-grid div { border-top: 1px solid var(--line); padding-top: 6px; }
+  .meta-grid .label {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  h2 {
+    font-family: "Archivo", "Helvetica Neue", Arial, sans-serif;
+    font-size: 24px;
+    margin: 44px 0 10px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+  h2 .num { color: var(--brass); margin-right: 10px; }
+  h3 { font-size: 18px; margin: 26px 0 6px; }
+  p { margin: 0 0 14px; }
+  blockquote {
+    margin: 18px 0;
+    padding: 16px 20px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--brass);
+    font-size: 17px;
+  }
+  blockquote p { margin: 0 0 10px; }
+  blockquote p:last-child { margin: 0; }
+  blockquote .attr { font-size: 13px; color: var(--ink-soft); }
+  .honesty {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--brass);
+    padding: 14px 18px;
+    font-size: 14px;
+    margin: 20px 0;
+  }
+  .honesty strong { color: var(--brass); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
+  th {
+    text-align: left;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    border-bottom: 2px solid var(--ink);
+    padding: 8px 10px 8px 0;
+  }
+  td { border-bottom: 1px solid var(--line); padding: 12px 10px 12px 0; vertical-align: top; }
+  td .cat { font-weight: 700; }
+  td .ev { color: var(--ink-soft); font-size: 14px; }
+  .badge {
+    display: inline-block;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .badge.done { color: var(--green); }
+  .badge.open { color: var(--amber); }
+  .badge.gate { color: var(--red); }
+  .badge.next { color: var(--ink-soft); }
+  figure { margin: 24px 0; }
+  figcaption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    border-top: 1px solid var(--line);
+    padding-top: 6px;
+  }
+  figcaption strong { color: var(--ink); }
+  .figure-note { font-size: 13px; color: var(--ink-soft); }
+  .tally { display: flex; gap: 0; margin: 8px 0 0; border: 1px solid var(--line); }
+  .tally div { padding: 12px 14px; border-right: 1px solid var(--line); flex: 1; }
+  .tally div:last-child { border-right: none; }
+  .tally .n { font-family: "Archivo", sans-serif; font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .tally .t { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.08em; }
+  .gate-list { margin: 0 0 14px; padding-left: 20px; }
+  .gate-list li { margin-bottom: 8px; }
+  .phase { margin: 0 0 8px; }
+  .phase .blocked { color: var(--red); font-weight: 700; }
+  .phase .proof { color: var(--green); font-weight: 700; }
+  a { color: var(--brass); }
+  .footer {
+    margin-top: 48px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .footer a { margin-right: 16px; }
+  @media (max-width: 640px) {
+    .doc-control h1 { font-size: 32px; }
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+    .tally { flex-wrap: wrap; }
+    .tally div { flex: 1 1 40%; border-bottom: 1px solid var(--line); }
+  }
+  @media print {
+    body { background: #fff; }
+    .page { padding: 0; }
+    a { color: var(--ink); text-decoration: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="doc-control">
+    <div class="kicker">Neuruh &middot; Build Plan</div>
+    <h1>Runtime Convergence Plan</h1>
+    <p class="sub">Eighteen September canon documents in one build order that ends with a runtime that works.</p>
+    <div class="meta-grid">
+      <div><div class="label">Date</div>November 20, 2026</div>
+      <div><div class="label">Ordered by</div>Jeramie Hicks</div>
+      <div><div class="label">Sources read</div>18 Notion pages, live, plus library audit Nov 19</div>
+      <div><div class="label">Status</div>Plan, Phase 0 done</div>
+    </div>
+  </header>
+
+  <blockquote>
+    <p>This plan turns eighteen September canon documents into one build order that ends with a runtime that works, instead of another architecture pass. Phase 0 is already done and proven. The remaining phases restore the event-driven execution path the canon already describes, on a free stack, one proof at a time.</p>
+    <p class="attr">D line: what this does now that did not exist before. Before this plan, the eighteen documents were a library. After it, they are a sequence with a proof at the end of every step.</p>
+  </blockquote>
+
+  <div class="honesty"><strong>Honesty block.</strong> All eighteen source pages were read live from Notion on November 20, 2026. None was unreadable. States used on this page: DONE means built, live, and proven running. NEXT means the build order is set and the work is unstarted. GATE means a founder decision is required before the work can start. BLOCKED means a named founder step stands in the way. The September 6 to 7 pages describe a Mac-local estate (Colima, launchd, local ports, paths under a home directory). That estate no longer exists on this machine and the Mac is not reachable from here. This plan re-homes every local path to the free cloud substrate in section 02. Any phase that still names a Mac-local path says so and names whose step it is. Nothing on this page is a promise of revenue. MRR is $0.</div>
+
+  <h2><span class="num">01</span>The ruling: the endgame</h2>
+  <p>The Execution Topology Canon states the ruling plainly. The estate already contains the machinery required for autonomous execution. The failure mode is not missing architecture. It is broken continuity between existing control surfaces plus excessive re-census and re-audit work. The operating correction is: do not rebuild the organism, restore the event-driven execution path.</p>
+  <p>The canonical directive from the same page is the endgame in one line: converge, restore event-driven autonomy, push proven candidates to remote custody, close DeedSonar, get a real economic outcome. Then four refusals. No more architecture expansion as a substitute for closure. No more full-machine archaeology as a default. No more making Jeramie carry state between agents. No more successful local candidate dying because the model session ended. No more claiming shipped without Git, provider, and runtime proof.</p>
+  <p>Convergence Delta 01 names the dominant failure mode the same way: lineage fragmentation, semantic collision, under-wiring, and ambiguous ownership, not absence of architecture. The R14B anti-loss work preserved about 225 named lineages. The plan therefore binds and restores. It does not invent a new organism.</p>
+
+  <figure>
+    <div class="tally">
+      <div><div class="n">1</div><div class="t">Phase done</div></div>
+      <div><div class="n">6</div><div class="t">Phases to build</div></div>
+      <div><div class="n">7</div><div class="t">Decision gates</div></div>
+      <div><div class="n">18</div><div class="t">Source documents</div></div>
+      <div><div class="n">90</div><div class="t">Nodes in registry</div></div>
+    </div>
+    <figcaption><strong>Figure 1.</strong> The convergence in numbers, November 20, 2026. Phase 0 is the Ontology Runtime. Phases 1 to 6 are the build order. The seven gates are founder decisions, not build tasks.</figcaption>
+  </figure>
+
+  <h2><span class="num">02</span>The substrate: the free stack</h2>
+  <p>The runtime runs on the free stack Jeramie listed on November 20, 2026. Every service maps to a layer the canon already defines. Nothing in this plan needs a paid tier to start. Two honest limits are recorded with the stack, not hidden from it. Vercel Hobby is personal and non-commercial under its terms of service, so a commercial surface eventually needs Pro at $20 per user per month. Supabase free auto-pauses after one week idle, so the nightly lead pull is what keeps it awake. Both old Supabase projects are dead, verified November 19, so the new project starts with an empty database. Data is not recovered. It is re-seeded.</p>
+  <table>
+    <thead>
+      <tr><th>Service</th><th>Role in the runtime</th><th>Canon layer</th><th>Cost</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="cat">GitHub</span></td><td>Version control and custody. The Git Custodian, branch, PR, and CI path. All candidate promotion runs through it.</td><td>L9 Git custody and promotion</td><td>Free</td></tr>
+      <tr><td><span class="cat">Supabase</span></td><td>Backend. Postgres, Auth, RLS, and the database the runtime reads and writes. New project, empty database, migrations applied from the DeedSonar repo.</td><td>L2 Estate truth</td><td>Free</td></tr>
+      <tr><td><span class="cat">Clerk</span></td><td>Auth. The sign-in front door for the runtime surfaces.</td><td>L5 Authority and governance</td><td>Free</td></tr>
+      <tr><td><span class="cat">Vercel</span></td><td>Deploying. The product surfaces deploy here on the free Hobby plan.</td><td>L10 Runtime and deployment</td><td>Free</td></tr>
+      <tr><td><span class="cat">Resend</span></td><td>Email. Receipt notices, gate holds waiting on the founder, and fulfillment mail.</td><td>L11 Telemetry and learning</td><td>Free</td></tr>
+      <tr><td><span class="cat">Cloudflare</span></td><td>DNS. Name resolution for the runtime surfaces only. Cloudflare Pages is at the 100-project free ceiling, so no new Pages projects are created under this plan.</td><td>L10 Runtime and deployment</td><td>Free</td></tr>
+      <tr><td><span class="cat">Upstash</span></td><td>Redis. The event fabric and queue substrate that carries the Switchboard path, replacing the local watcher directories.</td><td>L4 Event fabric</td><td>Free</td></tr>
+      <tr><td><span class="cat">PostHog</span></td><td>Analytics. Telemetry, outcome calibration, and learning feedback.</td><td>L11 Telemetry and learning</td><td>Free</td></tr>
+      <tr><td><span class="cat">Sentry</span></td><td>Error tracking. Runtime failure observation, so a dead service is observed dead instead of assumed live.</td><td>L8 Verification court</td><td>Free</td></tr>
+      <tr><td><span class="cat">Stripe</span></td><td>Payments. Live since November 19, products at $29, $69, and $295, payment links verified.</td><td>Commercial spine</td><td>2.9% per transaction</td></tr>
+      <tr><td><span class="cat">Oracle</span></td><td>Hosting, free tier. The long-running services live here: the acceptance probe, the N-Cell service, and the Switchboard worker.</td><td>L10 Runtime and deployment</td><td>Free</td></tr>
+    </tbody>
+  </table>
+  <p class="figure-note">Auth note: the HelmAI lineage proved Supabase Auth with RLS in June 2026 (a dialer saw only its one assigned lead). Clerk is the auth front door on this stack per the founder's list. The Supabase Auth lineage is donor evidence for how RLS must behave, not a second auth system to run alongside Clerk.</p>
+
+  <h2><span class="num">03</span>Phase 0, DONE: the Ontology Runtime</h2>
+  <p><span class="badge done">DONE</span> The first closed rinse-and-repeat loop, and the pattern for every phase after it. Read a live demo, find what is missing for a working runtime, build the missing piece, prove it running, hub-card it, repeat.</p>
+  <p><strong>What was built.</strong> The Unified Ontology and World Landing Codex demo was a browser simulation. It is now a real executing runtime: a FastAPI and Pydantic seeder builds the Universe and World topology from the Codex's real 13 invariants, 7 questions, and 9-level scale stack. An 11-step landing protocol with a founder gate lands a World. The metabolism loop closes, with outcomes feeding back into new possibilities. Every receipt is persisted in SQLite with a hash chain that survives a restart.</p>
+  <p><strong>Proof.</strong> 28 pytest tests passed, 0 failed, re-run independently. End-to-end run November 20, 2026: DeedSonar World landed 11 of 11 steps, 2 metabolism cycles, 51 receipts, chain valid after restart. Live page: <a href="https://neuruhai.github.io/neuruh-demos/ontology-runtime/">ontology-runtime</a>. Hub v3.17, 338 total.</p>
+  <p><strong>What it is not.</strong> Not production. No event bus, no IAM, no notification bus, single node only. Those gaps are exactly what Phases 1 to 5 close, in order.</p>
+
+  <h2><span class="num">04</span>Phase 1: Acceptance, what working means</h2>
+  <p><span class="badge next">NEXT</span> Sources: Chapter 12, Runtime Acceptance Topology (last edited September 6, 2026).</p>
+  <p><strong>What gets built.</strong> The acceptance surface as running code. A live probe that reads the 24-node manifest and the 17-plus-1 SOPS court and reports each node's true state with evidence. The lifecycle semantics from Chapter 12 are enforced, not described: ACTIVE, READY_ON_DEMAND, OPTIONAL, RETIRED, ABSORBED, BUILT_NOT_WIRED, DEGRADED, and UNVERIFIED. The live-state rule from the same chapter is the probe's contract: expected source and pin identity, expected process and port owner, semantic health and not merely HTTP 200, current receipt and ledger freshness. The 24-node manifest and the 17-plus-1 SOPS court answer different questions on purpose: a manifest describes intended topology, SOPS describes the supervised acceptance surface, and a live court says what is actually serving now. The probe keeps them separate. The known lineage decisions carry forward: Territory is RETIRED, SAL is ABSORBED into AXON and governance and feedback components, OMNIA-6 is ABSORBED into the AXON PromptComposer path, the PMLA live execution gate is ABSORBED into the AXON PmlaGate, Synapse Router is RETIRED, PulseBus is ABSORBED into receipt ledgers and observation ingest, LandOS and Recipe Engine are READY_ON_DEMAND.</p>
+  <p><span class="proof">Proof.</span> The probe runs on the new substrate and returns a state digest per node: state, observed_at, source, source SHA, reason, authority, digest, and staleness. A node with no observation reports UNVERIFIED, never ready. A deliberately stopped node reports RETIRED or ABSORBED, never down. A node that answers HTTP 200 but fails its semantic contract reports DEGRADED. No false ready, anywhere, ever.</p>
+  <p><span class="blocked">Blocked on Jeramie.</span> The new substrate accounts. Vercel account creation and Supabase project creation are his steps, ordered November 19 and not yet done. Nothing is probed until there is something to probe. The Oracle free-tier host for the probe itself is also his step.</p>
+
+  <h2><span class="num">05</span>Phase 2: Authority, N-Cell and the registry</h2>
+  <p><span class="badge next">NEXT</span> Sources: Chapter 17, N-Cell (September 6, 2026); Chapter 11, Master Organ and Capability Registry (September 6, 2026).</p>
+  <p><strong>What gets built.</strong> The N-Cell state chain as running code: SOPS observed state, then N-Cell projection, then capability effective view, then lifecycle-aware state assembler, then reconciliation proposal, then governance-authorized revision, then canonical revision receipt and ledger. Chapter 17's B08 conclusion governs the whole phase: NEW_ORGAN_REQUIRED is NO. The state architecture exists. What was missing is composition and runtime consumption. Bind, do not redesign. The Capability Registry gets its first runtime consumer in this phase; the B08 preflight found it had zero. Effective capability is a product, not a flag: declared capability times source identity times lifecycle times runtime availability times authority times provider dependency times current evidence. The registry holds 90 nodes in six scopes that must never be collapsed into one number: A, 28 runtime and operator nodes; B, 19 durable execution and custody organs; C, 10 canonical state, promotion, and learning organs; D, 16 commercial, opportunity, and product organs; E, 9 immune, intent, and safety organs; F, 8 build, packaging, and provenance helpers. The count scopes stay separate alongside them: 24 manifest nodes, 17-plus-1 SOPS organs, 16-plus-6 real-estate underwriting organs, 10 DealOS core services, 60-plus Force Multiplier agent specs, 30 opportunity recipes. A row in the registry means identified capability and organ lineage, not currently running. Runtime state is always overlaid from the current manifest, SOPS, and provider receipts.</p>
+  <p><span class="proof">Proof.</span> A state query returns state, observed_at, source, source SHA, reason, authority, digest, and staleness or freshness. A capability with no live evidence returns UNVERIFIED and is not usable. A reconciliation proposal produces a governance-authorized revision receipt in the ledger. The Cockpit projection shows the actual value when observed, UNKNOWN or UNVERIFIED when not observed, an explicit degraded reason when degraded, and ready on demand when idle is correct. Never a zero standing in for unknown operational truth.</p>
+  <p><span class="blocked">Blocked on Jeramie.</span> Nothing new. Phase 1 done is the gate: the probe is the observed-state source this phase consumes. No founder decision is required to bind what already exists.</p>
+
+  <h2><span class="num">06</span>Phase 3: Data flow, the crosswalk and the loop</h2>
+  <p><span class="badge next">NEXT</span> Sources: Chapter 39, Source to Runtime to Receipt to Consumer Crosswalk (September 7, 2026); Chapter 02, The Organism (September 6, 2026).</p>
+  <p><strong>What gets built.</strong> The crosswalk as a live registry. Every organ row is complete only when source owner, runtime and lifecycle, receipt location, and downstream consumer are all known. UNKNOWN is preserved explicitly, never papered over. The 12-layer JGI fabric from Chapter 02 becomes the execution pipeline: L0 Founder Intent, L1 Mission Compiler, L2 Estate Truth and Canon, L3 Scheduler and Workflow, L4 Event Fabric, L5 Authority and Governance, L6 Capability Membrane, L7 Specialist Swarms, L8 Verification Court, L9 Git Custody and Promotion, L10 Runtime and Deployment, L11 Telemetry, Learning, and Revenue. The stable DNA loop runs inside it at three altitudes: signals in, structured and scored decision, receipt out, outcome feedback, at money, knowledge, and compute altitudes, with governance wrapping every altitude. Organs are reusable capability; Worlds are domain-specific expressions of those organs. Other worlds reuse organs, they do not fork the operating system. The P0 seam in this phase is the receipt-path convergence defect from Chapter 39: the SOPS watcher state is rooted at the Switchboard receipts path, while preserved producer history lives at the producer receipts path. The work is bind and adapter, not another receipt database. Current classification stands as the starting state: watcher code is proven source, watcher installed live is unverified, producer receipt path binding is open, automatic Sentinel invocation is open, automatic result ingest is open, Git Custodian consumer is implemented, end-to-end clipboard-free is not yet live-proven.</p>
+  <p><span class="proof">Proof.</span> A row is complete only when source SHA is known, expected lifecycle is known, current runtime and provider identity is observed when required, the receipt exists, the consumer consumes the exact contract, and no alternate writer or authority exists. Until then the weakest honest state is preserved. The P0 proof is a receipt traveling producer to adapter to watcher to Switchboard with no human clipboard in between.</p>
+  <p><span class="blocked">Blocked on Jeramie.</span> The runtime host. Oracle free-tier provisioning is his step, and the Upstash Redis instance that carries the event fabric. The HelmAI ruling in gate G1 also lands here: it decides whether the LandOS and CRM rows in the crosswalk point at the merged runtime or at a separate HelmAI system.</p>
+
+  <h2><span class="num">07</span>Phase 4: Proof, the Receipt Atlas</h2>
+  <p><span class="badge next">NEXT</span> Source: Chapter 13, Receipt Atlas (September 6, 2026).</p>
+  <p><strong>What gets built.</strong> One canonical receipt adapter, and no third receipt store. Chapter 13's thesis is that receipts are the organism's blood trail and the missing operational problem is not lack of receipts, it is inconsistent receipt homes and incomplete automatic handoff between them. This phase binds the homes that already exist: worker execution receipts in the Workers ExecutionLedger, Switchboard sealed and court events in the Switchboard state and event store, supervision lifecycle receipts in the SOPS ledger, Founder Runtime dispatch state, Presence and Laric receipts, AXON receipts, Adaptive receipts, IAR provenance, MOTHER sweeps, Factory run receipts, DeedSonar courts and audits, outcome truth in OutcomeRecord objects and the downstream calibration ledger, and canon and library receipts in the audit and test area and the Vault. The event chain becomes running code: Founder Runtime APPROVED or QUEUED, then Workers JobQueue, then ExecutionLedger, then receipt.created, then receipt.sealed, then Switchboard, then court.requested, then independent Sentinel, then court.passed or court.failed, then on PASS only candidate.push.requested, then Git Custodian, then candidate branch, PR, and CI receipts, then promotion requested, authorized, executed, and verified, then deploy and runtime receipts, then OutcomeRecord, then calibration and learning proposal. Receipt integrity rules are enforced at every step: mission and correlation identity, source SHA and tree and fingerprint, authority reference, idempotency key, timestamp, evidence references, content hash and sealed identity, explicit state transition, and explicit failure or refusal when unavailable. A PASS inside a builder-generated receipt is not an independent Sentinel PASS. Receipts may be projected into Cockpit or Notion, but the projection never becomes authority. The durable evidence remains the underlying ledger, file, Git, and provider state.</p>
+  <p><span class="proof">Proof.</span> One full chain executed end to end with sealed receipts at each step and an independent Sentinel verdict that the builder did not write. The chain survives a restart, the same bar Phase 0 already cleared with its 51-receipt chain. SOPS refuses mismatched provenance rather than starting wrong code, and Factory preserves its handoff, recovery state, continuation checkpoint, run manifest, source pins, and stage receipts.</p>
+  <p><span class="blocked">Blocked on Jeramie.</span> Founder approval authority is his by design. Gates pause for his signature and resume on it. The Astra court is HOLD until he unlocks it, gate G5. The independent Sentinel pattern in this phase does not need Astra. The final autonomy-seam court does.</p>
+
+  <h2><span class="num">08</span>Phase 5: Operations, the daily machine</h2>
+  <p><span class="badge next">NEXT</span> Sources: Neuruh Live Operations Canon (September 7, 2026); Manual Ops SOPs plus LandOS Seeder (June 12, 2026); Build Pack, Card Canon UI plus YAML plus Seeder Completion (April 25, 2026).</p>
+  <p><strong>What gets built.</strong> The placement matrix as the session-close rule. Every session lands its work in its existing canonical home before the session is treated as complete. No orphan work: valuable local-only work moves through capture, classify, custody, canonicalize, close. No duplicate truth: Git and code own code truth, the Vault owns durable canon, external providers own their live state, receipts prove transitions. No chat-only state. No secrets in the canon, only pointers. Freshness is explicit. One writer per repo. Done means verified: built is not live, merged is not deployed, cashier is not fulfillment is not sale. The daily operating loop runs on the Live Remainder: open NOW and P0 views, new discovery goes into the database immediately with its evidence reference and timestamp, custody is established before new work if the item is local-only, items resolve or are explicitly blocked, and closure records the final SHA, receipt, and provider state. The Manual Ops SOPs are automated where delegable: SOP-01, the SRI weekly auction calendar check; SOP-02, the county commissioner certificate ingest; SOP-03, the LandOS scoring-weight seeder, against the NEW Supabase project, not the dead spine. The data-freshness rule from the SOPs stays canon: auction calendars are weekly, sale results are annual static inventory, daily distress signal is the daily machine and it is scored by LandOS. The Build Pack completes alongside: the Card Canon UI plus the YAML layer for all 36 cards in one source manifest, the validation script that catches missing YAML fields before sync, the materializer that generates the card Markdown files, and the Vercel deploy path, wired into the seeder flow and the vault mirror.</p>
+  <p><span class="proof">Proof.</span> A session that ends with every item in its canonical home and a dated delta. A LandOS weight seed against the live Supabase that returns the seeded confirmation for the tenant. The 36-card UI live with all YAML valid. The SRI check running weekly with a diff that flags only new or date-changed sales.</p>
+  <p><span class="blocked">Blocked on Jeramie.</span> The Supabase project, his creation step. The LandOS seeder needs a tenant on the new project: the old tenant id belongs to the dead spine and does not transfer. If the seeder stays on his Mac, the local path in SOP-03 is his step; if it moves to the Oracle host, the move is part of this phase and the Mac path retires.</p>
+
+  <h2><span class="num">09</span>Phase 6: First World, DeedSonar restoration</h2>
+  <p><span class="badge next">NEXT</span> Sources: Chapter 02, The Organism; Chapter 39, Crosswalk; Live Operations Canon. Verified state November 19, 2026.</p>
+  <p><strong>What gets built.</strong> DeedSonar as the first World on the runtime. Chapter 02 gives the reason: real estate is the strongest proving world because it exercises source acquisition, entity resolution, scoring, contact confidence, compliance, CRM, transaction, and outcome. Chapter 39 gives the current state: DeedSonar production is on a degraded and held release path. Restoration runs on the new substrate: a new Vercel account on the free Hobby plan, a new free Supabase project, migrations applied with head 20260902210004, three environment variables set, deploy, verify live. Data starts EMPTY because both old Supabase projects are dead. LandOS Engine and Recipe Engine run READY_ON_DEMAND against the new backend, and Lead Recipe OS is the signal-to-opportunity kernel that feeds the product. The September 6 release gates are still the bar: runtime binding from source to pin to restart to serving SHA to same mission, the current Property Case golden replay, the full lifecycle, idempotency, and economics court, one repeatable paid fulfillment lane with intake, Stripe, booking, delivery, follow-up, and outcome receipt, and a fresh redacted proof capture.</p>
+  <p><span class="proof">Proof.</span> DeedSonar live on the new vercel.app URL returning real pages from the new database. A parcel scored through the chain to a delivered Property Opportunity Scan, using the Unified Chain v2 worked example as the template. One repeatable paid fulfillment lane with an outcome receipt. The custom domain deedsonar.com is not promised here: its DNS is a founder surface, not a build step.</p>
+  <p><span class="blocked">Blocked on Jeramie.</span> Vercel and Supabase account creation, his steps, ordered November 19. The estate fire sale question also touches this phase: the sale page assumes the kernel goes outright in the lot, and the fork is still his call. This phase builds the restoration; it does not decide the sale.</p>
+
+  <h2><span class="num">10</span>The map: Execution Topology Canon</h2>
+  <p>The Execution Topology Canon (September 6, 2026) is the map this plan runs on. It is not a competing live-status database and it does not override provider, runtime, or Git evidence. It exists so that anyone can answer, in under thirty seconds, what owns this, where it is, what is authoritative, what wakes next, and what happens after that.</p>
+  <p><strong>Authority hierarchy, in order, whenever records conflict.</strong> One, current live provider and runtime evidence. Two, exact Git remote SHA, deployment SHA, and database state. Three, sealed receipts and independent courts. Four, Vault canon and the Live Operations operational projection. Five, current mission checkpoint and Live Remainder. Six, Notion historical architecture, build, and research pages. Seven, old handoffs, screenshots, and copied summaries. Eight, chat and model memory. The inequalities hold at every level: built is not live, merged is not deployed, candidate is not canonical, deployed is not healthy, phone found is not contact permission, cashier exists is not fulfillment exists is not sale happened. A historical page can prove lineage but cannot silently prove current runtime state.</p>
+  <p><strong>The control topology, the target operating loop.</strong> Jeramie objective, then Mission Compiler, then current state plus receipt frontier, then dependency and authority plan, then Scheduler and Switchboard, then bounded specialist worker, then receipt sealed, then independent court and Sentinel, then on PASS Git Custodian, then feature branch push plus PR plus CI, then promotion authority, then on grant merge and deploy marshal, then provider and runtime verification, then outcome plus memory plus command state, then revenue, calibration, and next mission, then back to state. Jeramie is not the clipboard.</p>
+  <p><strong>What must not be rebuilt.</strong> The canon lists the restoration target as moving from the old triad (MOTHER and watcher, play card and queue, Autonomous Builder, small change, verify, Notion log and Slack ping, next cycle) to the modern governed fleet (Mission Compiler, Switchboard and persistent queue, bounded worker, receipt, Sentinel, Git Custodian, PR and CI, promotion authority, deploy and runtime court, outcome, revenue, and memory). Restore the autonomy, keep the modern custody. The infrastructure blocker named in the canon, the Supabase organization placement for the old spine, is resolved by this plan's substrate: the old project is dead and the new project is created fresh. The database is not rebuilt merely to fix account and billing placement; it is created new because the old one is unreachable.</p>
+
+  <h2><span class="num">11</span>The loop: the organism, one loop, twelve layers</h2>
+  <p>Chapter 02 states the thesis: the architecture did not repeatedly restart. The vocabulary changed as the same organism grew from a five-layer model, to three operating altitudes, to the modern JGI execution fabric. The stable DNA, distilled from the July estate inventory, is one repeating pattern: signals in, structured and scored decision, receipt out, outcome feedback. It runs at three altitudes: money (signals, parcels, businesses to decisions to CRM, deal, revenue), knowledge (files, pages, conversations to audit to canon and training corpus), and compute (tasks to model and tool routing to execution to hash-chained receipts). Governance wraps every altitude.</p>
+  <p>The twelve layers are the loop the runtime runs: L0 Founder Intent (objective, constraints, consequential approvals), L1 Mission Compiler (mission id, measurable outcome, DAG, evidence, authority, rollback, budget, stop conditions), L2 Estate Truth and Canon (Git, local, runtime, Notion, receipt, and provider census with evidence classification), L3 Scheduler and Workflow (persistent jobs, deterministic ids, idempotency, crash resume, retry and deadletter), L4 Event Fabric (typed state transitions, no founder copy and paste transport), L5 Authority and Governance (action permissions), L6 Capability Membrane (exact tool, repo, path, network, and privilege bounds), L7 Specialist Swarms (narrow workers and mission pods), L8 Verification Court (independent Sentinel, builder never closes itself), L9 Git Custody and Promotion (exact independently-passed candidate to feature branch to PR to CI), L10 Runtime and Deployment (exact SHA, canary, rollback, semantic probes, runtime receipts), L11 Telemetry, Learning, and Revenue (outcomes, cost, latency, calibration, economic feedback).</p>
+  <p>The body map names the parts so the phases can be checked against it: brain and inference is IAR plus Aegis plus model substrate; nervous and event system is AXON, Switchboard, and Workers; immune system is Governance, constraints, drift, Semantic Fuse, and Sentinel; memory is Vault, receipts, outcome stores, and Notion projection; hands are bounded workers and capabilities; eyes are telemetry and provider courts; face is Cockpit, DeedSonar, and public surfaces; heartbeats are scheduler, watchdog, and runtime supervision; blood is events, receipts, and state transitions.</p>
+
+  <h2><span class="num">12</span>Decision gates: his call, not ours</h2>
+  <p>Each gate below is a founder decision. The plan does not answer them, and no phase may proceed past its gate on an assumed answer.</p>
+  <ul class="gate-list">
+    <li><strong>G1, HelmAI: merge as donor or keep separate.</strong> <span class="badge gate">GATE</span> HelmAI is a parallel agentic OS with its own Master Index, last edited July 3, 2026, linking 47 sub-pages. Its locked decisions from June 8 to 9, 2026: HelmAI is the cockpit OS product, CRM is one organ, REI-X is absorbed, LandOS is the first hardened organ, one shared spine with schema landos, 136 qualified leads reconciled, RLS-proven CRM where a dialer saw only its one assigned lead, and a 1000x roadmap with signal-driven discovery as the keystone. The spine it was built on is dead, verified November 19. Merge means the runtime adopts HelmAI's engine and CRM as its first World. Keep separate means two systems with a defined seam. No ruling yet. The ruling lands in Phase 3.</li>
+    <li><strong>G2, edge_agent: custody only.</strong> <span class="badge gate">GATE</span> The file card, April 11, 2026, records a push of the local working edge agent to GitHub and verification of a Supabase telemetry write. It was blocked by terminal access and Supabase credentials. It is custody only: never built from, never sold, never discussed externally. Export-control risk. It appears in no phase.</li>
+    <li><strong>G3, Commercial Public Readiness: re-audit before citing.</strong> <span class="badge gate">GATE</span> The September 5, 2026 pack is a commercial projection, and every artifact in it is HOLD until T02 reports safe for real candidate promotion and the O01 and fulfillment-contract candidates are promoted through the canonical path. Its prices (O01 $299, O02 $499, O05 $1,250) are September 5 figures. The October 1 ladder and the November 19 live Stripe prices ($29, $69, $295) supersede them for anything customer-facing. Do not cite the pack as current.</li>
+    <li><strong>G4, Dated deltas are history, not build specs.</strong> <span class="badge gate">GATE</span> Convergence Delta 01 and Dated Delta 2026-09-07 are evidence and placement law. Their durable laws carry as doctrine: the progress-ingest law (every meaningful result lands in its existing canonical home before a session closes), the six-source identity court (search current Git, Git history, Drive originals, Notion and IP Registry, prior canons and Library files, and captured Mac evidence before calling a capability missing), the state-discipline inequalities (merged is not wired, source main is not live pin, documented is not implemented, CI pass is not independent Sentinel pass, promotion ready is not merge authority), and the ruling that the P0 is persistence, not architecture. None of them is a build spec.</li>
+    <li><strong>G5, Grok and Astra: Astra is HOLD.</strong> <span class="badge gate">GATE</span> Chapter 48, current V6 operator correction, September 7, 2026: Grok Independent Court owns H01 now. Astra is HOLD until evidence-readiness and named-receipt gates are satisfied. BOB is conductor. Grok is the broad-but-bounded recovery and implementation worker. Astra is the expensive principal judge, used only after named gates justify the court: Astra Mission 1 judges the compressed end-to-end autonomy seam against seven predicates, and Astra Mission 2 is the final product principal court after DeedSonar and R01. V6 is the current operator interface, with specific Grok Bots by role, Fable Terminal for bounded implementation, and Opus Terminal for deep specialist reasoning. Provider death changes the worker, not the mission. The unlock is his call.</li>
+    <li><strong>G6, LinkedIn drafts: content, not runtime.</strong> <span class="badge gate">GATE</span> Five articles and micro-posts, last edited July 2, 2026, positioning Jeramie as a frontier solutions developer: someone who turns emerging AI capabilities into usable operating systems, vertical tools, local infrastructure, and revenue-facing workflows before the market has clean categories for them. Distribution lane, not build order. Publish on his call.</li>
+    <li><strong>G7, Obsidian Vault Map: done, not a phase.</strong> <span class="badge done">DONE</span> The mirror spec, April 19, 2026, is the template for the vault build that completed November 20, 2026: 2,486 notes, seed library current to November 19, Dataview, Templater, and Calendar pre-installed and enabled, delivered as a zip. The vault is the memory face of the same brain the runtime reads. It is not a phase of this plan.</li>
+  </ul>
+
+  <h2><span class="num">13</span>Sources: the eighteen, what the plan takes from each</h2>
+  <table>
+    <thead>
+      <tr><th>#</th><th>Document</th><th>Last edited</th><th>Role in this plan</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1</td><td><a href="https://app.notion.com/p/4f0dd20ee0d54154b239ae5e813c0557">File Card, neuruh_edge_agent</a></td><td>Apr 11, 2026</td><td>Gate G2. Custody only, in no phase.</td></tr>
+      <tr><td>2</td><td><a href="https://app.notion.com/p/3d3a981d75b681bc8aeac97d71f01696">Chapter 48, Grok Bot plus Astra</a></td><td>Sep 7, 2026</td><td>Gate G5. Operating plan for recovery workers and the held Astra court.</td></tr>
+      <tr><td>3</td><td><a href="https://app.notion.com/p/3d4a981d75b6811f8e24c8ed0dc312e7">Convergence Delta 01</a></td><td>Sep 7, 2026</td><td>Gate G4. Evidence, lineage, six-source court, state-discipline law.</td></tr>
+      <tr><td>4</td><td><a href="https://app.notion.com/p/37aa981d75b6817c9b4ac3120f3974b6">HelmAI, Master Index and Live Status</a></td><td>Jul 3, 2026</td><td>Gate G1. Parallel agentic OS, merge or keep separate.</td></tr>
+      <tr><td>5</td><td><a href="https://app.notion.com/p/4df54369a9634bccbb9783ce78624cfb">LinkedIn Article Drafts</a></td><td>Jul 2, 2026</td><td>Gate G6. Content, not runtime.</td></tr>
+      <tr><td>6</td><td><a href="https://app.notion.com/p/3d3a981d75b6817c935cda6460f8b376">Execution Topology Canon</a></td><td>Sep 6, 2026</td><td>The map. Authority hierarchy, control loop, the ruling, the directive.</td></tr>
+      <tr><td>7</td><td><a href="https://app.notion.com/p/3d1a981d75b6818ea024d385e008fb60">Live Operations Canon</a></td><td>Sep 7, 2026</td><td>Phase 5. Placement matrix, progress-preservation law, daily loop.</td></tr>
+      <tr><td>8</td><td><a href="https://app.notion.com/p/374a981d75b68134b7a3f6cbffd34fe1">Manual Ops SOPs plus LandOS Seeder</a></td><td>Jun 12, 2026</td><td>Phase 5. SOP-01, SOP-02, SOP-03, data-freshness rule.</td></tr>
+      <tr><td>9</td><td><a href="https://app.notion.com/p/0132de50b24946dc9d1ad13f152ef677">Build Pack, Card Canon UI plus YAML plus Seeder</a></td><td>Jul 2, 2026</td><td>Phase 5. 36-card manifest, YAML layer, validator, materializer.</td></tr>
+      <tr><td>10</td><td><a href="https://app.notion.com/p/3d4a981d75b681728c21d2ad0f8d284b">Dated Delta 2026-09-07</a></td><td>Sep 7, 2026</td><td>Gate G4. Progress-ingest law, V4 fleet control, session-close receipt.</td></tr>
+      <tr><td>11</td><td><a href="https://app.notion.com/p/3d3a981d75b68127ae69f5cb815e9941">Chapter 13, Receipt Atlas</a></td><td>Sep 6, 2026</td><td>Phase 4. Receipt homes, event chain, integrity rules.</td></tr>
+      <tr><td>12</td><td><a href="https://app.notion.com/p/3d3a981d75b681279b26df9d75ad23f7">Chapter 39, Crosswalk</a></td><td>Sep 7, 2026</td><td>Phase 3. Source to runtime to receipt to consumer, P0 seam.</td></tr>
+      <tr><td>13</td><td><a href="https://app.notion.com/p/3d2a981d75b6819b876fcbd1447ab74d">Commercial Public Readiness</a></td><td>Sep 5, 2026</td><td>Gate G3. September 5 snapshot, HOLD, re-audit before citing.</td></tr>
+      <tr><td>14</td><td><a href="https://app.notion.com/p/3d3a981d75b681a1bc29ecb5b34c1abd">Chapter 17, N-Cell</a></td><td>Sep 6, 2026</td><td>Phase 2. State chain, effective capability, state digest.</td></tr>
+      <tr><td>15</td><td><a href="https://app.notion.com/p/3d3a981d75b68157b6dff11f798d2691">Chapter 12, Runtime Acceptance Topology</a></td><td>Sep 6, 2026</td><td>Phase 1. 24-node manifest, 17-plus-1 SOPS court, lifecycle semantics.</td></tr>
+      <tr><td>16</td><td><a href="https://app.notion.com/p/79757926ebb4451db6d74ff1443a3938">Obsidian Vault Map</a></td><td>Apr 19, 2026</td><td>Gate G7. Mirror spec, vault build done November 20.</td></tr>
+      <tr><td>17</td><td><a href="https://app.notion.com/p/3d3a981d75b6811e9212f9ed8f88b6be">Chapter 02, The Organism</a></td><td>Sep 6, 2026</td><td>Phase 3 and the loop. Twelve layers, stable DNA, organs versus Worlds.</td></tr>
+      <tr><td>18</td><td><a href="https://app.notion.com/p/3d3a981d75b681119ef5e11f0c338006">Chapter 11, Master Organ Registry</a></td><td>Sep 6, 2026</td><td>Phase 2. 90 nodes in six scopes, count scopes kept separate.</td></tr>
+    </tbody>
+  </table>
+  <p class="figure-note">All eighteen were read live from Notion on November 20, 2026, and matched against the library audit of November 19 (1,104 records). None was unreadable. Where a page and the library disagreed, the live page was used.</p>
+
+  <h2><span class="num">14</span>What is not in this plan</h2>
+  <p>The T02 and H01 gates are September 6 era. Their current status on the new substrate is UNVERIFIED. This plan does not claim them closed. The HelmAI live status is June 2026. Its current state is UNVERIFIED, and gate G1 is open. The 24-node manifest counts Mac-local daemons. Phase 1 rebuilds the probe for the new substrate; the old port list is lineage, not a target. The Commercial Readiness prices are September 5 and superseded, see gate G3. The estate fire sale and the kernel fork are not decided here. Phase 6 builds the restoration. It does not decide the sale. The chain and wallet pick that gates the on-chain anchor is not decided here. The knock-out list of 41 items, delivered November 19, still holds the founder decisions this plan depends on, including the Vercel and Supabase account creation that unblock Phases 1, 5, and 6.</p>
+  <p>The next step after this plan is Phase 1. It starts the day the Vercel account and the Supabase project exist, because the probe needs a substrate to observe. Until then, Phase 0 is the proof that the loop works, and the vault is the memory it reads from.</p>
+
+  <div class="honesty"><strong>Reading this page.</strong> This is a build plan dated November 20, 2026. Phases change state when evidence changes. When Phase 1 proves its probe, the badge changes. When a gate is answered, the gate changes. Until then, the states above are the states.</div>
+
+  <footer class="footer">
+    <div>Live proof:
+      <a href="https://neuruhai.github.io/neuruh-demos/ontology-runtime/">Ontology Runtime</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/unified-chain/">Unified Chain v2</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/moat-map/">Moat Map</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/land-report-store/">Land Report Store</a>
+      <a href="https://neuruhai.github.io/neuruh-demos/master-map/">Master Map</a>
+      <a href="https://neuruh-hub.pages.dev/">Neuruh Hub</a>
+    </div>
+    <div style="margin-top: 8px;">Neuruh. AI That Executes. Plan, not a promise. MRR $0 as of November 20, 2026.</div>
+  </footer>
+
+</div>
+</body>
+</html>
