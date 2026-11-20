@@ -55,30 +55,30 @@
 <div class="page">
 
 <header class="doc-control">
-  <div class="kicker">Neuruh &middot; Working Runtime</div>
+  <div class="kicker">Neuruh &middot; Production Runtime, Single Node</div>
   <h1>Sovereign Compounding Runtime</h1>
-  <p class="sub">The inbox-to-capsule daemon the paste sketched, built for real. Raw dumps go in, capsules come out: atomized, linked, cascade-propagated, invariant-gated, and receipted in a hash-chained SQLite ledger. The paste claimed all of it and proved none of it. This runtime proves it.</p>
+  <p class="sub">The inbox-to-capsule daemon the paste sketched, finished to production as a single-node system. Raw dumps go in, capsules come out: atomized, linked, cascade-propagated, invariant-gated, receipted in a hash-chained SQLite ledger, published to a durable NATS JetStream stream, decided through signed founder tokens, and verified by webhook and database runners. The paste claimed all of it and proved none of it. This runtime proves it.</p>
   <div class="meta-grid">
     <div><div class="label">Built</div>November 20, 2026</div>
     <div><div class="label">Source demo</div><a href="https://ontology-live-demo.pages.dev/">ontology-live-demo.pages.dev</a></div>
     <div><div class="label">Runtime it extends</div><a href="https://neuruhai.github.io/neuruh-demos/ontology-runtime/">Ontology Runtime</a></div>
-    <div><div class="label">Status</div>Working runtime, single node</div>
+    <div><div class="label">Status</div>Production, single node</div>
   </div>
 </header>
 
-<div class="proof"><strong>Runtime proof.</strong> 58 pytest tests passed. One real end-to-end execution ran on 2026-11-20T10:22:44.227823+00:00: 8 real library notes ingested from the inbox into capsules, 20 links formed, 28 cascade touches reaching hop 3, one founder gate opened on an outcome claim and approved, 39 receipts, hash chain valid after a store restart with 9 capsules read back. The receipt below carries real IDs and real timestamps.</div>
+<div class="proof"><strong>Runtime proof.</strong> 117 pytest tests passed. One real production end-to-end execution ran on 2026-11-20T10:50:47.540381+00:00: 8 real library notes ingested through the FastAPI server with an operator token, 20 links formed, 28 cascade touches reaching hop 3, one founder gate opened on an outcome claim with exactly one notification dispatched, the server restarted with the gate open and a signed founder token approval resumed the workflow, NATS restarted with all 3 pre-restart markers still readable, a locally signed Stripe test event promoted a capsule to verified, a database row check promoted a second capsule, 61 receipts, hash chain valid after a store restart with 9 capsules read back. The receipt below carries real IDs and real timestamps.</div>
 
-<div class="honesty"><strong>What this is not.</strong> This is a working single-node runtime, not production. The six infrastructure layers from the paste are not all built: the event store is one SQLite file, there is no MCP or API adapter, no IAM or RBAC, no notification dispatch for held gates, and no real-time middleware across writers. The founder gate is approved with a name string. Do not call this production ready.</div>
+<div class="honesty"><strong>What this is not.</strong> This is a production single-node runtime, not a distributed system. Kafka and Temporal are not runnable here, so NATS JetStream and the durable SQLite workflow runner are the honest single-node equivalents. Resend email is wired but unconfigured until Jeramie supplies the key. A shell user with file access can still write the database; the auditor detects it, it does not prevent it. No hosted deployment ships from here; his Oracle VM or Mac is the target.</div>
 
 <h2><span class="num">01</span>What the paste claimed vs what its script did</h2>
 <p>The pasted write-up was read as raw material, not as a spec. Its claims about the demo check out against the live page: the demo is labeled architecture and specification, not runtime proof, and the thirteen invariants, seven questions, and seven acceptance tests are exactly as the paste lists them. Its claims about its own script do not check out. Every row below was verified by reading the pasted code.</p>
 <table><thead><tr><th>Claimed</th><th>What the code actually did</th><th>What this build does</th></tr></thead><tbody>
-<tr><td>13 invariants enforced</td><td>Only INV-01 and INV-02 are evaluated. The other 11 are names in a dict, never checked.</td><td>All 13 map to an enforceable check in sovereign_runtime/invariants.py. 58 tests cover halts, gates, and passes.</td></tr>
-<tr><td>Signal score computed</td><td>signal_score is hardcoded 90.0 on every capsule. It is computed from nothing.</td><td>score = 100 * (0.6 * novelty + 0.4 * link density), where novelty is 1 minus the max Jaccard similarity to any existing capsule and link density is min(1, links / 5). The first capsule scores 60.0; the most connected capsule in the end-to-end run scores 85.14.</td></tr>
-<tr><td>0.6 decaying cascade</td><td>Claimed in prose, absent from the code. Links are flat (Jaccard >= 0.15), no propagation, no decay.</td><td>Real cascade in sovereign_runtime/engine.py: hop 1 keeps the Jaccard strength, hop 2 multiplies by 0.6, hop 3 by 0.36. Stops at depth 3 and below strength 0.05. The end-to-end run shows 28 touches reaching hop 3.</td></tr>
-<tr><td>Hash-chained receipts</td><td>Real, but the ledger is a JSONL file read in full on every receipt, and receipts are written with no test coverage.</td><td>Same hash scheme (canonical JSON, SHA-256, prev hash carried), now in SQLite with chain verification, 58 tests, and a restart proof.</td></tr>
-<tr><td>No tests</td><td>No tests at all. Nothing proves any of it runs.</td><td>58 pytest tests, all passing, re-run at page build time. The page refuses to build if a test fails.</td></tr>
-<tr><td>Runs on your Mac</td><td>Mac-only paths (~/neuruh-workspace) baked into the script, no configuration.</td><td>Workspace path is a constructor argument or SOVEREIGN_WORKSPACE. The VM proof run used a project-local workspace; the Mac run-book uses ~/neuruh-workspace.</td></tr>
+<tr><td>13 invariants enforced</td><td>Only INV-01 and INV-02 are evaluated. The other 11 are names in a dict, never checked.</td><td>All 13 map to an enforceable check in sovereign_runtime/invariants.py. 115 tests cover halts, gates, and passes.</td></tr>
+<tr><td>Signal score computed</td><td>signal_score is hardcoded 90.0 on every capsule. It is computed from nothing.</td><td>score = 100 * (0.6 * novelty + 0.4 * link density), where novelty is 1 minus the max Jaccard similarity to any existing capsule and link density is min(1, links / 5). The first capsule in the v2 run scores 60.0; the highest-scoring capsule scores 81.69.</td></tr>
+<tr><td>0.6 decaying cascade</td><td>Claimed in prose, absent from the code. Links are flat (Jaccard >= 0.15), no propagation, no decay.</td><td>Real cascade in sovereign_runtime/engine.py: hop 1 keeps the Jaccard strength, hop 2 multiplies by 0.6, hop 3 by 0.36. Stops at depth 3 and below strength 0.05. The v2 run shows 28 touches reaching hop 3.</td></tr>
+<tr><td>Hash-chained receipts</td><td>Real, but the ledger is a JSONL file read in full on every receipt, and receipts are written with no test coverage.</td><td>Same hash scheme (canonical JSON, SHA-256, prev hash carried), now in SQLite with chain verification, 115 tests, a restart proof, and a background auditor that flags tampering.</td></tr>
+<tr><td>No tests</td><td>No tests at all. Nothing proves any of it runs.</td><td>115 pytest tests, all passing, re-run at page build time. The page refuses to build if a test fails.</td></tr>
+<tr><td>Runs on your Mac</td><td>Mac-only paths (~/neuruh-workspace) baked into the script, no configuration.</td><td>Workspace path is a constructor argument or SOVEREIGN_WORKSPACE. The VM proof run used a project-local workspace; the Mac run-book uses ~/neuruh-workspace, with a launchd plist for start-on-login.</td></tr>
 </tbody></table>
 
 <h2><span class="num">02</span>What was built</h2>
@@ -86,14 +86,23 @@
   <li><code>sovereign_runtime/codex.py</code>: the 13 invariants, 5 state levels, lifecycle order, authority allowlist, resource caps, link threshold 0.15, cascade decay 0.6, depth 3, floor 0.05, signal score weights.</li>
   <li><code>sovereign_runtime/models.py</code>: Pydantic models for Capsule, Link, CascadeTouch, Receipt, FounderGate, and InvariantVerdict. Capsule state must be one of the five levels; lifecycle must be DRAFT, ACTIVE, SUPERSEDED, or RETIRED.</li>
   <li><code>sovereign_runtime/invariants.py</code>: all 13 invariants mapped to enforceable checks. Halts stop ingestion with a rejection receipt. Gates open a founder gate and hold the capsule. Never a fake pass.</li>
-  <li><code>sovereign_runtime/store.py</code>: SQLite persistence: capsules, links, an append-only event log, founder gates, meta. Hash-chained receipts using the same canonical JSON scheme as the ontology runtime, so the two ledgers share one receipt format. Chain verification recomputes every hash.</li>
-  <li><code>sovereign_runtime/engine.py</code>: the compounding engine: atomize, invariant gate, computed signal score, Jaccard linking, decay cascade, founder gate decide and ingest-held, archive through an approved gate, rescoring.</li>
+  <li><code>sovereign_runtime/store.py</code>: SQLite persistence: capsules, links, an append-only event log, founder gates, meta, durable workflows, notifications, verifications, and audit flags. Hash-chained receipts using the same canonical JSON scheme as the ontology runtime, so the two ledgers share one receipt format. Chain verification recomputes every hash.</li>
+  <li><code>sovereign_runtime/engine.py</code>: the compounding engine: atomize, invariant gate, computed signal score, Jaccard linking, decay cascade, founder gate decide and ingest-held, archive through an approved gate, rescoring. Gate decisions require a verified founder capability token; the name-string path is removed.</li>
   <li><code>sovereign_runtime/watcher.py</code>: inbox watcher with a configurable workspace path. Ingested files move to archive. Files that open a founder gate move to held. Files that halt move to rejected. A held or rejected file never re-triggers on the next poll.</li>
-  <li><code>sovereign_runtime/cli.py</code>: <code>python -m sovereign_runtime init | ingest | watch | status | gates | verify</code>.</li>
-  <li><code>tests/</code>: 58 tests covering term extraction, Jaccard math, signal score formula, cascade decay to the fourth decimal, all 13 invariants, gate approve and deny, receipt chain validity and tampering, restart persistence, and watcher behavior.</li>
-  <li><code>scripts/run_e2e.py</code>: the end-to-end execution that produced the receipt below, including the restart proof.</li>
+  <li><code>sovereign_runtime/auth.py</code>: HMAC signed capability tokens. Secret from SOVEREIGN_TOKEN_SECRET, never in the repo. Roles founder, operator, reader with scoped permissions. Forged, tampered, and expired tokens are rejected.</li>
+  <li><code>sovereign_runtime/bus.py</code>: NATS JetStream event bus. Stream SOVEREIGN_RECEIPTS, subjects sovereign.receipts.&gt; and sovereign.outcomes.&gt;. The server publishes every new receipt; a durable subscriber reads them back. A high-water mark in meta keeps restarts from republishing the ledger.</li>
+  <li><code>sovereign_runtime/server.py</code>: FastAPI server, the single owner of the store. Endpoints for health, status, ingest, capsules, receipts, gates, gate decisions, workflows, notifications, verifications, Stripe and generic webhooks, database row verification, and the auditor. Every endpoint except health requires a bearer capability token.</li>
+  <li><code>sovereign_runtime/mcp_gateway.py</code>: MCP gateway, JSON-RPC 2.0 over stdio. Tools: ingest, gates_list, gate_decide, status, receipts_list, verify_chain, workflows_list. Gate decisions require a signed founder token.</li>
+  <li><code>sovereign_runtime/workflows.py</code>: durable workflow runner. Long-running work suspends on a founder gate in SQLite and resumes across process restarts. States RUNNING, SUSPENDED, RESUMED, COMPLETED, DENIED.</li>
+  <li><code>sovereign_runtime/notify.py</code>: notification bus. Exactly one dispatch per gate, enforced by a UNIQUE gate_id constraint. File outbox is the proven default; a Resend sender is wired behind RESEND_API_KEY and SOVEREIGN_NOTIFY_EMAIL and refuses to construct until both are set.</li>
+  <li><code>sovereign_runtime/webhooks.py</code>: verification runners. Stripe webhook signature verification (HMAC v1 scheme) promoting the capsule in the event metadata from observed to verified, a generic HMAC webhook, and a database row check runner that promotes a capsule when a real SQLite row exists.</li>
+  <li><code>sovereign_runtime/audit.py</code>: background auditor. Re-validates the hash chain and flags tampered receipts, orphan capsules, orphan links, and deleted receipts. Checkpoints after each clean sweep so the next sweep can detect deletion.</li>
+  <li><code>sovereign_runtime/backup.py</code>: online SQLite backup, rotation (keep 7 by default), SHA-256 manifest, chain verification on the backup copy.</li>
+  <li><code>sovereign_runtime/cli.py</code>: <code>python -m sovereign_runtime init | ingest | watch | status | gates | verify | token | serve | mcp | audit | backup</code>. Gate decisions take <code>--token</code>; the old <code>--by</code> name flag is gone.</li>
+  <li><code>tests/</code>: 117 tests covering term extraction, Jaccard math, signal score formula, cascade decay to the fourth decimal, all 13 invariants, gate approve and deny, receipt chain validity and tampering, restart persistence, watcher behavior, token forgery, tampering and expiry, NATS publish/subscribe and restart persistence, server auth and gate flows, workflow suspend and resume across restarts, exactly-once notification dispatch, Stripe signature verification and promotion, database row checks, auditor tamper detection, backup rotation and verification, and the MCP gateway over stdio.</li>
+  <li><code>scripts/run_e2e_v2.py</code>: the production end-to-end execution that produced the receipt below, including the NATS restart proof and the server restart/resume proof.</li>
+  <li><code>deploy/</code>: Dockerfile, docker-compose.yml (server plus NATS), systemd units for Linux, and a Mac launchd plist.</li>
 </ul>
-<p>Run it locally: <code>python -m venv .venv &amp;&amp; .venv/bin/pip install -r requirements.txt &amp;&amp; .venv/bin/python -m pytest tests/ -q</code>, then <code>.venv/bin/python scripts/run_e2e.py</code>. Watch an inbox with <code>.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace watch</code>.</p>
 
 <h2><span class="num">03</span>The thirteen invariants, as enforced</h2>
 <p>Every invariant maps to a check the engine runs on every ingestion, in order. HALT stops ingestion and writes a rejection receipt. GATE opens a founder gate and holds the capsule until a founder decides.</p>
@@ -119,86 +128,172 @@
           (1.0 when the corpus is empty)
 link_density = min(1, number of links / 5)
 signal_score = round(100 * (0.6 * novelty + 0.4 * link_density), 2)</pre>
-<p>Worked numbers from the end-to-end run: the first capsule ingested scores 60.0 (novelty 1.0, no links yet). The most connected capsule, validation-loop with 6 links, scores 85.14. A capsule identical to one already stored scores 0 on novelty and halts on INV-01 before a score is ever written. Scores are stamped with the corpus version they were computed against; INV-06 halts a stale score until it is rescored.</p>
+<p>Worked numbers from the v2 run: the first capsule ingested, cap-repurpose-engine, scores 60.0 (novelty 1.0, no links yet). The most connected capsule, cap-card-id-system with 5 links, scores 72.44. A capsule identical to one already stored scores 0 on novelty and halts on INV-01 before a score is ever written. Scores are stamped with the corpus version they were computed against; INV-06 halts a stale score until it is rescored.</p>
 
 <h2><span class="num">05</span>The decay cascade, for real</h2>
 <p>When a new capsule links to an existing capsule at hop 1 with strength s, the update propagates to that capsule's neighbors at hop 2 with strength s * 0.6, and to their neighbors at hop 3 with strength s * 0.36. Propagation stops at depth 3 and below strength 0.05. A capsule reachable by several paths keeps the strongest value. The source capsule is never a cascade target. Every touch is recorded on the capsule and in its own receipt.</p>
-<p>End-to-end numbers: 28 cascade touches, max hop 3, total propagated strength 5.6336. The cascade reached hop 3 because the graph has a sparse edge: the advertising index links only to the design index, so updates flow design to advertising to the rest of the graph through the decay.</p>
+<p>End-to-end numbers: 28 cascade touches, max hop 3, total propagated strength 5.8398. The cascade reached hop 3 because the graph has a sparse edge: the advertising index links only to the design index, so updates flow design to advertising to the rest of the graph through the decay.</p>
 
 <h2><span class="num">06</span>The six infrastructure layers, honest state</h2>
 <table><thead><tr><th>Layer</th><th>What exists</th><th>State</th><th>Still owed</th></tr></thead><tbody>
-<tr><td>1. Persistent state store and event-sourcing ledger</td><td>SQLite append-only event log with hash-chained receipts, capsule snapshots, founder gates. Verified by the end-to-end run and the restart proof.</td><td><strong>BUILT, single node</strong></td><td>Kafka, NATS, or a Postgres event store for multi-agent streaming: DESIGNED, not built.</td></tr>
-<tr><td>2. Runtime execution engine and tool adapters</td><td>Inbox watcher plus compounding engine: atomize, link, cascade, receipt. File ingestion works end to end.</td><td><strong>BUILT for file ingestion</strong></td><td>MCP gateways, API adapters, Temporal or Inngest orchestration: DESIGNED, not built.</td></tr>
-<tr><td>3. Cryptographic identity, AuthZ, and sandboxing</td><td>Authority is bounded by an allowlist (INV-04) and every write is receipted. That is a check, not an identity system.</td><td><strong>PARTIAL, check only</strong></td><td>IAM, RBAC, signed capability tokens, execution sandboxes: DESIGNED, not built. The founder gate is approved with a name string, same limit as the ontology runtime.</td></tr>
-<tr><td>4. Automated verification and telemetry pipelines</td><td>58 pytest tests run at build time, and the invariant gate verifies every ingestion. The page refuses to build if tests fail.</td><td><strong>BUILT for code and ingestion</strong></td><td>Webhook listeners (Stripe confirmations, database row checks), LLM-as-a-judge evaluators: DESIGNED, not built.</td></tr>
-<tr><td>5. Asynchronous interrupt and notification bus</td><td>A founder gate suspends the capsule in SQLite with status PENDING. The capsule is held, not ingested, until decided.</td><td><strong>BUILT, suspend only</strong></td><td>Dispatching the hold (Slack, SMS, email, approval UI) and resuming on reply: DESIGNED, not built. A held gate waits silently.</td></tr>
-<tr><td>6. Live invariant enforcement middleware</td><td>All thirteen invariants are evaluated on every ingestion, and link writes require an engine receipt. The engine path is fully gated.</td><td><strong>BUILT on the engine path</strong></td><td>Real-time middleware across every writer, automatic rollback of side effects, circuit breakers: DESIGNED. A direct SQLite write bypasses the gate.</td></tr>
+<tr><td>1. Persistent state store and event-sourcing ledger</td><td>SQLite append-only event log with hash-chained receipts, capsule snapshots, founder gates, workflows, notifications, verifications, and audit flags. Verified by the v2 end-to-end run and the restart proof.</td><td><strong>BUILT, single node</strong></td><td>A Postgres event store for multi-agent streaming: DESIGNED, not built.</td></tr>
+<tr><td>2. Runtime execution engine and tool adapters</td><td>Inbox watcher plus compounding engine, a FastAPI server that owns the store, an MCP gateway over stdio, and a durable workflow runner that suspends on a founder gate and resumes across restarts.</td><td><strong>BUILT</strong></td><td>Temporal orchestration: DESIGNED, not built. Temporal itself is not runnable here; the durable runner is the single-node equivalent.</td></tr>
+<tr><td>3. Cryptographic identity, AuthZ, and sandboxing</td><td>HMAC signed capability tokens (founder, operator, reader) with role and scope checks on every endpoint. The name-string approval path is removed. Tests prove forged, tampered, and expired tokens are rejected.</td><td><strong>BUILT</strong></td><td>Execution sandboxes: DESIGNED, not built. The secret lives in the environment, never in the repo.</td></tr>
+<tr><td>4. Automated verification and telemetry pipelines</td><td>115 pytest tests run at build time, the invariant gate verifies every ingestion, a Stripe webhook runner and a database row check runner promote observed to verified, and the auditor sweep re-validates the chain.</td><td><strong>BUILT</strong></td><td>LLM-as-a-judge evaluators: DESIGNED, not built.</td></tr>
+<tr><td>5. Asynchronous interrupt and notification bus</td><td>A founder gate suspends the workflow in SQLite, exactly one notification is dispatched to the file outbox carrying gate id, capsule id, invariant, and approve/deny commands, and a signed approval through the API resumes the workflow.</td><td><strong>BUILT, file outbox</strong></td><td>Resend email dispatch: WIRED, unconfigured until Jeramie supplies the key. No real email is sent in proof runs.</td></tr>
+<tr><td>6. Live invariant enforcement middleware</td><td>All thirteen invariants are evaluated on every ingestion, all writes go through the API server, and the background auditor flags direct SQLite writes: tampered receipts, orphan capsules, orphan links, deleted receipts.</td><td><strong>BUILT on the server path, plus detection</strong></td><td>Prevention on a single machine is impossible: a shell user with file access can still write the database. Mitigation is permissions plus detection, not prevention.</td></tr>
 </tbody></table>
 
-<h2><span class="num">07</span>The end-to-end receipt</h2>
-<p>Real execution, 2026-11-20T10:22:44.227823+00:00 to 2026-11-20T10:22:55.178831+00:00. Eight real library notes from the Retardio Library, ingested through the watcher from the inbox. The ninth capsule is the gate demonstration: a synthetic note claiming the outcome of the run itself, held on INV-11, approved, then ingested. Database file <code>/home/hatch/workspace/sovereign-runtime/data/e2e-workspace/store/capsules.db</code>, reopened after the run as a restart proof.</p>
-<table><thead><tr><th>Capsule</th><th>Source</th><th>Terms</th><th>Links</th><th>Signal score</th></tr></thead><tbody>
-<tr><td><span class="mono">cap-01-design-index</span></td><td>inbox/01-design-index.md</td><td>56</td><td>0</td><td>60.0</td></tr>
-<tr><td><span class="mono">cap-03-advertising-index</span></td><td>inbox/03-advertising-index.md</td><td>49</td><td>1</td><td>51.17</td></tr>
-<tr><td><span class="mono">cap-card-id-system</span></td><td>inbox/card-id-system.md</td><td>96</td><td>1</td><td>58.91</td></tr>
-<tr><td><span class="mono">cap-davinci-generator</span></td><td>inbox/davinci-generator.md</td><td>94</td><td>2</td><td>55.72</td></tr>
-<tr><td><span class="mono">cap-e2e-gate-demo</span></td><td>e2e/gate-demo.md</td><td>17</td><td>0</td><td>58.31</td></tr>
-<tr><td><span class="mono">cap-genealogy-research-agent</span></td><td>inbox/genealogy-research-agent.md</td><td>101</td><td>2</td><td>48.44</td></tr>
-<tr><td><span class="mono">cap-prompt-builder-copy-save</span></td><td>inbox/prompt-builder-copy-save.md</td><td>56</td><td>4</td><td>78.98</td></tr>
-<tr><td><span class="mono">cap-repurpose-engine</span></td><td>inbox/repurpose-engine.md</td><td>74</td><td>4</td><td>76.27</td></tr>
-<tr><td><span class="mono">cap-validation-loop</span></td><td>inbox/validation-loop.md</td><td>80</td><td>6</td><td>85.14</td></tr>
+<h2><span class="num">07</span>The production proofs</h2>
+<ul>
+  <li><strong>Event bus.</strong> NATS JetStream v2.15.3, stream SOVEREIGN_RECEIPTS. The server published every receipt; a durable subscriber read 52 of them back. Then 3 marker messages were published, NATS was stopped and restarted, and the subscriber read all 3 markers after the restart. Kafka is not runnable on this VM (JVM plus KRaft, far more memory than this cell has); the page states the choice plainly.</li>
+  <li><strong>Server restart and resume.</strong> The gate opened through the API, the workflow suspended in SQLite, and the server was killed and restarted with the gate open. The gate was still PENDING and the workflow still SUSPENDED after the restart. An operator token approval was refused with 403. A founder token approval resumed the workflow and the held capsule was ingested.</li>
+  <li><strong>Notifications.</strong> Exactly one dispatch for gate gate-606328b2: one file in the outbox, one notification record, one GATE_NOTIFICATION_SENT receipt. The notification carries the gate id, capsule id, invariant, and the approve/deny curl commands with a token placeholder, never a real token.</li>
+  <li><strong>Verification runners.</strong> A locally signed Stripe test event (evt_e2e_v2_1) promoted cap-validation-loop from observed to verified. A bad signature was rejected with 401 and no state change. A database row check promoted cap-repurpose-engine to verified. The real Stripe webhook secret is Jeramie's to supply.</li>
+  <li><strong>Tamper detection.</strong> On a copy of the store, a direct receipt edit and a direct capsule insert were both flagged by the auditor (TAMPER_CHAIN and ORPHAN_CAPSULE) and the copy chain verified as invalid. The live store audits clean. Plain statement: on a single machine a shell user with file access can still write the database. The mitigation is permissions plus detection, not prevention.</li>
+  <li><strong>Backup.</strong> An online backup was taken during the run and its hash chain verified. SHA-256 b17f1b4b2a503d63...</li>
+  <li><strong>MCP gateway.</strong> JSON-RPC 2.0 over stdio answered status (9 capsules), verify_chain (valid), and gates_list (1 gate, APPROVED).</li>
+</ul>
+
+<h2><span class="num">08</span>The end-to-end receipt v2</h2>
+<p>Real execution, 2026-11-20T10:50:47.540381+00:00 to 2026-11-20T10:51:12.159366+00:00. Eight real library notes from the Retardio Library, ingested through the FastAPI server with an operator capability token. The ninth capsule is the gate demonstration: a synthetic note claiming the outcome of the run itself, held on INV-11, approved after a server restart, then ingested. Database file <code>/home/hatch/workspace/sovereign-runtime/data/e2e-v2-workspace/store/capsules.db</code>, reopened after the run as a restart proof.</p>
+<table><thead><tr><th>Capsule</th><th>Source</th><th>Terms</th><th>Links</th><th>Signal score</th><th>State</th></tr></thead><tbody>
+<tr><td><span class="mono">cap-01-design-index</span></td><td>inbox/01-design-index.md</td><td>56</td><td>4</td><td>81.69</td><td>observed</td></tr>
+<tr><td><span class="mono">cap-03-advertising-index</span></td><td>inbox/03-advertising-index.md</td><td>49</td><td>1</td><td>51.17</td><td>observed</td></tr>
+<tr><td><span class="mono">cap-card-id-system</span></td><td>inbox/card-id-system.md</td><td>96</td><td>5</td><td>72.44</td><td>observed</td></tr>
+<tr><td><span class="mono">cap-davinci-generator</span></td><td>inbox/davinci-generator.md</td><td>94</td><td>2</td><td>64.98</td><td>observed</td></tr>
+<tr><td><span class="mono">cap-e2e-v2-gate-demo</span></td><td>e2e/gate-demo.md</td><td>18</td><td>0</td><td>58.33</td><td>observed</td></tr>
+<tr><td><span class="mono">cap-genealogy-research-agent</span></td><td>inbox/genealogy-research-agent.md</td><td>101</td><td>4</td><td>71.86</td><td>observed</td></tr>
+<tr><td><span class="mono">cap-prompt-builder-copy-save</span></td><td>inbox/prompt-builder-copy-save.md</td><td>56</td><td>3</td><td>68.27</td><td>observed</td></tr>
+<tr><td><span class="mono">cap-repurpose-engine</span></td><td>inbox/repurpose-engine.md</td><td>74</td><td>0</td><td>60.0</td><td>verified</td></tr>
+<tr><td><span class="mono">cap-validation-loop</span></td><td>inbox/validation-loop.md</td><td>80</td><td>1</td><td>56.92</td><td>verified</td></tr>
 </tbody></table>
 <pre>{
-  "run": "sovereign-runtime end-to-end",
-  "started_at": "2026-11-20T10:22:44.227823+00:00",
-  "finished_at": "2026-11-20T10:22:55.178831+00:00",
-  "workspace": "/home/hatch/workspace/sovereign-runtime/data/e2e-workspace",
-  "db_path": "/home/hatch/workspace/sovereign-runtime/data/e2e-workspace/store/capsules.db",
-  "capsules_ingested": 8,
+  "run": "sovereign-runtime end-to-end v2 (production)",
+  "started_at": "2026-11-20T10:50:47.540381+00:00",
+  "finished_at": "2026-11-20T10:51:12.159366+00:00",
+  "workspace": "/home/hatch/workspace/sovereign-runtime/data/e2e-v2-workspace",
+  "db_path": "/home/hatch/workspace/sovereign-runtime/data/e2e-v2-workspace/store/capsules.db",
+  "nats": {
+    "binary": "nats-server v2.15.3",
+    "url": "nats://127.0.0.1:4422",
+    "stream": "SOVEREIGN_RECEIPTS",
+    "stream_messages_at_read": 52,
+    "receipts_read_by_subscriber": 52,
+    "restart_markers_published": 3,
+    "restart_markers_read_after_restart": 3
+  },
+  "server": {
+    "url": "http://127.0.0.1:8765",
+    "restart_with_gate_open": true,
+    "gate_pending_after_restart": true,
+    "workflow_suspended_after_restart": true
+  },
+  "capsules_ingested_via_api": 8,
   "links": 20,
   "cascade_touches": 28,
   "cascade_max_hop": 3,
-  "cascade_total_strength": 5.6336,
+  "cascade_total_strength": 5.8398,
   "gate": {
-    "gate_id": "gate-193a107c",
+    "gate_id": "gate-606328b2",
+    "workflow_id": "wf-e807469a",
     "invariant_id": "INV-11",
     "decided_by": "Jeramie Hicks",
     "status": "APPROVED",
-    "held_capsule_id": "cap-e2e-gate-demo"
+    "held_capsule_id": "cap-e2e-v2-gate-demo",
+    "approved_after_server_restart": true,
+    "operator_token_approve_rejected": true
   },
-  "total_receipts": 39,
-  "receipts_after_restart": 39,
+  "notifications": {
+    "dispatched": 1,
+    "outbox_files": 1,
+    "gate_id": "gate-606328b2",
+    "channel": "file"
+  },
+  "webhook": {
+    "stripe_test_event": "evt_e2e_v2_1",
+    "promoted_capsule_id": "cap-validation-loop",
+    "new_state": "verified",
+    "bad_signature_rejected": true
+  },
+  "db_row_check": {
+    "promoted_capsule_id": "cap-repurpose-engine",
+    "new_state": "verified"
+  },
+  "verifications": 2,
+  "tamper_proof_on_copy": {
+    "tamper_chain_flagged": true,
+    "orphan_capsule_flagged": true,
+    "chain_valid_on_copy": false
+  },
+  "live_audit": {
+    "chain_valid": true,
+    "flags": []
+  },
+  "backup": {
+    "path": "/home/hatch/workspace/sovereign-runtime/data/e2e-v2-workspace/backups/capsules-20261120T105111_856989+0000.db",
+    "sha256": "b17f1b4b2a503d63f75076762ebfbb7f20f2888f54dc351b7b9a9abae5aa88a3",
+    "chain_valid": true
+  },
+  "mcp": {
+    "transport": "JSON-RPC 2.0 over stdio",
+    "tools_called": [
+      "status",
+      "verify_chain",
+      "gates_list"
+    ],
+    "capsules_reported": 9,
+    "chain_valid": true,
+    "gates_listed": 1
+  },
+  "total_receipts": 61,
+  "receipts_after_restart": 61,
   "chain_valid_after_restart": true,
-  "chain_checked_after_restart": 39,
+  "chain_checked_after_restart": 61,
   "capsules_after_restart": 9,
-  "last_receipt_id": "rcpt_0039",
-  "last_receipt_hash": "733c18c05edd98aae1330d3befb76068bb309e5931bad090890096df50a8d713",
-  "note": "The founder gate approval in this run was executed by the run script on this VM, the same convention as the ontology runtime end-to-end receipt."
+  "note": "Gate approval used a signed founder capability token minted by this run script with a run-local test secret. No real email was sent. The Stripe event was signed locally with a test webhook secret."
 }</pre>
-<p>Gate note: the founder gate approval in this run was executed by the run script on this VM, the same convention as the ontology runtime end-to-end receipt.</p>
+<p>Gate note: the founder gate approval in this run used a signed founder capability token minted by the run script with a run-local test secret, not Jeramie's production secret. No real email was sent. The Stripe event was signed locally with a test webhook secret.</p>
 
-<h2><span class="num">08</span>Mac run-book</h2>
+<h2><span class="num">09</span>Mac run-book</h2>
 <p>On the M1 Mac, the workspace is <code>~/neuruh-workspace</code>. Exact commands:</p>
 <pre>cd ~/workspace/sovereign-runtime
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace init
-.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace ingest
-.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace watch
-.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace status
-.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace verify</pre>
-<p>Drop any raw text file into <code>~/neuruh-workspace/inbox/</code>. Processed files move to <code>~/neuruh-workspace/store/archive/</code>. Files that open a founder gate move to <code>~/neuruh-workspace/store/held/</code>. Files that halt move to <code>~/neuruh-workspace/store/rejected/</code>. Receipts live in <code>~/neuruh-workspace/store/capsules.db</code>.</p>
-<p>File convention: a line starting with <code>OUTCOME:</code> means the dump claims an outcome. Without an observed receipt in evidence, INV-11 holds it for a founder decision. List pending gates with <code>gates</code>, approve one with <code>gates --decide gate-XXXX --approve --by "Jeramie Hicks"</code>, then re-ingest the held file.</p>
+.venv/bin/python -m pytest tests/ -q
+.venv/bin/python scripts/run_e2e_v2.py</pre>
+<p>NATS, one time (downloads the darwin arm64 binary from GitHub):</p>
+<pre>sh scripts/install_nats.sh
+mkdir -p ~/neuruh-workspace/nats
+./bin/nats-server -js -sd ~/neuruh-workspace/nats -p 4222 -m 8222</pre>
+<p>Token secret, one time. Keep it out of the repo, out of chat, out of receipts:</p>
+<pre>export SOVEREIGN_TOKEN_SECRET="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"</pre>
+<p>Save that value in <code>~/.sovereign-runtime-env</code>. Mint tokens:</p>
+<pre>.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace token --role founder --subject "Jeramie Hicks"
+.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace token --role operator --subject "operator"</pre>
+<p>Start the server:</p>
+<pre>SOVEREIGN_WORKSPACE=~/neuruh-workspace SOVEREIGN_TOKEN_SECRET="$SOVEREIGN_TOKEN_SECRET" SOVEREIGN_NATS_URL=nats://127.0.0.1:4222 .venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace serve --host 127.0.0.1 --port 8765</pre>
+<p>Or install the launchd plist for start-on-login (replace USERNAME in deploy/com.neuruh.sovereign-runtime.plist first):</p>
+<pre>cp deploy/com.neuruh.sovereign-runtime.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.neuruh.sovereign-runtime.plist</pre>
+<p>Approve a gate through the API (same token, resume on reply):</p>
+<pre>export FOUNDER_TOKEN="$(.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace token --role founder --subject "Jeramie Hicks")"
+curl -s -X POST http://127.0.0.1:8765/gates/gate-XXXX/decide -H "Authorization: Bearer $FOUNDER_TOKEN" -H "Content-Type: application/json" -d '{"approve": true}'</pre>
+<p>Health, audit, and backup:</p>
+<pre>curl -s http://127.0.0.1:8765/health
+.venv/bin/python -m sovereign_runtime --workspace ~/neuruh-workspace audit
+.venv/bin/python scripts/backup.py --workspace ~/neuruh-workspace --keep 7</pre>
+<p>Drop any raw text file into <code>~/neuruh-workspace/inbox/</code>. Processed files move to <code>~/neuruh-workspace/store/archive/</code>. Files that open a founder gate move to <code>~/neuruh-workspace/store/held/</code>. Files that halt move to <code>~/neuruh-workspace/store/rejected/</code>. Gate notifications land in <code>~/neuruh-workspace/store/outbox/</code>. Receipts live in <code>~/neuruh-workspace/store/capsules.db</code>.</p>
+<p>File convention: a line starting with <code>OUTCOME:</code> means the dump claims an outcome. Without an observed receipt in evidence, INV-11 holds it for a founder decision. List pending gates with <code>gates</code>, approve one with <code>gates --decide gate-XXXX --approve --token "$FOUNDER_TOKEN"</code>, then re-ingest the held file.</p>
 
-<h2><span class="num">09</span>What is still missing for production</h2>
+<h2><span class="num">10</span>What is still missing</h2>
 <ul>
-  <li>Event bus: the receipt log is one SQLite file. A live multi-agent deployment needs a durable broker (Kafka, NATS) so external agents stream outcomes back automatically.</li>
-  <li>Orchestration and adapters: no MCP gateway, no API adapters, no Temporal or equivalent. Long-running work suspends on a founder gate in SQLite, but there is no durable workflow engine resuming it across process restarts.</li>
-  <li>Identity and authorization: no IAM, RBAC, or signed capability tokens. The founder gate is approved with a name string. A rogue caller with shell access can approve any gate.</li>
-  <li>Notification bus: a held founder gate waits silently. There is no Slack, SMS, email, or approval UI dispatching it and resuming on reply.</li>
-  <li>Verification runners: tests and invariant checks run at build and ingestion time. There are no webhook listeners promoting observed to verified from the outside world (Stripe confirmations, database row checks).</li>
-  <li>Real-time middleware: the engine path is fully gated, but a direct SQLite write bypasses the gate. True middleware would intercept every state transition, not just engine ingestion.</li>
-  <li>Deployment: no hosted deployment, no backups, no monitoring. One file on one machine.</li>
+  <li>Distribution: one node, one SQLite file. No Kafka, no Postgres event store, no multi-agent streaming. NATS JetStream is the durable broker for this node.</li>
+  <li>Orchestration: no Temporal. The durable SQLite workflow runner resumes across restarts on one machine; it is not a distributed scheduler.</li>
+  <li>Notifications: Resend email is wired but unconfigured until Jeramie supplies RESEND_API_KEY and SOVEREIGN_NOTIFY_EMAIL. The file outbox is the proven path today.</li>
+  <li>Verification: the Stripe runner is proven with a locally signed test event. The real webhook secret is his to supply, and Stripe events must carry metadata.capsule_id.</li>
+  <li>Middleware: the auditor detects out-of-band writes; it cannot prevent a shell user with file access from making them. Permissions plus detection, not prevention.</li>
+  <li>Deployment: no hosted deployment ships from here. Docker, systemd, and launchd packages are in deploy/; the target is his Oracle VM or his Mac.</li>
 </ul>
 
 <footer class="footer">
@@ -207,7 +302,7 @@ python3 -m venv .venv
     <a href="https://neuruhai.github.io/neuruh-demos/ontology-runtime/">Ontology Runtime</a>
     <a href="https://neuruh-hub.pages.dev/">Neuruh Hub</a>
   </div>
-  <div style="margin-top: 8px;">Neuruh. AI That Executes. Runtime proof, not a promise. Test line at build time: 58 passed in 0.34s.</div>
+  <div style="margin-top: 8px;">Neuruh. AI That Executes. Runtime proof, not a promise. Test line at build time: 117 passed, 1 warning in 3.51s.</div>
 </footer>
 
 </div>
