@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Beat-Reactive Visualizer | Neuruh</title>
+<style>
+  :root { --ink:#111418; --panel:#1a1e24; --panel2:#22272f; --paper:#f4efe6; --bone:#e8e2d4; --muted:#9a9a90; --brass:#a9803e; --line:#33383f; --red:#c25b4a; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ink); color:var(--paper); font-family:Inter, system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.5; }
+  .wrap { max-width:1020px; margin:0 auto; padding:28px 20px 60px; }
+  .kicker { color:var(--brass); font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; }
+  h1 { font-size:34px; margin:8px 0 6px; }
+  .sub { color:var(--muted); max-width:760px; margin:0 0 24px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 4px; font-size:19px; }
+  .card .note { color:var(--muted); font-size:13px; margin:0 0 14px; }
+  #stage { width:100%; height:380px; display:block; background:#0a0c0f; border:1px solid var(--line); border-radius:12px; }
+  .statusbar { display:flex; flex-wrap:wrap; gap:8px 22px; align-items:center; margin-top:12px; font-size:13px; }
+  .statusbar .src { font-family:"JetBrains Mono", ui-monospace, monospace; color:var(--brass); }
+  .meter { flex:1; min-width:160px; height:10px; background:var(--panel2); border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .meter i { display:block; height:100%; width:0%; background:var(--brass); }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:16px; }
+  button { background:var(--brass); color:#111418; border:0; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--bone); border:1px solid var(--line); }
+  button:disabled { opacity:.45; cursor:default; }
+  .filebtn { display:inline-block; background:transparent; color:var(--bone); border:1px solid var(--line); border-radius:8px; padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer; }
+  .filebtn:hover { border-color:var(--brass); }
+  input[type=file]{ display:none; }
+  label.lbl { font-size:13px; color:var(--bone); }
+  label.lbl output { color:var(--brass); font-weight:700; font-family:"JetBrains Mono", ui-monospace, monospace; }
+  input[type=range]{ accent-color:var(--brass); vertical-align:middle; }
+  select { background:var(--panel2); color:var(--paper); border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; }
+  #err { display:none; background:#2a1713; border:1px solid var(--red); color:#f0c9c2; border-radius:10px; padding:12px 14px; font-size:14px; margin-top:14px; }
+  #err b { color:#fff; }
+  .hint { font-size:13px; color:var(--muted); margin:12px 0 0; }
+  footer { border-top:1px solid var(--line); margin-top:26px; padding-top:18px; color:var(--muted); font-size:13px; }
+  footer a { color:var(--brass); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Neuruh | Beat-Reactive Visualizer</div>
+  <h1>Beat-Reactive Visualizer</h1>
+  <p class="sub">Live visuals driven by real audio. Use your microphone, upload a track, or play the built-in demo beat. The bars and the pulse ring follow the sound, not a recording. Audio stays in your browser. Nothing is uploaded.</p>
+
+  <div class="card">
+    <h2>Stage</h2>
+    <p class="note">Pick a source below. The canvas reacts to the analyser data in real time.</p>
+    <canvas id="stage" width="980" height="380"></canvas>
+    <div class="statusbar">
+      <span class="src" id="sourceLabel">Source: none</span>
+      <span id="trackLabel"></span>
+      <span id="timeLabel"></span>
+      <div class="meter" aria-label="Level"><i id="meterFill"></i></div>
+      <span id="levelLabel">Level 0%</span>
+    </div>
+    <div class="controls">
+      <button id="micBtn">Use microphone</button>
+      <label class="filebtn" for="fileInput">Upload audio file</label>
+      <input type="file" id="fileInput" accept="audio/*">
+      <button id="demoBtn" class="ghost">Play demo beat</button>
+      <button id="playPauseBtn" class="ghost" disabled>Pause</button>
+      <button id="stopBtn" class="ghost" disabled>Stop</button>
+    </div>
+    <div class="controls">
+      <label class="lbl" for="sens">Sensitivity: <output id="sensOut">1.0x</output></label>
+      <input type="range" id="sens" min="0.3" max="3" step="0.1" value="1">
+      <label class="lbl" for="style">Visuals</label>
+      <select id="style">
+        <option value="both" selected>Bars + pulse ring</option>
+        <option value="bars">Frequency bars</option>
+        <option value="rings">Pulse rings</option>
+      </select>
+    </div>
+    <div id="err" role="alert"></div>
+    <p class="hint">Microphone access asks once in the browser. If you deny it, upload a file instead. The demo beat needs no permission and works anywhere Web Audio runs.</p>
+  </div>
+
+  <footer>
+    <p>This visualizer is a live demo of reactive visuals, the kind of piece a pipeline like this produces on demand. They charge you every time you press generate. We build you the thing that presses generate, and you keep it.</p>
+    <p>Forensic System Audit, $950 scoped. Workflow Replacement Sprint, from $3,500. Data Rescue, from $750 scoped. Free 10-minute qualifier at <a href="https://cal.com/neuruh">cal.com/neuruh</a>.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var canvas = $("stage"), ctx = canvas.getContext("2d");
+  var AC = window.AudioContext || window.webkitAudioContext;
+
+  var audioCtx = null, analyser = null, freqData = null, timeData = null;
+  var mediaStream = null, fileSource = null, demoTimer = null, demoGain = null;
+  var mode = "none", playing = false, paused = false;
+  var fileStartAt = 0, fileOffset = 0, fileDuration = 0, fileBuffer = null;
+  var beatFlash = 0, prevBass = 0, ringPhase = 0;
+
+  function showErr(html) {
+    var e = $("err");
+    e.innerHTML = html;
+    e.style.display = "block";
+  }
+  function hideErr() { $("err").style.display = "none"; }
+
+  function setSource(label) { $("sourceLabel").textContent = "Source: " + label; }
+  function setButtons() {
+    $("playPauseBtn").disabled = (mode === "none");
+    $("stopBtn").disabled = (mode === "none");
+    $("playPauseBtn").textContent = paused ? "Resume" : "Pause";
+  }
+
+  function ensureCtx() {
+    if (!AC) { showErr("<b>Web Audio is not available in this browser.</b> Try a current version of Chrome, Edge, Firefox, or Safari."); return null; }
+    if (!audioCtx) {
+      audioCtx = new AC();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.82;
+      analyser.connect(audioCtx.destination);
+      freqData = new Uint8Array(analyser.frequencyBinCount);
+      timeData = new Uint8Array(analyser.fftSize);
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+
+  function stopAll(silent) {
+    if (demoTimer) { clearInterval(demoTimer); demoTimer = null; }
+    if (fileSource) { try { fileSource.stop(); } catch (e) {} fileSource = null; }
+    if (mediaStream) { mediaStream.getTracks().forEach(function (t) { t.stop(); }); mediaStream = null; }
+    if (demoGain) { try { demoGain.disconnect(); } catch (e) {} demoGain = null; }
+    mode = "none"; playing = false; paused = false;
+    fileBuffer = null; fileDuration = 0; fileOffset = 0;
+    setSource("none");
+    $("trackLabel").textContent = "";
+    $("timeLabel").textContent = "";
+    if (!silent) { $("levelLabel").textContent = "Level 0%"; $("meterFill").style.width = "0%"; }
+    setButtons();
+  }
+
+  function startLoop() {
+    playing = true; paused = false;
+    setButtons();
+    requestAnimationFrame(draw);
+  }
+
+  function bassEnergy() {
+    if (!analyser) return 0;
+    analyser.getByteFrequencyData(freqData);
+    var sum = 0, n = 12;
+    for (var i = 0; i < n; i++) sum += freqData[i];
+    return sum / (n * 255);
+  }
+
+  function draw() {
+    if (!playing) return;
+    var W = canvas.width, H = canvas.height;
+    ctx.fillStyle = "#0a0c0f";
+    ctx.fillRect(0, 0, W, H);
+
+    var sens = parseFloat($("sens").value);
+    var style = $("style").value;
+    var bass = bassEnergy();
+    if (bass > 0.55 && prevBass <= 0.55) beatFlash = 1;
+    prevBass = bass;
+    if (beatFlash > 0) {
+      ctx.fillStyle = "rgba(169,128,62," + (beatFlash * 0.10).toFixed(3) + ")";
+      ctx.fillRect(0, 0, W, H);
+      beatFlash = Math.max(0, beatFlash - 0.06);
+    }
+
+    if (style === "bars" || style === "both") {
+      var bars = 64, bw = W / bars;
+      for (var i = 0; i < bars; i++) {
+        var v = (freqData[Math.floor(i * freqData.length / bars)] / 255) * sens;
+        v = Math.min(1, v);
+        var h = v * (H * 0.62);
+        var x = i * bw;
+        var grad = ctx.createLinearGradient(0, H - h, 0, H);
+        grad.addColorStop(0, "#a9803e");
+        grad.addColorStop(1, "#5c4423");
+        ctx.fillStyle = grad;
+        ctx.fillRect(x + 1, H - h, bw - 2, h);
+      }
+    }
+
+    if (style === "rings" || style === "both") {
+      var cx = W / 2, cy = (style === "rings") ? H / 2 : H * 0.30;
+      ringPhase += 0.02 + bass * 0.05;
+      var base = (style === "rings" ? 46 : 30) + bass * 90 * sens;
+      for (var r = 0; r < 3; r++) {
+        var rad = base + r * 26 + Math.sin(ringPhase + r) * 6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(4, rad), 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(232,226,212," + (0.55 - r * 0.15).toFixed(2) + ")";
+        ctx.lineWidth = r === 0 ? 3 : 1.5;
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(3, base * 0.35), 0, Math.PI * 2);
+      ctx.fillStyle = "#a9803e";
+      ctx.fill();
+    }
+
+    analyser.getByteTimeDomainData(timeData);
+    var sum = 0;
+    for (var j = 0; j < timeData.length; j++) { var d = timeData[j] - 128; sum += d * d; }
+    var rms = Math.sqrt(sum / timeData.length) / 128;
+    var pct = Math.min(100, Math.round(rms * 100 * sens));
+    $("meterFill").style.width = pct + "%";
+    $("levelLabel").textContent = "Level " + pct + "%";
+
+    if (mode === "file" && fileBuffer) {
+      var el = fileOffset + (audioCtx.currentTime - fileStartAt);
+      $("timeLabel").textContent = fmtClock(el) + " / " + fmtClock(fileDuration);
+      if (el >= fileDuration) stopAll();
+    }
+
+    if (playing) requestAnimationFrame(draw);
+  }
+
+  function fmtClock(sec) {
+    sec = Math.max(0, sec);
+    var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  $("micBtn").addEventListener("click", function () {
+    hideErr();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showErr("<b>Microphone input is not available in this browser.</b> Upload an audio file instead, or try the demo beat.");
+      return;
+    }
+    if (!ensureCtx()) return;
+    stopAll(true);
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+      mediaStream = stream;
+      var src = audioCtx.createMediaStreamSource(stream);
+      src.connect(analyser);
+      mode = "mic";
+      setSource("microphone (live)");
+      $("trackLabel").textContent = "Listening. Make some noise.";
+      startLoop();
+    }).catch(function (err) {
+      var why = (err && err.name === "NotAllowedError")
+        ? "Microphone access was denied."
+        : "Microphone is unavailable (" + (err && err.name ? err.name : "unknown error") + ").";
+      showErr("<b>" + why + "</b> Your audio never leaves this page. Upload an audio file instead, or try the demo beat below. No permission is needed for either.");
+      setSource("none");
+      setButtons();
+    });
+  });
+
+  $("fileInput").addEventListener("change", function () {
+    hideErr();
+    var f = $("fileInput").files && $("fileInput").files[0];
+    if (!f) return;
+    if (!ensureCtx()) return;
+    stopAll(true);
+    setSource("loading file...");
+    f.arrayBuffer().then(function (buf) {
+      return audioCtx.decodeAudioData(buf);
+    }).then(function (decoded) {
+      fileBuffer = decoded;
+      fileDuration = decoded.duration;
+      fileOffset = 0;
+      playFileFrom(0);
+      mode = "file";
+      setSource("file: " + f.name);
+      $("trackLabel").textContent = f.name;
+      startLoop();
+    }).catch(function () {
+      showErr("<b>That file could not be decoded as audio.</b> Try an MP3, WAV, or OGG file, or use the demo beat.");
+      setSource("none");
+      setButtons();
+    });
+  });
+
+  function playFileFrom(offset) {
+    if (fileSource) { try { fileSource.stop(); } catch (e) {} }
+    fileSource = audioCtx.createBufferSource();
+    fileSource.buffer = fileBuffer;
+    fileSource.connect(analyser);
+    fileStartAt = audioCtx.currentTime;
+    fileOffset = offset;
+    fileSource.start(0, offset);
+    fileSource.onended = function () {
+      if (mode === "file" && playing && !paused) stopAll();
+    };
+  }
+
+  $("demoBtn").addEventListener("click", function () {
+    hideErr();
+    if (!ensureCtx()) return;
+    stopAll(true);
+    demoGain = audioCtx.createGain();
+    demoGain.gain.value = 0.5;
+    demoGain.connect(analyser);
+    var nextKick = audioCtx.currentTime + 0.05;
+    function kick(t) {
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine";
+      o.frequency.setValueAtTime(150, t);
+      o.frequency.exponentialRampToValueAtTime(48, t + 0.14);
+      g.gain.setValueAtTime(0.9, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      o.connect(g); g.connect(demoGain);
+      o.start(t); o.stop(t + 0.25);
+    }
+    function hat(t) {
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "square";
+      o.frequency.value = 5200;
+      g.gain.setValueAtTime(0.08, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+      o.connect(g); g.connect(demoGain);
+      o.start(t); o.stop(t + 0.06);
+    }
+    function schedule() {
+      while (nextKick < audioCtx.currentTime + 0.3) {
+        kick(nextKick);
+        hat(nextKick + 0.25);
+        nextKick += 0.5;
+      }
+    }
+    schedule();
+    demoTimer = setInterval(schedule, 100);
+    mode = "demo";
+    setSource("demo beat (synthesized, 120 BPM)");
+    $("trackLabel").textContent = "Synthesized kick + hat, no file needed.";
+    startLoop();
+  });
+
+  $("playPauseBtn").addEventListener("click", function () {
+    if (mode === "none" || !audioCtx) return;
+    if (paused) {
+      if (mode === "file" && fileBuffer) playFileFrom(fileOffset + (audioCtx.currentTime - fileStartAt));
+      audioCtx.resume();
+      paused = false;
+      playing = true;
+      setButtons();
+      requestAnimationFrame(draw);
+    } else {
+      if (mode === "file" && fileBuffer) {
+        fileOffset = fileOffset + (audioCtx.currentTime - fileStartAt);
+        try { fileSource.stop(); } catch (e) {}
+        fileSource = null;
+      }
+      audioCtx.suspend();
+      paused = true;
+      playing = false;
+      setButtons();
+    }
+  });
+
+  $("stopBtn").addEventListener("click", function () { hideErr(); stopAll(); });
+  $("sens").addEventListener("input", function () { $("sensOut").textContent = parseFloat($("sens").value).toFixed(1) + "x"; });
+})();
+</script>
+</body>
+</html>
