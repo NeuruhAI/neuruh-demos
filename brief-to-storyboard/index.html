@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brief to Storyboard | Neuruh</title>
+<style>
+  :root { --ink:#111418; --panel:#1a1e24; --panel2:#22272f; --paper:#f4efe6; --bone:#e8e2d4; --muted:#9a9a90; --brass:#a9803e; --line:#33383f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ink); color:var(--paper); font-family:Inter, system-ui, -apple-system, "Segoe UI", sans-serif; line-height:1.5; }
+  .wrap { max-width:1020px; margin:0 auto; padding:28px 20px 60px; }
+  .kicker { color:var(--brass); font-family:"JetBrains Mono", ui-monospace, monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; }
+  h1 { font-size:34px; margin:8px 0 6px; }
+  .sub { color:var(--muted); max-width:760px; margin:0 0 24px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:18px; }
+  .card h2 { margin:0 0 4px; font-size:19px; }
+  .card .note { color:var(--muted); font-size:13px; margin:0 0 14px; }
+  textarea { width:100%; min-height:120px; background:var(--panel2); color:var(--paper); border:1px solid var(--line); border-radius:10px; padding:12px; font-size:15px; font-family:inherit; resize:vertical; }
+  .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:14px; }
+  select { background:var(--panel2); color:var(--paper); border:1px solid var(--line); border-radius:8px; padding:9px 10px; font-size:14px; }
+  button { background:var(--brass); color:#111418; border:0; border-radius:8px; padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer; }
+  button.ghost { background:transparent; color:var(--bone); border:1px solid var(--line); }
+  button:disabled { opacity:.45; cursor:default; }
+  .hint { font-size:13px; color:var(--muted); margin:10px 0 0; }
+  #status { font-size:13px; color:var(--brass); min-height:18px; margin-top:10px; font-family:"JetBrains Mono", ui-monospace, monospace; }
+  .scenes { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:720px){ .scenes{ grid-template-columns:1fr; } }
+  .scene { background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:16px; }
+  .scene .top { display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:2px; }
+  .scene .num { font-family:"JetBrains Mono", ui-monospace, monospace; color:var(--brass); font-weight:700; font-size:13px; }
+  .scene .beat { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .scene h3 { margin:2px 0 8px; font-size:16px; }
+  .scene dl { margin:0; font-size:13.5px; }
+  .scene dt { color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; margin-top:8px; }
+  .scene dd { margin:2px 0 0; }
+  .empty { border:1px dashed var(--line); border-radius:12px; padding:28px; text-align:center; color:var(--muted); }
+  footer { border-top:1px solid var(--line); margin-top:26px; padding-top:18px; color:var(--muted); font-size:13px; }
+  footer a { color:var(--brass); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">Neuruh | Brief to Storyboard</div>
+  <h1>Brief to Storyboard</h1>
+  <p class="sub">Paste a creative brief. Get a scene-by-scene storyboard: shot, timing, visual prompt, and audio note per scene. The breakdown runs in your browser. Nothing is uploaded.</p>
+
+  <div class="card">
+    <h2>Your brief</h2>
+    <p class="note">A few sentences is enough. Say what happens, where it happens, and how it should feel.</p>
+    <textarea id="brief" placeholder="Example: A 30-second teaser for a new single. A dancer moves through a neon-lit warehouse while rain hits the windows. The beat drops at the chorus, the lights cut to black, then one spotlight finds her. It ends on the album title in bold type."></textarea>
+    <div class="row">
+      <label for="duration" style="font-size:14px;">Total runtime</label>
+      <select id="duration">
+        <option value="15">15 seconds</option>
+        <option value="30" selected>30 seconds</option>
+        <option value="60">60 seconds</option>
+      </select>
+      <button id="generate">Generate storyboard</button>
+      <button id="example" class="ghost">Use example brief</button>
+      <button id="clear" class="ghost">Clear</button>
+      <button id="copy" class="ghost" disabled>Copy storyboard</button>
+    </div>
+    <div id="status" aria-live="polite"></div>
+    <p class="hint">How it works: the brief is split into beats, a shot is assigned per scene, and each scene gets a visual prompt and an audio note built from your own words. Short briefs are expanded to a full arc. Long briefs are grouped so nothing is dropped.</p>
+  </div>
+
+  <div id="output">
+    <div class="empty">No storyboard yet. Paste a brief and press Generate storyboard.</div>
+  </div>
+
+  <footer>
+    <p>This is a planning tool, not a generator. It plans the shots. The generation step is the pipeline Neuruh builds for you. They charge you every time you press generate. We build you the thing that presses generate, and you keep it.</p>
+    <p>Forensic System Audit, $950 scoped. Workflow Replacement Sprint, from $3,500. Data Rescue, from $750 scoped. Free 10-minute qualifier at <a href="https://cal.com/neuruh">cal.com/neuruh</a>.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  var EXAMPLE = "A 30-second teaser for a new single. A dancer moves through a neon-lit warehouse while rain hits the windows. The beat drops at the chorus, the lights cut to black, then one spotlight finds her. It ends on the album title in bold type.";
+
+  var BEATS = [
+    { name: "Hook", title: "Open on the image that stops the scroll",
+      audio: "Cold open. One sharp sound, then silence for half a beat before the music enters.",
+      visual: "Lead with the strongest single image from the brief, no setup, no title card." },
+    { name: "Establish", title: "Place the viewer in the world",
+      audio: "Ambient bed fades in under the music. Room tone carries the space.",
+      visual: "Wide shot that shows where this happens and what the space feels like." },
+    { name: "Build", title: "Raise the energy toward the turn",
+      audio: "Music builds. Add a layer per cut, keep the low end rising.",
+      visual: "Cut closer with each beat. Motion in frame, camera moving with the subject." },
+    { name: "Turn", title: "The moment everything changes",
+      audio: "The drop, the cut to silence, or the sound the whole piece has been waiting for.",
+      visual: "The sharpest contrast in the piece: light against dark, stillness against motion." },
+    { name: "Payoff", title: "Hold the image that pays it off",
+      audio: "Full mix, no new elements. Let the payoff breathe for a full bar.",
+      visual: "Hold on the hero image longer than feels comfortable. This is the frame people screenshot." },
+    { name: "Close", title: "Land the title and the ask",
+      audio: "Music resolves or cuts dead. One clean final sound, then nothing.",
+      visual: "Title or call to action, centered, legible, held long enough to read twice." }
+  ];
+
+  var SHOTS = ["Extreme wide shot", "Wide shot", "Medium shot", "Close-up", "Extreme close-up", "Over-the-shoulder", "Low angle", "Tracking shot"];
+
+  var SETTINGS = ["warehouse", "studio", "street", "beach", "city", "forest", "desert", "club", "stage", "rooftop", "kitchen", "car", "train", "neon", "rain", "night", "dawn", "dusk"];
+  var MOODS = ["moody", "dark", "bright", "electric", "calm", "tense", "dreamy", "gritty", "cinematic", "playful", "raw", "euphoric", "lonely", "bold"];
+  var STOP = { "the":1, "and":1, "with":1, "that":1, "this":1, "from":1, "into":1, "then":1, "when":1, "while":1, "ends":1, "moves":1, "through":1, "finds":1, "hits":1, "drops":1, "cut":1, "black":1, "one":1, "her":1, "his":1, "its":1, "for":1, "new":1, "single":1 };
+
+  function splitSentences(text) {
+    return text.split(/(?<=[.!?])\s+|\n+/).map(function (s) { return s.trim(); })
+      .filter(function (s) { return s.length > 1; });
+  }
+
+  function clean(s) { return s.replace(/[.!?]+$/, "").trim(); }
+
+  function extract(text) {
+    var lower = text.toLowerCase();
+    var setting = null, mood = null;
+    SETTINGS.forEach(function (w) { if (!setting && lower.indexOf(w) !== -1) setting = w; });
+    MOODS.forEach(function (w) { if (!mood && lower.indexOf(w) !== -1) mood = w; });
+    var words = lower.replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(function (w) {
+      return w.length > 3 && !STOP[w];
+    });
+    var seen = {}, keywords = [];
+    words.forEach(function (w) { if (!seen[w]) { seen[w] = 1; keywords.push(w); } });
+    return { setting: setting, mood: mood, keywords: keywords.slice(0, 6) };
+  }
+
+  function fmtTime(sec) {
+    var m = Math.floor(sec / 60), s = Math.round(sec % 60);
+    if (s === 60) { m += 1; s = 0; }
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function buildScenes(brief, duration) {
+    var sentences = splitSentences(brief);
+    var info = extract(brief);
+    var count = Math.max(4, Math.min(6, sentences.length || 4));
+    var beats = BEATS.slice(0, count);
+    var per = duration / count;
+    var scenes = [];
+    for (var i = 0; i < count; i++) {
+      var beat = beats[i];
+      var line = sentences[i] || sentences[sentences.length - 1] || "";
+      var extra = "";
+      if (sentences.length > count && i === 2) {
+        extra = " " + sentences.slice(count).map(clean).join(" ");
+      }
+      var detail = line ? clean(line) : beat.visual;
+      var prompt = beat.name + ": " + detail + extra + ".";
+      if (info.setting) prompt += " Set in the " + info.setting + ".";
+      if (info.mood) prompt += " " + info.mood.charAt(0).toUpperCase() + info.mood.slice(1) + " tone.";
+      if (info.keywords.length) prompt += " Key elements: " + info.keywords.join(", ") + ".";
+      scenes.push({
+        n: i + 1, beat: beat.name, title: beat.title,
+        start: fmtTime(i * per), end: fmtTime((i + 1) * per),
+        shot: SHOTS[i % SHOTS.length],
+        visual: prompt, audio: beat.audio
+      });
+    }
+    return scenes;
+  }
+
+  function render(scenes) {
+    var html = '<div class="scenes">';
+    scenes.forEach(function (sc) {
+      html += '<div class="scene">' +
+        '<div class="top"><span class="num">SCENE ' + sc.n + '</span><span class="beat">' + sc.beat + '</span></div>' +
+        '<h3>' + sc.title + '</h3>' +
+        '<dl>' +
+        '<dt>Timing</dt><dd>' + sc.start + ' - ' + sc.end + '</dd>' +
+        '<dt>Shot</dt><dd>' + sc.shot + '</dd>' +
+        '<dt>Visual prompt</dt><dd>' + sc.visual + '</dd>' +
+        '<dt>Audio note</dt><dd>' + sc.audio + '</dd>' +
+        '</dl></div>';
+    });
+    html += '</div>';
+    $("output").innerHTML = html;
+    $("copy").disabled = false;
+    $("status").textContent = scenes.length + " scenes generated.";
+  }
+
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  function generate() {
+    var brief = $("brief").value.trim();
+    if (!brief) {
+      $("status").textContent = "Paste a brief first, or press Use example brief.";
+      return;
+    }
+    var duration = parseInt($("duration").value, 10);
+    var scenes = buildScenes(brief, duration);
+    window.__scenes = scenes;
+    window.__brief = brief;
+    render(scenes);
+  }
+
+  function plainText() {
+    var lines = ["STORYBOARD", "Brief: " + window.__brief, ""];
+    window.__scenes.forEach(function (sc) {
+      lines.push("SCENE " + sc.n + " (" + sc.beat + ") " + sc.start + " - " + sc.end);
+      lines.push("Shot: " + sc.shot);
+      lines.push("Visual: " + sc.visual);
+      lines.push("Audio: " + sc.audio);
+      lines.push("");
+    });
+    return lines.join("\n");
+  }
+
+  $("generate").addEventListener("click", generate);
+  $("example").addEventListener("click", function () {
+    $("brief").value = EXAMPLE;
+    generate();
+  });
+  $("clear").addEventListener("click", function () {
+    $("brief").value = "";
+    $("output").innerHTML = '<div class="empty">No storyboard yet. Paste a brief and press Generate storyboard.</div>';
+    $("copy").disabled = true;
+    $("status").textContent = "";
+    window.__scenes = null;
+  });
+  $("duration").addEventListener("change", function () {
+    if (window.__scenes && $("brief").value.trim()) generate();
+  });
+  $("copy").addEventListener("click", function () {
+    var text = plainText();
+    function done() { $("status").textContent = "Storyboard copied to clipboard."; }
+    function fallback() {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); done(); }
+      catch (e) { $("status").textContent = "Copy blocked by the browser. Select the scenes and copy manually."; }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } else { fallback(); }
+  });
+  $("brief").addEventListener("keydown", function (e) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") generate();
+  });
+})();
+</script>
+</body>
+</html>
