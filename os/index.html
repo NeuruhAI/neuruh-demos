@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neuruh OS - Unified Operator Shell (SIMULATION)</title>
+<style>
+  :root{ --bone:#f4f1ea; --paper:#fbfaf6; --ink:#1c1a16; --muted:#6d675c; --brass:#9a7b2d; --line:#d8d2c4; --ok:#2e6b3a; --bad:#8a2f26; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:Inter,system-ui,sans-serif; background:var(--bone); color:var(--ink); height:100vh; display:flex; flex-direction:column; overflow:hidden;}
+  header{background:var(--ink); color:var(--bone); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12.5px;}
+  .brand{font-family:ui-monospace,Menlo,monospace; letter-spacing:2px; color:#c9a227; font-weight:700;}
+  .mono{font-family:ui-monospace,Menlo,monospace; font-size:11.5px;}
+  .shell{display:grid; grid-template-columns:280px 1fr 310px; flex:1; min-height:0;}
+  .sidebar, .ledger{background:var(--paper); border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0;}
+  .ledger{border-right:none; border-left:1px solid var(--line);}
+  .pane-head{padding:10px 12px; border-bottom:1px solid var(--line); background:var(--bone);}
+  .pane-head input{width:100%; padding:6px 8px; border:1px solid var(--line); background:#fff; font-size:12.5px; margin-bottom:6px;}
+  .cats{display:flex; flex-wrap:wrap; gap:4px;}
+  .cats button{font-family:ui-monospace,Menlo,monospace; font-size:10px; padding:3px 6px; border:1px solid var(--line); background:var(--paper); cursor:pointer;}
+  .cats button.on{background:var(--brass); color:#fff; border-color:var(--brass);}
+  .list{overflow-y:auto; flex:1; padding:6px;}
+  .item{padding:8px 10px; border:1px solid transparent; cursor:pointer; margin-bottom:4px; background:var(--paper);}
+  .item:hover{border-color:var(--line); background:var(--bone);}
+  .item.active{border-color:var(--brass); background:#f5ecd8;}
+  .item .t{font-size:12.5px; font-weight:600; color:var(--ink);}
+  .item .m{font-family:ui-monospace,Menlo,monospace; font-size:10px; color:var(--muted); margin-top:2px;}
+  .stage{display:flex; flex-direction:column; min-height:0; background:#fff;}
+  .stage-bar{padding:7px 12px; background:var(--bone); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; font-size:12px;}
+  .stage-bar a{color:var(--brass); text-decoration:none; font-family:ui-monospace,Menlo,monospace;}
+  iframe{flex:1; width:100%; border:none; background:#fff;}
+  .ledger-body{overflow-y:auto; flex:1; padding:10px; font-family:ui-monospace,Menlo,monospace; font-size:11px;}
+  .rcpt{border:1px solid var(--line); background:var(--bone); padding:8px; margin-bottom:8px; word-break:break-all;}
+  .btn{font-family:ui-monospace,Menlo,monospace; font-size:11px; padding:5px 8px; border:1px solid var(--ink); background:var(--ink); color:#fff; cursor:pointer;}
+  .btn.sec{background:var(--paper); color:var(--ink); border-color:var(--line);}
+  .status-ok{color:var(--ok); font-weight:700;}
+  .status-bad{color:var(--bad); font-weight:700;}
+</style>
+</head>
+<body>
+<header>
+  <div><span class="brand">NEURUH OS</span> &nbsp;|&nbsp; <span class="mono">Unified Operator Shell (SIMULATION)</span></div>
+  <div class="mono" id="regStats">Loading system-registry.json...</div>
+</header>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="pane-head">
+      <input type="text" id="search" placeholder="Filter modules...">
+      <div class="cats" id="catBtns"></div>
+    </div>
+    <div class="list" id="modList"></div>
+  </aside>
+
+  <main class="stage">
+    <div class="stage-bar">
+      <span class="mono" id="activeTitle">Select a module</span>
+      <div>
+        <button class="btn sec" id="stampBtn" style="margin-right:8px;">Seal v1.1 Receipt</button>
+        <a id="openDirect" href="../" target="_blank">Open Tab &rarr;</a>
+      </div>
+    </div>
+    <iframe id="frame" src="../bloom-engine/"></iframe>
+  </main>
+
+  <aside class="ledger">
+    <div class="pane-head">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <strong class="mono">GLOBAL RECEIPT CHAIN (v1.1)</strong>
+        <span class="mono" id="verifyStatus"></span>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="btn" id="verifyBtn">Verify Chain</button>
+        <button class="btn sec" id="clearBtn">Clear</button>
+      </div>
+    </div>
+    <div class="ledger-body" id="ledgerBody"></div>
+  </aside>
+</div>
+
+<script src="../neuruh-bus.js"></script>
+<script>
+let REGISTRY = { modules: [] };
+let activeCat = "ALL";
+let activeMod = null;
+
+async function boot() {
+  const res = await fetch("../system-registry.json");
+  REGISTRY = await res.json();
+  document.getElementById("regStats").textContent =
+    `${REGISTRY.total_modules} modules indexed | Bus: BroadcastChannel + SHA-256 v1.1`;
+
+  const cats = ["ALL", "ENGINE", "LAB", "GOVERNANCE_SIM", "CORPUS_DOC", "MEDIA_ASSET", "HUB_INDEX"];
+  const catHost = document.getElementById("catBtns");
+  catHost.innerHTML = cats.map(c =>
+    `<button data-c="${c}" class="${c==="ALL"?"on":""}">${c}${c==="ALL"?"":` (${REGISTRY.by_category[c]||0})`}</button>`
+  ).join("");
+  catHost.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    activeCat = b.dataset.c;
+    catHost.querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.c === activeCat));
+    renderList();
+  });
+
+  renderList();
+  const initial = REGISTRY.modules.find(m => m.slug === "bloom-engine") || REGISTRY.modules[0];
+  if (initial) selectModule(initial);
+  renderLedger();
+}
+
+function renderList() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const filtered = REGISTRY.modules.filter(m =>
+    (activeCat === "ALL" || m.category === activeCat) &&
+    (!q || m.slug.toLowerCase().includes(q) || m.title.toLowerCase().includes(q))
+  );
+  const host = document.getElementById("modList");
+  host.innerHTML = filtered.map(m => `
+    <div class="item ${activeMod && activeMod.slug===m.slug ? "active":""}" data-slug="${m.slug}">
+      <div class="t">${m.slug}</div>
+      <div class="m">${m.category}${m.receipts ? " · RECEIPTS":""}${m.tests ? " · TESTED":""}</div>
+    </div>
+  `).join("");
+  host.querySelectorAll(".item").forEach(el => {
+    el.addEventListener("click", () => {
+      const mod = REGISTRY.modules.find(x => x.slug === el.dataset.slug);
+      if (mod) selectModule(mod);
+    });
+  });
+}
+
+function selectModule(mod) {
+  activeMod = mod;
+  document.getElementById("activeTitle").textContent = `${mod.slug} [${mod.category}]`;
+  document.getElementById("openDirect").href = mod.path;
+  document.getElementById("frame").src = mod.path;
+  renderList();
+}
+
+function renderLedger() {
+  const chain = window.NeuruhBus.getChain();
+  const host = document.getElementById("ledgerBody");
+  if (!chain.length) {
+    host.innerHTML = `<div style="color:var(--muted);">No receipts in global chain yet. Click "Seal v1.1 Receipt" to log module activity.</div>`;
+    return;
+  }
+  host.innerHTML = chain.slice().reverse().map((r, idx) => `
+    <div class="rcpt">
+      <div><strong>#${chain.length - idx} · ${r.action}</strong> (${r.actor})</div>
+      <div style="color:var(--muted); margin:2px 0;">${r.timestamp}</div>
+      <div>hash: ${r.receipt_hash.slice(0,16)}...</div>
+      <div>prev: ${r.prev_hash === "GENESIS" ? "GENESIS" : r.prev_hash.slice(0,16) + "..."}</div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("search").addEventListener("input", renderList);
+
+document.getElementById("stampBtn").addEventListener("click", async () => {
+  if (!activeMod) return;
+  await window.NeuruhBus.emit("observation", activeMod.slug, {
+    category: activeMod.category,
+    path: activeMod.path,
+    note: "Operator session checkpoint"
+  });
+  renderLedger();
+});
+
+document.getElementById("verifyBtn").addEventListener("click", async () => {
+  const res = await window.NeuruhBus.verifyChain();
+  const el = document.getElementById("verifyStatus");
+  el.textContent = res.ok ? `VALID (${res.count})` : `BROKEN @ #${res.failedAt+1}`;
+  el.className = "mono " + (res.ok ? "status-ok" : "status-bad");
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  window.NeuruhBus.clearChain();
+  document.getElementById("verifyStatus").textContent = "";
+  renderLedger();
+});
+
+if (window.NeuruhBus.channel) {
+  window.NeuruhBus.channel.onmessage = () => renderLedger();
+}
+
+boot();
+</script>
+</body>
+</html>
