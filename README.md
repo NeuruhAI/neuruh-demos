@@ -14,6 +14,7 @@ Site: https://neuruhai.github.io/neuruh-demos/
 | [autonomous-builder-factory](autonomous-builder-factory/) | BuildFix cycle tracker, CODE PACK queue, asset registry |
 | [opportunity-genome](opportunity-genome/) | Genome composer, version diff, cross-domain mapping |
 | [component-library-gallery](component-library-gallery/) | 25 .tsx components re-implemented as live working components |
+| [bloom-engine](bloom-engine/) | Closed-loop style-bridging &alpha;-controller, BridgeSpec JSON generator, pure-JS DAW MIDI exporter |
 
 Each demo is a single self-contained HTML file (inline CSS/JS only, no external dependencies, no external fetches). Each was verified with jsdom tests against hand-computed values, 0 failures.
 

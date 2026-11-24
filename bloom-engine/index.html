@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bloom Engine — Aesthetic Arbitrage &amp; Style-Bridging Simulator</title>
+<style>
+  :root{
+    --paper:#f4f1ea; --surface:#fbf9f4; --ink:#1a1712;
+    --body:#3d382e; --muted:#6d675c; --brass:#9a7b2d;
+    --border:#d8d2c4; --ok:#2e6b4e; --warn:#9a5b2d;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:Georgia, 'Times New Roman', serif; background:var(--paper); color:var(--body); line-height:1.55;}
+  .wrap{max-width:860px; margin:0 auto; padding:0 18px 64px;}
+  header{padding:32px 0 12px; border-bottom:2px solid var(--ink); margin-bottom:22px;}
+  .kicker{font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--brass); margin-bottom:6px;}
+  h1{font-size:28px; line-height:1.2; color:var(--ink); margin-bottom:8px;}
+  .sub{color:var(--muted); font-size:14.5px; margin-bottom:8px;}
+  .meta{font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:11.5px; color:var(--muted); padding-top:6px;}
+  .meta a{color:var(--ink); text-decoration:none; border-bottom:1px solid var(--brass);}
+  .honest{background:#efeae0; border-left:3px solid var(--brass); padding:12px 14px; font-size:13px; margin-bottom:22px;}
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+  @media (max-width:720px){ .grid{grid-template-columns:1fr;} }
+  .card{background:var(--surface); border:1px solid var(--border); padding:16px 18px; margin-bottom:16px;}
+  .card h2{font-size:17px; color:var(--ink); margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:6px;}
+  label{display:block; font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:11px; text-transform:uppercase; color:var(--muted); margin:10px 0 4px;}
+  input[type="text"], input[type="number"], select{
+    width:100%; padding:7px 9px; border:1px solid var(--border); background:#fff;
+    font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:12.5px; color:var(--ink);
+  }
+  input[type="range"]{width:100%; accent-color:var(--brass);}
+  .row{display:flex; gap:10px; align-items:center; justify-content:space-between;}
+  .mono{font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:12px;}
+  .badge{display:inline-block; font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:11px; padding:2px 7px; border:1px solid var(--border); background:var(--paper); color:var(--ink);}
+  .badge.ok{border-color:var(--ok); color:var(--ok);}
+  .badge.warn{border-color:var(--warn); color:var(--warn);}
+  button{
+    font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:12px;
+    padding:8px 13px; border:1px solid var(--ink); background:var(--ink); color:var(--surface);
+    cursor:pointer; margin-top:10px;
+  }
+  button.secondary{background:var(--surface); color:var(--ink); border-color:var(--border);}
+  button:hover{opacity:0.88;}
+  pre{
+    background:#1a1712; color:#f4f1ea; padding:14px; overflow-x:auto;
+    font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:11.5px; line-height:1.45;
+  }
+  .bar-track{height:10px; background:var(--border); width:100%; margin:6px 0 10px; position:relative;}
+  .bar-fill{height:100%; background:var(--brass); transition:width 0.2s;}
+  .timeline{display:grid; grid-template-columns:4fr 16fr 8fr 12fr; gap:4px; margin-top:8px;}
+  .seg{padding:8px 6px; border:1px solid var(--border); background:var(--paper); font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:11px; text-align:center;}
+  .seg.hook{border-color:var(--brass); background:#f5ecd8;}
+  table{width:100%; border-collapse:collapse; font-family:ui-monospace, 'SF Mono', Menlo, monospace; font-size:11.5px; margin-top:10px;}
+  th, td{border-bottom:1px solid var(--border); padding:6px 4px; text-align:left;}
+  th{color:var(--muted); font-weight:normal; text-transform:uppercase; font-size:10.5px;}
+  footer{border-top:1px solid var(--border); margin-top:28px; padding-top:14px; font-size:12.5px; color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Neuruh &mdash; Working Demo</div>
+  <h1>Bloom Engine</h1>
+  <p class="sub">Closed-loop style-bridging controller for undervalued artists. Computes bounded vector interpolation between a commercial archetype anchor (A) and raw artist DNA (U), emits a deterministic BridgeSpec JSON + DAW MIDI skeleton, and updates the novelty budget (&alpha;) from hook telemetry.</p>
+  <div class="meta"><a href="../">&larr; All Neuruh Demos</a> &nbsp;|&nbsp; MODE &middot; Client-Side Simulation &nbsp;|&nbsp; DEPS &middot; Zero</div>
+</header>
+
+<div class="honest">
+  <strong>What this is and is not:</strong> This is a browser simulation of the Bloom Engine control plane, constraint solver, and MIDI scaffold exporter. It runs real &alpha;-update math and generates a valid binary <code>.mid</code> file locally. It does <em>not</em> run live audio DSP (<code>librosa</code>) or connect to platform analytics APIs; archetype centroids and demo features are entered or preset here.
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h2>1. Archetype Anchor (A) &amp; Artist DNA (U)</h2>
+    <label for="archetype">Target Commercial Archetype (A)</label>
+    <select id="archetype">
+      <option value="modern_outlaw_country">Modern Outlaw Country (85 BPM · D minor · -9.0 dB)</option>
+      <option value="detroit_dark_trap">Detroit Dark Trap (142 BPM · F# minor · -8.5 dB)</option>
+      <option value="boom_bap_revival">Boom Bap Revival (92 BPM · C minor · -10.0 dB)</option>
+    </select>
+
+    <label for="artistName">Artist ID / Handle</label>
+    <input type="text" id="artistName" value="Artist042">
+
+    <div class="row">
+      <div style="flex:1">
+        <label for="demoBpm">Raw Demo BPM (U)</label>
+        <input type="number" id="demoBpm" value="104" min="50" max="200">
+      </div>
+      <div style="flex:1">
+        <label for="demoKey">Raw Demo Key (U)</label>
+        <select id="demoKey">
+          <option value="A_minor">A minor</option>
+          <option value="D_minor">D minor</option>
+          <option value="G_major">G major</option>
+          <option value="E_minor">E minor</option>
+          <option value="C_minor">C minor</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="leadInst">Undervalued Lead Instrument / Timbre</label>
+    <input type="text" id="leadInst" value="clawhammer_banjo_dry_mic">
+
+    <label for="cadence">Vocal Cadence</label>
+    <input type="text" id="cadence" value="spoken_word_syncopated">
+
+    <label for="lens">Lyrical Lens</label>
+    <input type="text" id="lens" value="industrial_midwest_storytelling">
+  </div>
+
+  <div class="card">
+    <h2>2. Blooming State &amp; Telemetry Loop</h2>
+    <div class="row">
+      <span class="mono">Release Cycle: <strong id="cycleVal">1</strong></span>
+      <span class="badge" id="modeBadge">WRAPPER_LOCK</span>
+    </div>
+    <div class="row" style="margin-top:8px;">
+      <span class="mono">Current &alpha; (Novelty Budget)</span>
+      <strong class="mono" id="alphaVal">0.200</strong>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="alphaBar" style="width:20%"></div></div>
+
+    <label>3-Second Hold Rate: <span id="holdLabel">74%</span></label>
+    <input type="range" id="hold3s" min="0" max="100" value="74">
+
+    <label>Average Watch %: <span id="watchLabel">62%</span></label>
+    <input type="range" id="watchPct" min="0" max="100" value="62">
+
+    <label>Save-to-View Rate: <span id="saveLabel">6.5%</span></label>
+    <input type="range" id="saveRate" min="0" max="15" step="0.5" value="6.5">
+
+    <div class="row">
+      <button id="logBtn">Log Telemetry &amp; Step Cycle</button>
+      <button id="resetBtn" class="secondary">Reset Artist</button>
+    </div>
+    <div id="lastUpdate" class="mono" style="margin-top:10px; color:var(--muted);"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>3. DAW Arrangement Skeleton (40 Bars) &amp; Export</h2>
+  <div class="row">
+    <span class="mono" id="midiSummary">Target: 88.0 BPM · Key: D_minor · Intro &le; 6.0s · Hook &le; 40.0s</span>
+    <button id="midiBtn" style="margin-top:0;">Download .MID Scaffold</button>
+  </div>
+  <div class="timeline">
+    <div class="seg">INTRO<br>4 bars</div>
+    <div class="seg">VERSE 1<br>16 bars</div>
+    <div class="seg hook">HOOK 1<br>8 bars</div>
+    <div class="seg">VERSE 2<br>12 bars</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>4. Deterministic BridgeSpec JSON</h2>
+  <pre id="specOut"></pre>
+</div>
+
+<div class="card">
+  <h2>5. Telemetry History Log</h2>
+  <table>
+    <thead>
+      <tr><th>Cycle</th><th>Hold 3s</th><th>Watch %</th><th>Save %</th><th>Score S_t</th><th>&alpha; Before</th><th>&alpha; After</th><th>Action</th></tr>
+    </thead>
+    <tbody id="historyBody">
+      <tr><td colspan="8" style="color:var(--muted);">No telemetry logged yet. Run a hook test above.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<footer>
+  <p>Honest gaps: Real deployment requires offline DSP extraction (<code>librosa</code>), human vocal re-capture over the MIDI scaffold, and empirical short-form hook testing. Never clone an artist's likeness without opt-in licensing.</p>
+</footer>
+</div>
+
+<script>
+const ARCHETYPES = {
+  modern_outlaw_country: { bpm: 85.0, key: "D_minor", rms: -9.0, genre: "Country" },
+  detroit_dark_trap:     { bpm: 142.0, key: "F#_minor", rms: -8.5, genre: "Hip-Hop/Rap" },
+  boom_bap_revival:      { bpm: 92.0, key: "C_minor", rms: -10.0, genre: "Hip-Hop/Rap" }
+};
+const NOTE_MAP = { C:48,"C#":49,D:50,"D#":51,E:52,F:53,"F#":54,G:55,"G#":56,A:57,"A#":58,B:59 };
+
+let state = { cycle: 1, alpha: 0.20, history: [] };
+
+function computeSpec() {
+  const archKey = document.getElementById("archetype").value;
+  const arch = ARCHETYPES[archKey];
+  const artist = document.getElementById("artistName").value.trim() || "Artist001";
+  const demoBpm = parseFloat(document.getElementById("demoBpm").value) || 100;
+  const demoKey = document.getElementById("demoKey").value;
+  const alpha = state.alpha;
+
+  const rawDelta = demoBpm - arch.bpm;
+  const maxShift = alpha <= 0.25 ? 3.0 : +(12.0 * alpha).toFixed(1);
+  const shift = Math.max(-maxShift, Math.min(maxShift, rawDelta * alpha));
+  const targetBpm = +(arch.bpm + shift).toFixed(1);
+
+  const mode = alpha < 0.30 ? "WRAPPER_LOCK" : (alpha < 0.60 ? "BRIDGE_EXPANSION" : "SIGNATURE_OPEN");
+  const keyTarget = alpha < 0.45 ? arch.key : demoKey;
+
+  return {
+    project_id: `${artist.toLowerCase().replace(/[^a-z0-9]/g,"_")}_rel_${String(state.cycle).padStart(2,"0")}`,
+    archetype_anchor: archKey,
+    bloom_state: { release_cycle: state.cycle, alpha_current: +alpha.toFixed(3), mode },
+    locked_slots: {
+      target_bpm: targetBpm,
+      bpm_tolerance: [+(targetBpm - 2).toFixed(1), +(targetBpm + 2).toFixed(1)],
+      key_signature: keyTarget,
+      intro_max_sec: alpha < 0.35 ? 6.0 : 12.0,
+      first_hook_max_sec: alpha < 0.35 ? 40.0 : 55.0,
+      target_rms_db: arch.rms
+    },
+    injected_artist_slots: {
+      lead_instrument: document.getElementById("leadInst").value,
+      vocal_cadence: document.getElementById("cadence").value,
+      lyrical_lens: document.getElementById("lens").value
+    },
+    guardrails: {
+      ban_synthetic_final_vocals: true,
+      metadata_primary_genre: arch.genre,
+      exclude_crossover_tags: alpha < 0.40
+    }
+  };
+}
+
+function render() {
+  const spec = computeSpec();
+  document.getElementById("cycleVal").textContent = state.cycle;
+  document.getElementById("alphaVal").textContent = state.alpha.toFixed(3);
+  document.getElementById("alphaBar").style.width = `${Math.round(state.alpha * 100)}%`;
+
+  const badge = document.getElementById("modeBadge");
+  badge.textContent = spec.bloom_state.mode;
+  badge.className = "badge " + (spec.bloom_state.mode === "WRAPPER_LOCK" ? "warn" : "ok");
+
+  document.getElementById("midiSummary").textContent =
+    `Target: ${spec.locked_slots.target_bpm} BPM · Key: ${spec.locked_slots.key_signature} · Intro <= ${spec.locked_slots.intro_max_sec}s · Hook <= ${spec.locked_slots.first_hook_max_sec}s`;
+
+  document.getElementById("specOut").textContent = JSON.stringify(spec, null, 2);
+
+  const tbody = document.getElementById("historyBody");
+  if (!state.history.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="color:var(--muted);">No telemetry logged yet. Run a hook test above.</td></tr>`;
+  } else {
+    tbody.innerHTML = state.history.map(h => `
+      <tr>
+        <td>${h.cycle}</td><td>${(h.hold*100).toFixed(0)}%</td><td>${(h.watch*100).toFixed(0)}%</td>
+        <td>${(h.save*100).toFixed(1)}%</td><td>${h.score.toFixed(3)}</td>
+        <td>${h.aBefore.toFixed(3)}</td><td>${h.aAfter.toFixed(3)}</td><td>${h.dir}</td>
+      </tr>`).join("");
+  }
+}
+
+function buildMidiBytes(bpm, keyStr) {
+  const [rootName, mode] = keyStr.split("_");
+  const root = NOTE_MAP[rootName] || 48;
+  const third = root + (mode === "minor" ? 3 : 4);
+  const fifth = root + 7;
+  const mpq = Math.round(60000000 / bpm);
+
+  const vlq = (n) => {
+    let b = [n & 0x7f];
+    while ((n >>= 7) > 0) b.unshift((n & 0x7f) | 0x80);
+    return b;
+  };
+  const ev = [];
+  ev.push(0x00, 0xFF, 0x51, 0x03, (mpq >> 16) & 0xFF, (mpq >> 8) & 0xFF, mpq & 0xFF);
+  for (let i = 0; i < 40; i++) {
+    ev.push(0x00, 0x90, root, 64, 0x00, 0x90, third, 56, 0x00, 0x90, fifth, 56);
+    ev.push(...vlq(1920), 0x80, root, 0, 0x00, 0x80, third, 0, 0x00, 0x80, fifth, 0);
+  }
+  ev.push(0x00, 0xFF, 0x2F, 0x00);
+
+  const len = ev.length;
+  const header = [
+    0x4D,0x54,0x68,0x64, 0,0,0,6, 0,0, 0,1, 0x01,0xE0,
+    0x4D,0x54,0x72,0x6B, (len>>24)&255, (len>>16)&255, (len>>8)&255, len&255
+  ];
+  return new Uint8Array([...header, ...ev]);
+}
+
+document.getElementById("logBtn").addEventListener("click", () => {
+  const hold = parseFloat(document.getElementById("hold3s").value) / 100;
+  const watch = parseFloat(document.getElementById("watchPct").value) / 100;
+  const save = parseFloat(document.getElementById("saveRate").value) / 100;
+  const normSave = Math.min(save / 0.10, 1.0);
+  const score = +(0.35 * hold + 0.40 * watch + 0.25 * normSave).toFixed(4);
+  const aBefore = state.alpha;
+  const aAfter = +Math.max(0.15, Math.min(0.85, aBefore + 0.40 * (score - 0.50))).toFixed(3);
+  const dir = aAfter > aBefore ? "EXPAND" : "STABILIZE";
+
+  state.history.push({ cycle: state.cycle, hold, watch, save, score, aBefore, aAfter, dir });
+  state.alpha = aAfter;
+  state.cycle += 1;
+  document.getElementById("lastUpdate").textContent =
+    `S_t = ${score.toFixed(3)} (thresh 0.500) -> ${dir}: alpha ${aBefore.toFixed(3)} -> ${aAfter.toFixed(3)}`;
+  render();
+});
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  state = { cycle: 1, alpha: 0.20, history: [] };
+  document.getElementById("lastUpdate").textContent = "";
+  render();
+});
+
+document.getElementById("midiBtn").addEventListener("click", () => {
+  const spec = computeSpec();
+  const bytes = buildMidiBytes(spec.locked_slots.target_bpm, spec.locked_slots.key_signature);
+  const blob = new Blob([bytes], { type: "audio/midi" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${spec.project_id}.mid`;
+  a.click();
+});
+
+["hold3s","watchPct","saveRate"].forEach(id => {
+  document.getElementById(id).addEventListener("input", () => {
+    document.getElementById("holdLabel").textContent = document.getElementById("hold3s").value + "%";
+    document.getElementById("watchLabel").textContent = document.getElementById("watchPct").value + "%";
+    document.getElementById("saveLabel").textContent = document.getElementById("saveRate").value + "%";
+  });
+});
+
+["archetype","artistName","demoBpm","demoKey","leadInst","cadence","lens"].forEach(id => {
+  document.getElementById(id).addEventListener("input", render);
+  document.getElementById(id).addEventListener("change", render);
+});
+
+render();
+</script>
+</body>
+</html>
