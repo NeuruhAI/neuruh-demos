@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Commons Discovery Engine</title>
+    <style>
+        :root {
+            --bg: #f4f6f4;
+            --card-bg: #ffffff;
+            --text: #1e2922;
+            --muted: #556358;
+            --accent: #2e6944;
+            --accent-hover: #1f472e;
+            --border: #d4ddd5;
+            --canvas-bg: #0d1410;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 1.5rem; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 960px; display: flex; flex-direction: column; gap: 1.25rem; }
+        header { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+        h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; }
+        .dedication { font-size: 0.8rem; color: var(--muted); font-style: italic; }
+        .tabs { display: flex; gap: 0.5rem; }
+        .tab-btn { background: var(--card-bg); border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.04); display: none; }
+        .card.active { display: block; }
+        canvas { width: 100%; height: 360px; background: var(--canvas-bg); border-radius: 8px; display: block; cursor: crosshair; }
+        .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .control-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        label { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+        input[type="range"] { accent-color: var(--accent); width: 100%; cursor: pointer; }
+        .stats { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.85rem; font-variant-numeric: tabular-nums; color: var(--muted); border-top: 1px solid var(--border); padding-top: 0.75rem; }
+        .stats span { color: var(--text); font-weight: 600; }
+        .instructions { font-size: 0.85rem; color: var(--muted); margin-bottom: 0.75rem; line-height: 1.4; }
+        .btn-action { background: var(--accent); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-top: 0.5rem; }
+        .btn-action:hover { background: var(--accent-hover); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>The Commons Discovery Engine</h1>
+                <p class="dedication">From the kids who had no voice. — Signed, Humanity</p>
+            </div>
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab(0)">1. Ecosystem Biome</button>
+                <button class="tab-btn" onclick="switchTab(1)">2. Logic Circuit</button>
+                <button class="tab-btn" onclick="switchTab(2)">3. Latent Space Synth</button>
+            </div>
+        </header>
+
+        <div class="card active" id="mod-0">
+            <p class="instructions"><b>Systems & Feedback Loops:</b> Click anywhere on the canvas to seed food pellets. Organisms hunt food, reproduce when full, and die if starved. Adjust natural laws via sliders.</p>
+            <canvas id="ecoCanvas"></canvas>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="spawnRate">Food Spawn Rate: <span id="spawnVal">5</span>/sec</label>
+                    <input type="range" id="spawnRate" min="1" max="20" value="5">
+                </div>
+                <div class="control-group">
+                    <label for="metabolism">Organism Metabolism: <span id="metaVal">1.0</span>x</label>
+                    <input type="range" id="metabolism" min="0.5" max="3.0" step="0.1" value="1.0">
+                </div>
+                <div class="control-group">
+                    <label for="mutation">Mutation Rate: <span id="mutVal">10</span>%</label>
+                    <input type="range" id="mutation" min="0" max="50" value="10">
+                </div>
+            </div>
+            <div class="stats">
+                <div>Alive Organisms: <span id="orgCount">0</span></div>
+                <div>Available Food: <span id="foodCount">0</span></div>
+                <div>System State: <span id="ecoState">Stable Equilibrium</span></div>
+            </div>
+        </div>
+
+        <div class="card" id="mod-1">
+            <p class="instructions"><b>Boolean Logic & Routing:</b> Click nodes to toggle input switches (0 or 1). Observe how signals propagate through gates to light up the target output node.</p>
+            <canvas id="logicCanvas"></canvas>
+            <div class="controls">
+                <div class="control-group">
+                    <label>Interactive Controls</label>
+                    <button class="btn-action" onclick="toggleLogicInputs()">Toggle Input A & B</button>
+                </div>
+                <div class="control-group">
+                    <label>Circuit Challenge</label>
+                    <span style="font-size:0.85rem; color: var(--text);">Goal: Make Output Lamp glow GREEN (Requires A AND (B OR NOT A))</span>
+                </div>
+            </div>
+            <div class="stats">
+                <div>Input A: <span id="valA">0</span></div>
+                <div>Input B: <span id="valB">0</span></div>
+                <div>Gate State: <span id="valGate">INACTIVE</span></div>
+                <div>Output Status: <span id="valOut" style="color:red">OFF</span></div>
+            </div>
+        </div>
+
+        <div class="card" id="mod-2">
+            <p class="instructions"><b>Generative AI & Latent Geometry:</b> Drag weight sliders to move across a 2D latent space. Watch shapes interpolate between archetypes in real-time.</p>
+            <canvas id="synthCanvas"></canvas>
+            <div class="controls">
+                <div class="control-group">
+                    <label for="weightX">Latent Dimension X ($w_1$): <span id="wxVal">0.00</span></label>
+                    <input type="range" id="weightX" min="0" max="1" step="0.01" value="0">
+                </div>
+                <div class="control-group">
+                    <label for="weightY">Latent Dimension Y ($w_2$): <span id="wyVal">0.00</span></label>
+                    <input type="range" id="weightY" min="0" max="1" step="0.01" value="0">
+                </div>
+                <div class="control-group">
+                    <label>Audio Feedback</label>
+                    <button class="btn-action" id="audioBtn" onclick="toggleAudio()">Enable Audio Synth</button>
+                </div>
+            </div>
+            <div class="stats">
+                <div>Current Archetype Blend: <span id="blendState">Pure Circle</span></div>
+                <div>Synthesized Pitch: <span id="pitchState">220.0 Hz</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(index) {
+            document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+            document.querySelectorAll('.card').forEach((card, i) => card.classList.toggle('active', i === index));
+            resizeCanvases();
+        }
+
+        function resizeCanvases() {
+            [ecoCanvas, logicCanvas, synthCanvas].forEach(c => {
+                c.width = c.parentElement.clientWidth - 48;
+                c.height = 360;
+            });
+        }
+        window.addEventListener('resize', resizeCanvases);
+
+        const ecoCanvas = document.getElementById('ecoCanvas');
+        const ecoCtx = ecoCanvas.getContext('2d');
+        let organisms = [];
+        let foods = [];
+
+        class Organism {
+            constructor(x, y, energy, speed) {
+                this.x = x; this.y = y; this.energy = energy; this.speed = speed;
+                this.vx = (Math.random() - 0.5) * speed;
+                this.vy = (Math.random() - 0.5) * speed;
+            }
+            update(meta) {
+                this.x += this.vx; this.y += this.vy;
+                if (this.x < 0 || this.x > ecoCanvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > ecoCanvas.height) this.vy *= -1;
+                this.energy -= 0.15 * meta;
+            }
+            draw() {
+                ecoCtx.fillStyle = this.energy > 50 ? '#34d399' : '#f59e0b';
+                ecoCtx.beginPath(); ecoCtx.arc(this.x, this.y, 4, 0, Math.PI * 2); ecoCtx.fill();
+            }
+        }
+
+        for(let i=0; i<15; i++) organisms.push(new Organism(Math.random()*800, Math.random()*360, 100, 2));
+        for(let i=0; i<30; i++) foods.push({x: Math.random()*800, y: Math.random()*360});
+
+        ecoCanvas.addEventListener('click', (e) => {
+            const rect = ecoCanvas.getBoundingClientRect();
+            for(let i=0; i<3; i++) foods.push({x: e.clientX - rect.left, y: e.clientY - rect.top});
+        });
+
+        function updateEco() {
+            ecoCtx.fillStyle = '#0d1410';
+            ecoCtx.fillRect(0, 0, ecoCanvas.width, ecoCanvas.height);
+            const meta = parseFloat(document.getElementById('metabolism').value);
+            const spawnRate = parseInt(document.getElementById('spawnRate').value);
+            const mutRate = parseInt(document.getElementById('mutation').value);
+
+            if (Math.random() < spawnRate * 0.05) {
+                foods.push({x: Math.random()*ecoCanvas.width, y: Math.random()*ecoCanvas.height});
+            }
+
+            ecoCtx.fillStyle = '#6ee7b7';
+            foods.forEach(f => ecoCtx.fillRect(f.x, f.y, 3, 3));
+
+            for (let i = organisms.length - 1; i >= 0; i--) {
+                let o = organisms[i];
+                o.update(meta);
+                o.draw();
+                for (let j = foods.length - 1; j >= 0; j--) {
+                    let f = foods[j];
+                    if (Math.hypot(o.x - f.x, o.y - f.y) < 8) {
+                        o.energy += 40;
+                        foods.splice(j, 1);
+                        if (o.energy > 160) {
+                            o.energy = 80;
+                            organisms.push(new Organism(o.x, o.y, 80, o.speed));
+                        }
+                        break;
+                    }
+                }
+                if (o.energy <= 0) organisms.splice(i, 1);
+            }
+
+            document.getElementById('orgCount').textContent = organisms.length;
+            document.getElementById('foodCount').textContent = foods.length;
+        }
+
+        const logicCanvas = document.getElementById('logicCanvas');
+        const logicCtx = logicCanvas.getContext('2d');
+        let inputA = 0, inputB = 0;
+
+        function toggleLogicInputs() {
+            inputA = inputA === 0 ? 1 : 0;
+            if (inputA === 0) inputB = inputB === 0 ? 1 : 0;
+        }
+
+        function updateLogic() {
+            logicCtx.fillStyle = '#0d1410';
+            logicCtx.fillRect(0, 0, logicCanvas.width, logicCanvas.height);
+            let notA = inputA === 0 ? 1 : 0;
+            let orGate = (inputB === 1 || notA === 1) ? 1 : 0;
+            let andGate = (inputA === 1 && orGate === 1) ? 1 : 0;
+            let w = logicCanvas.width, h = logicCanvas.height;
+
+            drawNode(logicCtx, w * 0.15, h * 0.3, "Input A", inputA);
+            drawNode(logicCtx, w * 0.15, h * 0.7, "Input B", inputB);
+            drawNode(logicCtx, w * 0.45, h * 0.3, "NOT A", notA);
+            drawNode(logicCtx, w * 0.65, h * 0.5, "OR Gate", orGate);
+            drawNode(logicCtx, w * 0.85, h * 0.5, "Output Lamp", andGate, true);
+
+            drawWire(logicCtx, w * 0.15, h * 0.3, w * 0.45, h * 0.3, inputA);
+            drawWire(logicCtx, w * 0.15, h * 0.7, w * 0.65, h * 0.5, inputB);
+            drawWire(logicCtx, w * 0.45, h * 0.3, w * 0.65, h * 0.5, notA);
+            drawWire(logicCtx, w * 0.65, h * 0.5, w * 0.85, h * 0.5, orGate);
+
+            document.getElementById('valA').textContent = inputA;
+            document.getElementById('valB').textContent = inputB;
+            document.getElementById('valGate').textContent = andGate ? "SATISFIED (1)" : "UNSATISFIED (0)";
+            let outEl = document.getElementById('valOut');
+            outEl.textContent = andGate ? "GLOWING GREEN" : "OFF";
+            outEl.style.color = andGate ? "#34d399" : "#ef4444";
+        }
+
+        function drawNode(ctx, x, y, label, val, isLamp=false) {
+            ctx.fillStyle = val === 1 ? (isLamp ? '#34d399' : '#2e6944') : '#1e2922';
+            ctx.strokeStyle = '#4e6e5d'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(x, y, 28, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#ffffff'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(label, x, y - 38); ctx.fillText(val, x, y + 4);
+        }
+
+        function drawWire(ctx, x1, y1, x2, y2, active) {
+            ctx.strokeStyle = active === 1 ? '#34d399' : '#334135';
+            ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        }
+
+        const synthCanvas = document.getElementById('synthCanvas');
+        const synthCtx = synthCanvas.getContext('2d');
+        let audioCtx = null, oscillator = null, gainNode = null, audioActive = false;
+
+        function toggleAudio() {
+            if (!audioActive) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioCtx.createOscillator();
+                gainNode = audioCtx.createGain();
+                oscillator.type = 'sine'; oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination); gainNode.gain.value = 0.05;
+                oscillator.start(); audioActive = true;
+                document.getElementById('audioBtn').textContent = "Disable Audio Synth";
+            } else {
+                oscillator.stop(); audioCtx.close(); audioActive = false;
+                document.getElementById('audioBtn').textContent = "Enable Audio Synth";
+            }
+        }
+
+        function updateSynth() {
+            synthCtx.fillStyle = '#0d1410';
+            synthCtx.fillRect(0, 0, synthCanvas.width, synthCanvas.height);
+            const wx = parseFloat(document.getElementById('weightX').value);
+            const wy = parseFloat(document.getElementById('weightY').value);
+            document.getElementById('wxVal').textContent = wx.toFixed(2);
+            document.getElementById('wyVal').textContent = wy.toFixed(2);
+
+            let cx = synthCanvas.width / 2, cy = synthCanvas.height / 2, radius = 80;
+            synthCtx.strokeStyle = '#34d399'; synthCtx.fillStyle = 'rgba(52, 211, 153, 0.15)'; synthCtx.lineWidth = 3;
+            synthCtx.beginPath();
+            for (let i = 0; i <= 60; i++) {
+                let theta = (i / 60) * Math.PI * 2;
+                let r = radius * (1.0 + 0.3 * wx * Math.sin(5 * theta) - 0.2 * wy * Math.cos(4 * theta));
+                let x = cx + r * Math.cos(theta), y = cy + r * Math.sin(theta);
+                if (i === 0) synthCtx.moveTo(x, y); else synthCtx.lineTo(x, y);
+            }
+            synthCtx.closePath(); synthCtx.fill(); synthCtx.stroke();
+
+            let freq = 150 + (wx * 300) + (wy * 150);
+            if (audioActive && oscillator) {
+                oscillator.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.05);
+            }
+            document.getElementById('pitchState').textContent = freq.toFixed(1) + " Hz";
+        }
+
+        document.getElementById('weightX').addEventListener('input', updateSynth);
+        document.getElementById('weightY').addEventListener('input', updateSynth);
+
+        function mainLoop() {
+            updateEco(); updateLogic(); updateSynth();
+            requestAnimationFrame(mainLoop);
+        }
+
+        resizeCanvases();
+        mainLoop();
+    </script>
+</body>
+</html>
